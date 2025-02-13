@@ -2,20 +2,119 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+body {
+  font-family: var(--font-inter);
+  /* background-color: #181818;
+  color: white; */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer utilities {
+  @variants responsive {
+    .masonry {
+      column-gap: 1.5em;
+      column-count: 1;
+    }
+    .masonry-sm {
+      column-gap: 1.5em;
+      column-count: 2;
+    }
+    .masonry-md {
+      column-gap: 1.5em;
+      column-count: 3;
+    }
+    .break-inside {
+      break-inside: avoid;
+    }
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+.react-resizable-handle {
+  background-image: none;
+  padding: 0;
+  /* background-color: yellow; */
+}
+.react-grid-item > .react-resizable-handle.react-resizable-handle-n,
+.react-grid-item > .react-resizable-handle.react-resizable-handle-e,
+.react-grid-item > .react-resizable-handle.react-resizable-handle-s,
+.react-grid-item > .react-resizable-handle.react-resizable-handle-w,
+.react-grid-item > .react-resizable-handle.react-resizable-handle-ne,
+.react-grid-item > .react-resizable-handle.react-resizable-handle-nw,
+.react-grid-item > .react-resizable-handle.react-resizable-handle-se,
+.react-grid-item > .react-resizable-handle.react-resizable-handle-sw {
+  transform: none;
+  margin: 0;
+}
+.react-grid-item > .react-resizable-handle::after {
+  border: none;
+  content: none;
+}
+
+.react-draggable-dragging {
+  @apply opacity-90 backdrop-blur-xl  bg-white scale-110 z-50    drop-shadow-2xl shadow-black/60;
+}
+.react-grid-item.react-grid-placeholder {
+  background-color: rgb(212 212 212 / 0.4) !important;
+  border: 0px solid transparent !important;
+  @apply rounded-2xl;
+}
+
+.react-grid-item {
+  @apply transition-[width,height,transform];
+}
+
+.container {
+  @apply grid grid-cols-4 grid-rows-9;
+}
+
+.slot {
+  border-radius: 10px;
+}
+
+.slot[data-swapy-highlighted] {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.item {
+  border-radius: 10px;
+  width: 100%;
+  height: 100px;
+}
+
+.item-a {
+  background: #10b981;
+  @apply col-span-2;
+}
+
+.item-b {
+  background: #be123c;
+}
+
+.item-c {
+  background: #4338ca;
+}
+
+.item-d {
+  background: #7e22ce;
+}
+
+.item:has(.handle) {
+  position: relative;
+}
+
+.handle {
+  cursor: grab;
+  width: 24px;
+  height: 24px;
+  /* background-image: url(./handle.svg); */
+  opacity: 0.5;
+  position: absolute;
+  top: 14px;
+  left: 10px;
 }
