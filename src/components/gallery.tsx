@@ -17,6 +17,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import { Button } from "./ui/button";
 import { useLocalStorage } from "@mantine/hooks";
+import { set } from "zod";
 
 const breakpoints = {
   sm: 768,
@@ -53,8 +54,6 @@ const sizes = {
 };
 
 const Gallery = () => {
-  const [__, setStoredLayout] = useLocalStorage({ key: "layout" });
-  const [_, setStoredMap] = useLocalStorage({ key: "map" });
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const map = useMap();
   const ResponsiveReactGridLayout = useMemo(
@@ -96,7 +95,19 @@ const Gallery = () => {
   };
 
   return (
-    <div className="w-full relative ">
+    <div id="gallery" className="w-full relative ">
+      {/* <Button
+        onClick={() => {
+          const n = items.map((i) => ({
+            ...i,
+            static: i.static ? false : true,
+          }));
+          setItems(n);
+        }}
+      >
+        Editable
+      </Button> */}
+
       <ResponsiveReactGridLayout
         className="layout relative w-full "
         breakpoints={breakpoints}
@@ -159,7 +170,7 @@ const Gallery = () => {
                   </span>
                 </div>
               )}
-              {hoveredNode === item.i && (
+              {hoveredNode === item.i && !item.static && (
                 <>
                   <button
                     onClick={() => {

@@ -4,15 +4,22 @@ import React, {
   ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useState,
 } from "react";
 import { Item } from "./types";
-import { useLocalStorage } from "@mantine/hooks";
-import { text } from "stream/consumers";
+import Gallery from "@/components/gallery";
+
+type TSection = {
+  id: string;
+  name: string;
+  component: ReactNode;
+};
+
 type TAppContext = {
   items: Item[];
   setItems: React.Dispatch<React.SetStateAction<Item[]>>;
+  sections: TSection[];
+  setSections: React.Dispatch<React.SetStateAction<TSection[]>>;
   map: Map<string, Record<string, any>>;
   set: (key: string, value: Record<string, any>) => void;
   remove: (key: string) => void;
@@ -57,6 +64,8 @@ initMap.set("7a16e47e-a462-46ba-b245-41a5fd924bce", {
 const AppContext = createContext<TAppContext>({
   items: [],
   setItems: () => {},
+  sections: [],
+  setSections: () => {},
   map: new Map(),
   set: () => {},
   clear: () => {},
@@ -75,20 +84,41 @@ export const useMap = () => {
   const { map, set, remove, clear, has, get } = ctx;
   return { map, set, remove, clear, has, get };
 };
+export const useSections = () => {
+  const ctx = useContext(AppContext);
+
+  return { sections: ctx.sections, setSections: ctx.setSections };
+};
+
+const sectionsList: TSection[] = [
+  { id: "gallery", name: "Gallery", component: <Gallery /> },
+  {
+    id: "projects",
+    name: "Projects",
+    component: <div id="projects">Projects</div>,
+  },
+  {
+    id: "experiences",
+    name: "Experiences",
+    component: <div id="experiences">Experiences</div>,
+  },
+  {
+    id: "education",
+    name: "Education",
+    component: <div id="education">Education</div>,
+  },
+  {
+    id: "writings",
+    name: "Writings",
+    component: <div id="writings">Writings</div>,
+  },
+];
 
 const Context = ({ children }: { children: ReactNode }) => {
   const storedLayout = JSON.parse(localStorage.getItem("layout") as string);
   const storedMap = JSON.parse(localStorage.getItem("map") as string);
-  // const [storedLayout] = useLocalStorage({
-  //   key: "layout",
-  //   defaultValue: layout,
-  // });
-
-  // const [storedMap] = useLocalStorage({
-  //   key: "map",
-  //   defaultValue: initMap,
-  // });
   console.log({ storedLayout, s: new Map(storedMap) });
+  const [sections, setSections] = useState<TSection[]>(sectionsList);
   const [items, setItems] = React.useState<Item[]>(storedLayout || layout);
   const [map, setMap] = useState((new Map(storedMap) as any) || initMap);
 
@@ -114,7 +144,18 @@ const Context = ({ children }: { children: ReactNode }) => {
   return (
     <div className="w-full ">
       <AppContext.Provider
-        value={{ items, setItems, clear, map, set, remove, has, get }}
+        value={{
+          items,
+          setItems,
+          clear,
+          map,
+          set,
+          remove,
+          has,
+          get,
+          sections,
+          setSections,
+        }}
       >
         {children}
       </AppContext.Provider>
