@@ -50,6 +50,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
+    authorized: async (data) => {
+      console.log(data);
+      return !!data?.auth;
+    },
     async jwt(data) {
       const { token, user, account, trigger, session } = data;
       if (user) {

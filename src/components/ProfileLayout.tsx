@@ -20,9 +20,7 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({ children }) => {
       </ResizablePanel>
       <ResizablePanel className="w-full h-screen  ">
         <ScrollArea className="h-screen overflow-y-auto relative w-full ">
-          <div className="w-full mt-28 mb-10 flex flex-col px-4">
-            {children}
-          </div>
+          <div className="w-full mt-28 mb-10 flex flex-col ">{children}</div>
           <div className="absolute right-0 left-0  flex items-center justify-center w-full">
             <div className="fixed bottom-4 z-50">
               <Dock />
