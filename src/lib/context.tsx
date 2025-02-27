@@ -8,6 +8,8 @@ import React, {
 } from "react";
 import { Item } from "./types";
 import Gallery from "@/components/gallery";
+import Tiptap from "@/components/editor/editor";
+import Projects from "@/components/writings/writings";
 
 type TSection = {
   id: string;
@@ -95,7 +97,7 @@ const sectionsList: TSection[] = [
   {
     id: "projects",
     name: "Projects",
-    component: <div id="projects">Projects</div>,
+    component: <Projects />,
   },
   {
     id: "experiences",

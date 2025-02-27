@@ -132,3 +132,12 @@ export async function getBase64Image(file: File, image: string) {
 export function cleanUrl(url: string): string {
   return url.replace(/^https?:\/\//, "");
 }
+
+export const isImageUrl = (url: string): boolean => {
+  const imageRegex = /\.(jpeg|jpg|png|gif|bmp|webp|svg)$/i;
+  return imageRegex.test(url);
+};
+export const isVideoUrl = (url: string): boolean => {
+  const videoRegex = /\.(mp4|webm|gif)$/i;
+  return videoRegex.test(url);
+};

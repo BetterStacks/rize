@@ -9,6 +9,9 @@ export default {
   ],
   theme: {
     extend: {
+      colors: {
+        "dark-border": "#323232",
+      },
       fontFamily: {
         instrument: ["var(--font-instrument)", "serif"],
       },

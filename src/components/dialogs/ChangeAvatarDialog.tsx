@@ -35,6 +35,10 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
   }, [file]);
 
   useEffect(() => {
+    if (!file || !image) {
+      console.log("file or image not selecterd");
+      return;
+    }
     const showCroppedImage = async () => {
       try {
         const croppedImage = await getCroppedImg(
@@ -101,6 +105,7 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
               console.log({ url });
               const formData = new FormData();
               formData.append("file", url as string);
+              formData.append("type", "avatar");
 
               const res = await fetch("/api/upload", {
                 method: "POST",

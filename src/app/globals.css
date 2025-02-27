@@ -6,6 +6,7 @@ body {
   font-family: var(--font-inter);
   /* background-color: #181818;
   color: white; */
+  overflow-x: hidden;
 }
 
 @layer utilities {
@@ -50,7 +51,7 @@ body {
 }
 
 .react-draggable-dragging {
-  @apply opacity-90 backdrop-blur-xl  bg-white scale-110 z-50    drop-shadow-2xl shadow-black/60;
+  @apply opacity-90 backdrop-blur-xl  bg-white  scale-110 z-50    drop-shadow-2xl shadow-black/60;
 }
 .react-grid-item.react-grid-placeholder {
   background-color: rgb(212 212 212 / 0.4) !important;
@@ -59,62 +60,8 @@ body {
 }
 
 .react-grid-item {
-  @apply transition-[width,height,transform];
+  @apply transition-[width,height,transform] dark:border-dark-border;
 }
 
-.container {
-  @apply grid grid-cols-4 grid-rows-9;
-}
-
-.slot {
-  border-radius: 10px;
-}
-
-.slot[data-swapy-highlighted] {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.item {
-  border-radius: 10px;
-  width: 100%;
-  height: 100px;
-}
-
-.item-a {
-  background: #10b981;
-  @apply col-span-2;
-}
-
-.item-b {
-  background: #be123c;
-}
-
-.item-c {
-  background: #4338ca;
-}
-
-.item-d {
-  background: #7e22ce;
-}
-
-.item:has(.handle) {
-  position: relative;
-}
-
-.handle {
-  cursor: grab;
-  width: 24px;
-  height: 24px;
-  /* background-image: url(./handle.svg); */
-  opacity: 0.5;
-  position: absolute;
-  top: 14px;
-  left: 10px;
+@layer base {
 }

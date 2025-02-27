@@ -3,16 +3,17 @@ import type { Metadata } from "next";
 import { Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
 import Dialogs from "@/components/dialogs";
-const inter = Inter({
-  variable: "--font-inter",
-  // subsets: ["latin"],
-});
 
-const instrument = Instrument_Serif({
-  variable: "--font-instrument",
-  subsets: ["latin"],
-  weight: ["400"],
-});
+// const inter = Inter({
+//   variable: "--font-inter",
+//   // subsets: ["latin"],
+// });
+
+// const instrument = Instrument_Serif({
+//   variable: "--font-instrument",
+//   subsets: ["latin"],
+//   weight: ["400"],
+// });
 
 // const geistMono = Geist_Mono({
 //   variable: "--font-geist-mono",
@@ -31,9 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.className} ${instrument.variable}  antialiased`}
-      >
+      <body className={` antialiased`}>
         <Providers>
           <Dialogs />
           <main>{children}</main>

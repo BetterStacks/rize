@@ -2,11 +2,26 @@
 
 import ClaimUsernameForm from "@/components/claim-username";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
+import Link from "next/link";
 export default function Home() {
   const session = useSession();
   console.log(session);
   return (
     <div className="w-full h-screen flex items-center justify-center">
+      {session?.data?.user?.image && (
+        <div className="absolute top-4 right-4">
+          <Link href={`/${session?.data?.user?.username}`}>
+            <Image
+              src={session?.data?.user?.image}
+              alt="pfp"
+              width={50}
+              height={50}
+              className=" size-10 aspect-square rounded-full"
+            />
+          </Link>
+        </div>
+      )}
       <div className="flex flex-col items-center justify-center gap-3">
         <h1 className="text-3xl md:text-4xl text-center font-semibold font-instrument tracking-wide">
           {/* {session?.data ? (
