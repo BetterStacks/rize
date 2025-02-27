@@ -10,7 +10,10 @@ type UpdateStateFunctionType = (isOpen: boolean) => void;
 
 type DialogContextType = {
   isChangeAvatarDialogOpen: boolean;
+  isCreatePageDialogOpen: boolean;
   isUpdateProfileDialogOpen?: boolean;
+  isSocialLinksDialogOpen?: boolean;
+  isAddExperienceDialogOpen?: boolean;
 };
 
 type setDialogContextType = [
@@ -18,11 +21,18 @@ type setDialogContextType = [
   {
     setIsChangeAvatarDialogOpen: UpdateStateFunctionType;
     setIsUpdateProfileDialogOpen: UpdateStateFunctionType;
+    setIsCreatePageDialogOpen: UpdateStateFunctionType;
+    setIsSocialLinksDialogOpen: UpdateStateFunctionType;
+    setIsAddExperienceDialogOpen: UpdateStateFunctionType;
   }
 ];
 
 const defaultContextState: DialogContextType = {
   isChangeAvatarDialogOpen: false,
+  isUpdateProfileDialogOpen: false,
+  isCreatePageDialogOpen: false,
+  isSocialLinksDialogOpen: false,
+  isAddExperienceDialogOpen: false,
 };
 
 const DialogContext = createContext([
@@ -30,6 +40,9 @@ const DialogContext = createContext([
   {
     setIsChangeAvatarDialogOpen: () => {},
     setIsUpdateProfileDialogOpen: () => {},
+    setIsCreatePageDialogOpen: () => {},
+    setIsSocialLinksDialogOpen: () => {},
+    setIsAddExperienceDialogOpen: () => {},
   },
 ] as setDialogContextType);
 
@@ -45,6 +58,7 @@ export const useAvatarDialog = () => {
     context[1].setIsChangeAvatarDialogOpen,
   ] as const;
 };
+
 export const useProfileDialog = () => {
   const context = useContext(DialogContext);
   if (!context) {
@@ -57,6 +71,40 @@ export const useProfileDialog = () => {
     context[1].setIsUpdateProfileDialogOpen,
   ] as const;
 };
+export const usePageDialog = () => {
+  const context = useContext(DialogContext);
+  if (!context) {
+    throw new Error("usePageDialog must be used within DialogContextProvider");
+  }
+  return [
+    context[0].isCreatePageDialogOpen,
+    context[1].setIsCreatePageDialogOpen,
+  ] as const;
+};
+export const useSocialLinksDialog = () => {
+  const context = useContext(DialogContext);
+  if (!context) {
+    throw new Error(
+      "useSocialLinksDialog must be used within DialogContextProvider"
+    );
+  }
+  return [
+    context[0].isSocialLinksDialogOpen,
+    context[1].setIsSocialLinksDialogOpen,
+  ] as const;
+};
+export const useExperienceDialog = () => {
+  const context = useContext(DialogContext);
+  if (!context) {
+    throw new Error(
+      "useExperienceDialog must be used within DialogContextProvider"
+    );
+  }
+  return [
+    context[0].isAddExperienceDialogOpen,
+    context[1].setIsAddExperienceDialogOpen,
+  ] as const;
+};
 
 const DialogContextProvider = ({ children }: { children: ReactNode }) => {
   const [openContext, setOpenContext] =
@@ -67,9 +115,27 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
     },
     [openContext, setOpenContext]
   );
+  const setIsCreatePageDialogOpen = useCallback(
+    (isOpen: boolean) => {
+      setOpenContext({ ...openContext, isCreatePageDialogOpen: isOpen });
+    },
+    [openContext, setOpenContext]
+  );
   const setIsUpdateProfileDialogOpen = useCallback(
     (isOpen: boolean) => {
       setOpenContext({ ...openContext, isUpdateProfileDialogOpen: isOpen });
+    },
+    [openContext, setOpenContext]
+  );
+  const setIsSocialLinksDialogOpen = useCallback(
+    (isOpen: boolean) => {
+      setOpenContext({ ...openContext, isSocialLinksDialogOpen: isOpen });
+    },
+    [openContext, setOpenContext]
+  );
+  const setIsAddExperienceDialogOpen = useCallback(
+    (isOpen: boolean) => {
+      setOpenContext({ ...openContext, isAddExperienceDialogOpen: isOpen });
     },
     [openContext, setOpenContext]
   );
@@ -77,7 +143,13 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
     <DialogContext.Provider
       value={[
         openContext,
-        { setIsChangeAvatarDialogOpen, setIsUpdateProfileDialogOpen },
+        {
+          setIsChangeAvatarDialogOpen,
+          setIsUpdateProfileDialogOpen,
+          setIsCreatePageDialogOpen,
+          setIsSocialLinksDialogOpen,
+          setIsAddExperienceDialogOpen,
+        },
       ]}
     >
       {children}

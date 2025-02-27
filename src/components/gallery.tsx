@@ -133,7 +133,7 @@ const Gallery = () => {
               onMouseLeave={() => setHoveredNode(null)}
               key={item.i}
               className={cn(
-                " border-2 select-none p-3 relative rounded-3xl  bg-white",
+                " border-2 select-none p-3 relative rounded-3xl  bg-white dark:bg-[#282828]",
                 hoveredNode === item.i && "z-40",
                 itemInMap?.type === "link" && "cursor-pointer",
                 itemInMap?.type === "image" && "cursor-pointer p-0"
@@ -142,7 +142,7 @@ const Gallery = () => {
               {itemInMap?.type === "link" && (
                 <>
                   <Link target="_blank" href={itemInMap?.url as string}>
-                    <div className="p-2 w-fit rounded-xl border border-neutral-300">
+                    <div className="p-2 w-fit rounded-xl border border-neutral-300 dark:border-[#363636]">
                       <Link2 className="-rotate-45 size-4 opacity-80" />
                     </div>
                   </Link>

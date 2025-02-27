@@ -62,7 +62,7 @@ export function ProfileUpdateDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-2xl w-full md:rounded-3xl">
+      <DialogContent className="max-w-2xl  w-full md:rounded-3xl">
         <DialogHeader>
           <DialogTitle>Update Profile</DialogTitle>
         </DialogHeader>

@@ -1,6 +1,16 @@
 "use client";
 import { cleanUrl, cn } from "@/lib/utils";
-import { AlignJustify, Edit3, Link2, MoreHorizontal } from "lucide-react";
+import {
+  AlignJustify,
+  Bell,
+  Edit3,
+  Home,
+  Link2,
+  MoreHorizontal,
+  Search,
+  Settings,
+  UserRound,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
@@ -41,86 +51,46 @@ const Sidebar = () => {
     setFile(files[0]);
     setIsOpen(true);
   };
+  const options = [
+    { id: 1, name: "Home", icon: <Home className="opacity-80" size={24} /> },
+    {
+      id: 3,
+      name: "Search",
+      icon: <Search className="opacity-80" size={24} />,
+    },
+    {
+      id: 4,
+      name: "Notifications",
+      icon: <Bell className="opacity-80" size={24} />,
+    },
+    {
+      id: 2,
+      name: "Account",
+      icon: <UserRound className="opacity-80" size={24} />,
+    },
+    {
+      id: 5,
+      name: "Settings",
+      icon: <Settings className="opacity-80" size={24} />,
+    },
+  ];
   return (
-    <div className={cn("h-screen  w-full border-r border-neutral-200")}>
-      <ChangeAvatarDialog file={file} setFile={setFile} />
-
-      <div className="pt-10 w-full flex flex-col items-center justify-start px-4">
-        <div className="w-full px-2 pb-2 flex flex-col items-start justify-center">
+    <div
+      className={cn(
+        "md:h-screen  md:w-[80px]  flex flex-col items-center justify-start border-r border-neutral-200  dark:border-dark-border/60"
+      )}
+    >
+      <div className="flex w-full flex-row md:flex-col md:mt-24 items-center justify-center gap-y-2">
+        {options.map((option) => (
           <div
-            className={cn(
-              "relative group border border-neutral-300 rounded-full  md:size-24 lg:size-28 xl:size-36 aspect-square ",
-              status === "loading" &&
-                "animate-pulse bg-neutral-300 rounded-full"
-            )}
+            className="size-12 flex items-center justify-center"
+            key={option.id}
           >
-            <input
-              onChange={handleChange}
-              type="file"
-              className="hidden"
-              id="profile-input"
-            />
-            <button className="absolute z-10 group-hover:opacity-100 opacity-0 transition-all duration-100 ease-in border border-neutral-300 bg-white p-1.5 rounded-full left-1 bottom-1 drop-shadow-lg shadow-black/80 ">
-              <label htmlFor="profile-input">
-                <Edit3 className="size-5 " />
-              </label>
-            </button>
-            {data?.user?.image && (
-              <Image
-                className=" rounded-full w-full aspect-square"
-                src={data?.user?.image as string}
-                fill
-                style={{
-                  objectFit: "cover",
-                }}
-                quality={100}
-                priority
-                alt={`${data?.user?.name}`}
-              />
-            )}{" "}
+            {option?.icon}
           </div>
-          <div className="w-full flex items-center justify-center">
-            <div className="w-full mt-4 flex  flex-col items-start justify-start">
-              {status === "loading" && (
-                <>
-                  <Skeleton className="h-8 w-full rounded-xl animate-pulse bg-neutral-300 " />
-                  <Skeleton className="h-6 mt-2 w-[60%] rounded-xl animate-pulse bg-neutral-300 " />
-                </>
-              )}
-              <h3 className="text-3xl leading-tight font-bold">
-                {data?.user?.name}
-              </h3>
-            </div>
-            <div>
-              <Button
-                variant={"outline"}
-                size={"icon"}
-                onClick={() => setOpen(true)}
-              >
-                <MoreHorizontal className="size-5 opacity-80" />
-              </Button>
-            </div>
-          </div>
-          <div className="flex flex-col items-start justify-start mt-2 w-full">
-            {data?.user?.website && (
-              <Link href={data?.user?.website} target="_blank">
-                <div className="flex items-center justify-center">
-                  <div className="p-1 w-fit rounded-md border border-neutral-300">
-                    <Link2 className="-rotate-45 size-4 opacity-80" />
-                  </div>
-                  <span className="ml-2 opacity-80">
-                    {cleanUrl(data?.user?.website as string)}
-                  </span>
-                </div>
-              </Link>
-            )}
-            {data?.user?.bio && (
-              <div className="mt-2">
-                <p className="">{data?.user?.bio} </p>
-              </div>
-            )}
-          </div>
-        </div>
+        ))}
+      </div>
+      {/* <div className="pt-10 w-full flex flex-col items-center justify-start px-4">
         <div className="w-full flex flex-col mt-10">
           <DndContext
             collisionDetection={closestCenter}
@@ -140,7 +110,7 @@ const Sidebar = () => {
             </SortableContext>
           </DndContext>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
@@ -164,7 +134,7 @@ function SortableItem({ id, name }: { [key: string]: string }) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "p-2 mb-2 bg-white w-full flex items-center justify-between border border-neutral-200   rounded-lg cursor-pointer",
+        "p-2 mb-2 bg-white w-full flex items-center justify-between border border-neutral-200 dark:border-dark-border dark:bg-neutral-800   rounded-lg cursor-pointer",
         isDragging && "drop-shadow-xl z-10 shadow-black/40 "
       )}
     >

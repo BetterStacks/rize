@@ -114,22 +114,7 @@ const GalleryItem = forwardRef<HTMLDivElement, GalleryItemProps>(
             </button>
             <div className="absolute  rounded-2xl -bottom-8 scale- right-0 left-0 w-fit space-x-1 p-1 bg-black ">
               {Object.entries(itemSizes).map(([key, { icon }]) => (
-                <Button
-                  key={key}
-                  onClick={() => {
-                    // const size = sizes[activeBreakPoint as keyof typeof sizes];
-                    // console.log({ activeBreakPoint, size });
-                    // setItems((prev) =>
-                    //   prev.map((i) =>
-                    //     i.i === item.i
-                    //       ? { ...i, ...size[key as keyof typeof itemSizes] }
-                    //       : i
-                    //   )
-                    // );
-                  }}
-                  size={"sm"}
-                  className="rounded-xl"
-                >
+                <Button key={key} size={"sm"} className="rounded-xl">
                   {icon}
                 </Button>
               ))}

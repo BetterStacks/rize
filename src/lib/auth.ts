@@ -1,5 +1,8 @@
+import { profile } from "@/db/schema";
 import { compareSync } from "bcryptjs";
+import { eq } from "drizzle-orm";
 import NextAuth, { DefaultSession } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
@@ -9,9 +12,6 @@ import {
   getServerCookie,
   userExists,
 } from "./server-actions";
-import { profile } from "@/db/schema";
-import { JWT } from "next-auth/jwt";
-import { eq } from "drizzle-orm";
 
 declare module "next-auth/jwt" {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
@@ -20,6 +20,7 @@ declare module "next-auth/jwt" {
     id: string;
     image: string;
     username: string;
+    profileId: string;
     website?: string;
     pronouns?: "he/him" | "she/her" | "they/them" | "other";
     location?: string;
@@ -34,6 +35,7 @@ declare module "next-auth" {
     user: {
       id: string;
       username: string;
+      profileId: string;
       website?: string;
       pronouns?: "he/him" | "she/her" | "they/them" | "other";
       location?: string;
@@ -64,6 +66,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           .where(eq(profile.userId, user?.id as string))
           .limit(1);
         token.username = username[0].username as string;
+        token.profileId = username[0].id as string;
       }
 
       if (trigger === "update") {
@@ -103,6 +106,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       let { trigger, user, session, token } = data;
       // console.log({ insideSession: token });
       session.user.id = token.id;
+      session.user.profileId = token.profileId;
       session.user.image = token.image;
       session.user.username = token.username;
       session.user.website = token.website;
@@ -166,6 +170,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  trustHost: true,
   // adapter: DrizzleAdapter(db),
 });
 // import { account, profile, session, user, verification } from "@/db/schema";

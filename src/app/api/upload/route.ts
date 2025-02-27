@@ -10,19 +10,33 @@ cloudinary.config({
 export async function POST(req: NextRequest) {
   try {
     const data = await req.formData();
+    let options: Record<string, any> = {};
+    const type = data.get("type") as string;
     const file = data.get("file") as string; // file
+    console.log({ data });
     if (!file) {
       throw new Error("No file found");
     }
-    const upload = await cloudinary.uploader.upload(file, {
-      folder: "fyp-stacks/avatar",
-      transformation: [{ radius: "max" }],
-    });
+    if (type === "avatar") {
+      options = {
+        folder: "fyp-stacks/avatar",
+        transformation: [{ radius: "max" }],
+      };
+    } else if (type === "gallery") {
+      options = {
+        folder: "fyp-stacks/gallery",
+        transformation: [{ width: 500, aspect_ratio: "1.0", height: 500 }],
+      };
+    }
+    const upload = await cloudinary.uploader.upload(file, options);
     console.log({ upload });
-    return Response.json({
-      message: "File uploaded successfully",
-      url: upload.secure_url,
-    });
+    return Response.json(
+      {
+        message: "File uploaded successfully",
+        url: upload.secure_url,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     return Response.json(
       { message: "Cloudinary upload failed", error: (error as Error).message },
