@@ -27,6 +27,7 @@ declare module "next-auth/jwt" {
     bio?: string;
     age?: number;
     emoji?: string;
+    isOnboarded: boolean;
   }
 }
 
@@ -35,6 +36,7 @@ declare module "next-auth" {
     user: {
       id: string;
       username: string;
+      isOnboarded: boolean;
       profileId: string;
       website?: string;
       pronouns?: "he/him" | "she/her" | "they/them" | "other";
@@ -52,10 +54,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
-    authorized: async (data) => {
-      console.log(data);
-      return !!data?.auth;
-    },
     async jwt(data) {
       const { token, user, account, trigger, session } = data;
       if (user) {
@@ -82,6 +80,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.emoji = session?.emoji ?? token?.emoji;
         token.email = session?.email ?? token?.email;
         token.name = session?.name ?? token.name;
+        token.isOnboarded = session?.isOnboarded ?? token.isOnboarded;
+
         console.log("returning token", token);
       }
 
@@ -115,6 +115,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.bio = token.bio;
       session.user.age = token.age;
       session.user.emoji = token.emoji;
+      session.user.isOnboarded = token.isOnboarded;
       return session;
     },
     signIn: async (data) => {

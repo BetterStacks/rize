@@ -14,10 +14,10 @@ import {
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
-import { useAvatarDialog, useProfileDialog } from "./dialog-provider";
-import ChangeAvatarDialog from "./dialogs/ChangeAvatarDialog";
-import { Skeleton } from "./ui/skeleton";
-import { Button } from "./ui/button";
+import { useAvatarDialog, useProfileDialog } from "../dialog-provider";
+import ChangeAvatarDialog from "../dialogs/ChangeAvatarDialog";
+import { Skeleton } from "../ui/skeleton";
+import { Button } from "../ui/button";
 import Link from "next/link";
 import { useSections } from "@/lib/context";
 import { DndContext, closestCenter } from "@dnd-kit/core";
@@ -77,10 +77,10 @@ const Sidebar = () => {
   return (
     <div
       className={cn(
-        "md:h-screen  md:w-[80px]  flex flex-col items-center justify-start border-r border-neutral-200  dark:border-dark-border/60"
+        "h-screen w-[80px]  hidden md:flex flex-col items-center justify-start border-r border-neutral-200  dark:border-dark-border/60"
       )}
     >
-      <div className="flex w-full flex-row md:flex-col md:mt-24 items-center justify-center gap-y-2">
+      <div className="flex w-full flex-col mt-24 items-center justify-center gap-y-2">
         {options.map((option) => (
           <div
             className="size-12 flex items-center justify-center"

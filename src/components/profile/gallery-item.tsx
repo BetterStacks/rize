@@ -7,18 +7,38 @@ import { motion } from "framer-motion";
 import { cn, isImageUrl } from "@/lib/utils";
 import { useQueryState } from "nuqs";
 import { useLocalStorage } from "@mantine/hooks";
+import { useSession } from "next-auth/react";
+import { Button } from "../ui/button";
+import { X } from "lucide-react";
+import { removeGalleryItem } from "@/lib/server-actions";
+import toast from "react-hot-toast";
+import { queryClient } from "@/lib/providers";
 
 function GalleryItem({
   item,
   index,
 }: {
-  item: typeof TGalleryItem;
+  item: typeof TGalleryItem & { profileId: string };
   index: number;
 }) {
+  const session = useSession();
   const [id, setId] = useQueryState("gallery");
   const [config] = useLocalStorage<GalleryConfigProps>({
     key: "gallery-config",
   });
+  const isUser = session.data?.user?.profileId === item.profileId;
+  const removeItemFromGallery = async () => {
+    try {
+      const res = await removeGalleryItem(item.id);
+      if (!res) {
+        throw new Error("Failed to remove item from gallery");
+      }
+      toast.success("Item removed from gallery");
+      queryClient.invalidateQueries({ queryKey: ["get-gallery-items"] });
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
   //   const {
   //     attributes,
   //     listeners,
@@ -56,10 +76,10 @@ function GalleryItem({
       //   {...listeners}
       className={cn(
         // isDragging && "opacity-80",
-        " shadow-2xl aspect-square  relative overflow-hidden  w-full  rounded-3xl bg-neutral-100 dark:bg-dark-border -m-2 cursor-grab active:cursor-grabbing",
+        " shadow-2xl group aspect-square  relative overflow-hidden  w-full  rounded-3xl bg-neutral-100 dark:bg-dark-border -m-2 cursor-grab active:cursor-grabbing",
         config?.cols == 4 && "max-w-xs h-[200px]",
         config?.cols == 3 && "w-[250px] h-[250px]",
-        config?.cols == 2 && "w-[200px] h-[200px]"
+        config?.cols == 2 && "w-[200px] h-[200px] -m-1"
       )}
       onClick={() => setId(id === item?.id ? null : item.id)}
       style={{ rotate: `${(index + 1) % 2 === 0 ? -6 : 6}deg` }}
@@ -68,13 +88,24 @@ function GalleryItem({
       drag
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
     >
+      {isUser && (
+        <Button
+          onClick={removeItemFromGallery}
+          className={cn(
+            "rounded-full absolute group-hover:opacity-100 opacity-0 z-20 top-2 right-2 p-1 "
+          )}
+          size={"icon"}
+        >
+          <X className="size-5 " />
+        </Button>
+      )}
       {item?.url && isImageUrl(item?.url) ? (
         <Image
           draggable={false}
           src={item?.url}
           alt=""
           fill
-          className="select-none "
+          className="select-none -z-10"
           style={{ objectFit: "cover" }}
         />
       ) : (

@@ -138,6 +138,6 @@ export const isImageUrl = (url: string): boolean => {
   return imageRegex.test(url);
 };
 export const isVideoUrl = (url: string): boolean => {
-  const videoRegex = /\.(mp4|webm|gif)$/i;
+  const videoRegex = /\.(mp4|webm)$/i;
   return videoRegex.test(url);
 };

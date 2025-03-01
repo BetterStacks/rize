@@ -1,23 +1,14 @@
 "use server";
 
 import { initialValue } from "@/components/editor/utils";
-import {
-  gallery,
-  galleryMedia,
-  page,
-  profile,
-  profileSocialLinks,
-  socialLinks,
-  users,
-} from "@/db/schema";
-import { profileSchema, TPage, TSocialLink, TUser } from "@/lib/types";
+import { gallery, galleryMedia, page, profile, users } from "@/db/schema";
+import { profileSchema, TPage, TUser } from "@/lib/types";
 import { hashSync } from "bcryptjs";
+import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { and, eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { auth } from "./auth";
 import db from "./db";
-import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
-import { Readable } from "stream";
 
 cloudinary.config({
   api_key: "537392939961543",
@@ -181,30 +172,30 @@ export const getPageById = async (id: string) => {
   }
 };
 
-export const getAllSocialLinks = async () => {
-  const sessoin = await auth();
-  const links = await db
-    .select({
-      id: socialLinks.id,
-      name: socialLinks.name,
-      icon: socialLinks.icon,
-      url: profileSocialLinks.url,
-      createdAt: profileSocialLinks.createdAt,
-    })
-    .from(socialLinks)
-    .innerJoin(
-      profileSocialLinks,
-      eq(socialLinks.id, profileSocialLinks.socialLinksId)
-    )
-    .where(eq(profileSocialLinks.profileId, sessoin?.user?.profileId!));
+// export const getAllSocialLinks = async () => {
+//   const sessoin = await auth();
+//   const links = await db
+//     .select({
+//       id: socialLinks.id,
+//       name: socialLinks.name,
+//       icon: socialLinks.icon,
+//       url: profileSocialLinks.url,
+//       createdAt: profileSocialLinks.createdAt,
+//     })
+//     .from(socialLinks)
+//     .innerJoin(
+//       profileSocialLinks,
+//       eq(socialLinks.id, profileSocialLinks.socialLinksId)
+//     )
+//     .where(eq(profileSocialLinks.profileId, sessoin?.user?.profileId!));
 
-  console.log({ links });
+//   console.log({ links });
 
-  if (links.length === 0) {
-    throw new Error("No social links found");
-  }
-  return links as TSocialLink[];
-};
+//   if (links.length === 0) {
+//     throw new Error("No social links found");
+//   }
+//   return links as TSocialLink[];
+// };
 
 export const getGalleryId = async () => {
   const session = await auth();
@@ -228,14 +219,22 @@ export const getGalleryItems = async () => {
   if (!session || !session?.user?.profileId) {
     throw new Error("Session not found");
   }
-  const { id } = await getGalleryId();
-  if (!id) {
-    throw new Error("Gallery not found");
-  }
+  // const { id } = await getGalleryId();
+  // if (!id) {
+  //   throw new Error("Gallery not found");
+  // }
   const items = await db
-    .select()
-    .from(galleryMedia)
-    .where(eq(galleryMedia.galleryId, id));
+    .select({
+      id: galleryMedia.id,
+      url: galleryMedia.url,
+      createdAt: galleryMedia.createdAt,
+      updatedAt: galleryMedia.updatedAt,
+      profileId: gallery.profileId,
+      galleryId: galleryMedia.galleryId,
+    })
+    .from(gallery)
+    .innerJoin(galleryMedia, eq(gallery.id, galleryMedia.galleryId))
+    .where(eq(gallery.profileId, session?.user?.profileId!));
 
   // console.log({ items });
 
@@ -260,6 +259,24 @@ export const addGalleryItem = async (url: string) => {
       galleryId: id,
       url,
     })
+    .returning();
+  if (item.length === 0) {
+    throw new Error("Error adding gallery item");
+  }
+  return item[0];
+};
+
+export const removeGalleryItem = async (id: string) => {
+  const session = await auth();
+  if (!session || !session?.user?.profileId) {
+    throw new Error("Session not found");
+  }
+  if (!id) {
+    throw new Error("Provide an ID");
+  }
+  const item = await db
+    .delete(galleryMedia)
+    .where(eq(galleryMedia.id, id))
     .returning();
   if (item.length === 0) {
     throw new Error("Error adding gallery item");

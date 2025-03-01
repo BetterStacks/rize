@@ -25,18 +25,11 @@ import {
 import { set } from "zod";
 import { GalleryConfigProps, TGalleryItem } from "@/lib/types";
 import GalleryItem from "./gallery-item";
-import { useLocalStorage } from "@mantine/hooks";
-const imgs = [
-  "https://i.pinimg.com/736x/99/34/71/99347197a1731770cdb8b03eaa428d23.jpg",
-  "https://i.pinimg.com/736x/66/75/3b/66753bba73fdd06eea2fce9f877aee28.jpg",
-  "https://i.pinimg.com/474x/76/f0/26/76f026ccdee88fd4fb2928abcce54646.jpg",
-  "https://i.pinimg.com/736x/0e/ff/78/0eff7876a8290539d9bf590eae8c32a1.jpg",
-  "https://i.pinimg.com/736x/ef/f0/d1/eff0d118af39bfd2066c5bb4a44b3278.jpg",
-  "https://i.pinimg.com/736x/4a/8e/cf/4a8ecfff3e2c2a80f015548849032f4d.jpg",
-];
+import { useLocalStorage, useMediaQuery } from "@mantine/hooks";
+
+type GalleryItemProps = typeof TGalleryItem & { profileId: string };
 
 const Gallery = () => {
-  const [id, setId] = useQueryState("gallery");
   const [config, setConfig] = useLocalStorage<GalleryConfigProps>({
     key: "gallery-config",
     defaultValue: { cols: 4, length: 8 },
@@ -45,9 +38,16 @@ const Gallery = () => {
     queryKey: ["get-gallery-items"],
     queryFn: getGalleryItems,
   });
-  console.log({ config });
-  const [ids, setIds] = useState<string[]>([]);
-  const [items, setItems] = useState<(typeof TGalleryItem)[]>([]);
+  const matches = useMediaQuery("(min-width: 768px)");
+  useEffect(() => {
+    if (matches) {
+      setConfig({ cols: 4, length: 8 });
+    } else {
+      setConfig({ cols: 2, length: 8 });
+    }
+  }, [matches]);
+  // console.log({ config });
+  const [items, setItems] = useState<GalleryItemProps[]>([]);
   const [activeItem, setActiveItem] = useState<{
     index: number;
     item: typeof TGalleryItem;
@@ -100,7 +100,7 @@ const Gallery = () => {
         className={cn(
           "w-full grid   mt-6 relative",
           config?.cols == 2
-            ? "grid-cols-2  max-w-2xl"
+            ? "grid-cols-2  max-w-2xl items-center justify-center"
             : config?.cols == 3
             ? "grid-cols-3 max-w-3xl"
             : "grid-cols-4  max-w-4xl"

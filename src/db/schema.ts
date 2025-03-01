@@ -50,19 +50,11 @@ export const profile = pgTable("profile", {
   bio: varchar("bio", { length: 150 }),
   location: text("location"),
   website: text("website"),
+  isOnboarded: boolean("is_onboarded").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
     .$onUpdate(() => new Date()),
-});
-
-export const socialLinks = pgTable("social_links", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => v4()),
-  name: varchar("name", { length: 50 }).notNull().unique(), // e.g., "LinkedIn", "GitHub"
-  icon: text("icon"), // Optional: Store icon URLs or icon class names
-  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const gallery = pgTable("gallery", {
@@ -92,19 +84,28 @@ export const galleryMedia = pgTable("gallery_media", {
     .$onUpdate(() => new Date()),
 });
 
-export const profileSocialLinks = pgTable("profile_social_links", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => v4()),
-  profileId: uuid("profile_id")
-    .notNull()
-    .references(() => profile.id, { onDelete: "cascade" }),
-  socialLinksId: uuid("social_links_id")
-    .notNull()
-    .references(() => socialLinks.id, { onDelete: "cascade" }),
-  url: text("url").notNull(), // User-provided link
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+// export const socialLinks = pgTable("social_links", {
+//   id: uuid("id")
+//     .primaryKey()
+//     .$defaultFn(() => v4()),
+//   name: varchar("name", { length: 50 }).notNull().unique(), // e.g., "LinkedIn", "GitHub"
+//   icon: text("icon"), // Optional: Store icon URLs or icon class names
+//   createdAt: timestamp("created_at").notNull().defaultNow(),
+// });
+
+// export const profileSocialLinks = pgTable("profile_social_links", {
+//   id: uuid("id")
+//   .primaryKey()
+//   .$defaultFn(() => v4()),
+//   profileId: uuid("profile_id")
+//     .notNull()
+//     .references(() => profile.id, { onDelete: "cascade" }),
+//   socialLinksId: uuid("social_links_id")
+//     .notNull()
+//     .references(() => socialLinks.id, { onDelete: "cascade" }),
+//   url: text("url").notNull(), // User-provided link
+//   createdAt: timestamp("created_at").notNull().defaultNow(),
+// });
 
 export const experience = pgTable("experience", {
   id: uuid("id")
@@ -127,7 +128,7 @@ export const page = pgTable("page", {
   id: uuid("id")
     .primaryKey()
     .$defaultFn(() => gen_uuid()),
-  title: varchar("title", { length: 60 }).notNull(),
+  title: varchar("title", { length: 120 }).notNull(),
   thumbnail: text("thumbnail"),
   content: text("content").notNull(),
   profileId: uuid("profileId").references(() => profile.id, {
