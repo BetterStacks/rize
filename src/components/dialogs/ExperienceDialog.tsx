@@ -1,52 +1,300 @@
-import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import { useExperienceDialog } from "../dialog-provider";
-import { Input } from "../ui/input";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Label } from "../ui/label";
+"use client";
 
-const ExperienceSchema = z.object({
-  companyName: z.string().max(25),
-  website: z.string().url(),
-  position: z.string(),
-  startDate: z.date().nullable(),
-  endDate: z.date().nullable(),
+import { useState } from "react";
+import { format } from "date-fns";
+import { Plus, Briefcase, Building, MapPin, Save, X } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
+import { useExperienceDialog } from "../dialog-provider";
+
+const formSchema = z.object({
+  company: z.string().min(1, "Company name is required"),
+  position: z.string().min(1, "Position is required"),
+  location: z.string().optional(),
+  startDate: z.date({
+    required_error: "Start date is required",
+  }),
+  endDate: z.date().optional(),
+  currentlyWorking: z.boolean().default(false),
+  description: z.string().optional(),
 });
 
-const ExperienceDialog = () => {
+type WorkExperience = z.infer<typeof formSchema>;
+
+export default function WorkExperienceDialog() {
   const [open, setOpen] = useExperienceDialog();
-  const { register } = useForm<z.infer<typeof ExperienceSchema>>({
-    resolver: zodResolver(ExperienceSchema),
+  const [experiences, setExperiences] = useState<WorkExperience[]>([]);
+
+  const form = useForm<WorkExperience>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      company: "",
+      position: "",
+      location: "",
+      description: "",
+      currentlyWorking: false,
+    },
   });
+
+  function onSubmit(values: WorkExperience) {
+    setExperiences([...experiences, values]);
+    form.reset();
+    setOpen(false);
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
-        <DialogHeader className="">
-          <DialogTitle>Add Experience</DialogTitle>
+      <DialogContent className="sm:max-w-[550px]">
+        <DialogHeader>
+          <DialogTitle>Add Work Experience</DialogTitle>
+          <DialogDescription>
+            Add details about your professional experience
+          </DialogDescription>
         </DialogHeader>
-        <div>
-          <form>
-            <div className="w-full flex items-center justify-center gap-x-6">
-              <div className="w-full">
-                <Label>Company Name</Label>
-                <Input {...register("companyName")} />
-              </div>
-              <div className="w-full">
-                <Label>Position</Label>
-                <Input {...register("position")} />
-              </div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6 py-4"
+          >
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="company"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          className="pl-9"
+                          placeholder="Company name"
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="position"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Position</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Briefcase className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          className="pl-9"
+                          placeholder="Job title"
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <div className="w-full ">
-              <Label>Website</Label>
-              <Input {...register("website")} />
+
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        className="pl-9"
+                        placeholder="City, Country (optional)"
+                        {...field}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Start Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <Calendar className="mr-2 h-4 w-4" />
+                            {field.value ? (
+                              format(field.value, "MMM yyyy")
+                            ) : (
+                              <span>Select date</span>
+                            )}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                          captionLayout="dropdown-buttons"
+                          fromYear={1990}
+                          toYear={2030}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="currentlyWorking"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-8">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>I currently work here</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
             </div>
+
+            {!form.watch("currentlyWorking") && (
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>End Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <Calendar className="mr-2 h-4 w-4" />
+                            {field.value ? (
+                              format(field.value, "MMM yyyy")
+                            ) : (
+                              <span>Select date</span>
+                            )}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                          captionLayout="dropdown-buttons"
+                          fromYear={1990}
+                          toYear={2030}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe your responsibilities and achievements (optional)"
+                      className="resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Highlight your key responsibilities, projects, and
+                    accomplishments
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                <X className="mr-2 h-4 w-4" />
+                Cancel
+              </Button>
+              <Button type="submit">
+                <Save className="mr-2 h-4 w-4" />
+                Save Experience
+              </Button>
+            </DialogFooter>
           </form>
-        </div>
+        </Form>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default ExperienceDialog;
+}

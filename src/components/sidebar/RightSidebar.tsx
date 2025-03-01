@@ -8,23 +8,23 @@ import {
 import { GalleryConfigProps } from "@/lib/types";
 import { cn, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { useLocalStorage } from "@mantine/hooks";
-import { Upload, X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Loader, Upload, X } from "lucide-react";
+import Image from "next/image";
 import { useQueryState } from "nuqs";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
-import { Button } from "./ui/button";
-import { Label } from "./ui/label";
-import { ScrollArea } from "./ui/scroll-area";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import { ScrollArea } from "../ui/scroll-area";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
+} from "../ui/select";
 
 const RightSidebar = () => {
   const [galleryItem] = useQueryState("gallery");
@@ -47,6 +47,7 @@ function EditGallery() {
   const [config, setConfig] = useLocalStorage<GalleryConfigProps>({
     key: "gallery-config",
   });
+  const [isUploading, setIsUploading] = useState(false);
 
   // Handle dropped files
   const onDrop = (acceptedFiles: File[]) => {
@@ -78,18 +79,24 @@ function EditGallery() {
       formData.append("type", file.type);
     });
     try {
+      setIsUploading(true);
       const result = await uploadFilesToCloudinary(formData);
       console.log(result);
       if (result.error && !result.success) {
+        setIsUploading(false);
         throw new Error(result.error);
       }
       for (const url of result.data!) {
         const item = await addGalleryItem(url);
         console.log(item);
         if (!item) {
+          setIsUploading(false);
           throw new Error("Error adding gallery item");
         }
       }
+      setIsUploading(false);
+      toast.success("Media added to gallery");
+      setFiles([]);
       queryClient.invalidateQueries({ queryKey: ["get-gallery-items"] });
     } catch (error) {
       console.error(error);
@@ -143,7 +150,7 @@ function EditGallery() {
           >
             <input {...getInputProps()} />
             <div className="mb-2">
-              <Upload className="opacity-80 size-16" strokeWidth={1.6} />
+              <Upload className="opacity-80 size-12" strokeWidth={1.6} />
             </div>
             <p className="text-neutral-600 text-sm">
               Drag & Drop images or videos here, or click to select files
@@ -156,6 +163,9 @@ function EditGallery() {
             onClick={handleAddItems}
             className="w-full"
           >
+            {isUploading && (
+              <Loader className="opacity-80 animate-spin size-4" />
+            )}{" "}
             Add Media
           </Button>
           <ScrollArea className="h-full w-full flex flex-col items-start justify-start ">

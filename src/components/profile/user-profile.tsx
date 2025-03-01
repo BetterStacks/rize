@@ -1,12 +1,7 @@
 "use client";
-import { getAllPages } from "@/lib/server-actions";
-import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
-import Projects from "../writings/writings";
-import Profile from "./profile";
 import Writings from "../writings/writings";
 import Gallery from "./gallery";
-import SocialLinks from "./social-links";
+import Profile from "./profile";
 
 const UserProfile = () => {
   return (

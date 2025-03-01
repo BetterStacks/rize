@@ -1,4 +1,4 @@
-import ProfileLayout from "@/components/ProfileLayout";
+import ProfileLayout from "@/components/layout/UserProfileLayout";
 import React, { ReactNode } from "react";
 
 const Layout = ({ children }: { children: ReactNode }) => {

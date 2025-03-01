@@ -1,14 +1,14 @@
 "use client";
 import { FC, ReactNode, useEffect, useRef } from "react";
-import Dock from "./dock";
-import Sidebar from "./Sidebar";
+import Dock from "../dock";
+import Sidebar from "../sidebar/Sidebar";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "./ui/resizable";
-import { ScrollArea } from "./ui/scroll-area";
-import RightSidebar from "./RightSidebar";
+} from "../ui/resizable";
+import { ScrollArea } from "../ui/scroll-area";
+import RightSidebar from "../sidebar/RightSidebar";
 import { useQueryState } from "nuqs";
 import { ImperativePanelHandle } from "react-resizable-panels";
 

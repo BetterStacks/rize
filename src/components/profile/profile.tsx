@@ -1,6 +1,16 @@
 import { cleanUrl, cn } from "@/lib/utils";
-import { Edit3, Link2, MapPin, MoreHorizontal } from "lucide-react";
-import { useSession } from "next-auth/react";
+import {
+  BriefcaseBusiness,
+  Edit3,
+  Link2,
+  LogOut,
+  MapPin,
+  Moon,
+  MoreHorizontal,
+  Sun,
+  UserPenIcon,
+} from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,35 +24,58 @@ import ChangeAvatarDialog from "../dialogs/ChangeAvatarDialog";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
 
 const Profile = () => {
   const { data, status } = useSession();
   const [_, setIsOpen] = useAvatarDialog();
   const [__, setOpen] = useProfileDialog();
+  const [___, setSocialLinkOpen] = useSocialLinksDialog();
+  const [____, setIsExperienceDialogOpen] = useExperienceDialog();
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
-  const [open, setSocialLinkOpen] = useSocialLinksDialog();
-  const [isExperienceDialogOpen, setIsExperienceDialogOpen] =
-    useExperienceDialog();
+  const { theme, setTheme } = useTheme();
   const options = [
     {
-      icon: <Edit3 className="opacity-80 size-4" />,
+      icon: <UserPenIcon className="opacity-80 size-5" />,
       name: "Edit Profile",
       handleClick: () => {
         setOpen(true);
       },
     },
     {
-      icon: <Edit3 className="opacity-80 size-4" />,
+      icon:
+        theme === "dark" ? (
+          <Sun className="opacity-80 size-5" />
+        ) : (
+          <Moon className="opacity-80 size-5" />
+        ),
+      name: "Switch Theme",
+      handleClick: () => {
+        setTheme(theme === "dark" ? "light" : "dark");
+      },
+    },
+    {
+      icon: <Link2 className="opacity-80 -rotate-45 size-5" />,
       name: "Edit Contact",
       handleClick: () => {
         setSocialLinkOpen(true);
       },
     },
     {
-      icon: <Edit3 className="opacity-80 size-4" />,
+      icon: <BriefcaseBusiness className="opacity-80 size-5" />,
       name: "Edit Experience",
       handleClick: () => {
         setIsExperienceDialogOpen(true);
+      },
+    },
+    {
+      icon: <LogOut className="opacity-80 size-5" />,
+      name: "Logout",
+      handleClick: () => {
+        signOut();
+        router.push("/login");
       },
     },
   ];

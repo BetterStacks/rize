@@ -1,14 +1,13 @@
-import { getAllSocialLinks } from "@/lib/server-actions";
 import { TSocialLink } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import React from "react";
-import { Button } from "../ui/button";
 
 const SocialLinks = () => {
   const { data, error } = useQuery<TSocialLink[]>({
     queryKey: ["get-social-links"],
-    queryFn: getAllSocialLinks,
+    queryFn: () => {
+      return [];
+    },
   });
   console.log({ data, error });
   return (

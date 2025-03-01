@@ -7,7 +7,7 @@ import {
 } from "@/lib/server-actions";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SendHorizonal } from "lucide-react";
+import { ArrowRight, SendHorizonal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -113,25 +113,27 @@ const ClaimUsernameForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-8">
-      <div className="w-full  border mt-2 border-neutral-400/60 rounded-2xl text-lg md:text-xl   p-2 flex items-center justify-center">
-        <div className="w-full pl-4 ">
-          <span>rize.io/</span>
+      <div className="w-full   border mt-2 border-neutral-400/60 dark:border-dark-border rounded-3xl text-lg md:text-xl   p-1 flex items-center justify-center">
+        <div className="px-4 py-1 rounded-3xl bg-neutral-200  dark:bg-dark-border">
+          <span>rise.so</span>
+        </div>
+        <div className="w-full ml-2 ">
           <input
             className="border-none lowercase focus-visible:ring-0 focus-visible:outline-none"
             placeholder="username"
             required={true}
             {...register("username")}
           />
+          <Button
+            type="submit"
+            size={"icon"}
+            disabled={!isAvailable || !!errors.username}
+            variant={"secondary"}
+            className="rounded-full mr-2 size-7 bg-green-600 dark:bg-green-600"
+          >
+            <ArrowRight className="stroke-white" />
+          </Button>
         </div>
-        <Button
-          type="submit"
-          size={"icon"}
-          disabled={!isAvailable || !!errors.username}
-          variant={"secondary"}
-          className="rounded-lg bg-green-600"
-        >
-          <SendHorizonal className="stroke-white" />
-        </Button>
       </div>
       {errors.username && (
         <p className="text-sm text-red-500">{errors.username.message}</p>
