@@ -1,12 +1,13 @@
-import { profile } from "@/db/schema";
+import { profile, TPronouns, users } from "@/db/schema";
 import { compareSync } from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { eq, getTableColumns } from "drizzle-orm";
 import NextAuth, { DefaultSession } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import db from "./db";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import {
   deleteServerCookie,
   getServerCookie,
@@ -51,71 +52,35 @@ declare module "next-auth" {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.AUTH_SECRET,
   session: {
-    strategy: "jwt",
+    strategy: "database",
   },
   callbacks: {
-    async jwt(data) {
-      const { token, user, account, trigger, session } = data;
-      if (user) {
-        token.id = user.id as string;
-        const username = await db
-          .select()
-          .from(profile)
-          .where(eq(profile.userId, user?.id as string))
-          .limit(1);
-        token.username = username[0].username as string;
-        token.profileId = username[0].id as string;
-      }
-
-      if (trigger === "update") {
-        console.log("Update is called in JWT", session);
-
-        token.image = session?.image ?? token.image;
-        token.username = session?.username ?? token.username;
-        token.website = session?.website ?? token.website;
-        token.pronouns = session?.pronouns ?? token.pronouns;
-        token.location = session?.location ?? token?.location;
-        token.bio = session?.bio ?? token?.bio;
-        token.age = session?.age ?? token?.age;
-        token.emoji = session?.emoji ?? token?.emoji;
-        token.email = session?.email ?? token?.email;
-        token.name = session?.name ?? token.name;
-        token.isOnboarded = session?.isOnboarded ?? token.isOnboarded;
-
-        console.log("returning token", token);
-      }
-
-      // if (id) {
-      //   console.log("updating username in JWT");
-      //   const username = await db
-      //     .select()
-      //     .from(profile)
-      //     .where(eq(profile.userId, id))
-      //     .limit(1);
-      //   if (!username[0]) {
-      //     console.log("Username not found");
-      //     return token;
-      //   }
-      //   token.username = username[0].username!;
-      //   return token;
-      // }
-
-      return token;
-    },
     session: async (data) => {
-      let { trigger, user, session, token } = data;
-      // console.log({ insideSession: token });
-      session.user.id = token.id;
-      session.user.profileId = token.profileId;
-      session.user.image = token.image;
-      session.user.username = token.username;
-      session.user.website = token.website;
-      session.user.pronouns = token.pronouns;
-      session.user.location = token.location;
-      session.user.bio = token.bio;
-      session.user.age = token.age;
-      session.user.emoji = token.emoji;
-      session.user.isOnboarded = token.isOnboarded;
+      let { user, session, newSession } = data;
+      if (!user?.id) {
+        return session;
+      }
+      const { ...rest } = getTableColumns(profile);
+      const userData = await db
+        .select({ isOnboarded: users.isOnboarded, ...rest })
+        .from(users)
+        .leftJoin(profile, eq(profile.userId, users.id))
+        .where(eq(users.id, user.id))
+        .limit(1);
+      if (userData.length === 0) {
+        console.log("User not found", session);
+        return session;
+      }
+      session.user.id = user?.id as string;
+      session.user.isOnboarded = userData[0].isOnboarded as boolean;
+      session.user.profileId = userData[0].id as string;
+      session.user.username = userData[0].username as string;
+      session.user.website = userData[0].website as string;
+      session.user.pronouns = userData[0].pronouns as TPronouns;
+      session.user.location = userData[0].location as string;
+      session.user.bio = userData[0].bio as string;
+      session.user.age = userData[0].age as number;
+
       return session;
     },
     signIn: async (data) => {
@@ -172,7 +137,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   trustHost: true,
-  // adapter: DrizzleAdapter(db),
+  adapter: DrizzleAdapter(db),
 });
 // import { account, profile, session, user, verification } from "@/db/schema";
 // import { betterAuth } from "better-auth";
@@ -240,3 +205,52 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 // });
 
 // // docker run -d --name stacks-postgres-container   -e POSTGRES_PASSWORD=ashwin123 -e POSTGRES_DB=db -v stacks-postgres-volume:/var/lib/postgresql/data   -p 5432:5432 postgres
+
+// async jwt(data) {
+//   const { token, user, account, trigger, session } = data;
+//   if (user) {
+//     token.id = user.id as string;
+//     const username = await db
+//       .select()
+//       .from(profile)
+//       .where(eq(profile.userId, user?.id as string))
+//       .limit(1);
+//     token.username = username[0].username as string;
+//     token.profileId = username[0].id as string;
+//   }
+
+//   if (trigger === "update") {
+//     console.log("Update is called in JWT", session);
+
+//     token.image = session?.image ?? token.image;
+//     token.username = session?.username ?? token.username;
+//     token.website = session?.website ?? token.website;
+//     token.pronouns = session?.pronouns ?? token.pronouns;
+//     token.location = session?.location ?? token?.location;
+//     token.bio = session?.bio ?? token?.bio;
+//     token.age = session?.age ?? token?.age;
+//     token.emoji = session?.emoji ?? token?.emoji;
+//     token.email = session?.email ?? token?.email;
+//     token.name = session?.name ?? token.name;
+//     token.isOnboarded = session?.isOnboarded ?? token.isOnboarded;
+
+//     console.log("returning token", token);
+//   }
+
+//   // if (id) {
+//   //   console.log("updating username in JWT");
+//   //   const username = await db
+//   //     .select()
+//   //     .from(profile)
+//   //     .where(eq(profile.userId, id))
+//   //     .limit(1);
+//   //   if (!username[0]) {
+//   //     console.log("Username not found");
+//   //     return token;
+//   //   }
+//   //   token.username = username[0].username!;
+//   //   return token;
+//   // }
+
+//   return token;
+// },

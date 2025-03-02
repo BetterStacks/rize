@@ -24,10 +24,11 @@ export async function generateMetadata(
 const Page: FC<Props> = async ({ params }) => {
   const username = (await params).username;
   const user = await auth();
-  if (username !== user?.user?.username) {
-    // throw new Error("You are not authorized to view this page");
-    redirect("/login");
-  }
+  // if (username !== user?.user?.username) {
+  //   // throw new Error("You are not authorized to view this page");
+  //   redirect("/login");
+  // }c
+  console.log({ profile: user });
   return (
     <div className="w-full flex items-center justify-center">
       <UserProfile />

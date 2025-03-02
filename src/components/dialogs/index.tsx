@@ -9,7 +9,7 @@ const Dialogs = () => {
   return (
     <>
       <ProfileUpdateDialog />
-      <CreatePageDialog />
+      {/* <CreatePageDialog /> */}
       <SocialLinksDialog />
       <ExperienceDialog />
     </>
