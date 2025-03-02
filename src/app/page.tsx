@@ -40,6 +40,9 @@ export default function Home() {
         <div className="w-full">
           {" "}
           <ClaimUsernameForm />
+          {!session?.data?.user?.isOnboarded && (
+            <Link href={"/onboarding"}>Onboarding</Link>
+          )}
         </div>
         {/* <Button
           onClick={async () => {

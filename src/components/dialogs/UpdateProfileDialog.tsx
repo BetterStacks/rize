@@ -1,20 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useActionState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Textarea from "react-textarea-autosize";
 import {
   Select,
   SelectContent,
@@ -22,12 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { profileSchema, TProfile } from "@/lib/types";
-import { updateProfile } from "@/lib/server-actions";
+import { profileSchema } from "@/lib/types";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
-import { useProfileDialog } from "../dialog-provider";
+import { Form, useForm } from "react-hook-form";
+import Textarea from "react-textarea-autosize";
 import { z } from "zod";
-import { Session } from "next-auth";
+import { useProfileDialog } from "../dialog-provider";
+import { updateUserAndProfile } from "@/lib/server-actions";
+import toast from "react-hot-toast";
 
 // import { updateProfile } from "@/app/actions/updateProfile";
 
@@ -55,9 +52,14 @@ export function ProfileUpdateDialog() {
   });
 
   const onSubmit = async (data: z.infer<typeof profileSchema>) => {
-    console.log({ data: data?.website });
+    console.log({ data: data });
 
-    await update({ ...data });
+    const res = await updateUserAndProfile(data);
+    console.log({ res });
+    if (!res.success) {
+      toast.error("Failed to update profile");
+    }
+    await update();
   };
 
   return (

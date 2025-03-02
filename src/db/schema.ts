@@ -12,7 +12,7 @@ import type { AdapterAccountType } from "next-auth/adapters";
 import { customType } from "drizzle-orm/pg-core";
 import { v4 as gen_uuid, v4 } from "uuid";
 
-type TPronouns = "he/him" | "she/her" | "they/them" | "other";
+export type TPronouns = "he/him" | "she/her" | "they/them" | "other";
 type TMedia = "image" | "video";
 
 const Pronouns = customType<{ data: TPronouns }>({
@@ -35,6 +35,7 @@ export const users = pgTable("user", {
   password: text("password"),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  isOnboarded: boolean("is_onboarded").notNull().default(false),
 });
 
 export const profile = pgTable("profile", {
@@ -50,7 +51,6 @@ export const profile = pgTable("profile", {
   bio: varchar("bio", { length: 150 }),
   location: text("location"),
   website: text("website"),
-  isOnboarded: boolean("is_onboarded").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()

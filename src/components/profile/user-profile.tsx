@@ -1,9 +1,12 @@
 "use client";
+import { useSession } from "next-auth/react";
 import Writings from "../writings/writings";
 import Gallery from "./gallery";
 import Profile from "./profile";
 
 const UserProfile = () => {
+  const s = useSession();
+  console.log(s?.data);
   return (
     <div className="w-full flex flex-col items-center justify-start">
       <Profile />

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { Session } from "next-auth";
+import { updateUserImage } from "@/lib/server-actions";
 
 type ChangeAvatarDialogProps = {
   file: File | null;
@@ -117,11 +118,12 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
                 toast.error(`Failed to upload image: ${data.error}`);
                 return;
               }
-              const newSession = {
-                ...session!.user,
-                image: data?.url as string,
-              };
-              await update(newSession);
+
+              const resp = await updateUserImage(data?.url as string);
+              if (!resp?.success && resp.error) {
+                toast.error(resp?.error);
+              }
+              await update();
               // console.log({ data, newSession });
               toast.success("Profile picture updated successfully");
               setIsOpen(false);

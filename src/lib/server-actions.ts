@@ -9,6 +9,7 @@ import { and, eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { auth } from "./auth";
 import db from "./db";
+import { z } from "zod";
 
 cloudinary.config({
   api_key: "537392939961543",
@@ -26,27 +27,52 @@ export const deleteServerCookie = async (key: string) => {
   return (await cookies()).delete(key);
 };
 
-export const updateProfile = async (data: FormData | null) => {
-  const validatedFields = profileSchema.safeParse({
-    username: data!.get("username"),
-    age: Number(data!.get("age")),
-    pronouns: data!.get("pronouns"),
-    bio: data!.get("bio"),
-    location: data!.get("location"),
-    website: data!.get("website"),
-  });
-
-  if (!validatedFields.success) {
-    return {
-      error: "Invalid fields",
-      details: validatedFields.error.flatten(),
-    };
+export async function updateUserAndProfile(
+  data: z.infer<typeof profileSchema>
+) {
+  const session = await auth();
+  if (!session) {
+    return { success: false, error: "Session not found" };
   }
 
-  // Here you would update the database with the new profile data
-  // For this example, we'll just return the validated data
-  return { success: true, data: validatedFields.data };
-};
+  const validatedFields = profileSchema.safeParse(data);
+
+  if (!validatedFields.success) {
+    return { success: false, error: validatedFields.error.format() };
+  }
+
+  const { name, email, ...profileData } = validatedFields.data;
+
+  const userUpdates = { name, email };
+  const profileUpdates = profileData;
+  console.log({ userUpdates, profileUpdates });
+
+  await db
+    .update(users)
+    .set(userUpdates)
+    .where(eq(users.id, session?.user?.id));
+
+  await db
+    .update(profile)
+    .set(profileUpdates)
+    .where(eq(profile.userId, session?.user?.id));
+
+  return { success: true, error: null };
+}
+
+export async function updateUserImage(url: string) {
+  const session = await auth();
+  if (!session) {
+    return { success: false, error: "Session not found" };
+  }
+
+  await db
+    .update(users)
+    .set({ image: url })
+    .where(eq(users.id, session?.user?.id));
+
+  return { success: true, error: null };
+}
 
 export const userExists = async (email: string) => {
   try {
