@@ -11,8 +11,10 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import {
   deleteServerCookie,
   getServerCookie,
+  setUserIsOnboarded,
   userExists,
 } from "./server-actions";
+import { error } from "console";
 
 declare module "next-auth/jwt" {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
@@ -56,7 +58,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     session: async (data) => {
-      let { user, session, newSession } = data;
+      let { user, session, newSession, trigger } = data;
+      // console.log({ data });
       if (!user?.id) {
         return session;
       }
@@ -67,6 +70,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         .leftJoin(profile, eq(profile.userId, users.id))
         .where(eq(users.id, user.id))
         .limit(1);
+      // console.log({ userData });
       if (userData.length === 0) {
         console.log("User not found", session);
         return session;
@@ -84,29 +88,48 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
     signIn: async (data) => {
-      const username = await getServerCookie("username");
-      console.log({ username });
-      if (username) {
-        const u = await db
-          .insert(profile)
-          .values({
-            username: username as string,
-            userId: data.user?.id as string,
-          })
-          .returning();
-        if (u.length === 0) {
-          console.log("Error in inserting profile");
-          return true;
+      const { user } = data;
+      if (!user?.id) return false;
+      try {
+        const existingProfile = await db
+          .select({ username: profile.username })
+          .from(profile)
+          .where(eq(profile.userId, user.id))
+          .limit(1);
+
+        console.log({ existingProfile });
+        if (existingProfile.length === 0) {
+          const username = await getServerCookie("username");
+          console.log({ username });
+          if (username) {
+            // Create a new profile with the claimed username
+            await db.insert(profile).values({
+              userId: user.id,
+              username: username,
+            });
+
+            // Remove stored username after creating the profile
+            await deleteServerCookie("username");
+          } else {
+            console.error("No username found");
+            return "/onboarding";
+          }
         }
-        deleteServerCookie("username");
+
+        return true;
+      } catch (error) {
+        console.error("Error creating profile:", error);
+        return false;
       }
-      return true;
     },
   },
   providers: [
-    Google,
+    Google({
+      allowDangerousEmailAccountLinking: true,
+    }),
     Github,
     Credentials({
+      type: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },

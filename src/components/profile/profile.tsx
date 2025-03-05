@@ -29,10 +29,10 @@ import { useRouter } from "next/navigation";
 
 const Profile = () => {
   const { data, status } = useSession();
-  const [_, setIsOpen] = useAvatarDialog();
-  const [__, setOpen] = useProfileDialog();
-  const [___, setSocialLinkOpen] = useSocialLinksDialog();
-  const [____, setIsExperienceDialogOpen] = useExperienceDialog();
+  const setIsOpen = useAvatarDialog()[1];
+  const setOpen = useProfileDialog()[1];
+  const setSocialLinkOpen = useSocialLinksDialog()[1];
+  const setIsExperienceDialogOpen = useExperienceDialog()[1];
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const { theme, setTheme } = useTheme();
@@ -93,7 +93,7 @@ const Profile = () => {
       <div className="w-full max-w-2xl px-2 pb-2 flex flex-col items-start  justify-center">
         <div
           className={cn(
-            "relative group border-2 border-neutral-300 dark:border-dark-border rounded-full size-24 md:size-24 lg:size-28 xl:size-36 aspect-square ",
+            "relative group border-2 border-neutral-300 dark:border-dark-border rounded-full size-24 md:size-24 lg:size-28  aspect-square ",
             status === "loading" &&
               "animate-pulse bg-neutral-300  dark:bg-dark-border rounded-full"
           )}
@@ -124,7 +124,7 @@ const Profile = () => {
           )}{" "}
         </div>
         <div className="w-full flex items-center justify-center">
-          <div className="w-full mt-4 flex  flex-col items-start justify-start">
+          <div className="w-full mt-3 flex  flex-col items-start justify-start">
             {status === "loading" ? (
               <>
                 <Skeleton className="h-6 w-[40%] rounded-xl animate-pulse bg-neutral-300 dark:bg-dark-border" />
@@ -132,7 +132,7 @@ const Profile = () => {
               </>
             ) : (
               <div className="flex flex-col items-start justify-start">
-                <h3 className="text-xl leading-tight font-medium">
+                <h3 className="text-xl px-1 mb-2 leading-tight font-medium">
                   {data?.user?.name}
                 </h3>
                 <div className="flex items-center justify-start gap-2">

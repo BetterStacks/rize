@@ -9,7 +9,7 @@ import { GalleryConfigProps } from "@/lib/types";
 import { cn, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { useLocalStorage } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
-import { Loader, Upload, X } from "lucide-react";
+import { AlignJustify, Loader, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useQueryState } from "nuqs";
 import { useState } from "react";
@@ -25,16 +25,94 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import UpgradeCard from "../upgrade-card";
+import { closestCenter, DndContext } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useSections } from "@/lib/context";
+import { CSS } from "@dnd-kit/utilities";
+import axios from "axios";
 
 const RightSidebar = () => {
   const [galleryItem] = useQueryState("gallery");
+  const { sections, setSections } = useSections();
+
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+    if (active.id !== over.id) {
+      const oldIndex = sections.findIndex((s) => s.id === active.id);
+      const newIndex = sections.findIndex((s) => s.id === over.id);
+      setSections(arrayMove(sections, oldIndex, newIndex));
+    }
+  };
+
   return (
-    <div className="h-screen w-full">
+    <div className="h-screen w-full  flex flex-col items-start justify-between">
       {!galleryItem && <EditGallery />}
+      <div className="pt-10 w-full flex flex-col items-center justify-start px-4">
+        <div className="w-full flex flex-col mt-10">
+          <DndContext
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={sections.map((s) => s.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {sections.map((section) => (
+                <SortableItem
+                  key={section.id}
+                  id={section.id}
+                  name={section.name}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
+        </div>
+      </div>
       {galleryItem && <EditGalleryItem id={galleryItem} />}
+      <div className="mb-6 px-3">
+        <UpgradeCard />
+      </div>
     </div>
   );
 };
+
+function SortableItem({ id, name }: { [key: string]: string }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "p-2 mb-2 w-full flex items-center justify-between    rounded-lg cursor-pointer",
+        isDragging && "drop-shadow-xl z-10 shadow-black/40 "
+      )}
+    >
+      <span className="ml-2 opacity-80">{name}</span>
+      <button {...attributes} {...listeners}>
+        <AlignJustify strokeWidth={1.4} className="size-4" />
+      </button>
+    </div>
+  );
+}
+
 type MediaFile = {
   id: string;
   url: string;
@@ -76,17 +154,22 @@ function EditGallery() {
     const formData = new FormData();
     files.forEach((file) => {
       formData.append("files", file.file);
-      formData.append("type", file.type);
     });
     try {
       setIsUploading(true);
-      const result = await uploadFilesToCloudinary(formData);
-      console.log(result);
-      if (result.error && !result.success) {
+      const res = await axios.post("/api/upload/files", formData);
+      // const result = await uploadFilesToCloudinary(formData);
+      // console.log(result);
+      // if (result.error && !result.success) {
+      //   setIsUploading(false);
+      //   throw new Error(result.error);
+      // }
+      console.log(res);
+      if (res.status !== 200) {
         setIsUploading(false);
-        throw new Error(result.error);
+        throw new Error("Error uploading files", res.data?.error);
       }
-      for (const url of result.data!) {
+      for (const url of res.data?.data!) {
         const item = await addGalleryItem(url);
         console.log(item);
         if (!item) {
@@ -105,7 +188,7 @@ function EditGallery() {
   };
 
   return (
-    <div className="h-screen overflow-hidden  w-full pt-6">
+    <div className="h-full overflow-hidden  w-full pt-6">
       <div className="flex flex-col">
         <h3 className="text-xl px-4 leading-tight tracking-tight mb-3">
           Edit Gallery

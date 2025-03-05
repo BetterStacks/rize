@@ -1,11 +1,22 @@
 "use client";
 
 import ClaimUsernameForm from "@/components/claim-username";
+import { setServerCookie } from "@/lib/server-actions";
+import { UsernameFormData } from "@/lib/types";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 export default function Home() {
   const session = useSession();
+  const router = useRouter();
+  const handleSubmit = (data: UsernameFormData) => {
+    console.log(data);
+    // Handle form submission
+    setServerCookie("username", data.username);
+
+    router.push(`/login`);
+  };
   console.log(session);
   return (
     <div className="w-full h-screen flex items-center justify-center">
@@ -39,10 +50,7 @@ export default function Home() {
         </h1>
         <div className="w-full">
           {" "}
-          <ClaimUsernameForm />
-          {!session?.data?.user?.isOnboarded && (
-            <Link href={"/onboarding"}>Onboarding</Link>
-          )}
+          <ClaimUsernameForm onSubmit={handleSubmit} />
         </div>
         {/* <Button
           onClick={async () => {

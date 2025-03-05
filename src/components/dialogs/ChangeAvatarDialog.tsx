@@ -1,14 +1,13 @@
 "use client";
-import { getBase64Image, getCroppedImg, toBase64 } from "@/lib/utils";
+import { updateUserImage } from "@/lib/server-actions";
+import { getBase64Image, getCroppedImg } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 import React, { FC, useEffect, useState } from "react";
 import Cropper, { Area } from "react-easy-crop";
+import toast from "react-hot-toast";
 import { useAvatarDialog } from "../dialog-provider";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import { useSession } from "next-auth/react";
-import toast from "react-hot-toast";
-import { Session } from "next-auth";
-import { updateUserImage } from "@/lib/server-actions";
 
 type ChangeAvatarDialogProps = {
   file: File | null;
@@ -17,7 +16,7 @@ type ChangeAvatarDialogProps = {
 
 const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
   const [isOpen, setIsOpen] = useAvatarDialog();
-  const { data: session, update } = useSession();
+  const { update } = useSession();
   const [image, setImage] = React.useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [rotation, setRotation] = useState(0);
@@ -54,7 +53,7 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
       }
     };
     showCroppedImage();
-  }, [croppedAreaPixels, rotation, image]);
+  }, [croppedAreaPixels, rotation, image, file]);
 
   return (
     <Dialog open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
@@ -119,7 +118,7 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
                 return;
               }
 
-              const resp = await updateUserImage(data?.url as string);
+              const resp = await updateUserImage(data?.url[0] as string);
               if (!resp?.success && resp.error) {
                 toast.error(resp?.error);
               }

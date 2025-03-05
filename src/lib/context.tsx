@@ -1,4 +1,6 @@
 "use client";
+import Gallery from "@/components/profile/gallery";
+import Projects from "@/components/writings/writings";
 import React, {
   createContext,
   ReactNode,
@@ -7,9 +9,7 @@ import React, {
   useState,
 } from "react";
 import { Item } from "./types";
-import Gallery from "@/components/gallery";
-import Tiptap from "@/components/editor/editor";
-import Projects from "@/components/writings/writings";
+import Writings from "@/components/writings/writings";
 
 type TSection = {
   id: string;
@@ -27,7 +27,7 @@ type TAppContext = {
   remove: (key: string) => void;
   clear: () => void;
   has: (key: string) => boolean;
-  get: (key: string) => Record<string, any>;
+  get: (key: string) => any;
 };
 
 export const layout: Item[] = [
@@ -95,45 +95,46 @@ export const useSections = () => {
 const sectionsList: TSection[] = [
   { id: "gallery", name: "Gallery", component: <Gallery /> },
   {
-    id: "projects",
-    name: "Projects",
-    component: <Projects />,
-  },
-  {
-    id: "experiences",
-    name: "Experiences",
-    component: <div id="experiences">Experiences</div>,
-  },
-  {
-    id: "education",
-    name: "Education",
-    component: <div id="education">Education</div>,
-  },
-  {
     id: "writings",
     name: "Writings",
-    component: <div id="writings">Writings</div>,
+    component: <Writings />,
   },
+  // {
+  //   id: "experiences",
+  //   name: "Experiences",
+  //   component: <div id="experiences">Experiences</div>,
+  // },
+  // {
+  //   id: "education",
+  //   name: "Education",
+  //   component: <div id="education">Education</div>,
+  // },
+  // {
+  //   id: "writings",
+  //   name: "Writings",
+  //   component: <div id="writings">Writings</div>,
+  // },
 ];
 
 const Context = ({ children }: { children: ReactNode }) => {
-  const storedLayout = JSON.parse(localStorage.getItem("layout") as string);
-  const storedMap = JSON.parse(localStorage.getItem("map") as string);
-  console.log({ storedLayout, s: new Map(storedMap) });
+  // const storedLayout = JSON.parse(localStorage.getItem("layout") as string);
+  // const storedMap = JSON.parse(localStorage.getItem("map") as string);
+  // console.log({ storedLayout, s: new Map(storedMap) });
   const [sections, setSections] = useState<TSection[]>(sectionsList);
-  const [items, setItems] = React.useState<Item[]>(storedLayout || layout);
-  const [map, setMap] = useState((new Map(storedMap) as any) || initMap);
+  const [items, setItems] = React.useState<Item[]>(layout);
+  const [map, setMap] = useState(initMap);
+  // const [map, setMap] = useState((new Map(storedMap) as any) || initMap);
 
   const set = useCallback((key: string, value: any) => {
-    setMap((prev: any) => new Map(prev).set(key, value));
+    // setMap((prev: any) => new Map(prev).set(key, value));
   }, []);
 
   const remove = useCallback((key: string) => {
-    setMap((prev: any) => {
-      const newMap = new Map(prev);
-      newMap.delete(key);
-      return newMap;
-    });
+    // setMap((prev: any) => {
+    //   const newMap = new Map(prev);
+    //   newMap.delete(key);
+    //   return newMap;
+    // });
   }, []);
 
   const clear = useCallback(() => {
@@ -154,6 +155,7 @@ const Context = ({ children }: { children: ReactNode }) => {
           set,
           remove,
           has,
+          // @ts-ignore
           get,
           sections,
           setSections,

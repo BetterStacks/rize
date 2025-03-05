@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ImageIcon, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "../ui/button";
 
@@ -22,6 +22,17 @@ const PageSidebar = () => {
     queryFn: () => getPageById(params?.id as string),
   });
   const [file, setFile] = useState<MediaFile | null>(null);
+
+  useEffect(() => {
+    if (data?.data?.thumbnail) {
+      setFile({
+        id: data?.data?.thumbnail,
+        url: data?.data?.thumbnail,
+        type: "image",
+        file: new File([], ""),
+      });
+    }
+  }, []);
   const onDrop = (acceptedFiles: File[]) => {
     const newFile: MediaFile = {
       id: crypto.randomUUID(),
@@ -35,7 +46,7 @@ const PageSidebar = () => {
     onDrop,
     accept: {
       "image/*": [".png", ".jpg", ".jpeg", ".gif"],
-      "video/*": [".mp4", ".webm", ".mov"],
+      // "video/*": [".mp4", ".webm", ".mov"],
     },
   });
   return (

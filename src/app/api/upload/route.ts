@@ -1,4 +1,4 @@
-import { v2 as cloudinary } from "cloudinary";
+import { v2 as cloudinary, UploadApiOptions } from "cloudinary";
 import { NextRequest } from "next/server";
 
 cloudinary.config({
@@ -10,11 +10,14 @@ cloudinary.config({
 export async function POST(req: NextRequest) {
   try {
     const data = await req.formData();
-    let options: Record<string, any> = {};
     const type = data.get("type") as string;
-    const file = data.get("file") as string; // file
+    const file = data.getAll("file") as string[]; // file
+
+    let options: UploadApiOptions = {};
+    const results: string[] = [];
+
     console.log({ data });
-    if (!file) {
+    if (!file || file.length === 0) {
       throw new Error("No file found");
     }
     if (type === "avatar") {
@@ -22,18 +25,37 @@ export async function POST(req: NextRequest) {
         folder: "fyp-stacks/avatar",
         transformation: [{ radius: "max" }],
       };
+      const upload = await cloudinary.uploader.upload(file[0], options);
+      return Response.json(
+        {
+          message: "File uploaded successfully",
+          url: upload.secure_url,
+        },
+        { status: 200 }
+      );
     } else if (type === "gallery") {
       options = {
         folder: "fyp-stacks/gallery",
-        transformation: [{ width: 500, aspect_ratio: "1.0", height: 500 }],
+        resource_type: "auto",
       };
     }
-    const upload = await cloudinary.uploader.upload(file, options);
-    console.log({ upload });
+
+    const uploadFiles = Promise.allSettled(
+      file.map(async (f) => await cloudinary.uploader.upload(f, options))
+    );
+
+    (await uploadFiles).map((result) => {
+      if (result.status === "fulfilled") {
+        results.push(result.value.secure_url);
+      } else {
+        console.log({ err: result.reason });
+      }
+    });
+    console.log(results);
     return Response.json(
       {
         message: "File uploaded successfully",
-        url: upload.secure_url,
+        url: results,
       },
       { status: 200 }
     );

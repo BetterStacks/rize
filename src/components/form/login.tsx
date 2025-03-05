@@ -24,7 +24,9 @@ const Login = () => {
   //   const usernameCookie = getCookie("username");
   const router = useRouter();
   const s = useSession();
-  console.log({ s });
+  if (s.status === "authenticated" && !s?.data?.user?.isOnboarded) {
+    router.push("/onboarding");
+  }
   const form = useForm<TLoginValues>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -39,7 +41,7 @@ const Login = () => {
       return;
     }
     toast.success("Logged in successfully");
-    router.push(`/${s?.data?.user?.username}`);
+    // router.push(`/${s?.data?.user?.username}`);
   };
   return (
     <div className=" w-full space-y-4">
