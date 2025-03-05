@@ -13,14 +13,20 @@ import { customType } from "drizzle-orm/pg-core";
 import { v4 as gen_uuid, v4 } from "uuid";
 
 export type TPronouns = "he/him" | "she/her" | "they/them" | "other";
-type TMedia = "image" | "video";
+export type Media = "image" | "video";
+export type TPageStatus = "draft" | "published";
 
 const Pronouns = customType<{ data: TPronouns }>({
   dataType() {
     return "text";
   },
 });
-const MediaType = customType<{ data: TMedia }>({
+const MediaType = customType<{ data: Media }>({
+  dataType() {
+    return "text";
+  },
+});
+const PageStatus = customType<{ data: TPageStatus }>({
   dataType() {
     return "text";
   },
@@ -57,6 +63,18 @@ export const profile = pgTable("profile", {
     .$onUpdate(() => new Date()),
 });
 
+export const media = pgTable("media", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  url: text("url").notNull(), // Cloud Storage URL (S3, Supabase Storage, etc.)
+  type: MediaType("type").notNull(), // 'image', 'video', 'link'
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => profile.id, { onDelete: "cascade" }), // User who uploaded
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const gallery = pgTable("gallery", {
   id: uuid("id")
     .primaryKey()
@@ -64,10 +82,8 @@ export const gallery = pgTable("gallery", {
   profileId: uuid("profile_id")
     .notNull()
     .references(() => profile.id, { onDelete: "cascade" }),
+  layout: text("layout").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at")
-    .notNull()
-    .$onUpdate(() => new Date()),
 });
 
 export const galleryMedia = pgTable("gallery_media", {
@@ -77,51 +93,7 @@ export const galleryMedia = pgTable("gallery_media", {
   galleryId: uuid("gallery_id").references(() => gallery.id, {
     onDelete: "cascade",
   }),
-  url: text("url").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at")
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
-
-// export const socialLinks = pgTable("social_links", {
-//   id: uuid("id")
-//     .primaryKey()
-//     .$defaultFn(() => v4()),
-//   name: varchar("name", { length: 50 }).notNull().unique(), // e.g., "LinkedIn", "GitHub"
-//   icon: text("icon"), // Optional: Store icon URLs or icon class names
-//   createdAt: timestamp("created_at").notNull().defaultNow(),
-// });
-
-// export const profileSocialLinks = pgTable("profile_social_links", {
-//   id: uuid("id")
-//   .primaryKey()
-//   .$defaultFn(() => v4()),
-//   profileId: uuid("profile_id")
-//     .notNull()
-//     .references(() => profile.id, { onDelete: "cascade" }),
-//   socialLinksId: uuid("social_links_id")
-//     .notNull()
-//     .references(() => socialLinks.id, { onDelete: "cascade" }),
-//   url: text("url").notNull(), // User-provided link
-//   createdAt: timestamp("created_at").notNull().defaultNow(),
-// });
-
-export const experience = pgTable("experience", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => v4()),
-  profileId: uuid("profile_id").references(() => profile.id, {
-    onDelete: "cascade",
-  }),
-  companyName: varchar("company_name", { length: 25 }).notNull(),
-  website: text("website"),
-  position: varchar("position", { length: 40 }).notNull(),
-  startDate: timestamp("start_date").notNull(),
-  endDate: timestamp("end_date").notNull(),
-  updatedAt: timestamp("updated_at")
-    .notNull()
-    .$onUpdate(() => new Date()),
+  mediaId: uuid("media_id").references(() => media.id, { onDelete: "cascade" }),
 });
 
 export const page = pgTable("page", {
@@ -134,34 +106,12 @@ export const page = pgTable("page", {
   profileId: uuid("profileId").references(() => profile.id, {
     onDelete: "cascade",
   }),
+  status: PageStatus("status").notNull().default("draft"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
     .$onUpdate(() => new Date()),
 });
-
-export const skill = pgTable("skill", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  icon: text("icon").notNull(),
-  name: text("name").notNull(),
-});
-
-export const profileToSkills = pgTable(
-  "skill",
-  {
-    profileId: text("profileId")
-      .notNull()
-      .references(() => profile.id, { onDelete: "cascade" }),
-    skillId: text("skillId")
-      .notNull()
-      .references(() => skill.id, { onDelete: "cascade" }),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.profileId, table.skillId] }),
-  })
-);
 
 export const accounts = pgTable(
   "account",

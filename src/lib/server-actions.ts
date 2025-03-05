@@ -1,15 +1,23 @@
 "use server";
 
 import { initialValue } from "@/components/editor/utils";
-import { gallery, galleryMedia, page, profile, users } from "@/db/schema";
-import { profileSchema, TPage, TUser } from "@/lib/types";
+import {
+  gallery,
+  galleryMedia,
+  media,
+  page,
+  profile,
+  users,
+} from "@/db/schema";
+import { profileSchema, TMedia, TPage, TUser } from "@/lib/types";
 import { hashSync } from "bcryptjs";
-import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
-import { and, eq } from "drizzle-orm";
+import { and, eq, getTableColumns, not } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { auth } from "./auth";
 import db from "./db";
 import { z } from "zod";
+import { isImageUrl } from "./utils";
+import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 
 cloudinary.config({
   api_key: "537392939961543",
@@ -59,6 +67,43 @@ export async function updateUserAndProfile(
 
   return { success: true, error: null };
 }
+
+export const createProfile = async (username: string) => {
+  try {
+    const session = await auth();
+    if (!session) {
+      throw new Error("Session not found");
+    }
+    const p = await db
+      .insert(profile)
+      .values({
+        userId: session?.user?.id,
+        username: username,
+      })
+      .returning();
+    if (p.length === 0) {
+      throw new Error("Error creating profile");
+    }
+
+    return { data: p[0], error: null };
+  } catch (error) {
+    return { data: null, error: (error as Error)?.message };
+  }
+};
+
+export const setUserIsOnboarded = async () => {
+  const session = await auth();
+  if (!session) {
+    return { success: false, error: "Session not found" };
+  }
+
+  await db
+    .update(users)
+    .set({ isOnboarded: not(users.isOnboarded) })
+    .where(eq(users.id, session?.user?.id));
+
+  return { success: true, error: null };
+};
 
 export async function updateUserImage(url: string) {
   const session = await auth();
@@ -179,12 +224,12 @@ export const getAllPages = async () => {
 };
 export const getPageById = async (id: string) => {
   try {
-    const sessoin = await auth();
+    const session = await auth();
     const pages = await db
       .select()
       .from(page)
       .where(
-        and(eq(page.profileId, sessoin?.user?.profileId!), eq(page.id, id))
+        and(eq(page.profileId, session?.user?.profileId!), eq(page.id, id))
       )
       .limit(1);
     // console.log(pages);
@@ -198,7 +243,6 @@ export const getPageById = async (id: string) => {
   }
 };
 
-// export const getAllSocialLinks = async () => {
 //   const sessoin = await auth();
 //   const links = await db
 //     .select({
@@ -235,7 +279,13 @@ export const getGalleryId = async () => {
     .from(gallery)
     .where(eq(gallery.profileId, session?.user?.profileId!));
   if (galleryId.length === 0) {
-    throw new Error("No gallery found");
+    // throw new Error("No gallery found");
+    console.log("No gallery found");
+    const newGallery = await db
+      .insert(gallery)
+      .values({ layout: "default", profileId: session?.user?.profileId })
+      .returning({ id: gallery.id });
+    return newGallery[0];
   }
   return galleryId[0];
 };
@@ -245,21 +295,12 @@ export const getGalleryItems = async () => {
   if (!session || !session?.user?.profileId) {
     throw new Error("Session not found");
   }
-  // const { id } = await getGalleryId();
-  // if (!id) {
-  //   throw new Error("Gallery not found");
-  // }
+  const { ...rest } = getTableColumns(media);
   const items = await db
-    .select({
-      id: galleryMedia.id,
-      url: galleryMedia.url,
-      createdAt: galleryMedia.createdAt,
-      updatedAt: galleryMedia.updatedAt,
-      profileId: gallery.profileId,
-      galleryId: galleryMedia.galleryId,
-    })
+    .select({ ...rest, galleryMediaId: galleryMedia.id })
     .from(gallery)
     .innerJoin(galleryMedia, eq(gallery.id, galleryMedia.galleryId))
+    .innerJoin(media, eq(galleryMedia.mediaId, media.id))
     .where(eq(gallery.profileId, session?.user?.profileId!));
 
   // console.log({ items });
@@ -267,7 +308,7 @@ export const getGalleryItems = async () => {
   if (items.length === 0) {
     throw new Error("No gallery items found");
   }
-  return items;
+  return items as (typeof TMedia & { galleryMediaId: string | null })[];
 };
 
 export const addGalleryItem = async (url: string) => {
@@ -279,11 +320,22 @@ export const addGalleryItem = async (url: string) => {
   if (!id) {
     throw new Error("Gallery not found");
   }
+  const newMedia = await db
+    .insert(media)
+    .values({
+      url,
+      type: isImageUrl(url) ? "image" : "video",
+      profileId: session?.user?.profileId,
+    })
+    .returning({ id: media.id });
+  if (newMedia.length === 0) {
+    throw new Error("Error adding media");
+  }
   const item = await db
     .insert(galleryMedia)
     .values({
       galleryId: id,
-      url,
+      mediaId: newMedia[0].id,
     })
     .returning();
   if (item.length === 0) {
@@ -305,7 +357,7 @@ export const removeGalleryItem = async (id: string) => {
     .where(eq(galleryMedia.id, id))
     .returning();
   if (item.length === 0) {
-    throw new Error("Error adding gallery item");
+    throw new Error("Error deleting gallery item");
   }
   return item[0];
 };
@@ -320,39 +372,43 @@ export async function uploadFilesToCloudinary(formData: FormData) {
     }
 
     const results: string[] = [];
-
+    const fileBuffers = files.map(async (file) => {
+      if (!(file instanceof File)) return;
+      const arrayBuffer = await file.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    });
     for (const file of files) {
       if (!(file instanceof File)) continue;
 
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
-      try {
-        const result: UploadApiResponse = await new Promise(
-          (resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream(
-              {
-                folder: "fyp-stacks/gallery", // Optional: specify a folder in Cloudinary
-                resource_type: type, // Automatically detect resource type
-                filename_override: file.name, // Use original filename
-              },
-              (error, result) => {
-                if (error) {
-                  reject(error);
-                } else {
-                  resolve(result!);
-                }
-              }
-            );
+      // try {
+      //   const result: UploadApiResponse = await new Promise(
+      //     (resolve, reject) => {
+      //       const uploadStream = cloudinary.uploader.upload_stream(
+      //         {
+      //           folder: "fyp-stacks/gallery", // Optional: specify a folder in Cloudinary
+      //           resource_type: type, // Automatically detect resource type
+      //           filename_override: file.name, // Use original filename
+      //         },
+      //         (error, result) => {
+      //           if (error) {
+      //             reject(error);
+      //           } else {
+      //             resolve(result!);
+      //           }
+      //         }
+      //       );
 
-            uploadStream.write(buffer);
-            uploadStream.end();
-          }
-        );
-        results.push(result?.secure_url as string);
-      } catch (uploadError) {
-        console.error(`Error uploading ${file.name}:`, uploadError);
-      }
+      //       uploadStream.write(buffer);
+      //       uploadStream.end();
+      //     }
+      //   );
+      //   results.push(result?.secure_url as string);
+      // } catch (uploadError) {
+      //   console.error(`Error uploading ${file.name}:`, uploadError);
+      // }
     }
     console.log({ results });
     return { success: true, data: results };
@@ -369,11 +425,7 @@ export async function getGalleryItem(id: string) {
   if (!id) {
     throw new Error("Provide an valid ID ");
   }
-  const items = await db
-    .select()
-    .from(galleryMedia)
-    .where(eq(galleryMedia.id, id))
-    .limit(1);
+  const items = await db.select().from(media).where(eq(media.id, id)).limit(1);
 
   console.log({ items });
 

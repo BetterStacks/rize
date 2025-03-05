@@ -77,7 +77,7 @@ const Sidebar = () => {
   return (
     <div
       className={cn(
-        "h-screen w-[80px]  hidden md:flex flex-col items-center justify-start border-r border-neutral-200  dark:border-dark-border/60"
+        "h-screen w-[80px] border-r border-neutral-200  dark:border-dark-border/60  hidden md:flex flex-col items-center justify-start "
       )}
     >
       <div className="flex w-full flex-col mt-24 items-center justify-center gap-y-2">

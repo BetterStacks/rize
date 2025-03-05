@@ -23,13 +23,20 @@ import { Form, useForm } from "react-hook-form";
 import Textarea from "react-textarea-autosize";
 import { z } from "zod";
 import { useProfileDialog } from "../dialog-provider";
-import { updateUserAndProfile } from "@/lib/server-actions";
+import {
+  isUsernameAvailable as getUsername,
+  updateUserAndProfile,
+} from "@/lib/server-actions";
 import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 
 // import { updateProfile } from "@/app/actions/updateProfile";
 
 export function ProfileUpdateDialog() {
   const [open, setOpen] = useProfileDialog();
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
   const { data, update } = useSession();
   const {
     register,
@@ -37,6 +44,7 @@ export function ProfileUpdateDialog() {
     formState: { errors },
     control,
     setValue,
+    watch,
   } = useForm<z.infer<typeof profileSchema>>({
     values: {
       email: data?.user?.email || "",
@@ -50,6 +58,28 @@ export function ProfileUpdateDialog() {
     },
     resolver: zodResolver(profileSchema),
   });
+  const watchUsername = watch("username");
+  const debouncedUsername = useDebounce(watchUsername, 300);
+
+  useEffect(() => {
+    if (
+      debouncedUsername &&
+      watchUsername !== data?.user?.username &&
+      debouncedUsername.length >= 3 &&
+      debouncedUsername.length <= 15
+    ) {
+      (async () => {
+        setIsChecking(true);
+        const res = await getUsername(debouncedUsername!);
+        if (!res.available) {
+          setIsUsernameAvailable(false);
+          setIsChecking(false);
+        }
+        setIsUsernameAvailable(true);
+        setIsChecking(false);
+      })();
+    }
+  }, [watchUsername]);
 
   const onSubmit = async (data: z.infer<typeof profileSchema>) => {
     console.log({ data: data });
@@ -92,6 +122,18 @@ export function ProfileUpdateDialog() {
               {errors.username && (
                 <p className="text-sm text-red-500">
                   {errors.username.message}
+                </p>
+              )}
+              {isChecking && (
+                <p className="text-sm text-green-500">
+                  Checking availability...
+                </p>
+              )}
+              {!isChecking && isUsernameAvailable ? (
+                <p className="text-sm text-green-500">Username is available</p>
+              ) : (
+                <p className="text-sm text-red-500">
+                  Username is not available
                 </p>
               )}
             </div>

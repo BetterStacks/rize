@@ -1,14 +1,18 @@
-import { galleryMedia, page, profile, users } from "@/db/schema";
-import { z } from "zod";
-import { Descendant, BaseEditor, BaseRange, Range, Element } from "slate";
-import { ReactEditor } from "slate-react";
+import { galleryMedia, media, page, profile, users } from "@/db/schema";
+import { BaseEditor, BaseRange, Descendant, Element, Range } from "slate";
 import { HistoryEditor } from "slate-history";
+import { ReactEditor } from "slate-react";
+import { z } from "zod";
 
 export const TUser = users.$inferSelect;
 export const TPage = page.$inferInsert;
 export const TProfile = profile.$inferSelect;
 export const TGalleryItem = galleryMedia.$inferSelect;
 export const NewProfile = profile.$inferInsert;
+export const TMedia = media.$inferSelect;
+export type GalleryItemProps = typeof TMedia & {
+  galleryMediaId: string | null;
+};
 
 export type GalleryConfigProps = {
   cols: 2 | 3 | 4;
@@ -179,7 +183,7 @@ export const profileSchema = z.object({
   pronouns: PronounsEnum.optional(),
   bio: z.string().max(150).optional(),
   location: z.string().optional(),
-  website: z.string().url().optional(),
+  website: z.string().url().optional().nullable(),
 });
 
 export type UsernameFormData = z.infer<typeof usernameSchema>;

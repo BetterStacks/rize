@@ -1,7 +1,12 @@
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GalleryConfigProps, TGalleryItem } from "@/lib/types";
+import {
+  GalleryConfigProps,
+  GalleryItemProps,
+  TGalleryItem,
+  TMedia,
+} from "@/lib/types";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { cn, isImageUrl } from "@/lib/utils";
@@ -18,7 +23,7 @@ function GalleryItem({
   item,
   index,
 }: {
-  item: typeof TGalleryItem & { profileId: string };
+  item: GalleryItemProps;
   index: number;
 }) {
   const session = useSession();
@@ -28,13 +33,18 @@ function GalleryItem({
   });
   const isUser = session.data?.user?.profileId === item.profileId;
   const removeItemFromGallery = async () => {
+    if (!item.galleryMediaId) {
+      toast.error("Item not found in gallery");
+      return;
+    }
     try {
-      const res = await removeGalleryItem(item.id);
+      const res = await removeGalleryItem(item.galleryMediaId);
       if (!res) {
         throw new Error("Failed to remove item from gallery");
       }
       toast.success("Item removed from gallery");
       queryClient.invalidateQueries({ queryKey: ["get-gallery-items"] });
+      setId(null);
     } catch (error) {
       toast.error((error as Error).message);
     }
@@ -76,13 +86,19 @@ function GalleryItem({
       //   {...listeners}
       className={cn(
         // isDragging && "opacity-80",
-        " shadow-2xl group aspect-square  relative overflow-hidden  w-full  rounded-3xl bg-neutral-100 dark:bg-dark-border -m-2 cursor-grab active:cursor-grabbing",
-        config?.cols == 4 && "max-w-xs h-[200px]",
-        config?.cols == 3 && "w-[250px] h-[250px]",
-        config?.cols == 2 && "w-[200px] h-[200px] -m-1"
+        // " shadow-2xl group aspect-square [&:nth-child(3)]:h-[300px] relative overflow-hidden    rounded-3xl bg-neutral-100 dark:bg-dark-border my-2 cursor-grab active:cursor-grabbing w-[200px] h-[200px]"
+
+        " shadow-2xl group   relative overflow-hidden    rounded-3xl bg-neutral-100 dark:bg-dark-border -m-2 cursor-grab active:cursor-grabbing aspect-auto max-w-xs h-[200px] w-full "
+        // config?.cols == 4 && "max-w-[200px] h-[200px]",
+        // config?.cols == 3 && "w-[200px] h-[200px]",
+        // config?.cols == 2 && "w-[20px] h-[260px] m-0"
       )}
-      onClick={() => setId(id === item?.id ? null : item.id)}
-      style={{ rotate: `${(index + 1) % 2 === 0 ? -6 : 6}deg` }}
+      onClick={() =>
+        setId(id === item?.galleryMediaId ? null : item.galleryMediaId)
+      }
+      style={{
+        rotate: `${(index + 1) % 2 === 0 ? -6 : 6}deg`,
+      }}
       whileHover={{ scale: 1.05, zIndex: 20, y: -40, rotate: 0 }}
       whileTap={{ scale: 1.05, zIndex: 20 }}
       drag

@@ -28,25 +28,25 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({ children }) => {
     sidebarRef?.expand();
   }, [item]);
   return (
-    <ResizablePanelGroup className="w-full h-full" direction="horizontal">
+    <ResizablePanelGroup
+      className="w-full h-full flex items-center justify-center"
+      direction="horizontal"
+    >
+      {/* <div className="xl:w-full hidden lg:flex items-center justify-end h-full w-fit xl:max-w-sm border-r border-neutral-200  dark:border-dark-border/60"> */}
       <Sidebar />
+      {/* </div> */}
 
-      <ResizablePanel className="w-full h-screen  ">
+      <ResizablePanel className="w-full h-screen   ">
         <ScrollArea className="h-screen overflow-y-auto relative w-full ">
-          <div className="w-full mt-28 mb-10 flex flex-col ">{children}</div>
+          <div className="w-full mt-28 mb-10 flex flex-col px-3">
+            {children}
+          </div>
         </ScrollArea>
       </ResizablePanel>
-      <ResizableHandle withHandle />
-      <ResizablePanel
-        id="right-sidebar"
-        className="hidden md:flex "
-        maxSize={25}
-        ref={ref}
-        collapsible={true}
-        collapsedSize={0}
-      >
+
+      <div className="w-full  hidden lg:flex items-center justify-end h-full max-w-sm border-l border-neutral-200  dark:border-dark-border/60">
         <RightSidebar />
-      </ResizablePanel>
+      </div>
     </ResizablePanelGroup>
   );
 };

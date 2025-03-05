@@ -28,7 +28,7 @@ const Page: FC<Props> = async ({ params }) => {
   //   // throw new Error("You are not authorized to view this page");
   //   redirect("/login");
   // }c
-  console.log({ profile: user });
+  // console.log({ profile: user });
   return (
     <div className="w-full flex items-center justify-center">
       <UserProfile />
