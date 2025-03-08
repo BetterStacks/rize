@@ -1,12 +1,11 @@
 "use client";
 import { createPage, getAllPages } from "@/lib/server-actions";
 import { useQuery } from "@tanstack/react-query";
-import { usePageDialog } from "../dialog-provider";
-import WritingCard from "./writing-card";
-import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
-import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { Button } from "../ui/button";
+import WritingCard from "./writing-card";
 
 const Writings = () => {
   const router = useRouter();

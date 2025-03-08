@@ -1,4 +1,5 @@
 import { Media } from "@/db/schema";
+import { TUploadFilesResponse } from "@/lib/types";
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { NextRequest } from "next/server";
 
@@ -11,7 +12,8 @@ cloudinary.config({
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const files = formData.getAll("files") as File[];
-  const results: string[] = [];
+  const folder = formData.get("folder") as string;
+  const results: TUploadFilesResponse[] = [];
 
   for (const file of files) {
     const arrayBuffer = await file.arrayBuffer();
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
       const result: UploadApiResponse = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
-            folder: "fyp-stacks/gallery", // Optional: specify a folder in Cloudinary
+            folder: folder, // Optional: specify a folder in Cloudinary
             resource_type: "auto", // Automatically detect resource type
           },
           (error, result) => {
@@ -35,7 +37,12 @@ export async function POST(req: NextRequest) {
         uploadStream.write(buffer);
         uploadStream.end();
       });
-      results.push(result?.secure_url as string);
+
+      results.push({
+        width: result.width,
+        height: result.height,
+        url: result.secure_url,
+      });
     } catch (uploadError) {
       console.error(`Error uploading `, uploadError);
       return Response.json(

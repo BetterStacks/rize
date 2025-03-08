@@ -1,4 +1,5 @@
 import { TPage } from "@/lib/types";
+import { ImageIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { FC, useMemo } from "react";
@@ -36,13 +37,17 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
           </h3>
           <div className="text-neutral-400">{time?.text}</div>
         </div>
-        <div className="relative  w-[160px] h-[120px] rounded-xl overflow-hidden bg-dark-border">
-          <Image
-            src={data?.thumbnail!}
-            alt="Thumbnail"
-            fill
-            className="object-cover"
-          />
+        <div className="relative  w-[160px] h-[120px] rounded-xl overflow-hidden bg-neutral-200 dark:bg-dark-border">
+          {data?.thumbnail ? (
+            <Image
+              src={data?.thumbnail!}
+              alt="Thumbnail"
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <></>
+          )}
         </div>
       </Link>
     </article>

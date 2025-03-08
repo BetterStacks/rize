@@ -114,6 +114,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             console.error("No username found");
             return "/onboarding";
           }
+        } else {
+          return `/${existingProfile[0]?.username}`;
         }
 
         return true;
