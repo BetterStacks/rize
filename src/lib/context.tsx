@@ -1,6 +1,6 @@
 "use client";
-import Gallery from "@/components/profile/gallery";
-import Projects from "@/components/writings/writings";
+import Gallery from "@/components/gallery/gallery";
+import Writings from "@/components/writings/writings";
 import React, {
   createContext,
   ReactNode,
@@ -9,7 +9,6 @@ import React, {
   useState,
 } from "react";
 import { Item } from "./types";
-import Writings from "@/components/writings/writings";
 
 type TSection = {
   id: string;

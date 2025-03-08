@@ -10,13 +10,23 @@ export const TProfile = profile.$inferSelect;
 export const TGalleryItem = galleryMedia.$inferSelect;
 export const NewProfile = profile.$inferInsert;
 export const TMedia = media.$inferSelect;
+
+export type TUploadFilesResponse = {
+  width: number;
+  height: number;
+  url: string;
+};
+
 export type GalleryItemProps = typeof TMedia & {
   galleryMediaId: string | null;
+  width: number;
+  height: number;
 };
 
 export type GalleryConfigProps = {
-  cols: 2 | 3 | 4;
-  length: number;
+  // cols: 2 | 3 | 4;
+  // length: number;
+  layout: "messy-grid" | "masonry-grid";
 };
 
 export type TSocialLink = {

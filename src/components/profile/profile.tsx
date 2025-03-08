@@ -13,7 +13,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   useAvatarDialog,
   useExperienceDialog,
@@ -36,6 +36,7 @@ const Profile = () => {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const { theme, setTheme } = useTheme();
+
   const options = [
     {
       icon: <UserPenIcon className="opacity-80 size-5" />,
@@ -88,9 +89,9 @@ const Profile = () => {
   };
 
   return (
-    <div className=" w-full flex flex-col items-center justify-start  px-4 mb-6">
+    <div className=" w-full flex flex-col items-center justify-start   mb-6">
       <ChangeAvatarDialog file={file} setFile={setFile} />
-      <div className="w-full max-w-2xl px-2 pb-2 flex flex-col items-start  justify-center">
+      <div className="w-full max-w-2xl  pb-2 flex flex-col items-start  justify-center">
         <div
           className={cn(
             "relative group border-2 border-neutral-300 dark:border-dark-border rounded-full size-24 md:size-24 lg:size-28  aspect-square ",
@@ -193,7 +194,7 @@ const Profile = () => {
         <div className="flex flex-col items-start justify-start mt-2 w-full">
           {data?.user?.bio && (
             <div className="mt-2">
-              <p className="text-sm opacity-80">{data?.user?.bio} </p>
+              <p className="opacity-80">{data?.user?.bio} </p>
             </div>
           )}
         </div>

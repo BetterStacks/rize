@@ -14,6 +14,7 @@ import { v4 as gen_uuid, v4 } from "uuid";
 
 export type TPronouns = "he/him" | "she/her" | "they/them" | "other";
 export type Media = "image" | "video";
+export type TPageMedia = "thumbnail" | "content-media";
 export type TPageStatus = "draft" | "published";
 
 const Pronouns = customType<{ data: TPronouns }>({
@@ -22,6 +23,11 @@ const Pronouns = customType<{ data: TPronouns }>({
   },
 });
 const MediaType = customType<{ data: Media }>({
+  dataType() {
+    return "text";
+  },
+});
+const PageMediaType = customType<{ data: TPageMedia }>({
   dataType() {
     return "text";
   },
@@ -69,6 +75,8 @@ export const media = pgTable("media", {
     .$defaultFn(() => crypto.randomUUID()),
   url: text("url").notNull(), // Cloud Storage URL (S3, Supabase Storage, etc.)
   type: MediaType("type").notNull(), // 'image', 'video', 'link'
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
   profileId: uuid("profile_id")
     .notNull()
     .references(() => profile.id, { onDelete: "cascade" }), // User who uploaded
@@ -101,7 +109,6 @@ export const page = pgTable("page", {
     .primaryKey()
     .$defaultFn(() => gen_uuid()),
   title: varchar("title", { length: 120 }).notNull(),
-  thumbnail: text("thumbnail"),
   content: text("content").notNull(),
   profileId: uuid("profileId").references(() => profile.id, {
     onDelete: "cascade",
@@ -111,6 +118,20 @@ export const page = pgTable("page", {
   updatedAt: timestamp("updated_at")
     .notNull()
     .$onUpdate(() => new Date()),
+});
+
+export const pageMedia = pgTable("page_media", {
+  pageId: uuid("page_id")
+    .notNull()
+    .references(() => page.id, {
+      onDelete: "cascade",
+    }),
+  mediaId: uuid("media_id")
+    .notNull()
+    .references(() => media.id, {
+      onDelete: "cascade",
+    }),
+  type: PageMediaType("type").notNull().default("content-media"),
 });
 
 export const accounts = pgTable(

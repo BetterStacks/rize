@@ -6,10 +6,17 @@ import {
   galleryMedia,
   media,
   page,
+  pageMedia,
   profile,
   users,
 } from "@/db/schema";
-import { profileSchema, TMedia, TPage, TUser } from "@/lib/types";
+import {
+  profileSchema,
+  TMedia,
+  TPage,
+  TUploadFilesResponse,
+  TUser,
+} from "@/lib/types";
 import { hashSync } from "bcryptjs";
 import { and, eq, getTableColumns, not } from "drizzle-orm";
 import { cookies } from "next/headers";
@@ -207,27 +214,41 @@ export const updatePage = async (payload: typeof TPage) => {
 };
 export const getAllPages = async () => {
   // try {
-  const sessoin = await auth();
+  const session = await auth();
+  const { ...rest } = getTableColumns(page);
   const pages = await db
-    .select()
+    .select({
+      ...rest,
+      thumbnail: media.url,
+    })
     .from(page)
-    .where(eq(page.profileId, sessoin?.user?.profileId!));
+    .leftJoin(
+      pageMedia,
+      and(eq(pageMedia.pageId, page.id), eq(pageMedia.type, "thumbnail"))
+    )
+    .leftJoin(media, eq(media.id, pageMedia.mediaId))
+    .where(eq(page.profileId, session?.user?.profileId!));
   // console.log(pages);
   if (pages.length === 0) {
     throw new Error("No pages found");
   }
   return pages as (typeof TPage)[];
-  // } catch (err) {
-  //   console.error("Error in server action:", err);
-  //   return { data: null, error: (err as Error)?.message };
-  // }
 };
 export const getPageById = async (id: string) => {
   try {
     const session = await auth();
+    const { ...rest } = getTableColumns(page);
     const pages = await db
-      .select()
+      .select({
+        ...rest,
+        thumbnail: media.url,
+      })
       .from(page)
+      .leftJoin(
+        pageMedia,
+        and(eq(pageMedia.pageId, page.id), eq(pageMedia.type, "thumbnail"))
+      )
+      .leftJoin(media, eq(media.id, pageMedia.mediaId))
       .where(
         and(eq(page.profileId, session?.user?.profileId!), eq(page.id, id))
       )
@@ -297,7 +318,10 @@ export const getGalleryItems = async () => {
   }
   const { ...rest } = getTableColumns(media);
   const items = await db
-    .select({ ...rest, galleryMediaId: galleryMedia.id })
+    .select({
+      ...rest,
+      galleryMediaId: galleryMedia.id,
+    })
     .from(gallery)
     .innerJoin(galleryMedia, eq(gallery.id, galleryMedia.galleryId))
     .innerJoin(media, eq(galleryMedia.mediaId, media.id))
@@ -308,10 +332,14 @@ export const getGalleryItems = async () => {
   if (items.length === 0) {
     throw new Error("No gallery items found");
   }
-  return items as (typeof TMedia & { galleryMediaId: string | null })[];
+  return items as (typeof TMedia & {
+    galleryMediaId: string | null;
+    width: number;
+    height: number;
+  })[];
 };
 
-export const addGalleryItem = async (url: string) => {
+export const addGalleryItem = async (payload: TUploadFilesResponse) => {
   const session = await auth();
   if (!session || !session?.user?.profileId) {
     throw new Error("Session not found");
@@ -323,9 +351,11 @@ export const addGalleryItem = async (url: string) => {
   const newMedia = await db
     .insert(media)
     .values({
-      url,
-      type: isImageUrl(url) ? "image" : "video",
+      url: payload?.url,
+      type: isImageUrl(payload?.url) ? "image" : "video",
       profileId: session?.user?.profileId,
+      height: payload?.height,
+      width: payload?.width,
     })
     .returning({ id: media.id });
   if (newMedia.length === 0) {
@@ -433,4 +463,41 @@ export async function getGalleryItem(id: string) {
     throw new Error("No gallery item found");
   }
   return items[0];
+}
+
+export async function updatePageThumbnail(
+  payload: TUploadFilesResponse & { pageId: string }
+) {
+  console.log({ payload });
+  const session = await auth();
+  if (!session || !session?.user?.profileId) {
+    throw new Error("Session not found");
+  }
+  const newMedia = await db
+    .insert(media)
+    .values({
+      url: payload?.url,
+      type: isImageUrl(payload?.url) ? "image" : "video",
+      profileId: session?.user?.profileId,
+      height: payload?.height,
+      width: payload?.width,
+    })
+    .returning({ id: media.id });
+  console.log({ newMedia });
+  if (newMedia.length === 0) {
+    throw new Error("Error updating page thumbnail");
+  }
+  const newPageMedia = await db
+    .insert(pageMedia)
+    .values({
+      mediaId: newMedia[0].id,
+      pageId: payload?.pageId,
+      type: "thumbnail",
+    })
+    .returning();
+
+  if (newPageMedia.length === 0) {
+    throw new Error("Error updating page thumbnail");
+  }
+  return { success: true, error: null };
 }

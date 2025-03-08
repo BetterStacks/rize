@@ -54,25 +54,25 @@ const RightSidebar = () => {
     <div className="h-screen w-full  flex flex-col items-start justify-between">
       {!galleryItem && <EditGallery />}
       <div className="pt-10 w-full flex flex-col items-center justify-start px-4">
-        <div className="w-full flex flex-col mt-10">
-          <DndContext
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+        {/* <div className="w-full flex flex-col mt-10"> */}
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={sections.map((s) => s.id)}
+            strategy={verticalListSortingStrategy}
           >
-            <SortableContext
-              items={sections.map((s) => s.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              {sections.map((section) => (
-                <SortableItem
-                  key={section.id}
-                  id={section.id}
-                  name={section.name}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
-        </div>
+            {sections.map((section) => (
+              <SortableItem
+                key={section.id}
+                id={section.id}
+                name={section.name}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
+        {/* </div> */}
       </div>
       {galleryItem && <EditGalleryItem id={galleryItem} />}
       <div className="mb-6 px-3">
@@ -155,6 +155,7 @@ function EditGallery() {
     files.forEach((file) => {
       formData.append("files", file.file);
     });
+    formData.append("folder", "fyp-stacks/gallery");
     try {
       setIsUploading(true);
       const res = await axios.post("/api/upload/files", formData);
@@ -169,8 +170,8 @@ function EditGallery() {
         setIsUploading(false);
         throw new Error("Error uploading files", res.data?.error);
       }
-      for (const url of res.data?.data!) {
-        const item = await addGalleryItem(url);
+      for (const result of res.data?.data!) {
+        const item = await addGalleryItem(result);
         console.log(item);
         if (!item) {
           setIsUploading(false);
@@ -203,25 +204,22 @@ function EditGallery() {
           </div>
       </div> */}
         <div className="p-4 flex flex-col">
-          <Label id="cols-select-menu" className="mb-2">
-            Columns
+          <Label id="gallery-layout-menu" className="mb-2">
+            Gallery Layout
           </Label>
           <Select
-            value={String(config?.cols)}
-            onValueChange={(v) =>
-              setConfig((prev) => ({ ...prev, cols: v as any }))
-            }
+            value={String(config?.layout)}
+            onValueChange={(v) => setConfig((prev) => ({ layout: v as any }))}
           >
             <SelectTrigger
-              id="cols-select-menu"
-              className="w-full rounded-xl mb-4 dark:border-dark-border"
+              id="gallery-layout-menu"
+              className="w-full rounded-xl mb-4 mt-2 dark:border-dark-border"
             >
-              <SelectValue placeholder="Select No of Columns" />
+              <SelectValue placeholder="Select Gallery Layout" />
             </SelectTrigger>
-            <SelectContent defaultValue={String(config?.cols)}>
-              <SelectItem value="2">2</SelectItem>
-              <SelectItem value="3">3</SelectItem>
-              <SelectItem value="4">4</SelectItem>
+            <SelectContent defaultValue={String(config?.layout)}>
+              <SelectItem value="messy-grid">Messy</SelectItem>
+              <SelectItem value="masonry-grid">Masonry</SelectItem>
             </SelectContent>
           </Select>
           <div
