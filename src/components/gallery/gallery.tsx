@@ -12,27 +12,31 @@ import {
   messyGridVariants,
 } from "./gallery-config";
 import GalleryItem from "./gallery-item";
+import { useParams } from "next/navigation";
+import { Skeleton } from "../ui/skeleton";
 
 export const galleryLayouts = {
   "messy-grid": {
     container:
-      "flex flex-wrap gap-2 w-full  max-w-3xl mt-6  items-center justify-center",
-    item: "w-[240px] h-[240px]  aspect-square -m-4",
+      "flex flex-wrap mt-6 -space-x-6 -space-y-6 w-full  max-w-3xl   items-center justify-center",
+    item: "w-[240px] h-[240px]  aspect-square  shadow-2xl ",
     containerVariants: messyGridVariants,
     itemVariants: messyGridItemVariants,
   },
   "masonry-grid": {
     container: "w-full columns-2 md:columns-3  max-w-2xl relative",
-    item: "mt-4 first:mt-0 ",
+    item: "mt-4 first:mt-0 shadow-lg",
     containerVariants: mansoryGridVariants,
     itemVariants: mansoryGridItemVariants,
   },
 };
 
 const Gallery = () => {
-  const { data, isLoading } = useQuery({
-    queryKey: ["get-gallery-items"],
-    queryFn: getGalleryItems,
+  const { username } = useParams<{ username: string }>();
+  const { data, isFetching } = useQuery({
+    queryKey: ["get-gallery-items", username],
+    queryFn: () => getGalleryItems(username),
+    refetchOnWindowFocus: false,
   });
   const [galleryConfig] = useLocalStorage<GalleryConfigProps>({
     defaultValue: { layout: "messy-grid" },
@@ -49,7 +53,7 @@ const Gallery = () => {
 
   return (
     <div className="w-full mt-6 flex flex-col items-center justify-center">
-      <h2 className="w-full max-w-2xl   text-left   text-xl font-medium mb-4">
+      <h2 className="w-full max-w-2xl  text-left   text-xl font-medium mb-4">
         Gallery
       </h2>
       <motion.div
@@ -58,49 +62,48 @@ const Gallery = () => {
         className={cn(galleryLayouts[galleryConfig.layout].container, "")}
         variants={galleryLayouts[galleryConfig.layout].containerVariants}
       >
-        {items.length > 0 &&
-          // ? [...Array.from({ length: 6 })].map((_, i) => (
-          //     <motion.div
-          //       key={i}
-          //       custom={i}
-          //       // style={{ aspectRatio: 1 / 2 }}
-          //       className="aspect-square w-full h-f"
-          //       variants={galleryLayouts[galleryConfig.layout].itemVariants}
-          //     >
-          //       <Skeleton
-          //         className={cn(
-          //           galleryLayouts[galleryConfig.layout].item,
-          //           " rounded-3xl bg-neutral-100 dark:bg-dark-border shadow-2xl opacity-100 animate-pulse"
-          //         )}
-          //       />
-          //     </motion.div>
-          //   ))
-          // :
-          items.map((item, i) => {
-            return (
+        {isFetching
+          ? [...Array.from({ length: 6 })].map((_, i) => (
               <motion.div
                 key={i}
                 custom={i}
-                style={{
-                  ...(galleryConfig?.layout === "masonry-grid" && {
-                    aspectRatio: item.width / item.height,
-                  }),
-                }}
-                whileHover={{
-                  ...(galleryConfig.layout === "messy-grid" && {
-                    scale: 1.05,
-                    x: -10,
-                    y: -20,
-                    zIndex: 20,
-                    rotate: 0,
-                  }),
-                }}
+                // style={{ aspectRatio: 1 / 2 }}
+                className="aspect-square w-full h-f"
                 variants={galleryLayouts[galleryConfig.layout].itemVariants}
               >
-                <GalleryItem item={item} index={i} />
+                <Skeleton
+                  className={cn(
+                    galleryLayouts[galleryConfig.layout].item,
+                    " rounded-3xl bg-neutral-100 dark:bg-dark-border shadow-2xl opacity-100 animate-pulse"
+                  )}
+                />
               </motion.div>
-            );
-          })}
+            ))
+          : items.map((item, i) => {
+              return (
+                <motion.div
+                  key={i}
+                  custom={i}
+                  style={{
+                    ...(galleryConfig?.layout === "masonry-grid" && {
+                      aspectRatio: item.width / item.height,
+                    }),
+                  }}
+                  whileHover={{
+                    ...(galleryConfig.layout === "messy-grid" && {
+                      scale: 1.05,
+                      x: -10,
+                      y: -20,
+                      zIndex: 20,
+                      rotate: 0,
+                    }),
+                  }}
+                  variants={galleryLayouts[galleryConfig.layout].itemVariants}
+                >
+                  <GalleryItem item={item} index={i} />
+                </motion.div>
+              );
+            })}
       </motion.div>
     </div>
   );

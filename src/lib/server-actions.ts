@@ -11,6 +11,7 @@ import {
   users,
 } from "@/db/schema";
 import {
+  GetProfileByUsername,
   profileSchema,
   TMedia,
   TPage,
@@ -18,13 +19,13 @@ import {
   TUser,
 } from "@/lib/types";
 import { hashSync } from "bcryptjs";
+import { v2 as cloudinary } from "cloudinary";
 import { and, eq, getTableColumns, not } from "drizzle-orm";
 import { cookies } from "next/headers";
+import { z } from "zod";
 import { auth } from "./auth";
 import db from "./db";
-import { z } from "zod";
 import { isImageUrl } from "./utils";
-import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 
 cloudinary.config({
   api_key: "537392939961543",
@@ -75,9 +76,41 @@ export async function updateUserAndProfile(
   return { success: true, error: null };
 }
 
+export const getProfileByUsername = async (username: string) => {
+  // try {
+  let isLoading = true;
+  const { ...rest } = getTableColumns(profile);
+  const p = await db
+    .select({
+      ...rest,
+      image: users.image,
+      name: users.name,
+      email: users.email,
+    })
+    .from(profile)
+    .innerJoin(users, eq(profile.userId, users.id))
+    .where(eq(profile.username, username))
+    .limit(1);
+
+  if (!p || p.length === 0) {
+    isLoading = false;
+    throw new Error("Profile not found");
+  }
+  isLoading = false;
+  return {
+    data: p[0] as GetProfileByUsername,
+    error: null,
+    isLoading,
+  };
+  // } catch (error) {
+  //   return { data: null, error: (error as Error)?.message, isLoading: false };
+  // }
+};
+
 export const createProfile = async (username: string) => {
   try {
     const session = await auth();
+    console.log({ session });
     if (!session) {
       throw new Error("Session not found");
     }
@@ -212,9 +245,12 @@ export const updatePage = async (payload: typeof TPage) => {
     return { ok: false, error: (error as Error)?.message };
   }
 };
-export const getAllPages = async () => {
+export const getAllPages = async (username: string) => {
   // try {
-  const session = await auth();
+  const profileId = await getProfileIdByUsername(username);
+  if (!profileId) {
+    throw new Error("Profile not found");
+  }
   const { ...rest } = getTableColumns(page);
   const pages = await db
     .select({
@@ -227,7 +263,7 @@ export const getAllPages = async () => {
       and(eq(pageMedia.pageId, page.id), eq(pageMedia.type, "thumbnail"))
     )
     .leftJoin(media, eq(media.id, pageMedia.mediaId))
-    .where(eq(page.profileId, session?.user?.profileId!));
+    .where(eq(page.profileId, profileId?.id!));
   // console.log(pages);
   if (pages.length === 0) {
     throw new Error("No pages found");
@@ -311,10 +347,21 @@ export const getGalleryId = async () => {
   return galleryId[0];
 };
 
-export const getGalleryItems = async () => {
-  const session = await auth();
-  if (!session || !session?.user?.profileId) {
-    throw new Error("Session not found");
+export const getProfileIdByUsername = async (username: string) => {
+  const profileId = await db
+    .select({ id: profile.id })
+    .from(profile)
+    .where(eq(profile.username, username));
+  if (profileId.length === 0) {
+    throw new Error("Profile not found");
+  }
+  return profileId[0];
+};
+
+export const getGalleryItems = async (username: string) => {
+  const profileId = await getProfileIdByUsername(username);
+  if (!profileId) {
+    throw new Error("Profile not found");
   }
   const { ...rest } = getTableColumns(media);
   const items = await db
@@ -325,7 +372,7 @@ export const getGalleryItems = async () => {
     .from(gallery)
     .innerJoin(galleryMedia, eq(gallery.id, galleryMedia.galleryId))
     .innerJoin(media, eq(galleryMedia.mediaId, media.id))
-    .where(eq(gallery.profileId, session?.user?.profileId!));
+    .where(eq(gallery.profileId, profileId?.id));
 
   // console.log({ items });
 

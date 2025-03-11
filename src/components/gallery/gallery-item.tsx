@@ -87,7 +87,7 @@ function GalleryItem({
       className={cn(
         // isDragging && "opacity-80",
 
-        " shadow-2xl group  aspect-auto w-full h-full  relative overflow-hidden   rounded-3xl bg-neutral-100 dark:bg-dark-border cursor-grab  first:mt-0 active:cursor-grabbing ",
+        " group  aspect-auto w-full h-full  relative overflow-hidden   rounded-3xl bg-neutral-100 dark:bg-dark-border cursor-grab  first:mt-0 active:cursor-grabbing ",
         galleryLayouts[config.layout].item
       )}
       onClick={() =>

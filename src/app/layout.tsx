@@ -34,11 +34,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={cn(" antialiased", inter?.className, instrument?.variable)}
+        className={cn(
+          "bg-white dark:bg-[#111111] antialiased",
+          inter?.className,
+          instrument?.variable
+        )}
       >
         <Providers>
           <Dialogs />
-          <main>{children}</main>
+          {children}
         </Providers>
       </body>
     </html>

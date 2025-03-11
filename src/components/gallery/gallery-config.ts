@@ -16,6 +16,7 @@ export const messyGridItemVariants: Variants = {
   visible: (i: number) => ({
     opacity: 1,
     x: 0,
+    // margin: i <= 2 ? 0 : -16,
     rotate: i % 2 === 0 ? 6 : -6,
     transition: {
       delay: i * 0.1,

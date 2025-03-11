@@ -24,12 +24,14 @@ import Textarea from "react-textarea-autosize";
 import { z } from "zod";
 import { useProfileDialog } from "../dialog-provider";
 import {
+  getProfileByUsername,
   isUsernameAvailable as getUsername,
   updateUserAndProfile,
 } from "@/lib/server-actions";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useQuery } from "@tanstack/react-query";
 
 // import { updateProfile } from "@/app/actions/updateProfile";
 
@@ -38,6 +40,10 @@ export function ProfileUpdateDialog() {
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const { data, update } = useSession();
+  const { data: profile } = useQuery({
+    queryKey: ["get-profile-by-username", data?.user?.username],
+    queryFn: () => getProfileByUsername(data?.user?.username!),
+  });
   const {
     register,
     handleSubmit,
@@ -47,14 +53,14 @@ export function ProfileUpdateDialog() {
     watch,
   } = useForm<z.infer<typeof profileSchema>>({
     values: {
-      email: data?.user?.email || "",
-      name: data?.user?.name || "",
-      username: data?.user?.username || "",
-      age: data?.user?.age || 18,
-      bio: data?.user?.bio || "",
-      location: data?.user?.location || "",
-      pronouns: data?.user?.pronouns || "he/him",
-      website: data?.user?.website || "",
+      email: profile?.data?.email || "",
+      name: profile?.data?.name || "",
+      username: profile?.data?.username || "",
+      age: profile?.data?.age || 18,
+      bio: profile?.data?.bio || "",
+      location: profile?.data?.location || "",
+      pronouns: profile?.data?.pronouns || "he/him",
+      website: profile?.data?.website || "",
     },
     resolver: zodResolver(profileSchema),
   });
