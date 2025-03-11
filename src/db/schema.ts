@@ -41,7 +41,7 @@ const PageStatus = customType<{ data: TPageStatus }>({
 export const users = pgTable("user", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+    .$defaultFn(() => v4()),
   name: text("name"),
   email: text("email").unique(),
   password: text("password"),
@@ -53,7 +53,7 @@ export const users = pgTable("user", {
 export const profile = pgTable("profile", {
   id: uuid("id")
     .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+    .$defaultFn(() => v4()),
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -72,7 +72,7 @@ export const profile = pgTable("profile", {
 export const media = pgTable("media", {
   id: uuid("id")
     .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+    .$defaultFn(() => v4()),
   url: text("url").notNull(), // Cloud Storage URL (S3, Supabase Storage, etc.)
   type: MediaType("type").notNull(), // 'image', 'video', 'link'
   width: integer("width").notNull(),

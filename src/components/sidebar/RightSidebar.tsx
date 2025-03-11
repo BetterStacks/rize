@@ -1,20 +1,27 @@
 "use client";
+import { useSections } from "@/lib/context";
 import { queryClient } from "@/lib/providers";
-import {
-  addGalleryItem,
-  getGalleryItem,
-  uploadFilesToCloudinary,
-} from "@/lib/server-actions";
+import { addGalleryItem, getGalleryItem } from "@/lib/server-actions";
 import { GalleryConfigProps } from "@/lib/types";
 import { cn, isImageUrl, isVideoUrl } from "@/lib/utils";
+import { closestCenter, DndContext } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useLocalStorage } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { AlignJustify, Loader, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useQueryState } from "nuqs";
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
+import { v4 } from "uuid";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { ScrollArea } from "../ui/scroll-area";
@@ -26,17 +33,6 @@ import {
   SelectValue,
 } from "../ui/select";
 import UpgradeCard from "../upgrade-card";
-import { closestCenter, DndContext } from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { useSections } from "@/lib/context";
-import { CSS } from "@dnd-kit/utilities";
-import axios from "axios";
-
 const RightSidebar = () => {
   const [galleryItem] = useQueryState("gallery");
   const { sections, setSections } = useSections();
@@ -130,7 +126,7 @@ function EditGallery() {
   // Handle dropped files
   const onDrop = (acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map((file) => ({
-      id: crypto.randomUUID(),
+      id: v4(),
       url: URL.createObjectURL(file),
       type: file.type.startsWith("image") ? "image" : "video",
       file: file,

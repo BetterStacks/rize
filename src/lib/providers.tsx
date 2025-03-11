@@ -9,21 +9,22 @@ import { Toaster } from "react-hot-toast";
 import Context from "./context";
 
 export const queryClient = new QueryClient();
+
 const Providers = ({ children }: { children: ReactNode }) => {
   return (
     <>
       <NuqsAdapter>
         <SessionProvider>
-          <ThemeProvider attribute={"class"} defaultTheme="system">
-            <QueryClientProvider client={queryClient}>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider attribute={"class"} defaultTheme="light">
               <Context>
                 <DialogContextProvider>
                   <Toaster />
                   {children}
                 </DialogContextProvider>
               </Context>
-            </QueryClientProvider>
-          </ThemeProvider>
+            </ThemeProvider>
+          </QueryClientProvider>
         </SessionProvider>
       </NuqsAdapter>
     </>

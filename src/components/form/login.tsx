@@ -24,6 +24,7 @@ const Login = () => {
   //   const usernameCookie = getCookie("username");
   const router = useRouter();
   const s = useSession();
+  console.log({ s });
   if (s.status === "authenticated" && !s?.data?.user?.isOnboarded) {
     router.push("/onboarding");
   }
@@ -63,7 +64,7 @@ const Login = () => {
             toast.error(res.error);
           }
           toast.success("Logged in successfully");
-          router.push(`/${s?.data?.user?.username}`);
+          // router.push(`/${s?.data?.user?.username}`);
         })}
         className="space-y-2"
       >

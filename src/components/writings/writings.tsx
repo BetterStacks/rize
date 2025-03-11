@@ -2,16 +2,18 @@
 import { createPage, getAllPages } from "@/lib/server-actions";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
 import WritingCard from "./writing-card";
+import { Skeleton } from "../ui/skeleton";
 
 const Writings = () => {
   const router = useRouter();
-  const { data } = useQuery({
-    queryKey: ["get-writings"],
-    queryFn: getAllPages,
+  const { username } = useParams<{ username: string }>();
+  const { data, isFetching } = useQuery({
+    queryKey: ["get-writings", username],
+    queryFn: () => getAllPages(username),
   });
   return (
     <div
@@ -36,9 +38,16 @@ const Writings = () => {
             <Plus className="opacity-80  size-4" />
           </Button>
         </div>
-        {data?.map((writing, i) => {
-          return <WritingCard key={i} data={writing} />;
-        })}
+        {isFetching
+          ? [...Array.from({ length: 4 })].map((_, i) => (
+              <Skeleton
+                key={i}
+                className="w-full h-28 rounded-xl animate-pulse bg-neutral-200 dark:bg-dark-border"
+              />
+            ))
+          : data?.map((writing, i) => {
+              return <WritingCard key={i} data={writing} />;
+            })}
       </div>
     </div>
   );

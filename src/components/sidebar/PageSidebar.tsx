@@ -109,6 +109,7 @@ const PageSidebar = () => {
                 src={file?.url}
                 fill
                 alt="Thumbnail"
+                quality={100}
                 className="-z-10"
                 style={{ objectFit: "cover" }}
               />

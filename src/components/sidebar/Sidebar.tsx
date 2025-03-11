@@ -1,76 +1,52 @@
 "use client";
-import { cleanUrl, cn } from "@/lib/utils";
+import { useSections } from "@/lib/context";
+import { cn } from "@/lib/utils";
+import { arrayMove, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   AlignJustify,
   Bell,
-  Edit3,
   Home,
-  Link2,
-  MoreHorizontal,
   Search,
   Settings,
   UserRound,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
-import Image from "next/image";
 import { useState } from "react";
 import { useAvatarDialog, useProfileDialog } from "../dialog-provider";
-import ChangeAvatarDialog from "../dialogs/ChangeAvatarDialog";
-import { Skeleton } from "../ui/skeleton";
-import { Button } from "../ui/button";
 import Link from "next/link";
-import { useSections } from "@/lib/context";
-import { DndContext, closestCenter } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { arrayMove } from "@dnd-kit/sortable";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { useSession } from "next-auth/react";
 
 const Sidebar = () => {
-  const { data, status } = useSession();
-  const [_, setIsOpen] = useAvatarDialog();
-  const [__, setOpen] = useProfileDialog();
-  const [file, setFile] = useState<File | null>(null);
-  const { sections, setSections } = useSections();
-
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    if (active.id !== over.id) {
-      const oldIndex = sections.findIndex((s) => s.id === active.id);
-      const newIndex = sections.findIndex((s) => s.id === over.id);
-      setSections(arrayMove(sections, oldIndex, newIndex));
-    }
-  };
-
-  const handleChange = (e: any) => {
-    const files = e.target.files;
-    if (Array(files).length === 0) return;
-    setFile(files[0]);
-    setIsOpen(true);
-  };
+  const session = useSession();
   const options = [
-    { id: 1, name: "Home", icon: <Home className="opacity-80" size={24} /> },
+    {
+      id: 1,
+      name: "Home",
+      href: "/",
+      icon: <Home className="opacity-80" size={24} />,
+    },
     {
       id: 3,
       name: "Search",
+      href: "/search",
       icon: <Search className="opacity-80" size={24} />,
     },
     {
       id: 4,
       name: "Notifications",
+      href: "/notifications",
       icon: <Bell className="opacity-80" size={24} />,
     },
     {
       id: 2,
       name: "Account",
+      href: `/${session?.data?.user?.username}`,
       icon: <UserRound className="opacity-80" size={24} />,
     },
     {
       id: 5,
       name: "Settings",
+      href: "/settings",
       icon: <Settings className="opacity-80" size={24} />,
     },
   ];
@@ -86,7 +62,7 @@ const Sidebar = () => {
             className="size-12 flex items-center justify-center"
             key={option.id}
           >
-            {option?.icon}
+            <Link href={option.href}>{option?.icon}</Link>
           </div>
         ))}
       </div>

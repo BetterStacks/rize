@@ -1,7 +1,5 @@
 "use client";
-import { useQueryState } from "nuqs";
-import { FC, ReactNode, useEffect, useRef } from "react";
-import { ImperativePanelHandle } from "react-resizable-panels";
+import { FC, ReactNode } from "react";
 import GalleryContextProvider from "../gallery/gallery-context";
 import RightSidebar from "../sidebar/RightSidebar";
 import Sidebar from "../sidebar/Sidebar";
@@ -10,9 +8,10 @@ import { ScrollArea } from "../ui/scroll-area";
 
 type ProfileLayoutProps = {
   children: ReactNode;
+  isMine?: boolean;
 };
 
-const ProfileLayout: FC<ProfileLayoutProps> = ({ children }) => {
+const ProfileLayout: FC<ProfileLayoutProps> = ({ children, isMine }) => {
   return (
     <ResizablePanelGroup
       className="w-full h-full flex items-center justify-center"
@@ -29,9 +28,11 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({ children }) => {
           </ScrollArea>
         </ResizablePanel>
 
-        <div className="w-full  hidden lg:flex items-center justify-end h-full max-w-sm border-l border-neutral-200  dark:border-dark-border/60">
-          <RightSidebar />
-        </div>
+        {isMine && (
+          <div className="w-full  hidden lg:flex items-center justify-end h-full max-w-sm border-l border-neutral-200  dark:border-dark-border/60">
+            <RightSidebar />
+          </div>
+        )}
       </GalleryContextProvider>
     </ResizablePanelGroup>
   );

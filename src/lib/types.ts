@@ -17,6 +17,13 @@ export type TUploadFilesResponse = {
   url: string;
 };
 
+export type GetProfileByUsername =
+  | (typeof profile.$inferSelect & {
+      image: string;
+      name: string;
+      email: string;
+    })
+  | null;
 export type GalleryItemProps = typeof TMedia & {
   galleryMediaId: string | null;
   width: number;
