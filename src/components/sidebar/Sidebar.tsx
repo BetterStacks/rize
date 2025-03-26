@@ -1,68 +1,97 @@
 "use client";
-import { useSections } from "@/lib/context";
 import { cn } from "@/lib/utils";
-import { arrayMove, useSortable } from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
   AlignJustify,
   Bell,
-  Home,
+  Compass,
   Search,
   Settings,
   UserRound,
 } from "lucide-react";
-import { useState } from "react";
-import { useAvatarDialog, useProfileDialog } from "../dialog-provider";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
-
+import Image from "next/image";
+import Link from "next/link";
+import { useProfileDialog } from "../dialog-provider";
 const Sidebar = () => {
   const session = useSession();
+  const [open, setOpen] = useProfileDialog();
   const options = [
     {
       id: 1,
-      name: "Home",
+      name: "Explore",
       href: "/",
-      icon: <Home className="opacity-80" size={24} />,
+      onClick: () => {
+        // router.push("/");
+      },
+      icon: <Compass className="opacity-70" strokeWidth={1.5} />,
     },
     {
       id: 3,
       name: "Search",
       href: "/search",
-      icon: <Search className="opacity-80" size={24} />,
+      onClick: () => {
+        // router.push("/");
+      },
+      icon: <Search className="opacity-70" strokeWidth={1.5} />,
     },
     {
       id: 4,
       name: "Notifications",
       href: "/notifications",
-      icon: <Bell className="opacity-80" size={24} />,
+      onClick: () => {
+        // router.push("/");
+      },
+      icon: <Bell className="opacity-70" strokeWidth={1.5} />,
     },
     {
       id: 2,
       name: "Account",
       href: `/${session?.data?.user?.username}`,
-      icon: <UserRound className="opacity-80" size={24} />,
+      onClick: () => {
+        // router.push("/");
+      },
+      icon: <UserRound className="opacity-70" strokeWidth={1.5} />,
     },
     {
       id: 5,
       name: "Settings",
-      href: "/settings",
-      icon: <Settings className="opacity-80" size={24} />,
+      href: `/${session?.data?.user?.username}?tab=settings`,
+      onClick: () => {
+        // router.push("/");
+        setOpen(true);
+      },
+      icon: <Settings className="opacity-70" strokeWidth={1.5} />,
     },
   ];
   return (
     <div
       className={cn(
-        "h-screen w-[80px] border-r border-neutral-200  dark:border-dark-border/60  hidden md:flex flex-col items-center justify-start "
+        "h-screen w-[80px] bg-light-bg dark:bg-dark-bg border-r border-neutral-200  dark:border-dark-border/60  hidden md:flex flex-col items-center justify-start "
       )}
     >
-      <div className="flex w-full flex-col mt-24 items-center justify-center gap-y-2">
+      <div className="mt-6">
+        <Image
+          src="/logo2.png"
+          alt="logo"
+          width={42}
+          height={42}
+          className="rounded-xl size-10"
+        />
+      </div>
+
+      <div className="flex w-full flex-col mt-16 items-center justify-center gap-y-2 ">
         {options.map((option) => (
           <div
-            className="size-12 flex items-center justify-center"
+            onClick={option.onClick}
+            className="size-12  group flex items-center justify-center"
             key={option.id}
           >
             <Link href={option.href}>{option?.icon}</Link>
+            <div className=" bg-white border border-neutral-200 dark:border-none dark:bg-neutral-800 rounded-xl opacity-0 absolute left-20 group-hover:left-24 group-hover:opacity-100 transition-all duration-300 shadow-lg px-4 py-1 ">
+              <span className="text-xs opacity-70">{option.name}</span>
+            </div>
           </div>
         ))}
       </div>

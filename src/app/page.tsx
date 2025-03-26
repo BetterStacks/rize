@@ -3,6 +3,8 @@
 import ClaimUsernameForm from "@/components/claim-username";
 import { setServerCookie } from "@/lib/server-actions";
 import { UsernameFormData } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,6 +20,7 @@ export default function Home() {
     router.push(`/login`);
   };
   console.log(session);
+
   return (
     <div className="w-full h-screen flex items-center justify-center">
       {session?.data?.user?.image && (
@@ -52,30 +55,22 @@ export default function Home() {
           {" "}
           <ClaimUsernameForm onSubmit={handleSubmit} />
         </div>
-        {/* <Button
-          onClick={async () => {
-            const data = await authClient.signIn.social({
-              provider: "google",
-              // disableRedirect: true,
-            });
-            console.log(data);
-          }}
-          variant={"secondary"}
+        {/* <motion.div
+          className="grid mt-6 grid-cols-5 gap-2 max-w-xs w-full"
+          layout
         >
-          SignIn with Google
-        </Button>
-        <Button
-          onClick={async () => {
-            const data = await authClient.signIn.social({
-              provider: "github",
-              // disableRedirect: true,
-            });
-            console.log(data);
-          }}
-          variant={"secondary"}
-        >
-          SignIn with Github
-        </Button> */}
+          {[...Array(20)].map((_, index) => (
+            <motion.div
+              layoutId={`avatar-${index}`}
+              key={index}
+              whileHover={{ scale: 1.7 }}
+              className={cn(
+                "aspect-square  bg-gray-300 rounded-full",
+                index % 2 === 0 && "bg-red-600"
+              )}
+            ></motion.div>
+          ))}
+        </motion.div> */}
       </div>
     </div>
   );

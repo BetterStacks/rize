@@ -13,13 +13,9 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const username = (await params).username;
   const user = await getProfileByUsername(username);
-  if (user?.error && !user?.data) {
-    return {
-      title: "Undefined - Rise",
-    };
-  }
+
   return {
-    title: `${user.data?.name} - Rise`,
+    title: `${user?.name} - Rise`,
   };
 }
 
@@ -31,12 +27,13 @@ const Page: FC<Props> = async ({ params }) => {
   }
 
   const user = await getProfileByUsername(username);
-  const isMine = user?.data?.username === session?.user?.username;
+
+  const isMine = user?.username === session?.user?.username;
 
   return (
     <UserProfileLayout isMine={isMine}>
       <div className="w-full flex items-center justify-center">
-        <UserProfile data={user?.data} isLoading={user?.isLoading} />
+        <UserProfile isMine={isMine} data={user} />
       </div>
     </UserProfileLayout>
   );

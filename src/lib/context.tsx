@@ -91,35 +91,11 @@ export const useSections = () => {
   return { sections: ctx.sections, setSections: ctx.setSections };
 };
 
-const sectionsList: TSection[] = [
-  { id: "gallery", name: "Gallery", component: <Gallery /> },
-  {
-    id: "writings",
-    name: "Writings",
-    component: <Writings />,
-  },
-  // {
-  //   id: "experiences",
-  //   name: "Experiences",
-  //   component: <div id="experiences">Experiences</div>,
-  // },
-  // {
-  //   id: "education",
-  //   name: "Education",
-  //   component: <div id="education">Education</div>,
-  // },
-  // {
-  //   id: "writings",
-  //   name: "Writings",
-  //   component: <div id="writings">Writings</div>,
-  // },
-];
-
 const Context = ({ children }: { children: ReactNode }) => {
   // const storedLayout = JSON.parse(localStorage.getItem("layout") as string);
   // const storedMap = JSON.parse(localStorage.getItem("map") as string);
   // console.log({ storedLayout, s: new Map(storedMap) });
-  const [sections, setSections] = useState<TSection[]>(sectionsList);
+  const [sections, setSections] = useState<TSection[]>([]);
   const [items, setItems] = React.useState<Item[]>(layout);
   const [map, setMap] = useState(initMap);
   // const [map, setMap] = useState((new Map(storedMap) as any) || initMap);

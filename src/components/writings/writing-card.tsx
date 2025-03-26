@@ -7,7 +7,7 @@ import readingTime from "reading-time";
 import { Node } from "slate";
 
 type WrtingCardProps = {
-  data: typeof TPage;
+  data: typeof TPage & { thumbnail: string };
 };
 
 const WritingCard: FC<WrtingCardProps> = ({ data }) => {
@@ -22,16 +22,16 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
     <article className="group w-full ">
       <Link
         href={`/page/${data.id}`}
-        className="grid md:grid-cols-[60px,1fr,160px] gap-6 items-start"
+        className="flex flex-col mt-2 md:mt-0 md:grid md:grid-cols-[60px,1fr,160px] gap-6 md:items-start"
       >
-        <div className="text-neutral-400">
+        <div className="text-neutral-400 md:flex hidden">
           {new Date(data?.createdAt!).toLocaleString("en-US", {
             month: "short",
             day: "numeric",
             //   dateStyle: "full",
           })}
         </div>
-        <div className="space-y-2 px-4">
+        <div className="space-y-2 md:px-4">
           <h3 className="text-lg tracking-tight opacity-80 group-hover:opacity-100 leading-tight  ">
             {data?.title}
           </h3>

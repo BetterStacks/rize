@@ -14,18 +14,20 @@ import {
 import GalleryItem from "./gallery-item";
 import { useParams } from "next/navigation";
 import { Skeleton } from "../ui/skeleton";
+import Image from "next/image";
+import { Plus } from "lucide-react";
 
 export const galleryLayouts = {
   "messy-grid": {
     container:
       "flex flex-wrap mt-6 -space-x-6 -space-y-6 w-full  max-w-3xl   items-center justify-center",
-    item: "w-[240px] h-[240px]  aspect-square  shadow-2xl ",
+    item: "w-[260px] h-[260px]  aspect-square  shadow-2xl ",
     containerVariants: messyGridVariants,
     itemVariants: messyGridItemVariants,
   },
   "masonry-grid": {
     container: "w-full columns-2 md:columns-3  max-w-2xl relative",
-    item: "mt-4 first:mt-0 shadow-lg",
+    item: "mt-4 first:mt-0 shadow-lg ",
     containerVariants: mansoryGridVariants,
     itemVariants: mansoryGridItemVariants,
   },
@@ -54,12 +56,44 @@ const Gallery = () => {
   return (
     <div className="w-full mt-6 flex flex-col items-center justify-center">
       <h2 className="w-full max-w-2xl  text-left   text-xl font-medium mb-4">
+        Highlights
+      </h2>
+      <div className="w-full max-w-2xl mb-4 flex space-x-3">
+        <div className="w-full max-w-[170px] aspect-[9/16] border-[2.5px]  border-dashed border-neutral-300/80 dark:border-dark-border h-full relative overflow-hidden rounded-3xl flex items-center justify-center">
+          <Plus className="size-8 opacity-80" />
+        </div>
+        {items.slice(3, 6).map((item) => (
+          <div
+            key={item.id}
+            style={{ aspectRatio: 9 / 16 }}
+            className="w-full max-w-[170px] border border-neutral-200 dark:border-dark-border h-full relative overflow-hidden rounded-3xl"
+          >
+            {item?.type === "image" ? (
+              <Image
+                fill
+                src={item.url}
+                style={{ objectFit: "cover" }}
+                alt={""}
+              />
+            ) : (
+              <video
+                src={item.url}
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+              />
+            )}
+          </div>
+        ))}
+      </div>
+      <h2 className="w-full max-w-2xl  text-left   text-xl font-medium mb-4">
         Gallery
       </h2>
       <motion.div
         initial="hidden"
         animate="visible"
-        className={cn(galleryLayouts[galleryConfig.layout].container, "")}
+        className={cn(galleryLayouts[galleryConfig.layout].container!, "")}
         variants={galleryLayouts[galleryConfig.layout].containerVariants}
       >
         {isFetching

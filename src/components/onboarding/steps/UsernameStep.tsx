@@ -1,10 +1,12 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { isUsernameAvailable } from "@/lib/server-actions";
 import { usernameSchema } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { Check, Loader, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 
 export function UsernameStep({

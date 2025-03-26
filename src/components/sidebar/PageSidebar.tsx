@@ -21,13 +21,13 @@ const PageSidebar = () => {
   const [file, setFile] = useState<{ url: string; file: File } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   useEffect(() => {
-    if (data?.data?.thumbnail) {
+    if (data?.thumbnail) {
       setFile({
-        url: data?.data?.thumbnail,
-        file: new File([], data?.data?.thumbnail),
+        url: data?.thumbnail,
+        file: new File([], data?.thumbnail),
       });
     }
-  }, [data?.data?.thumbnail]);
+  }, [data?.thumbnail]);
 
   const onDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     console.log("dropped", { rejectedFiles, acceptedFiles });
@@ -126,7 +126,7 @@ const PageSidebar = () => {
           </div>
           {file && (
             <div className="w-full mt-4 flex flex-col items-center justify-center gap-2">
-              {data?.data?.thumbnail !== file?.url && (
+              {data?.thumbnail !== file?.url && (
                 <Button
                   type="button"
                   variant="outline"
@@ -137,7 +137,7 @@ const PageSidebar = () => {
                     <Loader className="size-4 animate-spin" />
                   ) : (
                     <>
-                      {data?.data?.thumbnail
+                      {data?.thumbnail
                         ? "Change Thumbnail"
                         : "Upload Thumbnail"}
                     </>

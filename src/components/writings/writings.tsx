@@ -8,12 +8,18 @@ import { Button } from "../ui/button";
 import WritingCard from "./writing-card";
 import { Skeleton } from "../ui/skeleton";
 
-const Writings = () => {
+type WritingsProps = {
+  isMine: boolean;
+};
+
+const Writings = ({ isMine }: WritingsProps) => {
   const router = useRouter();
+
   const { username } = useParams<{ username: string }>();
   const { data, isFetching } = useQuery({
     queryKey: ["get-writings", username],
     queryFn: () => getAllPages(username),
+    refetchOnWindowFocus: false,
   });
   return (
     <div
@@ -23,20 +29,22 @@ const Writings = () => {
       <div className="w-full flex flex-col max-w-2xl gap-y-5 ">
         <div className="w-full flex items-center justify-between">
           <h2 className="text-xl font-medium mb-4">Writings</h2>
-          <Button
-            className="size-8 p-1 rounded-full "
-            onClick={async () => {
-              const page = await createPage();
-              if (page?.error) {
-                toast.error(page.error);
-                return;
-              }
-              toast.success("Page created");
-              router.push(`/page/${page?.data?.id}`);
-            }}
-          >
-            <Plus className="opacity-80  size-4" />
-          </Button>
+          {isMine && (
+            <Button
+              className="size-8 p-1 rounded-full "
+              onClick={async () => {
+                const page = await createPage();
+                if (page?.error) {
+                  toast.error(page.error);
+                  return;
+                }
+                toast.success("Page created");
+                router.push(`/page/${page?.data?.id}`);
+              }}
+            >
+              <Plus className="opacity-80  size-4" />
+            </Button>
+          )}
         </div>
         {isFetching
           ? [...Array.from({ length: 4 })].map((_, i) => (
