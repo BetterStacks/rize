@@ -130,7 +130,10 @@ export async function getBase64Image(file: File, image: string) {
 }
 
 export function cleanUrl(url: string): string {
-  return url.replace(/^https?:\/\//, "");
+  return url
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/\/$/, "");
 }
 
 export const isImageUrl = (url: string): boolean => {

@@ -29,19 +29,19 @@ function GalleryItem({
 }) {
   const session = useSession();
   const [id, setId] = useQueryState("gallery");
-  const [hovered, setHovered] = useState(false);
+
   const [config] = useLocalStorage<GalleryConfigProps>({
     key: "gallery-config",
     defaultValue: { layout: "messy-grid" },
   });
   const isUser = session.data?.user?.profileId === item.profileId;
   const removeItemFromGallery = async () => {
-    if (!item.galleryMediaId) {
+    if (!item.id) {
       toast.error("Item not found in gallery");
       return;
     }
     try {
-      const res = await removeGalleryItem(item.galleryMediaId);
+      const res = await removeGalleryItem(item.id);
       if (!res) {
         throw new Error("Failed to remove item from gallery");
       }
@@ -87,12 +87,10 @@ function GalleryItem({
       className={cn(
         // isDragging && "opacity-80",
 
-        " group  aspect-auto w-full h-full  relative overflow-hidden   rounded-3xl bg-neutral-100 dark:bg-dark-border cursor-grab  first:mt-0 active:cursor-grabbing ",
+        " group  aspect-auto w-full h-full  relative overflow-hidden  border border-neutral-200 dark:border-dark-border rounded-3xl bg-neutral-100 dark:bg-dark-border cursor-grab  first:mt-0 active:cursor-grabbing ",
+        config.layout === "masonry-grid" && "min-h-[180px]",
         galleryLayouts[config.layout].item
       )}
-      onClick={() =>
-        setId(id === item?.galleryMediaId ? null : item.galleryMediaId)
-      }
       // style={
       //   config.layout === "masonry-grid"
       //     ? {
@@ -113,8 +111,6 @@ function GalleryItem({
       //   ref={setNodeRef}
       //   {...attributes}
       //   {...listeners}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       {isUser && (
         <Button

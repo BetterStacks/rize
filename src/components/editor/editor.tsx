@@ -1,6 +1,6 @@
 "use client";
 import { updatePage } from "@/lib/server-actions";
-import { ImageElement, TPage, VideoElement } from "@/lib/types";
+import { ImageElement, TPage, TProfile, VideoElement } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useWindowEvent } from "@mantine/hooks";
 import { Dot, Loader, Trash2 } from "lucide-react";
@@ -16,7 +16,6 @@ import { withHistory } from "slate-history";
 import {
   Editable,
   ReactEditor,
-  Slate,
   useFocused,
   useSelected,
   useSlateStatic,
@@ -24,20 +23,19 @@ import {
 } from "slate-react";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
-import Toolbar from "./toolbar";
-import { initialValue, withImages } from "./utils";
+import { useEditorState } from "./editor-context";
+import { withImages } from "./utils";
 
 type EditorProps = {
-  data: Partial<typeof TPage>;
+  author: Partial<
+    typeof TProfile & { image: string; name: string; email: string }
+  >;
 };
 
-const RichTextExample: FC<EditorProps> = ({ data }) => {
+const RichTextExample = ({ author }: EditorProps) => {
   const session = useSession();
-  const [state, setState] = useState<typeof TPage>({
-    title: data?.title || "Untitled",
-    content: data?.content || JSON.stringify(initialValue),
-    ...data,
-  });
+  const { state, setState } = useEditorState();
+  const isMyPage = state?.profileId === session?.data?.user?.profileId;
   const params = useParams();
   const [isSaving, setIsSaving] = useState(false);
   const renderElement = useCallback((props: any) => <Element {...props} />, []);
@@ -47,7 +45,7 @@ const RichTextExample: FC<EditorProps> = ({ data }) => {
     []
   );
   const time = useMemo(() => {
-    const editorContent = JSON.parse(state?.content);
+    const editorContent = JSON.parse(state?.content!);
     const stringifiedContent = editorContent
       .map((node: Node) => Node.string(node))
       .join("\n");
@@ -57,8 +55,8 @@ const RichTextExample: FC<EditorProps> = ({ data }) => {
   const onSave = async () => {
     const p: typeof TPage = {
       id: params.id as string,
-      title: state?.title,
-      content: state?.content,
+      title: state?.title!,
+      content: state?.content!,
     };
     setIsSaving(true);
     const { error, ok } = await updatePage(p);
@@ -92,100 +90,88 @@ const RichTextExample: FC<EditorProps> = ({ data }) => {
   });
 
   return (
-    <Slate
-      editor={editor}
-      initialValue={JSON.parse(state?.content)}
-      onValueChange={(value) =>
-        setState((prev) => ({ ...prev, content: JSON.stringify(value) }))
-      }
-    >
-      <div className="absolute right-0 left-0  flex items-center justify-center w-full">
-        <div className="fixed bottom-4 z-50">
-          <Toolbar />
-        </div>
-      </div>
-      <div className="px-4 ">
-        <div className="w-full flex items-center justify-between mb-4">
-          <div className="flex items-center justify-start">
-            {session?.status === "loading" ? (
-              <div className="aspect-square size-[60px] rounded-full animate-pulse bg-neutral-300  dark:bg-dark-border" />
+    <div className="px-4 ">
+      <div className="w-full flex items-center justify-between mb-4">
+        <div className="flex items-center justify-start">
+          {!author ? (
+            <div className="aspect-square size-[60px] rounded-full animate-pulse bg-neutral-300  dark:bg-dark-border" />
+          ) : (
+            <Image
+              src={author?.image as string}
+              alt="image"
+              width={50}
+              height={50}
+              className="aspect-square rounded-full"
+            />
+          )}
+          <div className="ml-3 flex flex-col items-start justify-start ">
+            {!author ? (
+              <>
+                <Skeleton className="h-6 w-full rounded-xl animate-pulse bg-neutral-300 dark:bg-dark-border" />
+                <Skeleton className="h-4 mt-2 w-full rounded-xl animate-pulse bg-neutral-300 dark:bg-dark-border" />
+              </>
             ) : (
-              <Image
-                src={session?.data?.user?.image as string}
-                alt="image"
-                width={50}
-                height={50}
-                className="aspect-square rounded-full"
-              />
+              <>
+                <h3 className=" text-lg font-medium leading-tight">
+                  {author?.name}
+                </h3>
+                <span className="opacity-70  leading-tight">
+                  @{author?.username}
+                </span>
+              </>
             )}
-            <div className="ml-3 flex flex-col items-start justify-start ">
-              {session?.status === "loading" ? (
-                <>
-                  <Skeleton className="h-6 w-full rounded-xl animate-pulse bg-neutral-300 dark:bg-dark-border" />
-                  <Skeleton className="h-4 mt-2 w-full rounded-xl animate-pulse bg-neutral-300 dark:bg-dark-border" />
-                </>
-              ) : (
-                <>
-                  <h3 className=" text-lg font-medium leading-tight">
-                    {session?.data?.user?.name}
-                  </h3>
-                  <span className="opacity-70  leading-tight">
-                    @{session?.data?.user?.username}
-                  </span>
-                </>
-              )}
-            </div>
           </div>
+        </div>
+        {isMyPage && (
           <div className="mb-2">
             <Button variant={"outline"} onClick={onSave}>
               {isSaving && <Loader className="mr-2 animate-spin" />} Save
             </Button>
           </div>
-        </div>
-        <TextAreaAutosize
-          className="appearance-none bg-transparent text-2xl font-medium w-full  focus-visible:outline-none resize-none"
-          value={state?.title}
-          onChange={(e) =>
-            setState((prev) => ({ ...prev, title: e?.target?.value }))
-          }
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              console.log("called");
-              if (editor.children.length === 0) return;
-
-              // Set selection at the first position of the first node
-              Transforms.select(editor, {
-                anchor: { path: [0, 0], offset: 0 }, // Start of first node
-                focus: { path: [0, 0], offset: 0 }, // Collapsed selection (single point)
-              });
-
-              // Ensure React re-renders with the updated selection
-              ReactEditor.focus(editor);
-            }
-          }}
-        />
-        <div className="mt-2">
-          <div className="flex items-center justify-start ">
-            <span className="font-medium opacity-80">
-              {new Date(state?.createdAt!).toLocaleString("en-US", {
-                day: "2-digit",
-                year: "numeric",
-                month: "long",
-              })}
-            </span>
-            <Dot className="leading-none size-6" />
-            <span className="opacity-80">{time!.text}</span>
-          </div>
-        </div>
-        <Editable
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          className=" focus-visible:outline-none mt-4 pb-8"
-          placeholder="Enter some rich text…"
-        />
+        )}
       </div>
-    </Slate>
+      <TextAreaAutosize
+        className="appearance-none bg-transparent text-2xl font-medium w-full  focus-visible:outline-none resize-none"
+        value={state?.title}
+        onChange={(e) => setState({ ...state, title: e?.target?.value })}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            console.log("called");
+            if (editor.children.length === 0) return;
+
+            // Set selection at the first position of the first node
+            Transforms.select(editor, {
+              anchor: { path: [0, 0], offset: 0 }, // Start of first node
+              focus: { path: [0, 0], offset: 0 }, // Collapsed selection (single point)
+            });
+
+            // Ensure React re-renders with the updated selection
+            ReactEditor.focus(editor);
+          }
+        }}
+      />
+      <div className="mt-2">
+        <div className="flex items-center justify-start ">
+          <span className="font-medium opacity-80">
+            {new Date(state?.createdAt!).toLocaleString("en-US", {
+              day: "2-digit",
+              year: "numeric",
+              month: "long",
+            })}
+          </span>
+          <Dot className="leading-none size-6" />
+          <span className="opacity-80">{time!.text}</span>
+        </div>
+      </div>
+      <Editable
+        readOnly={!isMyPage}
+        renderElement={renderElement}
+        renderLeaf={renderLeaf}
+        className=" focus-visible:outline-none mt-4 pb-8"
+        placeholder="Enter some rich text…"
+      />
+    </div>
   );
 };
 

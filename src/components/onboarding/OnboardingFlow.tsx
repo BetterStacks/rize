@@ -7,6 +7,12 @@ import { InterestsStep } from "./steps/Interests";
 import { UsernameStep } from "./steps/UsernameStep";
 import { WelcomeStep } from "./steps/WelcomeStep";
 import { useLocalStorage } from "@mantine/hooks";
+import {
+  createProfile,
+  setUserIsOnboarded,
+  updateUserAndProfile,
+} from "@/lib/server-actions";
+import toast from "react-hot-toast";
 
 interface OnboardingProps {
   onComplete: (data: any) => void;
@@ -33,8 +39,29 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
       component: (
         <UsernameStep
           formData={formData}
-          onNext={(username) => {
+          onNext={async (username) => {
             setFormData((prev) => ({ ...prev, username }));
+            const { data, error } = await createProfile(username);
+            if (error) {
+              toast.error(error);
+              return;
+            }
+            console.log({ data });
+            const { success, error: updateError } = await updateUserAndProfile({
+              username,
+            });
+            if (updateError) {
+              toast.error(updateError);
+              return;
+            }
+            console.log({ success, updateError });
+            const { success: setSuccess, error: setError } =
+              await setUserIsOnboarded();
+            console.log({ setSuccess, setError });
+            if (setError) {
+              toast.error(setError);
+              return;
+            }
             setCurrentStep(2);
           }}
         />
@@ -84,8 +111,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
       <div className="flex justify-center gap-2 mt-10">
         {steps.map((_, index) => (
           <div
-            onClick={() => setCurrentStep(index)}
             key={index}
+            onClick={() => setCurrentStep(index)}
             className={cn(
               "w-2 h-2 rounded-full transition-all duration-300",
               currentStep === index

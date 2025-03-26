@@ -62,12 +62,12 @@ export async function updateUserAndProfile(
   const userUpdates = { name, email };
   const profileUpdates = profileData;
   console.log({ userUpdates, profileUpdates });
-
-  await db
-    .update(users)
-    .set(userUpdates)
-    .where(eq(users.id, session?.user?.id));
-
+  if (userUpdates?.name || userUpdates?.email) {
+    await db
+      .update(users)
+      .set(userUpdates)
+      .where(eq(users.id, session?.user?.id));
+  }
   await db
     .update(profile)
     .set(profileUpdates)
@@ -76,9 +76,28 @@ export async function updateUserAndProfile(
   return { success: true, error: null };
 }
 
+export const getProfileById = async (id: string) => {
+  const { ...rest } = getTableColumns(profile);
+  const p = await db
+    .select({
+      ...rest,
+      image: users.image,
+      name: users.name,
+      email: users.email,
+    })
+    .from(profile)
+    .innerJoin(users, eq(profile.userId, users.id))
+    .where(eq(profile.id, id))
+    .limit(1);
+  if (!p || p.length === 0) {
+    throw new Error("Profile not found");
+  }
+  return p[0];
+};
+
 export const getProfileByUsername = async (username: string) => {
   // try {
-  let isLoading = true;
+
   const { ...rest } = getTableColumns(profile);
   const p = await db
     .select({
@@ -93,18 +112,10 @@ export const getProfileByUsername = async (username: string) => {
     .limit(1);
 
   if (!p || p.length === 0) {
-    isLoading = false;
     throw new Error("Profile not found");
   }
-  isLoading = false;
-  return {
-    data: p[0] as GetProfileByUsername,
-    error: null,
-    isLoading,
-  };
-  // } catch (error) {
-  //   return { data: null, error: (error as Error)?.message, isLoading: false };
-  // }
+
+  return p[0] as GetProfileByUsername;
 };
 
 export const createProfile = async (username: string) => {
@@ -268,36 +279,28 @@ export const getAllPages = async (username: string) => {
   if (pages.length === 0) {
     throw new Error("No pages found");
   }
-  return pages as (typeof TPage)[];
+  return pages as (typeof TPage & { thumbnail: string })[];
 };
 export const getPageById = async (id: string) => {
-  try {
-    const session = await auth();
-    const { ...rest } = getTableColumns(page);
-    const pages = await db
-      .select({
-        ...rest,
-        thumbnail: media.url,
-      })
-      .from(page)
-      .leftJoin(
-        pageMedia,
-        and(eq(pageMedia.pageId, page.id), eq(pageMedia.type, "thumbnail"))
-      )
-      .leftJoin(media, eq(media.id, pageMedia.mediaId))
-      .where(
-        and(eq(page.profileId, session?.user?.profileId!), eq(page.id, id))
-      )
-      .limit(1);
-    // console.log(pages);
-    if (pages.length === 0) {
-      return { data: null, error: "No page found" };
-    }
-    return { data: pages[0], error: null };
-  } catch (err) {
-    console.error("Error in server action:", err);
-    return { data: null, error: (err as Error)?.message };
+  const { ...rest } = getTableColumns(page);
+  const pages = await db
+    .select({
+      ...rest,
+      thumbnail: media.url,
+    })
+    .from(page)
+    .leftJoin(
+      pageMedia,
+      and(eq(pageMedia.pageId, page.id), eq(pageMedia.type, "thumbnail"))
+    )
+    .leftJoin(media, eq(media.id, pageMedia.mediaId))
+    .where(and(eq(page.id, id)))
+    .limit(1);
+  // console.log(pages);
+  if (pages.length === 0) {
+    throw new Error("No page found");
   }
+  return pages[0];
 };
 
 //   const sessoin = await auth();
@@ -372,7 +375,8 @@ export const getGalleryItems = async (username: string) => {
     .from(gallery)
     .innerJoin(galleryMedia, eq(gallery.id, galleryMedia.galleryId))
     .innerJoin(media, eq(galleryMedia.mediaId, media.id))
-    .where(eq(gallery.profileId, profileId?.id));
+    .where(eq(gallery.profileId, profileId?.id))
+    .limit(8);
 
   // console.log({ items });
 
@@ -429,10 +433,7 @@ export const removeGalleryItem = async (id: string) => {
   if (!id) {
     throw new Error("Provide an ID");
   }
-  const item = await db
-    .delete(galleryMedia)
-    .where(eq(galleryMedia.id, id))
-    .returning();
+  const item = await db.delete(media).where(eq(media.id, id)).returning();
   if (item.length === 0) {
     throw new Error("Error deleting gallery item");
   }

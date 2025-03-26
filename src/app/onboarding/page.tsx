@@ -18,7 +18,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <AuthGuard guestOnly>
+    <AuthGuard authOnly>
       <OnboardingFlow onComplete={handleComplete} />
     </AuthGuard>
   );

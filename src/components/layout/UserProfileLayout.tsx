@@ -5,6 +5,9 @@ import RightSidebar from "../sidebar/RightSidebar";
 import Sidebar from "../sidebar/Sidebar";
 import { ResizablePanel, ResizablePanelGroup } from "../ui/resizable";
 import { ScrollArea } from "../ui/scroll-area";
+import { Button } from "../ui/button";
+import { Edit3 } from "lucide-react";
+import { useProfileDialog } from "../dialog-provider";
 
 type ProfileLayoutProps = {
   children: ReactNode;
@@ -12,15 +15,26 @@ type ProfileLayoutProps = {
 };
 
 const ProfileLayout: FC<ProfileLayoutProps> = ({ children, isMine }) => {
+  const [open, setOpen] = useProfileDialog();
   return (
     <ResizablePanelGroup
-      className="w-full h-full flex items-center justify-center"
+      className="w-full h-full flex items-center  justify-center"
       direction="horizontal"
     >
       <GalleryContextProvider>
         <Sidebar />
 
-        <ResizablePanel className="w-full h-screen   ">
+        <ResizablePanel className="w-full h-screen   relative">
+          {isMine && (
+            <div className="absolute z-50 top-4 right-4">
+              <button
+                onClick={() => setOpen(true)}
+                className="p-3 rounded-full cursor-pointer bg-neutral-100 dark:bg-dark-border flex items-center gap-2"
+              >
+                <Edit3 strokeWidth={1.5} className="size-5 opacity-80" />
+              </button>
+            </div>
+          )}
           <ScrollArea className="h-screen overflow-y-auto relative w-full ">
             <div className="w-full mt-28 mb-10 flex flex-col px-3">
               {children}
@@ -29,7 +43,7 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({ children, isMine }) => {
         </ResizablePanel>
 
         {isMine && (
-          <div className="w-full  hidden lg:flex items-center justify-end h-full max-w-sm border-l border-neutral-200  dark:border-dark-border/60">
+          <div className="w-full  hidden lg:flex items-center justify-end h-full max-w-md border-l border-neutral-200  dark:border-dark-border/60">
             <RightSidebar />
           </div>
         )}

@@ -7,8 +7,15 @@ import {
 } from "../ui/resizable";
 import { ScrollArea } from "../ui/scroll-area";
 import PageSidebar from "../sidebar/PageSidebar";
+import Toolbar from "../editor/toolbar";
 
-const PageLayout = ({ children }: { children: ReactNode }) => {
+const PageLayout = ({
+  children,
+  isMyPage,
+}: {
+  children: ReactNode;
+  isMyPage: boolean;
+}) => {
   return (
     <ResizablePanelGroup
       direction="horizontal"
@@ -16,19 +23,30 @@ const PageLayout = ({ children }: { children: ReactNode }) => {
     >
       <ResizablePanel className="w-full h-full  ">
         <ScrollArea className="h-screen overflow-y-auto relative w-full ">
-          <div className="w-full mt-28 mb-10 flex flex-col ">{children}</div>
+          <div className="w-full mt-28 mb-10 flex flex-col ">
+            {isMyPage && (
+              <div className="absolute right-0 left-0  flex items-center justify-center w-full">
+                <div className="fixed bottom-4 z-50">
+                  <Toolbar />
+                </div>
+              </div>
+            )}
+            {children}
+          </div>
         </ScrollArea>
       </ResizablePanel>
       <ResizableHandle withHandle />
-      <ResizablePanel
-        id="page-sidebar"
-        className="hidden md:flex "
-        maxSize={25}
-        collapsible={true}
-        collapsedSize={0}
-      >
-        <PageSidebar />
-      </ResizablePanel>
+      {isMyPage && (
+        <ResizablePanel
+          id="page-sidebar"
+          className="hidden md:flex "
+          maxSize={25}
+          collapsible={true}
+          collapsedSize={0}
+        >
+          <PageSidebar />
+        </ResizablePanel>
+      )}
     </ResizablePanelGroup>
   );
 };

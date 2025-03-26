@@ -35,7 +35,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "bg-white dark:bg-[#111111] antialiased",
+          "bg-light-bg dark:bg-dark-bg antialiased",
           inter?.className,
           instrument?.variable
         )}

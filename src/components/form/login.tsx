@@ -10,6 +10,8 @@ import { Label } from "../ui/label";
 import { signIn, useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { Loader } from "lucide-react";
+import { useState } from "react";
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -21,13 +23,12 @@ const LoginSchema = z.object({
 type TLoginValues = z.infer<typeof LoginSchema>;
 
 const Login = () => {
-  //   const usernameCookie = getCookie("username");
   const router = useRouter();
-  const s = useSession();
-  console.log({ s });
-  if (s.status === "authenticated" && !s?.data?.user?.isOnboarded) {
-    router.push("/onboarding");
-  }
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSocialLoading, setIsSocialLoading] = useState<
+    "google" | "github" | null
+  >(null);
+
   const form = useForm<TLoginValues>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -35,15 +36,21 @@ const Login = () => {
       password: "",
     },
   });
+
   const handleSocialSignIn = async (provider: "google" | "github") => {
-    const data = await signIn(provider);
-    if (data?.error) {
-      toast.error(data.error);
-      return;
+    try {
+      setIsSocialLoading(provider);
+      const data = await signIn(provider);
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+      toast.success("Logged in successfully");
+    } finally {
+      setIsSocialLoading(null);
     }
-    toast.success("Logged in successfully");
-    // router.push(`/${s?.data?.user?.username}`);
   };
+
   return (
     <div className=" w-full space-y-4">
       <div>
@@ -54,17 +61,21 @@ const Login = () => {
 
       <form
         onSubmit={form.handleSubmit(async (values) => {
-          const res = await signIn("credentials", {
-            email: values?.email,
-            password: values?.password,
-            redirect: false,
-          });
-          console.log(res);
-          if (res?.error) {
-            toast.error(res.error);
+          try {
+            setIsLoading(true);
+            const res = await signIn("credentials", {
+              email: values?.email,
+              password: values?.password,
+              redirect: false,
+            });
+            if (res?.error) {
+              toast.error(res.error);
+              return;
+            }
+            toast.success("Logged in successfully");
+          } finally {
+            setIsLoading(false);
           }
-          toast.success("Logged in successfully");
-          // router.push(`/${s?.data?.user?.username}`);
         })}
         className="space-y-2"
       >
@@ -84,7 +95,10 @@ const Login = () => {
             {...form.register("password")}
           />
         </Label>
-        <Button className="w-full mt-2">SignIn with Email</Button>
+        <Button disabled={isLoading} className="w-full mt-2">
+          {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Sign in with Email
+        </Button>
       </form>
       <div className="flex items-center justify-center">
         <hr className="h-[0.5px] w-full bg-neutral-400" />
@@ -93,34 +107,44 @@ const Login = () => {
       </div>
       <div className="flex flex-col space-y-2">
         {/* <span className="my-2 text-sm opacity-80 tracking-tight leading-tight">
-          By clicking "Create Profile“ you agree to our Code of Conduct, Terms
+          By clicking "Create Profile" you agree to our Code of Conduct, Terms
           of Service and Privacy Policy.
         </span> */}
         <Button
+          disabled={!!isSocialLoading}
           onClick={() => handleSocialSignIn("google")}
-          className="rounded-lg px-6 "
+          className="rounded-lg px-6"
         >
-          <Image
-            width={25}
-            className="aspect-square size-6 mr-1"
-            height={25}
-            src={"/google.svg"}
-            alt="Google Logo"
-          />{" "}
-          SignIn with Google
+          {isSocialLoading === "google" ? (
+            <Loader className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Image
+              width={25}
+              height={25}
+              src="/google.svg"
+              alt="Google Logo"
+              className="size-6 mr-1"
+            />
+          )}
+          Sign in with Google
         </Button>
         <Button
+          disabled={!!isSocialLoading}
           onClick={() => handleSocialSignIn("github")}
-          className="rounded-lg px-6 "
+          className="rounded-lg px-6"
         >
-          <Image
-            width={25}
-            className="aspect-square size-6 mr-1"
-            height={25}
-            src={"/github.svg"}
-            alt="Github Logo"
-          />{" "}
-          SignIn with Github
+          {isSocialLoading === "github" ? (
+            <Loader className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Image
+              width={25}
+              height={25}
+              src="/github.svg"
+              alt="Github Logo"
+              className="size-6 mr-1"
+            />
+          )}
+          Sign in with Github
         </Button>
       </div>
     </div>

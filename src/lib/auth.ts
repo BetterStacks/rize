@@ -1,21 +1,18 @@
-import { profile, TPronouns, users } from "@/db/schema";
+import { profile, users } from "@/db/schema";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { compareSync } from "bcryptjs";
-import { eq, getTableColumns } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import NextAuth, { DefaultSession } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import db from "./db";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import {
   deleteServerCookie,
   getServerCookie,
-  setUserIsOnboarded,
   userExists,
 } from "./server-actions";
-import { error } from "console";
-import { redirect } from "next/navigation";
 
 declare module "next-auth/jwt" {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
@@ -25,12 +22,6 @@ declare module "next-auth/jwt" {
     image: string;
     username: string;
     profileId: string;
-    website?: string;
-    pronouns?: "he/him" | "she/her" | "they/them" | "other";
-    location?: string;
-    bio?: string;
-    age?: number;
-    emoji?: string;
     isOnboarded: boolean;
   }
 }
@@ -42,12 +33,6 @@ declare module "next-auth" {
       username: string;
       isOnboarded: boolean;
       profileId: string;
-      website?: string;
-      pronouns?: "he/him" | "she/her" | "they/them" | "other";
-      location?: string;
-      bio?: string;
-      age?: number;
-      emoji?: string;
     } & DefaultSession["user"];
   }
 }
@@ -73,6 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       if (trigger === "update" && session) {
+        console.log({ session });
         return { ...token, ...session.user };
       }
 
@@ -88,11 +74,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           isOnboarded: users.isOnboarded,
           username: profile.username,
           profileId: profile.id,
-          website: profile.website,
-          pronouns: profile.pronouns,
-          location: profile.location,
-          bio: profile.bio,
-          age: profile.age,
         })
         .from(users)
         .leftJoin(profile, eq(profile.userId, users.id))
@@ -120,15 +101,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         .from(profile)
         .where(eq(profile.userId, user.id))
         .limit(1);
-      console.log({ existingProfile });
 
       if (existingProfile.length > 0) {
-        return `/${existingProfile[0].username}`;
+        return true;
       }
 
       // Check for username cookie if no profile exists
       const username = await getServerCookie("username");
-      console.log("no username found");
+      // console.log("no username found");
       if (username) {
         // Create profile with cookie username
         await db.insert(profile).values({
@@ -138,8 +118,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // Clear username cookie
         await deleteServerCookie("username");
-
-        return `/${username}`;
       }
 
       return true;

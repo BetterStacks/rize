@@ -71,9 +71,9 @@ const RightSidebar = () => {
         {/* </div> */}
       </div>
       {galleryItem && <EditGalleryItem id={galleryItem} />}
-      <div className="mb-6 px-3">
+      {/* <div className="mb-6 px-3">
         <UpgradeCard />
-      </div>
+      </div> */}
     </div>
   );
 };
