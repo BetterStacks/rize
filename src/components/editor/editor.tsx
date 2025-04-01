@@ -27,9 +27,7 @@ import { useEditorState } from "./editor-context";
 import { withImages } from "./utils";
 
 type EditorProps = {
-  author: Partial<
-    typeof TProfile & { image: string; name: string; email: string }
-  >;
+  author: Partial<TProfile & { name: string; email: string }>;
 };
 
 const RichTextExample = ({ author }: EditorProps) => {
@@ -97,7 +95,7 @@ const RichTextExample = ({ author }: EditorProps) => {
             <div className="aspect-square size-[60px] rounded-full animate-pulse bg-neutral-300  dark:bg-dark-border" />
           ) : (
             <Image
-              src={author?.image as string}
+              src={author?.profileImage as string}
               alt="image"
               width={50}
               height={50}
@@ -131,7 +129,7 @@ const RichTextExample = ({ author }: EditorProps) => {
         )}
       </div>
       <TextAreaAutosize
-        className="appearance-none bg-transparent text-2xl font-medium w-full  focus-visible:outline-none resize-none"
+        className="appearance-none bg-transparent text-2xl md:text-3xl tracking-tight font-medium w-full  focus-visible:outline-none resize-none"
         value={state?.title}
         onChange={(e) => setState({ ...state, title: e?.target?.value })}
         onKeyDown={(e) => {
@@ -139,14 +137,10 @@ const RichTextExample = ({ author }: EditorProps) => {
             e.preventDefault();
             console.log("called");
             if (editor.children.length === 0) return;
-
-            // Set selection at the first position of the first node
             Transforms.select(editor, {
-              anchor: { path: [0, 0], offset: 0 }, // Start of first node
-              focus: { path: [0, 0], offset: 0 }, // Collapsed selection (single point)
+              anchor: { path: [0, 0], offset: 0 },
+              focus: { path: [0, 0], offset: 0 },
             });
-
-            // Ensure React re-renders with the updated selection
             ReactEditor.focus(editor);
           }
         }}

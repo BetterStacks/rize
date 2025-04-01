@@ -20,25 +20,22 @@ import toast from "react-hot-toast";
 import { queryClient } from "@/lib/providers";
 import { galleryLayouts } from "./gallery";
 
-function GalleryItem({
-  item,
-  index,
-}: {
+type TGalleryItemProps = {
   item: GalleryItemProps;
   index: number;
-}) {
+  isMine: boolean;
+};
+
+function GalleryItem({ item, isMine }: TGalleryItemProps) {
   const session = useSession();
-  const [id, setId] = useQueryState("gallery");
 
   const [config] = useLocalStorage<GalleryConfigProps>({
     key: "gallery-config",
-    defaultValue: { layout: "messy-grid" },
+    defaultValue: { layout: "masonry-grid" },
   });
-  const isUser = session.data?.user?.profileId === item.profileId;
   const removeItemFromGallery = async () => {
     if (!item.id) {
-      toast.error("Item not found in gallery");
-      return;
+      throw new Error("Item not found in gallery");
     }
     try {
       const res = await removeGalleryItem(item.id);
@@ -47,7 +44,6 @@ function GalleryItem({
       }
       toast.success("Item removed from gallery");
       queryClient.invalidateQueries({ queryKey: ["get-gallery-items"] });
-      setId(null);
     } catch (error) {
       toast.error((error as Error).message);
     }
@@ -88,8 +84,8 @@ function GalleryItem({
         // isDragging && "opacity-80",
 
         " group  aspect-auto w-full h-full  relative overflow-hidden  border border-neutral-200 dark:border-dark-border rounded-3xl bg-neutral-100 dark:bg-dark-border cursor-grab  first:mt-0 active:cursor-grabbing ",
-        config.layout === "masonry-grid" && "min-h-[180px]",
-        galleryLayouts[config.layout].item
+        "min-h-[180px]",
+        galleryLayouts["masonry-grid"].item
       )}
       // style={
       //   config.layout === "masonry-grid"
@@ -102,8 +98,8 @@ function GalleryItem({
       //         aspectRatio: item.width / item.height,
       //       }
       // }
-      drag
-      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+      // drag
+      // dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       // whileHover={{ scale: 1.05, zIndex: 20, y: -40, rotate: 0 }}
       // whileTap={{ scale: 1.05, zIndex: 20 }}
       // initial="initial"
@@ -112,7 +108,7 @@ function GalleryItem({
       //   {...attributes}
       //   {...listeners}
     >
-      {isUser && (
+      {isMine && (
         <Button
           onClick={removeItemFromGallery}
           className={cn(

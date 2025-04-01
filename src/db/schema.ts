@@ -57,6 +57,7 @@ export const profile = pgTable("profile", {
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  profileImage: text("profile_image"),
   username: varchar("username", { length: 20 }).unique(),
   age: integer("age").notNull().default(18),
   pronouns: Pronouns("pronouns").notNull().default("he/him"),
@@ -69,17 +70,32 @@ export const profile = pgTable("profile", {
     .$onUpdate(() => new Date()),
 });
 
+export const socialLinks = pgTable("social_links", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => v4()),
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => profile.id, { onDelete: "cascade" }),
+  platform: text("platform").notNull(),
+  url: text("url").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
+
 export const media = pgTable("media", {
   id: uuid("id")
     .primaryKey()
     .$defaultFn(() => v4()),
-  url: text("url").notNull(), // Cloud Storage URL (S3, Supabase Storage, etc.)
-  type: MediaType("type").notNull(), // 'image', 'video', 'link'
+  url: text("url").notNull(),
+  type: MediaType("type").notNull(),
   width: integer("width").notNull(),
   height: integer("height").notNull(),
   profileId: uuid("profile_id")
     .notNull()
-    .references(() => profile.id, { onDelete: "cascade" }), // User who uploaded
+    .references(() => profile.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

@@ -1,77 +1,106 @@
 "use client";
 
 import ClaimUsernameForm from "@/components/claim-username";
+import Footer from "@/components/footer";
+import TestimonialsMarquee from "@/components/home/testimonials";
+import UserReviews from "@/components/home/user-reviews";
 import { setServerCookie } from "@/lib/server-actions";
-import { UsernameFormData } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-import { useSession } from "next-auth/react";
+import { motion, Variants } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useRef } from "react";
+
+const heading = "Your Digital Passport \n to the GenZ world";
+const headingVariants: Variants = {
+  initial: {
+    opacity: 0,
+    y: 50,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 1,
+      staggerChildren: 0.3,
+      ease: "easeIn",
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -50,
+  },
+};
+const imageVariants: Variants = {
+  initial: {
+    opacity: 0,
+    y: -100,
+    scale: 0.8,
+    rotate: 20,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    rotate: 0,
+    transition: {
+      duration: 0.75,
+      type: "spring",
+      stiffness: 100,
+      damping: 20,
+      mass: 0.5,
+      ease: "easeInOut",
+      delay: 0.3,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -50,
+  },
+};
 export default function Home() {
-  const session = useSession();
   const router = useRouter();
-  const handleSubmit = (data: UsernameFormData) => {
-    console.log(data);
-    // Handle form submission
-    setServerCookie("username", data.username);
 
-    router.push(`/login`);
+  const handleSubmit = (data: string) => {
+    setServerCookie("username", data);
+    router.push(`/signup`);
   };
-  console.log(session);
-
   return (
-    <div className="w-full h-screen flex items-center justify-center">
-      {session?.data?.user?.image && (
-        <div className="absolute top-4 right-4">
-          <Link href={`/${session?.data?.user?.username}`}>
-            <Image
-              src={session?.data?.user?.image}
-              alt="pfp"
-              width={50}
-              height={50}
-              className=" size-10 aspect-square rounded-full"
-            />
-          </Link>
-        </div>
-      )}
-      <div className="flex flex-col items-center justify-center gap-3">
-        <h1 className="text-3xl md:text-4xl text-center font-semibold font-instrument tracking-wide">
-          {/* {session?.data ? (
-            <> */}
-          Your Digital Passport <br />
-          to the GenZ world
-          {/* </>
-          ) : (
-            <>
-              {" "}
-              The Professional Network <br /> to show & tell what you are
-              working on!
-            </>
-          )} */}
-        </h1>
-        <div className="w-full">
+    <div className="w-full min-h-screen  flex flex-col items-center justify-center">
+      <motion.div className="flex flex-col h-[90vh] md:h-screen items-center justify-center gap-3">
+        <motion.div
+          className="mb-3 md:mb-6 relative overflow-hidden size-12 md:size-14"
+          variants={imageVariants}
+          initial="initial"
+          animate="animate"
+        >
+          <Image alt="" fill src={"/logo2.png"} />
+        </motion.div>
+        <motion.h1
+          variants={headingVariants}
+          initial="initial"
+          animate="animate"
+          className="text-4xl md:text-5xl lg:text-6xl text-center font-semibold font-instrument tracking-tight leading-tight"
+        >
+          {heading.split("\n").map((line, index) => (
+            <motion.span key={index} variants={headingVariants}>
+              {line}
+              <br />
+            </motion.span>
+          ))}
+        </motion.h1>
+        <motion.div
+          variants={headingVariants}
+          initial="initial"
+          animate="animate"
+          className="w-full max-w-sm px-3 sm:px-0"
+        >
           {" "}
           <ClaimUsernameForm onSubmit={handleSubmit} />
-        </div>
-        {/* <motion.div
-          className="grid mt-6 grid-cols-5 gap-2 max-w-xs w-full"
-          layout
-        >
-          {[...Array(20)].map((_, index) => (
-            <motion.div
-              layoutId={`avatar-${index}`}
-              key={index}
-              whileHover={{ scale: 1.7 }}
-              className={cn(
-                "aspect-square  bg-gray-300 rounded-full",
-                index % 2 === 0 && "bg-red-600"
-              )}
-            ></motion.div>
-          ))}
-        </motion.div> */}
-      </div>
+        </motion.div>
+      </motion.div>
+      <UserReviews />
+      <TestimonialsMarquee />
+      <Footer />
     </div>
   );
 }

@@ -8,11 +8,14 @@ import {
   page,
   pageMedia,
   profile,
+  socialLinks,
   users,
 } from "@/db/schema";
 import {
+  GalleryItemProps,
   GetProfileByUsername,
   profileSchema,
+  SocialPlatform,
   TMedia,
   TPage,
   TUploadFilesResponse,
@@ -20,12 +23,14 @@ import {
 } from "@/lib/types";
 import { hashSync } from "bcryptjs";
 import { v2 as cloudinary } from "cloudinary";
-import { and, eq, getTableColumns, not } from "drizzle-orm";
+import { and, eq, getTableColumns, ilike, not, or, sql } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { auth } from "./auth";
 import db from "./db";
 import { isImageUrl } from "./utils";
+import { cache } from "react";
+import { signIn } from "next-auth/react";
 
 cloudinary.config({
   api_key: "537392939961543",
@@ -102,7 +107,6 @@ export const getProfileByUsername = async (username: string) => {
   const p = await db
     .select({
       ...rest,
-      image: users.image,
       name: users.name,
       email: users.email,
     })
@@ -163,9 +167,9 @@ export async function updateUserImage(url: string) {
   }
 
   await db
-    .update(users)
-    .set({ image: url })
-    .where(eq(users.id, session?.user?.id));
+    .update(profile)
+    .set({ profileImage: url })
+    .where(eq(profile.id, session?.user?.profileId));
 
   return { success: true, error: null };
 }
@@ -187,26 +191,27 @@ export const userExists = async (email: string) => {
 export const register = async (
   payload: Pick<typeof TUser, "email" | "password" | "name">
 ) => {
-  try {
-    const alreadyExists = await userExists(payload.email as string);
-    if (alreadyExists) {
-      throw new Error("User already exists");
-    }
-    const hashedPassword = hashSync(payload.password as string, 10);
-    const image = `https://api.dicebear.com/9.x/initials/svg?seed=${payload.name}`;
-    const [user] = await db
-      .insert(users)
-      .values({
-        ...payload,
-        password: hashedPassword,
-        image,
-      })
-      .returning();
-
-    return { data: user, error: null };
-  } catch (error) {
-    return { data: null, error: (error as Error)?.message };
+  const alreadyExists = await userExists(payload.email as string);
+  console.log({ alreadyExists });
+  if (alreadyExists) {
+    throw new Error("User already exists");
   }
+  const hashedPassword = hashSync(payload.password as string, 10);
+  const image = `https://api.dicebear.com/9.x/initials/svg?seed=${payload.name}`;
+  const [user] = await db
+    .insert(users)
+    .values({
+      ...payload,
+      password: hashedPassword,
+      image,
+    })
+    .returning();
+
+  if (!user) {
+    throw new Error("Error creating user");
+  }
+
+  return user;
 };
 export const isUsernameAvailable = async (username: string) => {
   // try {
@@ -275,9 +280,8 @@ export const getAllPages = async (username: string) => {
     )
     .leftJoin(media, eq(media.id, pageMedia.mediaId))
     .where(eq(page.profileId, profileId?.id!));
-  // console.log(pages);
   if (pages.length === 0) {
-    throw new Error("No pages found");
+    return [];
   }
   return pages as (typeof TPage & { thumbnail: string })[];
 };
@@ -303,30 +307,6 @@ export const getPageById = async (id: string) => {
   return pages[0];
 };
 
-//   const sessoin = await auth();
-//   const links = await db
-//     .select({
-//       id: socialLinks.id,
-//       name: socialLinks.name,
-//       icon: socialLinks.icon,
-//       url: profileSocialLinks.url,
-//       createdAt: profileSocialLinks.createdAt,
-//     })
-//     .from(socialLinks)
-//     .innerJoin(
-//       profileSocialLinks,
-//       eq(socialLinks.id, profileSocialLinks.socialLinksId)
-//     )
-//     .where(eq(profileSocialLinks.profileId, sessoin?.user?.profileId!));
-
-//   console.log({ links });
-
-//   if (links.length === 0) {
-//     throw new Error("No social links found");
-//   }
-//   return links as TSocialLink[];
-// };
-
 export const getGalleryId = async () => {
   const session = await auth();
   if (!session || !session?.user?.profileId) {
@@ -338,9 +318,8 @@ export const getGalleryId = async () => {
     })
     .from(gallery)
     .where(eq(gallery.profileId, session?.user?.profileId!));
+
   if (galleryId.length === 0) {
-    // throw new Error("No gallery found");
-    console.log("No gallery found");
     const newGallery = await db
       .insert(gallery)
       .values({ layout: "default", profileId: session?.user?.profileId })
@@ -376,18 +355,14 @@ export const getGalleryItems = async (username: string) => {
     .innerJoin(galleryMedia, eq(gallery.id, galleryMedia.galleryId))
     .innerJoin(media, eq(galleryMedia.mediaId, media.id))
     .where(eq(gallery.profileId, profileId?.id))
-    .limit(8);
+    .limit(10);
 
   // console.log({ items });
 
   if (items.length === 0) {
     throw new Error("No gallery items found");
   }
-  return items as (typeof TMedia & {
-    galleryMediaId: string | null;
-    width: number;
-    height: number;
-  })[];
+  return items as GalleryItemProps[];
 };
 
 export const addGalleryItem = async (payload: TUploadFilesResponse) => {
@@ -434,6 +409,7 @@ export const removeGalleryItem = async (id: string) => {
     throw new Error("Provide an ID");
   }
   const item = await db.delete(media).where(eq(media.id, id)).returning();
+  console.log({ item });
   if (item.length === 0) {
     throw new Error("Error deleting gallery item");
   }
@@ -549,3 +525,97 @@ export async function updatePageThumbnail(
   }
   return { success: true, error: null };
 }
+
+export const searchProfiles = cache(async (query: string) => {
+  const { ...rest } = getTableColumns(profile);
+  return await db
+    .select({ ...rest, name: users.name })
+    .from(profile)
+    .innerJoin(users, eq(profile.userId, users.id))
+    .where(
+      or(ilike(profile.username, `%${query}%`), ilike(users.name, `%${query}%`))
+    );
+});
+
+export const getSocialLinks = async (username: string) => {
+  const profileId = await getProfileIdByUsername(username);
+  if (!profileId?.id) {
+    throw new Error("Profile not found");
+  }
+  const { ...rest } = getTableColumns(profile);
+  const links = await db
+    .select()
+    .from(socialLinks)
+    .where(eq(socialLinks.profileId, profileId?.id));
+
+  if (links.length === 0) {
+    throw new Error("No social links found");
+  }
+
+  return links;
+};
+
+export const addSocialLink = async (url: string, platform: SocialPlatform) => {
+  const session = await auth();
+  if (!session) {
+    throw new Error("Session not found");
+  }
+
+  const newLink = await db
+    .insert(socialLinks)
+    .values({
+      profileId: session?.user?.profileId,
+      platform,
+      url,
+    })
+    .returning();
+  if (newLink.length === 0) {
+    throw new Error("Error adding social link");
+  }
+
+  return newLink[0];
+};
+export const editSocialLink = async (id: string, url: string) => {
+  const session = await auth();
+  if (!session) {
+    throw new Error("Session not found");
+  }
+
+  const newLink = await db
+    .update(socialLinks)
+    .set({
+      url,
+    })
+    .where(
+      and(
+        eq(socialLinks.id, id),
+        eq(socialLinks.profileId, session.user.profileId)
+      )
+    )
+    .returning();
+  if (newLink.length === 0) {
+    throw new Error("Error updating social link");
+  }
+
+  return newLink[0];
+};
+
+export const removeSocialLink = async (id: string) => {
+  const session = await auth();
+  if (!session) {
+    throw new Error("Session not found");
+  }
+  const link = await db
+    .delete(socialLinks)
+    .where(
+      and(
+        eq(socialLinks.id, id),
+        eq(socialLinks.profileId, session.user.profileId)
+      )
+    )
+    .returning();
+  if (link.length === 0) {
+    throw new Error("Error deleting social link");
+  }
+  return link[0];
+};

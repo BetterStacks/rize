@@ -1,4 +1,11 @@
-import { galleryMedia, media, page, profile, users } from "@/db/schema";
+import {
+  galleryMedia,
+  media,
+  page,
+  profile,
+  socialLinks,
+  users,
+} from "@/db/schema";
 import { BaseEditor, BaseRange, Descendant, Element, Range } from "slate";
 import { HistoryEditor } from "slate-history";
 import { ReactEditor } from "slate-react";
@@ -6,10 +13,11 @@ import { z } from "zod";
 
 export const TUser = users.$inferSelect;
 export const TPage = page.$inferInsert;
-export const TProfile = profile.$inferSelect;
+export type TProfile = typeof profile.$inferSelect;
 export const TGalleryItem = galleryMedia.$inferSelect;
 export const NewProfile = profile.$inferInsert;
 export const TMedia = media.$inferSelect;
+export type TSocialLink = typeof socialLinks.$inferSelect;
 
 export type TUploadFilesResponse = {
   width: number;
@@ -26,23 +34,21 @@ export type GetProfileByUsername =
   | null;
 export type GalleryItemProps = typeof TMedia & {
   galleryMediaId: string | null;
-  width: number;
-  height: number;
+  // width: number;
+  // height: number;
 };
 
+export type SocialPlatform =
+  | "facebook"
+  | "twitter"
+  | "instagram"
+  | "linkedin"
+  | "other";
+
 export type GalleryConfigProps = {
-  // cols: 2 | 3 | 4;
-  // length: number;
   layout: "messy-grid" | "masonry-grid";
 };
 
-export type TSocialLink = {
-  id: string;
-  icon: string;
-  name: string;
-  url: string;
-  createdAt: Date;
-};
 export type BlockQuoteElement = {
   type: "block-quote";
   align?: string;

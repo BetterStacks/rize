@@ -2,19 +2,16 @@ import { GetProfileByUsername } from "@/lib/types";
 import { cleanUrl } from "@/lib/utils";
 import {
   BriefcaseBusiness,
-  Edit2,
-  Edit3,
   Link2,
   LogOut,
   Moon,
-  MoreHorizontal,
   Plus,
-  Share2,
   Sun,
   UserPenIcon,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -23,10 +20,9 @@ import {
   useSocialLinksDialog,
 } from "../dialog-provider";
 import { Button } from "../ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import UserAvatar from "../user-avatar";
 import { Skeleton } from "../ui/skeleton";
-import Link from "next/link";
+import UserAvatar from "../user-avatar";
+import SocialLinks from "../profile/social-links";
 
 type ProfileProps = {
   data: GetProfileByUsername;
@@ -41,7 +37,6 @@ const Profile = ({ data, isLoading, isMine }: ProfileProps) => {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [isMounted, setIsMounted] = useState(false);
-  const session = useSession();
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -96,36 +91,12 @@ const Profile = ({ data, isLoading, isMine }: ProfileProps) => {
         <div className=" w-full flex  items-center justify-start">
           <UserAvatar
             data={{
-              image: data?.image as string,
+              image: data?.profileImage as string,
               name: data?.name as string,
             }}
             isLoading={isLoading}
             isMyProfile={isMine}
           />
-
-          {/* <div className="  flex items-center mt-2 justify-evenly w-full">
-            <div className="flex flex-col items-center justify-center ">
-              <span>0</span>
-              <span className="mt-1 font-medium">Posts</span>
-            </div>
-            <div className="flex flex-col items-center justify-center ">
-              <span>280</span>
-              <span className="mt-1 font-medium">Followers</span>
-            </div>
-            <div className="flex flex-col items-center justify-center ">
-              <span>41</span>
-              <span className="mt-1 font-medium">Following</span>
-            </div>
-          </div> */}
-          {/* <div className="flex mt-2 max-w-md  items-center justify-start gap-2 w-full">
-              <Button className="w-full" size={"sm"}>
-                Edit Profile
-              </Button>
-              <Button className="w-full" size={"sm"}>
-                Share Profile
-              </Button>
-            </div>
-          </div> */}
         </div>
         <div className="w-full flex items-start justify-center">
           <div className="w-full mt-3 flex  flex-col items-start justify-start">
@@ -166,21 +137,27 @@ const Profile = ({ data, isLoading, isMine }: ProfileProps) => {
 
         <div className="flex flex-col items-start justify-start mt-2 w-full">
           {data?.bio && (
-            <div className="mt-2">
-              <p className="opacity-80">{data?.bio} </p>
+            <div className="mt-2 opacity-80">
+              {data?.bio?.split("\n").map((word, i) => (
+                <span key={i}>
+                  {word}
+                  <br className="" />
+                </span>
+              ))}{" "}
             </div>
           )}
         </div>
-        <div className="flex items-center  gap-3 justify-start w-full px-2 mt-4">
-          {!isMine && (
+        <SocialLinks />
+        {!isMine && (
+          <div className="flex items-center  gap-3 justify-start w-full ">
             <>
               <Button className="pl-6 pr-3 rounded-3xl">
                 Follow
                 <Plus className="size-4  " />
               </Button>
             </>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

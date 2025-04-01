@@ -1,3 +1,4 @@
+"use client";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 // import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -13,12 +14,14 @@ import {
   updateUserAndProfile,
 } from "@/lib/server-actions";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { set } from "date-fns";
 
 interface OnboardingProps {
-  onComplete: (data: any) => void;
+  onComplete?: (data: any) => void;
 }
 
-export default function OnboardingFlow({ onComplete }: OnboardingProps) {
+export default function OnboardingFlow() {
   const [formData, setFormData] = useLocalStorage({
     key: "onboarding-data",
     defaultValue: {
@@ -26,6 +29,16 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
       interests: [],
     },
   });
+  const [isPending, setIsPending] = useState<boolean | null>(null);
+
+  const router = useRouter();
+  const onComplete = async (data: any) => {
+    try {
+      router.push(`/${formData?.username}`);
+    } catch (error) {
+      console.error("Failed to save profile:", error);
+    }
+  };
 
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -38,30 +51,33 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
       id: "username",
       component: (
         <UsernameStep
+          isPending={isPending!}
           formData={formData}
           onNext={async (username) => {
             setFormData((prev) => ({ ...prev, username }));
+            setIsPending(true);
             const { data, error } = await createProfile(username);
             if (error) {
               toast.error(error);
+              setIsPending(false);
               return;
             }
-            console.log({ data });
             const { success, error: updateError } = await updateUserAndProfile({
               username,
             });
             if (updateError) {
+              setIsPending(false);
               toast.error(updateError);
               return;
             }
-            console.log({ success, updateError });
-            const { success: setSuccess, error: setError } =
+            const { success: setSuccess, error: onboardingError } =
               await setUserIsOnboarded();
-            console.log({ setSuccess, setError });
-            if (setError) {
-              toast.error(setError);
+            if (onboardingError) {
+              setIsPending(false);
+              toast.error(onboardingError);
               return;
             }
+            setIsPending(false);
             setCurrentStep(2);
           }}
         />
@@ -98,7 +114,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
           <motion.div
             style={{ height: "auto", minHeight: "250px" }}
             key={currentStep}
-            className="bg-white dark:bg-[#111111]"
+            className="bg-white dark:bg-neutral-800"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
@@ -112,7 +128,6 @@ export default function OnboardingFlow({ onComplete }: OnboardingProps) {
         {steps.map((_, index) => (
           <div
             key={index}
-            onClick={() => setCurrentStep(index)}
             className={cn(
               "w-2 h-2 rounded-full transition-all duration-300",
               currentStep === index

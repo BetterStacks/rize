@@ -1,10 +1,13 @@
 import { getGalleryItems } from "@/lib/server-actions";
 import { GalleryItemProps } from "@/lib/types";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
 import {
   createContext,
   ReactNode,
   useContext,
+  useEffect,
   useOptimistic,
   useState,
 } from "react";
@@ -12,13 +15,15 @@ import {
 type TGallerItemsContext = {
   items: GalleryItemProps[];
   setItems: (items: GalleryItemProps[]) => void;
-  addItem: (item: GalleryItemProps) => void;
+  addItem: (item: GalleryItemProps[]) => void;
+  isLoading?: boolean;
 };
 
 export const GalleryItemsContext = createContext<TGallerItemsContext>({
   items: [],
   setItems: () => {},
   addItem: () => {},
+  isLoading: false,
 });
 
 export const useGalleryItems = () => {
@@ -26,30 +31,38 @@ export const useGalleryItems = () => {
   if (!context) {
     throw new Error("useGallerItems must be used within a GalleryItemsContext");
   }
-  return [context.items, context.setItems, context.addItem] as const;
+  return context;
 };
 
 const GalleryContextProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<GalleryItemProps[]>([]);
+  const { username } = useParams<{ username: string }>();
   const { data, isLoading } = useQuery({
-    queryKey: ["get-gallery-items"],
-    queryFn: getGalleryItems,
+    queryKey: ["get-gallery-items", username],
+    enabled: !!username,
+    queryFn: () => getGalleryItems(username!),
   });
 
-  const [optimisticGallery, addOptimisticGalleryItem] = useOptimistic(
-    items,
-    (currentItems, newGalleryItem: GalleryItemProps) => [
-      ...currentItems,
-      newGalleryItem,
-    ]
-  );
+  useEffect(() => {
+    if (data && data?.length !== 0) {
+      setItems(data);
+    }
+  }, [data]);
 
+  const [optimisticGallery, addOptimisticGalleryItem] = useOptimistic<
+    GalleryItemProps[],
+    GalleryItemProps[]
+  >(items, (prev, next) => [...prev, ...next]);
+  useEffect(() => {
+    console.log({ optimisticGallery });
+  }, [optimisticGallery]);
   return (
     <GalleryItemsContext.Provider
       value={{
         items: optimisticGallery,
         setItems,
         addItem: addOptimisticGalleryItem,
+        isLoading: isLoading,
       }}
     >
       {children}

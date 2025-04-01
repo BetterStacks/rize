@@ -1,21 +1,19 @@
-import { getGalleryItems } from "@/lib/server-actions";
-import { GalleryConfigProps, GalleryItemProps } from "@/lib/types";
+import { GalleryConfigProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useLocalStorage } from "@mantine/hooks";
-import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
+import Image from "next/image";
+import { FC } from "react";
+import { Skeleton } from "../ui/skeleton";
 import {
   mansoryGridItemVariants,
   mansoryGridVariants,
   messyGridItemVariants,
   messyGridVariants,
 } from "./gallery-config";
+import { useGalleryItems } from "./gallery-context";
 import GalleryItem from "./gallery-item";
-import { useParams } from "next/navigation";
-import { Skeleton } from "../ui/skeleton";
-import Image from "next/image";
-import { Plus } from "lucide-react";
 
 export const galleryLayouts = {
   "messy-grid": {
@@ -33,40 +31,34 @@ export const galleryLayouts = {
   },
 };
 
-const Gallery = () => {
-  const { username } = useParams<{ username: string }>();
-  const { data, isFetching } = useQuery({
-    queryKey: ["get-gallery-items", username],
-    queryFn: () => getGalleryItems(username),
-    refetchOnWindowFocus: false,
-  });
+type GalleryProps = {
+  isMine: boolean;
+};
+
+const Gallery: FC<GalleryProps> = ({ isMine }) => {
   const [galleryConfig] = useLocalStorage<GalleryConfigProps>({
-    defaultValue: { layout: "messy-grid" },
+    defaultValue: { layout: "masonry-grid" },
     key: "gallery-config",
   });
 
-  const [items, setItems] = useState<GalleryItemProps[]>([]);
-
-  useEffect(() => {
-    if (data && data?.length !== 0) {
-      setItems(data);
-    }
-  }, [data]);
+  const { items, isLoading } = useGalleryItems();
 
   return (
     <div className="w-full mt-6 flex flex-col items-center justify-center">
       <h2 className="w-full max-w-2xl  text-left   text-xl font-medium mb-4">
         Highlights
       </h2>
-      <div className="w-full max-w-2xl mb-4 flex space-x-3">
-        <div className="w-full max-w-[170px] aspect-[9/16] border-[2.5px]  border-dashed border-neutral-300/80 dark:border-dark-border h-full relative overflow-hidden rounded-3xl flex items-center justify-center">
-          <Plus className="size-8 opacity-80" />
-        </div>
-        {items.slice(3, 6).map((item) => (
+      <div className="w-full max-w-2xl mb-4 overflow-x-auto flex space-x-3">
+        {isMine && (
+          <div className="w-full max-w-[170px] flex-shrink-0 aspect-[9/16] border-[2.5px]  border-dashed border-neutral-300/80 dark:border-dark-border h-full relative overflow-hidden rounded-3xl flex items-center justify-center">
+            <Plus className="size-8 opacity-80" />
+          </div>
+        )}
+        {items.slice(3, isMine ? 6 : 7).map((item) => (
           <div
             key={item.id}
             style={{ aspectRatio: 9 / 16 }}
-            className="w-full max-w-[170px] border border-neutral-200 dark:border-dark-border h-full relative overflow-hidden rounded-3xl"
+            className="w-full max-w-[170px] flex-shrink-0 border border-neutral-200 dark:border-dark-border h-full relative overflow-hidden rounded-3xl"
           >
             {item?.type === "image" ? (
               <Image
@@ -93,10 +85,10 @@ const Gallery = () => {
       <motion.div
         initial="hidden"
         animate="visible"
-        className={cn(galleryLayouts[galleryConfig.layout].container!, "")}
-        variants={galleryLayouts[galleryConfig.layout].containerVariants}
+        className={cn(galleryLayouts["masonry-grid"].container!, "")}
+        variants={galleryLayouts["masonry-grid"].containerVariants}
       >
-        {isFetching
+        {isLoading
           ? [...Array.from({ length: 6 })].map((_, i) => (
               <motion.div
                 key={i}
@@ -119,22 +111,22 @@ const Gallery = () => {
                   key={i}
                   custom={i}
                   style={{
-                    ...(galleryConfig?.layout === "masonry-grid" && {
-                      aspectRatio: item.width / item.height,
-                    }),
+                    // ...(galleryConfig?.layout === "masonry-grid" && {
+                    aspectRatio: item.width / item.height,
+                    // }),
                   }}
-                  whileHover={{
-                    ...(galleryConfig.layout === "messy-grid" && {
-                      scale: 1.05,
-                      x: -10,
-                      y: -20,
-                      zIndex: 20,
-                      rotate: 0,
-                    }),
-                  }}
-                  variants={galleryLayouts[galleryConfig.layout].itemVariants}
+                  // whileHover={{
+                  //   ...(galleryConfig.layout === "messy-grid" && {
+                  //     scale: 1.05,
+                  //     x: -10,
+                  //     y: -20,
+                  //     zIndex: 20,
+                  //     rotate: 0,
+                  //   }),
+                  // }}
+                  variants={galleryLayouts["masonry-grid"].itemVariants}
                 >
-                  <GalleryItem item={item} index={i} />
+                  <GalleryItem isMine={isMine} item={item} index={i} />
                 </motion.div>
               );
             })}

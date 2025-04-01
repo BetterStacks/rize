@@ -1,0 +1,123 @@
+import { cn } from "@/lib/utils";
+import {
+  AnimatePresence,
+  motion,
+  MotionValue,
+  useTransform,
+} from "framer-motion";
+import Image from "next/image";
+import { FC, Fragment } from "react";
+
+type UserReviewCardProps = {
+  scrollProgress: MotionValue<number>;
+  targetScale: number;
+  img: string;
+  name: string;
+  content: string;
+  position: string;
+  index: number;
+  matches: boolean;
+  hovered: number | null;
+};
+
+const UserReviewCard: FC<UserReviewCardProps> = ({
+  content,
+  hovered,
+  position,
+  img,
+  index,
+  name,
+  matches,
+}) => {
+  return (
+    <div
+      className={cn(
+        " relative  overflow-hidden w-full text-white group rounded-3xl  h-[600px]  "
+      )}
+    >
+      <Image
+        src={img}
+        fill
+        alt=""
+        className={cn(
+          "-z-10 dark:saturate-75 select-none transition-all brightness-75 duration-200 ease-in-out",
+          matches
+            ? hovered !== null && hovered !== index && "brightness-[40%]"
+            : "brightness-75"
+        )}
+        style={{
+          objectFit: "cover",
+          width: "100%",
+          height: "100%",
+          aspectRatio: 1 / 1,
+        }}
+      />
+      <AnimatePresence>
+        <motion.div
+          layout
+          transition={{ duration: 0.2, type: "tween" }}
+          className={cn(
+            "z-20  flex flex-col w-full items-start px-6 pb-6 justify-center space-y-3 absolute bottom-0 left-0 right-0 ",
+            matches && hovered !== null && hovered !== index && "brightness-50"
+          )}
+        >
+          <h2 className="tracking-tight font-medium md:font-semibold text-xl md:text-2xl">
+            {name}
+          </h2>
+          <p className="mt-3 text-lg opacity-90 leading-tight ">
+            {position.split("\n").map((line, i) => (
+              <Fragment key={i}>
+                {line} <br />
+              </Fragment>
+            ))}
+          </p>
+          {matches ? (
+            hovered === index && (
+              <motion.p
+                initial={{ y: 60, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{
+                  // type: "tween",
+                  ease: "easeIn",
+                  duration: 0.4,
+                }}
+                className=" mt-4  tracking-tight   text-xl font-medium leading-snug"
+              >
+                "
+                {content.split("\n").map((line, i) => (
+                  <Fragment key={i}>
+                    {line}
+                    <br className="last:hidden" />
+                  </Fragment>
+                ))}
+                "
+              </motion.p>
+            )
+          ) : (
+            <motion.p
+              initial={{ y: 60, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{
+                // type: "tween",
+                ease: "easeIn",
+                duration: 0.4,
+              }}
+              className=" mt-4  tracking-tight   text-xl font-medium leading-snug"
+            >
+              "
+              {content.split("\n").map((line, i) => (
+                <Fragment key={i}>
+                  {line}
+                  <br className="last:hidden" />
+                </Fragment>
+              ))}
+              "
+            </motion.p>
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default UserReviewCard;

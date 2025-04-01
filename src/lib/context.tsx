@@ -1,6 +1,4 @@
 "use client";
-import Gallery from "@/components/gallery/gallery";
-import Writings from "@/components/writings/writings";
 import React, {
   createContext,
   ReactNode,
