@@ -42,6 +42,7 @@ import { z } from "zod";
 import { useProfileDialog } from "../dialog-provider";
 import { ScrollArea } from "../ui/scroll-area";
 import { useQueryState } from "nuqs";
+import { useRouter } from "next/navigation";
 
 // import { updateProfile } from "@/app/actions/updateProfile";
 
@@ -74,7 +75,6 @@ export function ProfileUpdateDialog() {
     },
   ];
   const [tab, setTab] = useQueryState("tab");
-  console.log({ tab });
   const [active, setActive] = useState(tab || options[0].id);
   const [open, setOpen] = useProfileDialog();
 
@@ -160,7 +160,7 @@ const DialogSidebar = ({ options, active, setActive }: DialogSidebarProps) => {
             </span>
             {active === option.id && (
               <motion.div
-                className="h-8 w-1 bg-indigo-700 rounded-full absolute right-0"
+                className="h-8 w-1 bg-green-500 rounded-full absolute right-0"
                 transition={{
                   layout: {
                     duration: 0.2,
@@ -202,9 +202,10 @@ const EditProfile = () => {
     },
     resolver: zodResolver(profileSchema),
   });
-
+  const router = useRouter();
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
   const [isSearching, setIsSearching] = useState<boolean | null>(null);
+  const setOpen = useProfileDialog()[1];
 
   const onSubmit = async (data: z.infer<typeof profileSchema>) => {
     // console.log({ data: data });
@@ -221,6 +222,8 @@ const EditProfile = () => {
     });
     setIsUpdating(false);
     toast.dismiss();
+    isAvailable && router.push(`/${data.username}`);
+    setOpen(false);
     toast.success("Profile updated successfully");
   };
 
@@ -264,7 +267,7 @@ const EditProfile = () => {
     >
       <div className="size-24 ring-4 mb-2 ring-neutral-300 dark:ring-dark-border overflow-hidden rounded-full ">
         <Image
-          src={profile?.image as string}
+          src={profile?.profileImage as string}
           alt="Profile"
           width={100}
           className="rounded-full aspect-square"
@@ -404,7 +407,7 @@ const EditProfile = () => {
       </div>
       <Button
         disabled={isUpdating || Object.keys(errors).length > 0}
-        className="bg-indigo-700 rounded-lg py-2 w-fit"
+        className="bg-green-500 hover:bg-green-600 rounded-lg py-2 w-fit"
         type="submit"
       >
         {isUpdating && <Loader className="animate-spin size-4 mr-2" />}

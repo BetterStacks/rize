@@ -30,9 +30,8 @@ const UserProfile = ({ data, isMine }: UserProfileProps) => {
     queryFn: () => getProfileByUsername(params.username),
   });
   const { sections, setSections } = useSections();
-  const session = useSession();
   const sectionsList: TSection[] = [
-    { id: "gallery", name: "Gallery", component: <Gallery /> },
+    { id: "gallery", name: "Gallery", component: <Gallery isMine={isMine} /> },
     {
       id: "writings",
       name: "Writings",

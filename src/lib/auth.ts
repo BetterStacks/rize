@@ -74,6 +74,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           isOnboarded: users.isOnboarded,
           username: profile.username,
           profileId: profile.id,
+          profileImage: profile.profileImage,
         })
         .from(users)
         .leftJoin(profile, eq(profile.userId, users.id))
@@ -87,47 +88,51 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user = {
         ...session.user,
         id: user.id,
+        image: userData[0]?.profileImage,
         ...(userData[0] as any),
       };
 
       return session;
     },
-    signIn: async (data) => {
-      const { user } = data;
-      if (!user?.id) return false;
+    // signIn: async (data) => {
+    //   const { user } = data;
+    //   if (!user?.id) return false;
 
-      const existingProfile = await db
-        .select({ username: profile.username })
-        .from(profile)
-        .where(eq(profile.userId, user.id))
-        .limit(1);
+    //   const existingProfile = await db
+    //     .select({ username: profile.username })
+    //     .from(profile)
+    //     .where(eq(profile.userId, user.id))
+    //     .limit(1);
 
-      if (existingProfile.length > 0) {
-        return true;
-      }
+    //   if (existingProfile.length > 0) {
+    //     return true;
+    //   }
 
-      // Check for username cookie if no profile exists
-      const username = await getServerCookie("username");
-      // console.log("no username found");
-      if (username) {
-        // Create profile with cookie username
-        await db.insert(profile).values({
-          userId: user.id,
-          username: username,
-        });
+    //   // Check for username cookie if no profile exists
 
-        // Clear username cookie
-        await deleteServerCookie("username");
-      }
-
-      return true;
-    },
+    //   return true;
+    // },
     redirect: async (data) => {
       const { url, baseUrl } = data;
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       return url;
     },
   },
+  // events: {
+  //   signIn: async (payload) => {
+  //     console.log({ payload });
+  //     const username = await getServerCookie("username");
+  //     // console.log("no username found");
+  //     if (username) {
+  //       await db.insert(profile).values({
+  //         userId: payload?.user?.id!,
+  //         username: username,
+  //       });
+
+  //       await deleteServerCookie("username");
+  //     }
+  //   },
+  // },
 
   providers: [
     Google({

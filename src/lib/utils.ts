@@ -1,7 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { Area } from "react-easy-crop";
 import { twMerge } from "tailwind-merge";
-
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -143,4 +142,8 @@ export const isImageUrl = (url: string): boolean => {
 export const isVideoUrl = (url: string): boolean => {
   const videoRegex = /\.(mp4|webm)$/i;
   return videoRegex.test(url);
+};
+
+export const capitalizeFirstLetter = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 };

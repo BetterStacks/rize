@@ -35,7 +35,10 @@ const PageLayout = ({
           </div>
         </ScrollArea>
       </ResizablePanel>
-      <ResizableHandle withHandle />
+      <ResizableHandle
+        withHandle
+        className="border border-neutral-300/60 dark:border-dark-border/50"
+      />
       {isMyPage && (
         <ResizablePanel
           id="page-sidebar"

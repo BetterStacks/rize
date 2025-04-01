@@ -13,10 +13,12 @@ import {
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useProfileDialog } from "../dialog-provider";
+import { useProfileDialog, useSearchDialog } from "../dialog-provider";
+
 const Sidebar = () => {
   const session = useSession();
-  const [open, setOpen] = useProfileDialog();
+  const setOpen = useProfileDialog()[1];
+  const setOpenSearch = useSearchDialog()[1];
   const options = [
     {
       id: 1,
@@ -30,8 +32,9 @@ const Sidebar = () => {
     {
       id: 3,
       name: "Search",
-      href: "/search",
+      href: null,
       onClick: () => {
+        setOpenSearch(true);
         // router.push("/");
       },
       icon: <Search className="opacity-70" strokeWidth={1.5} />,
@@ -39,7 +42,7 @@ const Sidebar = () => {
     {
       id: 4,
       name: "Notifications",
-      href: "/notifications",
+      href: null,
       onClick: () => {
         // router.push("/");
       },
@@ -72,13 +75,15 @@ const Sidebar = () => {
       )}
     >
       <div className="mt-6">
-        <Image
-          src="/logo2.png"
-          alt="logo"
-          width={42}
-          height={42}
-          className="rounded-xl size-10"
-        />
+        <Link href="/">
+          <Image
+            src="/logo2.png"
+            alt="logo"
+            width={42}
+            height={42}
+            className="rounded-xl size-10"
+          />
+        </Link>
       </div>
 
       <div className="flex w-full flex-col mt-16 items-center justify-center gap-y-2 ">
@@ -88,7 +93,11 @@ const Sidebar = () => {
             className="size-12  group flex items-center justify-center"
             key={option.id}
           >
-            <Link href={option.href}>{option?.icon}</Link>
+            {option.href ? (
+              <Link href={option.href}>{option?.icon}</Link>
+            ) : (
+              option.icon
+            )}
             <div className=" bg-white border border-neutral-200 dark:border-none dark:bg-neutral-800 rounded-xl opacity-0 absolute left-20 group-hover:left-24 group-hover:opacity-100 transition-all duration-300 shadow-lg px-4 py-1 ">
               <span className="text-xs opacity-70">{option.name}</span>
             </div>

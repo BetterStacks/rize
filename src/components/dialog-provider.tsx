@@ -14,6 +14,7 @@ type DialogContextType = {
   isUpdateProfileDialogOpen?: boolean;
   isSocialLinksDialogOpen?: boolean;
   isAddExperienceDialogOpen?: boolean;
+  isSearchDialogOpen?: boolean;
 };
 
 type setDialogContextType = [
@@ -24,6 +25,7 @@ type setDialogContextType = [
     setIsCreatePageDialogOpen: UpdateStateFunctionType;
     setIsSocialLinksDialogOpen: UpdateStateFunctionType;
     setIsAddExperienceDialogOpen: UpdateStateFunctionType;
+    setIsSearchDialogOpen: UpdateStateFunctionType;
   }
 ];
 
@@ -33,6 +35,7 @@ const defaultContextState: DialogContextType = {
   isCreatePageDialogOpen: false,
   isSocialLinksDialogOpen: false,
   isAddExperienceDialogOpen: false,
+  isSearchDialogOpen: false,
 };
 
 const DialogContext = createContext([
@@ -43,6 +46,7 @@ const DialogContext = createContext([
     setIsCreatePageDialogOpen: () => {},
     setIsSocialLinksDialogOpen: () => {},
     setIsAddExperienceDialogOpen: () => {},
+    setIsSearchDialogOpen: () => {},
   },
 ] as setDialogContextType);
 
@@ -105,6 +109,18 @@ export const useExperienceDialog = () => {
     context[1].setIsAddExperienceDialogOpen,
   ] as const;
 };
+export const useSearchDialog = () => {
+  const context = useContext(DialogContext);
+  if (!context) {
+    throw new Error(
+      "useSearchDialog must be used within DialogContextProvider"
+    );
+  }
+  return [
+    context[0].isSearchDialogOpen,
+    context[1].setIsSearchDialogOpen,
+  ] as const;
+};
 
 const DialogContextProvider = ({ children }: { children: ReactNode }) => {
   const [openContext, setOpenContext] =
@@ -139,6 +155,12 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
     },
     [openContext, setOpenContext]
   );
+  const setIsSearchDialogOpen = useCallback(
+    (isOpen: boolean) => {
+      setOpenContext({ ...openContext, isSearchDialogOpen: isOpen });
+    },
+    [openContext, setOpenContext]
+  );
   return (
     <DialogContext.Provider
       value={[
@@ -149,6 +171,7 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
           setIsCreatePageDialogOpen,
           setIsSocialLinksDialogOpen,
           setIsAddExperienceDialogOpen,
+          setIsSearchDialogOpen,
         },
       ]}
     >

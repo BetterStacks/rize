@@ -2,40 +2,39 @@
 import { useSections } from "@/lib/context";
 import { queryClient } from "@/lib/providers";
 import { addGalleryItem, getGalleryItem } from "@/lib/server-actions";
-import { GalleryConfigProps } from "@/lib/types";
 import { cn, isImageUrl, isVideoUrl } from "@/lib/utils";
-import { closestCenter, DndContext } from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { arrayMove, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useLocalStorage } from "@mantine/hooks";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { AlignJustify, Loader, Upload, X } from "lucide-react";
 import Image from "next/image";
-import { useQueryState } from "nuqs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 import { v4 } from "uuid";
+import { useGalleryItems } from "../gallery/gallery-context";
+import GalleryLimit from "../GalleryLimit";
+import SocialLinksManager from "../SocialLinksManager";
 import { Button } from "../ui/button";
-import { Label } from "../ui/label";
 import { ScrollArea } from "../ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import UpgradeCard from "../upgrade-card";
+
 const RightSidebar = () => {
-  const [galleryItem] = useQueryState("gallery");
   const { sections, setSections } = useSections();
+
+  const tabs = {
+    gallery: {
+      name: "Gallery",
+    },
+    "social-links": {
+      name: "Social Links",
+    },
+  };
+  const [activeTab, setActiveTab] = useLocalStorage<keyof typeof tabs | null>({
+    key: "active-tab",
+    defaultValue: null,
+  });
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
@@ -48,9 +47,12 @@ const RightSidebar = () => {
 
   return (
     <div className="h-screen w-full  flex flex-col items-start justify-between">
-      {!galleryItem && <EditGallery />}
-      <div className="pt-10 w-full flex flex-col items-center justify-start px-4">
-        {/* <div className="w-full flex flex-col mt-10"> */}
+      <ScrollArea className="h-full w-full overflow-y-auto flex flex-col  ">
+        <EditGallery />
+        <SocialLinksManager />
+      </ScrollArea>
+      {/* {!galleryItem && <EditGallery />} */}
+      {/* <div className="pt-10 w-full flex flex-col items-center justify-start px-4">
         <DndContext
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
@@ -69,11 +71,8 @@ const RightSidebar = () => {
           </SortableContext>
         </DndContext>
         {/* </div> */}
-      </div>
-      {galleryItem && <EditGalleryItem id={galleryItem} />}
-      {/* <div className="mb-6 px-3">
-        <UpgradeCard />
-      </div> */}
+      {/* {galleryItem && <EditGalleryItem id={galleryItem} />} */}
+      {/* </div> */}
     </div>
   );
 };
@@ -118,12 +117,28 @@ type MediaFile = {
 
 function EditGallery() {
   const [files, setFiles] = useState<MediaFile[]>([]);
-  const [config, setConfig] = useLocalStorage<GalleryConfigProps>({
-    key: "gallery-config",
-  });
-  const [isUploading, setIsUploading] = useState(false);
+  const { items, addItem } = useGalleryItems();
+  const [isDisabled, setIsDisabled] = useState(false);
 
-  // Handle dropped files
+  useEffect(() => {
+    if (items.length === 0 || files.length === 0) return;
+    const count = items.length;
+    const limit = 10;
+    console.log("items", items, files);
+
+    const total = count + files.length;
+
+    if (total >= limit) {
+      setIsDisabled(true);
+      // toast.error(
+      //   `You can only add ${limit} items to the gallery. Please remove some items before adding new ones.`
+      // );
+      setFiles((prev) => prev.slice(0, limit - count));
+    } else {
+      setIsDisabled(false);
+    }
+  }, [files, items]);
+
   const onDrop = (acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map((file) => ({
       id: v4(),
@@ -137,6 +152,7 @@ function EditGallery() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: true,
+    disabled: isDisabled,
     accept: {
       "image/*": [".png", ".jpg", ".jpeg"],
       "video/*": [".mp4", ".webm", ".mov"],
@@ -146,106 +162,114 @@ function EditGallery() {
   const removeFile = (id: string) => {
     setFiles((prev) => prev.filter((file) => file.id !== id));
   };
-  const handleAddItems = async () => {
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append("files", file.file);
-    });
-    formData.append("folder", "fyp-stacks/gallery");
-    try {
-      setIsUploading(true);
-      const res = await axios.post("/api/upload/files", formData);
-      // const result = await uploadFilesToCloudinary(formData);
-      // console.log(result);
-      // if (result.error && !result.success) {
-      //   setIsUploading(false);
-      //   throw new Error(result.error);
-      // }
-      console.log(res);
-      if (res.status !== 200) {
-        setIsUploading(false);
-        throw new Error("Error uploading files", res.data?.error);
-      }
-      for (const result of res.data?.data!) {
-        const item = await addGalleryItem(result);
-        console.log(item);
-        if (!item) {
-          setIsUploading(false);
-          throw new Error("Error adding gallery item");
-        }
-      }
-      setIsUploading(false);
-      toast.success("Media added to gallery");
-      setFiles([]);
-      queryClient.invalidateQueries({ queryKey: ["get-gallery-items"] });
-    } catch (error) {
-      console.error(error);
-      toast.error((error as Error)?.message);
-    }
+  const uploadMedia = async (formData: FormData) => {
+    const res = await axios.post("/api/upload/files", formData);
+    if (res.status !== 200) throw new Error("Upload failed");
+    return res.data?.data;
   };
+
+  const { mutate: handleUpload, isPending } = useMutation({
+    mutationFn: uploadMedia,
+    onSuccess: async (data) => {
+      await Promise.all(
+        data.map(async (result: any) => {
+          const item = await addGalleryItem(result);
+          return item;
+        })
+      );
+      queryClient.invalidateQueries({ queryKey: ["get-gallery-items"] });
+    },
+    onError: (error) => {
+      toast.error(error?.message);
+    },
+  });
+
+  const handleAddItems = () => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file?.file));
+    formData.append("folder", "fyp-stacks/gallery");
+
+    handleUpload(formData);
+    setFiles([]); // Clear file input
+  };
+
+  // const handleAddItems = async () => {
+  //   const formData = new FormData();
+  //   files.forEach((file) => {
+  //     formData.append("files", file.file);
+  //   });
+  //   formData.append("folder", "fyp-stacks/gallery");
+  //   try {
+  //     setIsUploading(true);
+
+  //     const res = await axios.post("/api/upload/files", formData);
+  //     // const result = await uploadFilesToCloudinary(formData);
+  //     // console.log(result);
+  //     // if (result.error && !result.success) {
+  //     //   setIsUploading(false);
+  //     //   throw new Error(result.error);
+  //     // }
+  //     console.log(res);
+  //     if (res.status !== 200) {
+  //       setIsUploading(false);
+  //       throw new Error("Error uploading files", res.data?.error);
+  //     }
+  //     for (const result of res.data?.data!) {
+  //       const item = await addGalleryItem(result);
+  //       console.log(item);
+  //       if (!item) {
+  //         setIsUploading(false);
+  //         throw new Error("Error adding gallery item");
+  //       }
+  //     }
+  //     setIsUploading(false);
+  //     toast.success("Media added to gallery");
+  //     setFiles([]);
+  //     queryClient.invalidateQueries({ queryKey: ["get-gallery-items"] });
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error((error as Error)?.message);
+  //   }
+  // };
+  const limit = Math.floor((items.length / 10) * 100);
 
   return (
     <div className="h-full overflow-hidden  w-full pt-6">
-      <div className="flex flex-col">
-        <h3 className="text-xl px-4 leading-tight tracking-tight mb-3">
-          Edit Gallery
-        </h3>
-        {/* <div className="w-full h-[200px] border-[3px] border-neutral-300 dark:border-dark-border rounded-3xl bg-neutral-100 dark:bg-[#242424] border-dashed flex items-center justify-center">
-        <div className="flex flex-col items-center justify-center">
-          <Download className="opacity-80" size={38} strokeWidth={2} />
-          <div className="mt-3 flex flex-col items-center justify-center">
-          <span className="opacity-80">Choose Images & Videos</span>
-          <Button variant={"outline"}>Choose</Button>
-          </div>
-          </div>
-      </div> */}
-        <div className="p-4 flex flex-col">
-          <Label id="gallery-layout-menu" className="mb-2">
-            Gallery Layout
-          </Label>
-          <Select
-            value={String(config?.layout)}
-            onValueChange={(v) => setConfig((prev) => ({ layout: v as any }))}
-          >
-            <SelectTrigger
-              id="gallery-layout-menu"
-              className="w-full rounded-xl mb-4 mt-2 dark:border-dark-border"
+      {limit !== 100 && (
+        <div className="flex flex-col">
+          <h3 className="text-xl px-4 leading-tight tracking-tight mb-3">
+            Edit Gallery
+          </h3>
+          <div className="p-4 flex flex-col">
+            <div
+              {...getRootProps()}
+              className={cn(
+                "w-full max-w-lg p-6 border-2 flex flex-col items-center justify-center border-dashed rounded-2xl text-center cursor-pointer transition border-neutral-300 dark:border-dark-border",
+                isDragActive && "border-blue-500 bg-blue-50"
+              )}
             >
-              <SelectValue placeholder="Select Gallery Layout" />
-            </SelectTrigger>
-            <SelectContent defaultValue={String(config?.layout)}>
-              <SelectItem value="messy-grid">Messy</SelectItem>
-              <SelectItem value="masonry-grid">Masonry</SelectItem>
-            </SelectContent>
-          </Select>
-          <div
-            {...getRootProps()}
-            className={cn(
-              "w-full max-w-lg p-6 border-2 flex flex-col items-center justify-center border-dashed rounded-2xl text-center cursor-pointer transition border-neutral-300 dark:border-dark-border",
-              isDragActive && "border-blue-500 bg-blue-50"
-            )}
-          >
-            <input {...getInputProps()} />
-            <div className="mb-2">
-              <Upload className="opacity-80 size-12" strokeWidth={1.6} />
+              <input {...getInputProps()} />
+              <div className="w-full h-full flex flex-col items-center justify-center">
+                <div className="mb-2">
+                  <Upload className="opacity-70 size-12" strokeWidth={1.6} />
+                </div>
+                <p className="text-neutral-600 dark:text-neutral-400 max-w-[200px] text-center text-sm">
+                  Drag & Drop images or videos here, or click to select files
+                </p>
+              </div>{" "}
             </div>
-            <p className="text-neutral-600 text-sm">
-              Drag & Drop images or videos here, or click to select files
-            </p>
           </div>
-        </div>
-        <div className="w-full h-full px-4 pt-2">
-          <Button
-            disabled={files.length === 0}
-            onClick={handleAddItems}
-            className="w-full"
-          >
-            {isUploading && (
-              <Loader className="opacity-80 animate-spin size-4" />
-            )}{" "}
-            Add Media
-          </Button>
-          <ScrollArea className="h-full w-full flex flex-col items-start justify-start ">
+          <div className="w-full h-full px-4 pt-2 mb-10">
+            <Button
+              disabled={files.length === 0}
+              onClick={handleAddItems}
+              className="w-full"
+            >
+              {isPending && (
+                <Loader className="opacity-80 animate-spin size-4" />
+              )}{" "}
+              Add Media
+            </Button>
             {files.map((file) => (
               <div key={file.id} className="relative group mt-3">
                 <Button
@@ -271,8 +295,11 @@ function EditGallery() {
                 )}
               </div>
             ))}
-          </ScrollArea>
+          </div>
         </div>
+      )}
+      <div className="px-4">
+        <GalleryLimit itemCount={items?.length} />
       </div>
     </div>
   );

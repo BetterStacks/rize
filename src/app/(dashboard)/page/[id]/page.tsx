@@ -34,7 +34,6 @@ export async function generateMetadata({
 
 const Page: FC<PageProps> = async ({ params }) => {
   const data = await getPageById(params.id as string);
-  console.log({ data });
   const author = await getProfileById(data?.profileId as string);
   const session = await auth();
   const isMyPage = data?.profileId === session?.user?.profileId;

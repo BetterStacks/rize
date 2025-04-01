@@ -17,14 +17,16 @@ const Writings = ({ isMine }: WritingsProps) => {
 
   const { username } = useParams<{ username: string }>();
   const { data, isFetching } = useQuery({
+    enabled: !!username,
     queryKey: ["get-writings", username],
     queryFn: () => getAllPages(username),
     refetchOnWindowFocus: false,
   });
+  if (data?.length === 0) return;
   return (
     <div
       id="writings"
-      className="w-full mt-12 px-4 flex flex-col items-center justify-start"
+      className="w-full my-12 px-4 flex flex-col items-center justify-start"
     >
       <div className="w-full flex flex-col max-w-2xl gap-y-5 ">
         <div className="w-full flex items-center justify-between">

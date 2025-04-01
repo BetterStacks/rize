@@ -5,15 +5,16 @@ import { usernameSchema } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { Check, Loader, X } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
 export function UsernameStep({
   onNext,
+  isPending,
   formData,
 }: {
   formData: any;
+  isPending: boolean;
   onNext: (username: string) => void;
 }) {
   const [username, setUsername] = useState(formData?.username || "");
@@ -61,13 +62,13 @@ export function UsernameStep({
         <div className="border border-neutral-300 dark:border-dark-border flex items-center justify-center overflow-hidden px-3 py-1.5 rounded-md">
           <input
             type="text"
-            placeholder="@username"
+            placeholder="username"
             value={username}
+            className="text-lg w-full dark:text-opacity-80 bg-transparent dark:placeholder:text-neutral-500 focus-visible:outline-none"
             onChange={(e) => {
               setUsername(e.target.value);
               handleCheck(e.target.value);
             }}
-            className="text-lg w-full focus-visible:outline-none"
           />
           {isSearching && <Loader className="animate-spin size-4" />}
 
@@ -89,10 +90,10 @@ export function UsernameStep({
 
         <Button
           onClick={() => onNext(username)}
-          disabled={!username || !isAvailable}
+          disabled={!username || !isAvailable || isPending}
           className="w-full bg-green-600 disabled:bg-green-700 dark:bg-green-500 dark:text-white hover:bg-green-700 dark:hover:bg-green-600 dark:disabled:bg-green-600"
         >
-          Next
+          {isPending && <Loader className="animate-spin size-4" />} Next
         </Button>
       </div>
     </div>

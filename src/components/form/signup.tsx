@@ -11,6 +11,7 @@ import { signIn } from "next-auth/react";
 import { register } from "@/lib/server-actions";
 import toast from "react-hot-toast";
 import { Loader, Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
 
 const RegisterSchema = z.object({
   name: z.string().min(3, { message: "Name must be at least 3 characters." }),
@@ -34,7 +35,25 @@ const SignUp = () => {
       password: "",
     },
   });
+  const { mutate: signup, isPending } = useMutation({
+    mutationFn: register,
+    onSuccess: async (data, payload) => {
+      console.log({ data, payload });
 
+      toast.dismiss();
+      toast.success("Account created successfully");
+      await signIn("credentials", {
+        email: payload?.email,
+        password: payload?.password,
+        redirect: true,
+        redirectTo: "/onboarding",
+      });
+    },
+    onError: (error) => {
+      toast.dismiss();
+      toast.error(error?.message as string);
+    },
+  });
   const handleSocialSignIn = async (provider: "google" | "github") => {
     try {
       setIsSocialLoading(provider);
@@ -53,30 +72,34 @@ const SignUp = () => {
       </div>
 
       <form
-        onSubmit={form.handleSubmit(async (values) => {
-          try {
-            setIsLoading(true);
-            console.log(values);
-            const { data, error } = await register(values);
-            if (error) {
-              toast.error(error);
-              return;
-            }
-            const res = await signIn("credentials", {
-              email: data?.email,
-              password: data?.password,
-              redirect: false,
-            });
+        onSubmit={form.handleSubmit((values) => signup(values))}
+        // onSubmit={form.handleSubmit(async (values) => {
+        //   signup(values)
+        // try {
+        //   setIsLoading(true);
+        //   console.log(values);
+        //   const respo= await register(values);
+        //   console.log({ data });
+        //   // if (error) {
+        //   //   toast.error(error);
+        //   //   return;
+        //   // }
+        //   // const res = await signIn("credentials", {
+        //   //   email: data?.email,
+        //   //   password: data?.password,
+        //   //   redirect: true,
+        //   //   redirectTo: "/onboarding",
+        //   // });
 
-            if (!res?.ok) {
-              toast.error(res?.error);
-              return;
-            }
-            toast.success("Account created successfully");
-          } finally {
-            setIsLoading(false);
-          }
-        })}
+        //   // if (!res?.ok) {
+        //   //   toast.error(res?.error);
+        //   //   return;
+        //   // }
+        //   toast.success("Account created successfully");
+        // } finally {
+        //   setIsLoading(false);
+        // }
+        // })}
         className="space-y-2"
       >
         <Label>
@@ -103,8 +126,8 @@ const SignUp = () => {
             {...form.register("password")}
           />
         </Label>
-        <Button disabled={isLoading} type="submit" className="w-full mt-2">
-          {isLoading ? <Loader className="h-4 w-4 animate-spin mr-2" /> : null}
+        <Button disabled={isPending} type="submit" className="w-full mt-2">
+          {isPending ? <Loader className="h-4 w-4 animate-spin mr-2" /> : null}
           Create Account
         </Button>
       </form>
