@@ -46,7 +46,7 @@ const UserReviews = () => {
       ref={ref}
       className="w-full px-4 flex relative flex-col mb-10 items-center justify-center"
     >
-      <span className="text-4xl md:text-5xl text-center font-semibold font-instrument">
+      <span className="text-4xl tracking-tight font-semibold leading-none text-center ">
         We Help you own <br />
         your Story not just your Resume
       </span>
@@ -63,7 +63,7 @@ const UserReviews = () => {
         )}
       >
         {arr.map((item, i) => {
-          const targetScale = 1 - (arr.length - i) * 0.12;
+          const targetScale = 1 - (arr.length - i) * 0.1;
           const scale = useTransform(
             scrollYProgress,
             [i * 0.35, 1],

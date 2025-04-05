@@ -1,5 +1,5 @@
 "use client";
-import { createPage, getAllPages } from "@/lib/server-actions";
+import { createPage, getAllPages } from "@/actions/page-actions";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -7,22 +7,24 @@ import toast from "react-hot-toast";
 import { Button } from "../ui/button";
 import WritingCard from "./writing-card";
 import { Skeleton } from "../ui/skeleton";
+import { GetAllWritings } from "@/lib/types";
 
 type WritingsProps = {
   isMine: boolean;
+  writings: GetAllWritings[];
 };
 
-const Writings = ({ isMine }: WritingsProps) => {
+const Writings = ({ isMine, writings }: WritingsProps) => {
   const router = useRouter();
 
   const { username } = useParams<{ username: string }>();
   const { data, isFetching } = useQuery({
-    enabled: !!username,
     queryKey: ["get-writings", username],
+    initialData: writings,
     queryFn: () => getAllPages(username),
     refetchOnWindowFocus: false,
   });
-  if (data?.length === 0) return;
+  // if (data?.length === 0) return;
   return (
     <div
       id="writings"

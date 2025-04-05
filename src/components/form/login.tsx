@@ -67,7 +67,9 @@ const Login = () => {
               email: values?.email,
               password: values?.password,
               redirect: false,
+              // redirectTo: "/",
             });
+            console.log({ res });
             if (res?.error) {
               toast.error(res.error);
               return;

@@ -58,6 +58,7 @@ export const profile = pgTable("profile", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   profileImage: text("profile_image"),
+  displayName: varchar("display_name", { length: 30 }),
   username: varchar("username", { length: 20 }).unique(),
   age: integer("age").notNull().default(18),
   pronouns: Pronouns("pronouns").notNull().default("he/him"),

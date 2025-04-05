@@ -1,10 +1,9 @@
-import { GalleryConfigProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useLocalStorage } from "@mantine/hooks";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import Image from "next/image";
 import { FC } from "react";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { Skeleton } from "../ui/skeleton";
 import {
   mansoryGridItemVariants,
@@ -12,8 +11,11 @@ import {
   messyGridItemVariants,
   messyGridVariants,
 } from "./gallery-config";
-import { useGalleryItems } from "./gallery-context";
 import GalleryItem from "./gallery-item";
+import { GalleryItemProps } from "@/lib/types";
+import { getGalleryItems } from "@/actions/gallery-actions";
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 
 export const galleryLayouts = {
   "messy-grid": {
@@ -33,104 +35,77 @@ export const galleryLayouts = {
 
 type GalleryProps = {
   isMine: boolean;
+  items: GalleryItemProps[];
 };
 
-const Gallery: FC<GalleryProps> = ({ isMine }) => {
-  const [galleryConfig] = useLocalStorage<GalleryConfigProps>({
-    defaultValue: { layout: "masonry-grid" },
-    key: "gallery-config",
-  });
+const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
+  const { username } = useParams<{ username: string }>();
 
-  const { items, isLoading } = useGalleryItems();
+  const { data, isLoading } = useQuery({
+    queryKey: ["get-gallery-items", username],
+    initialData: items,
+    queryFn: () => getGalleryItems(username!),
+  });
 
   return (
     <div className="w-full mt-6 flex flex-col items-center justify-center">
       <h2 className="w-full max-w-2xl  text-left   text-xl font-medium mb-4">
-        Highlights
-      </h2>
-      <div className="w-full max-w-2xl mb-4 overflow-x-auto flex space-x-3">
-        {isMine && (
-          <div className="w-full max-w-[170px] flex-shrink-0 aspect-[9/16] border-[2.5px]  border-dashed border-neutral-300/80 dark:border-dark-border h-full relative overflow-hidden rounded-3xl flex items-center justify-center">
-            <Plus className="size-8 opacity-80" />
-          </div>
-        )}
-        {items.slice(3, isMine ? 6 : 7).map((item) => (
-          <div
-            key={item.id}
-            style={{ aspectRatio: 9 / 16 }}
-            className="w-full max-w-[170px] flex-shrink-0 border border-neutral-200 dark:border-dark-border h-full relative overflow-hidden rounded-3xl"
-          >
-            {item?.type === "image" ? (
-              <Image
-                fill
-                src={item.url}
-                style={{ objectFit: "cover" }}
-                alt={""}
-              />
-            ) : (
-              <video
-                src={item.url}
-                className="w-full h-full object-cover"
-                autoPlay
-                muted
-                loop
-              />
-            )}
-          </div>
-        ))}
-      </div>
-      <h2 className="w-full max-w-2xl  text-left   text-xl font-medium mb-4">
         Gallery
       </h2>
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        className={cn(galleryLayouts["masonry-grid"].container!, "")}
-        variants={galleryLayouts["masonry-grid"].containerVariants}
-      >
-        {isLoading
-          ? [...Array.from({ length: 6 })].map((_, i) => (
+
+      {isLoading ? (
+        <GallerySkeleton />
+      ) : (
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          className={cn(galleryLayouts["masonry-grid"].container!, "")}
+          variants={galleryLayouts["masonry-grid"].containerVariants}
+        >
+          {data.map((item, i) => {
+            return (
               <motion.div
                 key={i}
                 custom={i}
-                // style={{ aspectRatio: 1 / 2 }}
-                className="aspect-square w-full h-f"
-                variants={galleryLayouts[galleryConfig.layout].itemVariants}
+                style={{
+                  // ...(galleryConfig?.layout === "masonry-grid" && {
+                  aspectRatio: item.width / item.height,
+                  // }),
+                }}
+                variants={galleryLayouts["masonry-grid"].itemVariants}
               >
-                <Skeleton
-                  className={cn(
-                    galleryLayouts[galleryConfig.layout].item,
-                    " rounded-3xl bg-neutral-100 dark:bg-dark-border shadow-2xl opacity-100 animate-pulse"
-                  )}
-                />
+                <GalleryItem isMine={isMine} item={item} index={i} />
               </motion.div>
-            ))
-          : items.map((item, i) => {
-              return (
-                <motion.div
-                  key={i}
-                  custom={i}
-                  style={{
-                    // ...(galleryConfig?.layout === "masonry-grid" && {
-                    aspectRatio: item.width / item.height,
-                    // }),
-                  }}
-                  // whileHover={{
-                  //   ...(galleryConfig.layout === "messy-grid" && {
-                  //     scale: 1.05,
-                  //     x: -10,
-                  //     y: -20,
-                  //     zIndex: 20,
-                  //     rotate: 0,
-                  //   }),
-                  // }}
-                  variants={galleryLayouts["masonry-grid"].itemVariants}
-                >
-                  <GalleryItem isMine={isMine} item={item} index={i} />
-                </motion.div>
-              );
-            })}
-      </motion.div>
+            );
+          })}
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
+const GallerySkeleton = () => {
+  const ratios = [9 / 16, 1 / 1, 4 / 5, 2 / 3];
+  return (
+    <div
+      className={cn(
+        "w-full columns-2 md:columns-3 h-full  max-w-2xl relative",
+        ""
+      )}
+    >
+      {[...Array.from({ length: 10 })].map((_, i) => (
+        <Skeleton
+          key={i}
+          style={{
+            marginTop: i === 0 ? 0 : 16,
+            aspectRatio: ratios[Math.floor(Math.random() * ratios.length)],
+          }}
+          className={cn(
+            galleryLayouts["masonry-grid"].item,
+            " rounded-3xl bg-neutral-200 dark:bg-dark-border animate-pulse"
+          )}
+        />
+      ))}
     </div>
   );
 };

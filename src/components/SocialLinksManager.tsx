@@ -2,7 +2,7 @@ import {
   addSocialLink,
   getSocialLinks,
   removeSocialLink,
-} from "@/lib/server-actions";
+} from "@/actions/social-links-actions";
 import { SocialPlatform } from "@/lib/types";
 import {
   Facebook,

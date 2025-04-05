@@ -4,7 +4,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getSocialLinks } from "@/lib/server-actions";
+import { getSocialLinks } from "@/actions/social-links-actions";
 import { SocialPlatform } from "@/lib/types";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -34,32 +34,28 @@ const SocialLinks = () => {
     queryKey: ["get-social-links", params?.username],
     queryFn: () => getSocialLinks(params?.username),
   });
+
+  if (links?.length === 0) return null;
+
   return (
-    links?.length > 0 && (
-      <div className="w-full px-2">
-        <TooltipProvider>
-          <div className="flex w-full max-w-2xl mt-4 mb-4">
-            {links?.map((link, i) => (
-              <NextLink
-                className="mr-4"
-                href={link?.url}
-                key={i}
-                target="_blank"
-              >
-                <Tooltip>
-                  <TooltipTrigger>
-                    {getIcon(link?.platform as any)}
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {capitalizeFirstLetter(link?.platform as string)}
-                  </TooltipContent>
-                </Tooltip>
-              </NextLink>
-            ))}
-          </div>
-        </TooltipProvider>
-      </div>
-    )
+    <div className="w-full px-2">
+      <TooltipProvider>
+        <div className="flex w-full max-w-2xl mt-4 mb-4">
+          {links?.map((link, i) => (
+            <NextLink className="mr-4" href={link?.url} key={i} target="_blank">
+              <Tooltip>
+                <TooltipTrigger>
+                  {getIcon(link?.platform as any)}
+                </TooltipTrigger>
+                <TooltipContent>
+                  {capitalizeFirstLetter(link?.platform as string)}
+                </TooltipContent>
+              </Tooltip>
+            </NextLink>
+          ))}
+        </div>
+      </TooltipProvider>
+    </div>
   );
 };
 

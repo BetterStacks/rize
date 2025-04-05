@@ -1,6 +1,6 @@
 "use client";
 
-import { isUsernameAvailable } from "@/lib/server-actions";
+import { isUsernameAvailable } from "@/actions/profile-actions";
 import { usernameSchema } from "@/lib/types";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { Loader } from "lucide-react";
@@ -83,7 +83,7 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({ onSubmit }) => {
           <Button
             type="submit"
             disabled={!isAvailable || isSearching!}
-            className="rounded-3xl   bg-green-600 dark:bg-green-600 hover:dark:bg-green-700"
+            className="rounded-3xl   bg-green-600 dark:bg-green-500 hover:dark:bg-green-700"
           >
             Claim
             {/* <ArrowRight className="stroke-white" /> */}

@@ -1,4 +1,4 @@
-import { searchProfiles } from "@/lib/server-actions";
+import { searchProfiles } from "@/actions/profile-actions";
 import { TProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useDebouncedCallback } from "@mantine/hooks";
@@ -10,12 +10,10 @@ import { useSearchDialog } from "../dialog-provider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Skeleton } from "../ui/skeleton";
 
-type SearchResult = TProfile & { name: string | null };
-
 const SearchDialog = () => {
   const [open, setOpen] = useSearchDialog();
   const [query, setQuery] = React.useState<string>("");
-  const [results, setResults] = React.useState<SearchResult[]>([]);
+  const [results, setResults] = React.useState<TProfile[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
 
   const search = useDebouncedCallback(async (query: string) => {
@@ -26,7 +24,6 @@ const SearchDialog = () => {
     }
     setLoading(true);
     const res = await searchProfiles(query);
-    console.log({ res });
     if (res.length === 0) {
       setLoading(false);
       setResults([]);
@@ -35,6 +32,7 @@ const SearchDialog = () => {
     setResults(res);
     setLoading(false);
   }, 500);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
     search(e.target.value);
@@ -106,7 +104,7 @@ const SearchDialog = () => {
                         href={`/${item.username}`}
                       >
                         <span className="tracking-tight hover:underline text-sm leading-tight font-medium">
-                          {item.name}
+                          {item.displayName}
                         </span>
                       </Link>
                       <span className="leading-none opacity-60 text-sm">

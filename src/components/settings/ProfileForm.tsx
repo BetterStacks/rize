@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
-import { getProfileByUsername } from "@/lib/server-actions";
+import { getProfileByUsername } from "@/actions/profile-actions";
 import { Separator } from "../ui/separator";
 
 const profileSchema = z.object({

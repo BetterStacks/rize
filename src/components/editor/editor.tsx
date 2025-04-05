@@ -1,5 +1,5 @@
 "use client";
-import { updatePage } from "@/lib/server-actions";
+import { updatePage } from "@/actions/page-actions";
 import { ImageElement, TPage, TProfile, VideoElement } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useWindowEvent } from "@mantine/hooks";
@@ -111,7 +111,7 @@ const RichTextExample = ({ author }: EditorProps) => {
             ) : (
               <>
                 <h3 className=" text-lg font-medium leading-tight">
-                  {author?.name}
+                  {author?.displayName}
                 </h3>
                 <span className="opacity-70  leading-tight">
                   @{author?.username}
