@@ -5,9 +5,10 @@ import RightSidebar from "../sidebar/RightSidebar";
 import Sidebar from "../sidebar/Sidebar";
 import { ResizablePanel, ResizablePanelGroup } from "../ui/resizable";
 import { ScrollArea } from "../ui/scroll-area";
-import { Edit3, Moon, Sun } from "lucide-react";
+import { Edit3, LogOut, Moon, Sun } from "lucide-react";
 import { useProfileDialog } from "../dialog-provider";
 import { useTheme } from "next-themes";
+import { signOut } from "next-auth/react";
 
 type ProfileLayoutProps = {
   children: ReactNode;
@@ -24,7 +25,6 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({ children, isMine }) => {
     >
       <GalleryContextProvider>
         <Sidebar />
-
         <ResizablePanel className="w-full h-screen   relative">
           <div className="absolute flex space-x-3 z-50 top-4 right-4">
             <button
@@ -38,12 +38,22 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({ children, isMine }) => {
               )}
             </button>
             {isMine && (
-              <button
-                onClick={() => setOpen(true)}
-                className="p-3 rounded-full cursor-pointer bg-neutral-100 dark:bg-dark-border flex items-center gap-2"
-              >
-                <Edit3 strokeWidth={1.5} className="size-5 opacity-80" />
-              </button>
+              <>
+                <button
+                  onClick={() => setOpen(true)}
+                  className="p-3 rounded-full cursor-pointer bg-neutral-100 dark:bg-dark-border flex items-center gap-2"
+                >
+                  <Edit3 strokeWidth={1.5} className="size-5 opacity-80" />
+                </button>
+                <button
+                  onClick={() => {
+                    signOut();
+                  }}
+                  className="p-3 rounded-full cursor-pointer bg-neutral-100 dark:bg-dark-border flex items-center gap-2"
+                >
+                  <LogOut strokeWidth={1.5} className="size-5 opacity-80" />
+                </button>
+              </>
             )}
           </div>
           <ScrollArea className="h-screen overflow-y-auto relative w-full ">

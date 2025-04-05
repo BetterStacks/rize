@@ -13,7 +13,7 @@ import { SocialPlatform } from "@/lib/types";
 import toast from "react-hot-toast";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
-import { editSocialLink } from "@/lib/server-actions";
+import { editSocialLink } from "@/actions/social-links-actions";
 import { queryClient } from "@/lib/providers";
 
 interface EditSocialLinkProps {

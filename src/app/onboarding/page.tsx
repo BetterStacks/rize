@@ -10,7 +10,7 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <AuthGuard>
+    <AuthGuard authOnly>
       <OnboardingFlow />
     </AuthGuard>
   );

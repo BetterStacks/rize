@@ -1,7 +1,7 @@
 "use client";
 import { useSections } from "@/lib/context";
 import { queryClient } from "@/lib/providers";
-import { addGalleryItem, getGalleryItem } from "@/lib/server-actions";
+import { addGalleryItem, getGalleryItem } from "@/actions/gallery-actions";
 import { cn, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { arrayMove, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -193,44 +193,6 @@ function EditGallery() {
     setFiles([]); // Clear file input
   };
 
-  // const handleAddItems = async () => {
-  //   const formData = new FormData();
-  //   files.forEach((file) => {
-  //     formData.append("files", file.file);
-  //   });
-  //   formData.append("folder", "fyp-stacks/gallery");
-  //   try {
-  //     setIsUploading(true);
-
-  //     const res = await axios.post("/api/upload/files", formData);
-  //     // const result = await uploadFilesToCloudinary(formData);
-  //     // console.log(result);
-  //     // if (result.error && !result.success) {
-  //     //   setIsUploading(false);
-  //     //   throw new Error(result.error);
-  //     // }
-  //     console.log(res);
-  //     if (res.status !== 200) {
-  //       setIsUploading(false);
-  //       throw new Error("Error uploading files", res.data?.error);
-  //     }
-  //     for (const result of res.data?.data!) {
-  //       const item = await addGalleryItem(result);
-  //       console.log(item);
-  //       if (!item) {
-  //         setIsUploading(false);
-  //         throw new Error("Error adding gallery item");
-  //       }
-  //     }
-  //     setIsUploading(false);
-  //     toast.success("Media added to gallery");
-  //     setFiles([]);
-  //     queryClient.invalidateQueries({ queryKey: ["get-gallery-items"] });
-  //   } catch (error) {
-  //     console.error(error);
-  //     toast.error((error as Error)?.message);
-  //   }
-  // };
   const limit = Math.floor((items.length / 10) * 100);
 
   return (

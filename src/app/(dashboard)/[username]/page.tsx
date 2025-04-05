@@ -1,9 +1,11 @@
 import UserProfile from "@/components/profile/user-profile";
-import { getProfileByUsername } from "@/lib/server-actions";
+import { getProfileByUsername } from "@/actions/profile-actions";
 import { Metadata } from "next";
 import { FC } from "react";
 import UserProfileLayout from "@/components/layout/UserProfileLayout";
 import { auth } from "@/lib/auth";
+import { getGalleryItems } from "@/actions/gallery-actions";
+import { getAllPages } from "@/actions/page-actions";
 
 type Props = {
   params: Promise<{ username: string }>;
@@ -15,7 +17,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const user = await getProfileByUsername(username);
 
   return {
-    title: `${user?.name} - Rize`,
+    title: `${user?.displayName || "User"} - Rize`,
+    description: ` ${user?.bio}`,
   };
 }
 
@@ -27,13 +30,21 @@ const Page: FC<Props> = async ({ params }) => {
   }
 
   const user = await getProfileByUsername(username);
+  const [gallery, writings] = await Promise.all([
+    getGalleryItems(username),
+    getAllPages(username),
+  ]);
 
   const isMine = user?.username === session?.user?.username;
-
   return (
     <UserProfileLayout isMine={isMine}>
       <div className="w-full flex items-center justify-center">
-        <UserProfile isMine={isMine} data={user} />
+        <UserProfile
+          isMine={isMine}
+          data={user}
+          gallery={gallery}
+          writings={writings}
+        />
       </div>
     </UserProfileLayout>
   );

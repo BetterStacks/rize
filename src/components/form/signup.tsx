@@ -8,7 +8,7 @@ import Image from "next/image";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { signIn } from "next-auth/react";
-import { register } from "@/lib/server-actions";
+import { register } from "@/actions/user-actions";
 import toast from "react-hot-toast";
 import { Loader, Loader2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
@@ -23,7 +23,6 @@ const RegisterSchema = z.object({
 
 type TLoginValues = z.infer<typeof RegisterSchema>;
 const SignUp = () => {
-  const [isLoading, setIsLoading] = useState(false);
   const [isSocialLoading, setIsSocialLoading] = useState<
     "google" | "github" | null
   >(null);
@@ -38,16 +37,15 @@ const SignUp = () => {
   const { mutate: signup, isPending } = useMutation({
     mutationFn: register,
     onSuccess: async (data, payload) => {
-      console.log({ data, payload });
-
-      toast.dismiss();
-      toast.success("Account created successfully");
-      await signIn("credentials", {
+      const res = await signIn("credentials", {
         email: payload?.email,
         password: payload?.password,
         redirect: true,
         redirectTo: "/onboarding",
       });
+
+      toast.dismiss();
+      toast.success("Account created successfully");
     },
     onError: (error) => {
       toast.dismiss();
@@ -110,6 +108,11 @@ const SignUp = () => {
             {...form.register("name")}
           />
         </Label>
+        {form?.formState.errors.name && (
+          <span className="text-red-500 text-sm">
+            {form?.formState.errors.name?.message}
+          </span>
+        )}
         <Label>
           Email
           <Input
@@ -118,6 +121,12 @@ const SignUp = () => {
             {...form.register("email")}
           />
         </Label>
+        {form?.formState.errors.email && (
+          <span className="text-red-500 text-sm">
+            {form?.formState.errors.email?.message}
+          </span>
+        )}
+
         <Label className="mt-2">
           Password
           <Input
@@ -126,6 +135,11 @@ const SignUp = () => {
             {...form.register("password")}
           />
         </Label>
+        {form?.formState.errors.password && (
+          <span className="text-red-500 text-sm">
+            {form?.formState.errors.password?.message}
+          </span>
+        )}
         <Button disabled={isPending} type="submit" className="w-full mt-2">
           {isPending ? <Loader className="h-4 w-4 animate-spin mr-2" /> : null}
           Create Account

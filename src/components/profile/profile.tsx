@@ -86,7 +86,7 @@ const Profile = ({ data, isLoading, isMine }: ProfileProps) => {
   ];
 
   return (
-    <div className=" w-full flex flex-col items-center justify-start   mb-6">
+    <div className=" w-full flex flex-col items-center justify-start   mb-2">
       <div className="w-full max-w-2xl   pb-2 flex flex-col items-start  justify-center">
         <div className=" w-full flex  items-center justify-start">
           <UserAvatar
@@ -108,7 +108,7 @@ const Profile = ({ data, isLoading, isMine }: ProfileProps) => {
             ) : (
               <div className="flex flex-col items-start justify-start">
                 <h3 className="text-xl px-1 mb-1 leading-tight font-medium">
-                  {data?.name}
+                  {data?.displayName}
                 </h3>
                 <div className="flex items-center justify-start gap-2">
                   {/* {data?.location && (
@@ -135,9 +135,9 @@ const Profile = ({ data, isLoading, isMine }: ProfileProps) => {
           </div>
         </div>
 
-        <div className="flex flex-col items-start justify-start mt-2 w-full">
+        <div className="flex flex-col items-start justify-start mt-2 mb-4 w-full">
           {data?.bio && (
-            <div className="mt-2 opacity-80">
+            <div className="mt-2 text-sm opacity-80">
               {data?.bio?.split("\n").map((word, i) => (
                 <span key={i}>
                   {word}
@@ -148,17 +148,17 @@ const Profile = ({ data, isLoading, isMine }: ProfileProps) => {
           )}
         </div>
         <SocialLinks />
-        {!isMine && (
-          <div className="flex items-center  gap-3 justify-start w-full ">
-            <>
-              <Button className="pl-6 pr-3 rounded-3xl">
-                Follow
-                <Plus className="size-4  " />
-              </Button>
-            </>
-          </div>
-        )}
       </div>
+      {/* {!isMine && (
+        <div className="flex items-center justify-start mt-2 w-full ">
+          <>
+            <Button className="pl-6 pr-3 rounded-3xl flex-1">
+              Follow
+              <Plus className="size-4  " />
+            </Button>
+          </>
+        </div>
+      )} */}
     </div>
   );
 };

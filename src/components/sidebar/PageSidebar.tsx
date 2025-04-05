@@ -1,16 +1,16 @@
-import { getPageById, updatePageThumbnail } from "@/lib/server-actions";
-import { cn, toBase64 } from "@/lib/utils";
+import { getPageById, updatePageThumbnail } from "@/actions/page-actions";
+import { queryClient } from "@/lib/providers";
+import { TUploadFilesResponse } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { Loader, Loader2, Upload } from "lucide-react";
+import axios from "axios";
+import { Loader, Upload } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { useEffect, useState, useActionState } from "react";
+import { useEffect, useState } from "react";
 import { FileRejection, useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
-import axios from "axios";
-import { TUploadFilesResponse } from "@/lib/types";
-import { queryClient } from "@/lib/providers";
 
 const PageSidebar = () => {
   const params = useParams();

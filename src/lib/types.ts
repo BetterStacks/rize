@@ -38,6 +38,8 @@ export type GalleryItemProps = typeof TMedia & {
   // height: number;
 };
 
+export type GetAllWritings = typeof TPage & { thumbnail: string };
+
 export type SocialPlatform =
   | "facebook"
   | "twitter"
@@ -198,12 +200,14 @@ export const usernameSchema = z.object({
 const PronounsEnum = z.enum(["he/him", "she/her", "they/them", "other"]);
 
 export const profileSchema = z.object({
-  name: z.string().min(5).max(25).optional(),
   email: z.string().email().optional(),
-  // image: z.string().url().optional(),
+  image: z.string().url().optional(),
+  displayName: z.string().min(5).max(25).optional(),
+  isOnboarded: z.boolean().optional(),
   username: z.string().min(5).max(20).optional(),
   age: z.number().int().min(18).max(120).optional(),
   pronouns: PronounsEnum.optional(),
+  profileImage: z.string().url().optional(),
   bio: z.string().max(150).optional(),
   location: z.string().optional(),
   website: z.string().url().optional().nullable(),

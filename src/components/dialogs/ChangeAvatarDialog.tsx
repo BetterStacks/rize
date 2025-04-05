@@ -1,6 +1,8 @@
 "use client";
-import { updateUserImage } from "@/lib/server-actions";
+import { queryClient } from "@/lib/providers";
+import { updateProfile } from "@/actions/profile-actions";
 import { getBase64Image, getCroppedImg } from "@/lib/utils";
+import { Loader } from "lucide-react";
 import { useSession } from "next-auth/react";
 import React, { FC, useEffect, useState } from "react";
 import Cropper, { Area } from "react-easy-crop";
@@ -8,8 +10,6 @@ import toast from "react-hot-toast";
 import { useAvatarDialog } from "../dialog-provider";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import { Loader } from "lucide-react";
-import { queryClient } from "@/lib/providers";
 
 type ChangeAvatarDialogProps = {
   file: File | null;
@@ -119,7 +119,7 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
                 toast.error(`Failed to upload image: ${data.error}`);
                 return;
               }
-              const resp = await updateUserImage(data?.url as string);
+              const resp = await updateProfile({ profileImage: data.url });
 
               if (!resp?.success && resp.error) {
                 setIsUploading(false);

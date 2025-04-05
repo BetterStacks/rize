@@ -1,12 +1,13 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { isUsernameAvailable } from "@/lib/server-actions";
+import { isUsernameAvailable } from "@/actions/profile-actions";
 import { usernameSchema } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { Check, Loader, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { getCookie } from "cookies-next";
 
 export function UsernameStep({
   onNext,
@@ -17,6 +18,8 @@ export function UsernameStep({
   isPending: boolean;
   onNext: (username: string) => void;
 }) {
+  const usernameCookie = getCookie("username");
+
   const [username, setUsername] = useState(formData?.username || "");
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
   const [isSearching, setIsSearching] = useState<boolean | null>(null);
@@ -49,6 +52,13 @@ export function UsernameStep({
     }
     setIsSearching(false);
   }, 500);
+
+  useEffect(() => {
+    if (usernameCookie) {
+      setUsername(usernameCookie as string);
+      handleCheck(usernameCookie as string);
+    }
+  }, []);
 
   return (
     <div className="p-8">

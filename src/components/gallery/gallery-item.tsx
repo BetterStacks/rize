@@ -1,23 +1,14 @@
-import React, { useState } from "react";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import {
-  GalleryConfigProps,
-  GalleryItemProps,
-  TGalleryItem,
-  TMedia,
-} from "@/lib/types";
-import Image from "next/image";
-import { motion, Variants } from "framer-motion";
-import { cn, isImageUrl } from "@/lib/utils";
-import { useQueryState } from "nuqs";
-import { useLocalStorage } from "@mantine/hooks";
-import { useSession } from "next-auth/react";
-import { Button } from "../ui/button";
-import { X } from "lucide-react";
-import { removeGalleryItem } from "@/lib/server-actions";
-import toast from "react-hot-toast";
+import { removeGalleryItem } from "@/actions/gallery-actions";
 import { queryClient } from "@/lib/providers";
+import { GalleryConfigProps, GalleryItemProps } from "@/lib/types";
+import { cn, isImageUrl } from "@/lib/utils";
+import { useLocalStorage } from "@mantine/hooks";
+import { motion } from "framer-motion";
+import { X } from "lucide-react";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
+import toast from "react-hot-toast";
+import { Button } from "../ui/button";
 import { galleryLayouts } from "./gallery";
 
 type TGalleryItemProps = {

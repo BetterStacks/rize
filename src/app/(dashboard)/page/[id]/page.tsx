@@ -2,9 +2,10 @@ import Editor from "@/components/editor/editor";
 import EditorContextProvider from "@/components/editor/editor-context";
 import PageLayout from "@/components/layout/PageLayout";
 import { auth } from "@/lib/auth";
-import { getPageById, getProfileById } from "@/lib/server-actions";
+import { getProfileById } from "@/actions/profile-actions";
 import { Metadata } from "next";
 import { FC } from "react";
+import { getPageById } from "@/actions/page-actions";
 
 type PageProps = {
   params: { id: string };

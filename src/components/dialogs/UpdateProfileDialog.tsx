@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,8 +15,8 @@ import { queryClient } from "@/lib/providers";
 import {
   getProfileByUsername,
   isUsernameAvailable,
-  updateUserAndProfile,
-} from "@/lib/server-actions";
+  updateProfile,
+} from "@/actions/profile-actions";
 import { profileSchema, usernameSchema } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,6 +43,7 @@ import { useProfileDialog } from "../dialog-provider";
 import { ScrollArea } from "../ui/scroll-area";
 import { useQueryState } from "nuqs";
 import { useRouter } from "next/navigation";
+import { revalidatePageOnClient } from "@/lib/server-actions";
 
 // import { updateProfile } from "@/app/actions/updateProfile";
 
@@ -95,6 +96,7 @@ export function ProfileUpdateDialog() {
       }}
     >
       <DialogContent className="max-w-2xl bg-light-bg dark:bg-neutral-900 p-0 flex h-[80vh] overflow-hidden w-full md:rounded-3xl">
+        <DialogTitle className="hidden">Profile</DialogTitle>
         <DialogSidebar
           active={active}
           setActive={setActive}
@@ -192,7 +194,7 @@ const EditProfile = () => {
   } = useForm<z.infer<typeof profileSchema>>({
     values: {
       email: profile?.email || "",
-      name: profile?.name || "",
+      displayName: profile?.displayName || "",
       username: profile?.username || "",
       age: profile?.age || 18,
       bio: profile?.bio || "",
@@ -210,7 +212,7 @@ const EditProfile = () => {
   const onSubmit = async (data: z.infer<typeof profileSchema>) => {
     // console.log({ data: data });
     setIsUpdating(true);
-    const res = await updateUserAndProfile(data);
+    const res = await updateProfile(data);
     console.log({ res });
     if (!res.success) {
       setIsUpdating(false);
@@ -220,6 +222,7 @@ const EditProfile = () => {
     await queryClient.invalidateQueries({
       queryKey: ["get-profile-by-username", profile?.username],
     });
+    revalidatePageOnClient(`/${data.username}`);
     setIsUpdating(false);
     toast.dismiss();
     isAvailable && router.push(`/${data.username}`);
@@ -276,10 +279,14 @@ const EditProfile = () => {
       </div>
       {/* <div className="flex items-center justify-center w-full gap-3"> */}
       <div className="space-y-2  w-full">
-        <Label htmlFor="name">Name</Label>
-        <Input className="text-opacity-80" id="name" {...register("name")} />
-        {errors.name && (
-          <p className="text-sm text-red-500">{errors.name.message}</p>
+        <Label htmlFor="displayName">Name</Label>
+        <Input
+          className="text-opacity-80"
+          id="displayName"
+          {...register("displayName")}
+        />
+        {errors.displayName && (
+          <p className="text-sm text-red-500">{errors.displayName.message}</p>
         )}
       </div>
       <div className="space-y-2 w-full">

@@ -5,12 +5,14 @@ import Footer from "@/components/footer";
 import TestimonialsMarquee from "@/components/home/testimonials";
 import UserReviews from "@/components/home/user-reviews";
 import { setServerCookie } from "@/lib/server-actions";
+import { setCookie } from "cookies-next";
 import { motion, Variants } from "framer-motion";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef } from "react";
 
-const heading = "Your Digital Passport \n to the GenZ world";
+const heading = "Own Your Story \n Not Just Your Resume";
 const headingVariants: Variants = {
   initial: {
     opacity: 0,
@@ -59,13 +61,29 @@ const imageVariants: Variants = {
 };
 export default function Home() {
   const router = useRouter();
+  const session = useSession();
 
   const handleSubmit = (data: string) => {
-    setServerCookie("username", data);
+    setCookie("username", data);
     router.push(`/signup`);
   };
   return (
     <div className="w-full min-h-screen  flex flex-col items-center justify-center">
+      {session?.data?.user && (
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          <Link prefetch href={`/${session?.data?.user?.username}`}>
+            <Image
+              src={
+                (session?.data?.user?.profileImage ||
+                  session?.data?.user?.image) as string
+              }
+              alt={`${session?.data?.user?.name} profile image`}
+              width={50}
+              height={50}
+            />
+          </Link>
+        </div>
+      )}
       <motion.div className="flex flex-col h-[90vh] md:h-screen items-center justify-center gap-3">
         <motion.div
           className="mb-3 md:mb-6 relative overflow-hidden size-12 md:size-14"

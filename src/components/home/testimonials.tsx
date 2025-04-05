@@ -64,16 +64,16 @@ const testimonials: Testimonial[] = [
 
 const TestimonialsMarquee = () => {
   return (
-    <div className="overflow-hidden h-[70vh] mb-10 bg-white py-16 w-full">
+    <div className="overflow-hidden h-[70vh] mb-10  py-16 w-full">
       <div className="mb-12 text-center">
-        <h2 className="text-3xl md:text-4xl font-medium md:font-semibold tracking-tight text-gray-900 mb-3">
+        <h2 className="text-3xl md:text-4xl font-medium md:font-semibold tracking-tight  mb-3">
           Word From Our Users ✨
         </h2>
       </div>
 
       <div className="relative">
-        <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-white to-transparent z-10" />
-        <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-white to-transparent z-10" />
+        <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-white dark:from-dark-bg to-transparent z-10" />
+        <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-white dark:from-dark-bg  to-transparent z-10" />
 
         <motion.div
           className="flex gap-6 px-4"
@@ -94,11 +94,9 @@ const TestimonialsMarquee = () => {
             >
               <div className="flex flex-col h-full">
                 <div className="mb-4">
-                  <p className="text-gray-700 italic">
-                    "{testimonial.content}"
-                  </p>
+                  <p className=" italic opacity-80">"{testimonial.content}"</p>
                 </div>
-                <div className="flex w-full items-center pt-4  border-t border-gray-100 justify-start ">
+                <div className="flex w-full items-center pt-4  border-t border-neutral-300/60 dark:border-dark-border justify-start ">
                   <Image
                     src={`https://api.dicebear.com/9.x/dylan/svg?seed=${testimonial.name}?scale=50`}
                     alt={testimonial.name}
@@ -107,10 +105,8 @@ const TestimonialsMarquee = () => {
                     height={50}
                   />
                   <div className="ml-3">
-                    <p className="font-medium text-gray-900">
-                      {testimonial.name}
-                    </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-medium ">{testimonial.name}</p>
+                    <p className="text-sm opacity-70 leading-tight">
                       {testimonial.role}, {testimonial.company}
                     </p>
                   </div>

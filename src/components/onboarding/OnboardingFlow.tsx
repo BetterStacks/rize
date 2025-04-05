@@ -1,40 +1,62 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-// import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { createProfile, updateProfile } from "@/actions/profile-actions";
 import { cn } from "@/lib/utils";
+import { useLocalStorage } from "@mantine/hooks";
+import { useMutation } from "@tanstack/react-query";
+import { deleteCookie, getCookie, hasCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { FinishStep } from "./steps/FinishStep";
 import { InterestsStep } from "./steps/Interests";
 import { UsernameStep } from "./steps/UsernameStep";
 import { WelcomeStep } from "./steps/WelcomeStep";
-import { useLocalStorage } from "@mantine/hooks";
-import {
-  createProfile,
-  setUserIsOnboarded,
-  updateUserAndProfile,
-} from "@/lib/server-actions";
-import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
-import { set } from "date-fns";
+import ProfileStep from "./steps/ProfileStep";
 
 interface OnboardingProps {
   onComplete?: (data: any) => void;
 }
 
 export default function OnboardingFlow() {
+  const router = useRouter();
   const [formData, setFormData] = useLocalStorage({
     key: "onboarding-data",
     defaultValue: {
       username: "",
+      displayName: "",
+      profileImage: "",
       interests: [],
     },
   });
-  const [isPending, setIsPending] = useState<boolean | null>(null);
 
-  const router = useRouter();
+  const { mutate, isPending } = useMutation({
+    mutationFn: createProfile,
+    onSuccess: async (data) => {
+      const res = await updateProfile({
+        isOnboarded: true,
+        username: data?.username!,
+      });
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+      const usernameCookie = hasCookie("username");
+      if (usernameCookie) {
+        deleteCookie("username");
+      }
+      toast.success("Profile created successfully!");
+      setCurrentStep(2);
+    },
+    onError: (error) => {
+      toast.error("Failed to create profile: " + error.message);
+    },
+  });
+
   const onComplete = async (data: any) => {
     try {
       router.push(`/${formData?.username}`);
+      localStorage.removeItem("onboarding-data");
     } catch (error) {
       console.error("Failed to save profile:", error);
     }
@@ -51,38 +73,28 @@ export default function OnboardingFlow() {
       id: "username",
       component: (
         <UsernameStep
-          isPending={isPending!}
+          isPending={isPending}
           formData={formData}
           onNext={async (username) => {
             setFormData((prev) => ({ ...prev, username }));
-            setIsPending(true);
-            const { data, error } = await createProfile(username);
-            if (error) {
-              toast.error(error);
-              setIsPending(false);
-              return;
-            }
-            const { success, error: updateError } = await updateUserAndProfile({
-              username,
-            });
-            if (updateError) {
-              setIsPending(false);
-              toast.error(updateError);
-              return;
-            }
-            const { success: setSuccess, error: onboardingError } =
-              await setUserIsOnboarded();
-            if (onboardingError) {
-              setIsPending(false);
-              toast.error(onboardingError);
-              return;
-            }
-            setIsPending(false);
-            setCurrentStep(2);
+            mutate(username);
           }}
         />
       ),
     },
+    // {
+    //   id: "profile-details",
+    //   component: (
+    //     <ProfileStep
+    //       isPending={isPending}
+    //       formData={formData}
+    //       onNext={async ({ displayName, profileImage }) => {
+    //         // setFormData((prev) => ({ ...prev, username }));
+    //         // mutate(username);
+    //       }}
+    //     />
+    //   ),
+    // },
 
     {
       id: "interests",
@@ -108,7 +120,7 @@ export default function OnboardingFlow() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center ">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-md  border border-neutral-200 dark:border-dark-border/60 rounded-3xl shadow-xl dark:shadow-black/10 overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
@@ -116,7 +128,7 @@ export default function OnboardingFlow() {
             key={currentStep}
             className="bg-white dark:bg-neutral-800"
             initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0, height: "auto" }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3, type: "spring" }}
           >
@@ -128,6 +140,7 @@ export default function OnboardingFlow() {
         {steps.map((_, index) => (
           <div
             key={index}
+            onClick={() => setCurrentStep(index)}
             className={cn(
               "w-2 h-2 rounded-full transition-all duration-300",
               currentStep === index

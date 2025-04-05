@@ -1,7 +1,6 @@
-import { getGalleryItems } from "@/lib/server-actions";
+import { getGalleryItems } from "@/actions/gallery-actions";
 import { GalleryItemProps } from "@/lib/types";
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import {
   createContext,
