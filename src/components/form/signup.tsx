@@ -64,8 +64,8 @@ const SignUp = () => {
   return (
     <div className=" w-full space-y-4">
       <div>
-        <span className="text-3xl md:text-4xl font-instrument font-semibold">
-          Signup and create your Account
+        <span className="text-3xl font-medium  md:font-semibold tracking-tight leading-tight">
+          Signup & Create <br /> your Account
         </span>
       </div>
 
@@ -140,7 +140,12 @@ const SignUp = () => {
             {form?.formState.errors.password?.message}
           </span>
         )}
-        <Button disabled={isPending} type="submit" className="w-full mt-2">
+        <Button
+          variant={"secondary"}
+          disabled={isPending}
+          type="submit"
+          className="w-full mt-2"
+        >
           {isPending ? <Loader className="h-4 w-4 animate-spin mr-2" /> : null}
           Create Account
         </Button>
@@ -156,6 +161,7 @@ const SignUp = () => {
           of Service and Privacy Policy.
         </span> */}
         <Button
+          variant={"secondary"}
           disabled={!!isSocialLoading}
           onClick={() => handleSocialSignIn("google")}
           className="rounded-lg px-6"
@@ -173,7 +179,8 @@ const SignUp = () => {
           )}
           SignIn with Google
         </Button>
-        <Button
+        {/* <Button
+          variant={"secondary"}
           disabled={!!isSocialLoading}
           onClick={() => handleSocialSignIn("github")}
           className="rounded-lg px-6"
@@ -190,7 +197,7 @@ const SignUp = () => {
             />
           )}
           SignIn with Github
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

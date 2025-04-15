@@ -44,6 +44,8 @@ export const getProfileById = async (id: string) => {
   const p = await db
     .select({
       ...rest,
+      image: users.image,
+      name: users.name,
     })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
@@ -107,7 +109,7 @@ export const isUsernameAvailable = async (username: string) => {
 export const searchProfiles = cache(async (query: string) => {
   const { ...rest } = getTableColumns(profile);
   return await db
-    .select({ ...rest })
+    .select({ ...rest, image: users.image, name: users.name })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
     .where(

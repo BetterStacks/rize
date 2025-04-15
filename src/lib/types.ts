@@ -3,9 +3,11 @@ import {
   media,
   page,
   profile,
+  projects,
   socialLinks,
   users,
 } from "@/db/schema";
+import { ReactNode } from "react";
 import { BaseEditor, BaseRange, Descendant, Element, Range } from "slate";
 import { HistoryEditor } from "slate-history";
 import { ReactEditor } from "slate-react";
@@ -18,11 +20,19 @@ export const TGalleryItem = galleryMedia.$inferSelect;
 export const NewProfile = profile.$inferInsert;
 export const TMedia = media.$inferSelect;
 export type TSocialLink = typeof socialLinks.$inferSelect;
+export type TNewProject = typeof projects.$inferSelect;
 
 export type TUploadFilesResponse = {
   width: number;
   height: number;
   url: string;
+};
+
+export type TSection = {
+  id: string;
+  enabled: boolean;
+  name: string;
+  component: ReactNode;
 };
 
 export type GetProfileByUsername =
@@ -45,6 +55,9 @@ export type SocialPlatform =
   | "twitter"
   | "instagram"
   | "linkedin"
+  | "github"
+  | "youtube"
+  | "reddit"
   | "other";
 
 export type GalleryConfigProps = {
@@ -208,9 +221,9 @@ export const profileSchema = z.object({
   age: z.number().int().min(18).max(120).optional(),
   pronouns: PronounsEnum.optional(),
   profileImage: z.string().url().optional(),
-  bio: z.string().max(150).optional(),
+  bio: z.string().optional(),
   location: z.string().optional(),
-  website: z.string().url().optional().nullable(),
+  website: z.string().url().optional(),
 });
 
 export type UsernameFormData = z.infer<typeof usernameSchema>;

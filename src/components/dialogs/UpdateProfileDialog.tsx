@@ -162,7 +162,7 @@ const DialogSidebar = ({ options, active, setActive }: DialogSidebarProps) => {
             </span>
             {active === option.id && (
               <motion.div
-                className="h-8 w-1 bg-green-500 rounded-full absolute right-0"
+                className="h-9 w-1 bg-neutral-400 dark:bg-dark-border rounded-full absolute right-0"
                 transition={{
                   layout: {
                     duration: 0.2,
@@ -268,7 +268,7 @@ const EditProfile = () => {
       onSubmit={handleSubmit(onSubmit)}
       className="space-y-4 flex flex-col max-w-sm w-full mb-10"
     >
-      <div className="size-24 ring-4 mb-2 ring-neutral-300 dark:ring-dark-border overflow-hidden rounded-full ">
+      {/* <div className="size-24 ring-4 mb-2 ring-neutral-300 dark:ring-dark-border overflow-hidden rounded-full ">
         <Image
           src={profile?.profileImage as string}
           alt="Profile"
@@ -276,7 +276,7 @@ const EditProfile = () => {
           className="rounded-full aspect-square"
           height={100}
         />
-      </div>
+      </div> */}
       {/* <div className="flex items-center justify-center w-full gap-3"> */}
       <div className="space-y-2  w-full">
         <Label htmlFor="displayName">Name</Label>
@@ -414,7 +414,7 @@ const EditProfile = () => {
       </div>
       <Button
         disabled={isUpdating || Object.keys(errors).length > 0}
-        className="bg-green-500 hover:bg-green-600 rounded-lg py-2 w-fit"
+        variant={"secondary"}
         type="submit"
       >
         {isUpdating && <Loader className="animate-spin size-4 mr-2" />}

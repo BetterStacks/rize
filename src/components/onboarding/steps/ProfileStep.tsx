@@ -1,6 +1,12 @@
+import { updateProfile } from "@/actions/profile-actions";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn, fileToBase64 } from "@/lib/utils";
+import { useMutation } from "@tanstack/react-query";
 import { Edit3, Loader } from "lucide-react";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
 import React from "react";
 import toast from "react-hot-toast";
 
@@ -17,7 +23,10 @@ const ProfileStep = ({
   isPending,
   formData,
 }: {
-  formData: any;
+  formData: {
+    profileImage: string;
+    displayName: string;
+  };
   isPending: boolean;
   onNext: ({
     displayName,
@@ -27,9 +36,12 @@ const ProfileStep = ({
     profileImage: string;
   }) => void;
 }) => {
-  const [displayName, setDisplayName] = React.useState("");
+  const { data } = useSession();
+  const [displayName, setDisplayName] = React.useState(data?.user?.name || "");
   const [file, setFile] = React.useState<File | null>(null);
-  const [profileImage, setProfileImage] = React.useState("");
+  const [profileImage, setProfileImage] = React.useState(
+    data?.user?.image || ""
+  );
 
   const handleChange = (e: any) => {
     const file = e.target.files[0];
@@ -46,22 +58,24 @@ const ProfileStep = ({
       return;
     }
     setFile(file);
+    setProfileImage(URL.createObjectURL(file));
     // setIsOpen(true);
   };
+
   return (
-    <div className="p-8">
-      <h2 className="text-2xl tracking-tight mb-2 font-semibold ">
+    <div className="p-8 w-full ">
+      <h2 className="text-xl tracking-tight mb-2 font-semibold ">
         Profile Details
       </h2>
       <p className="leading-snug text-sm opacity-80 mb-4">
         Add profile details to help others recognize you. You can change these
         later.
       </p>
-      <div className="space-y-4">
-        <div className="flex space-x-4 items-center">
+      <div className="flex flex-col items-start justify-center">
+        <div className="flex space-x-4 items-center justify-center">
           <div
             className={cn(
-              "relative group  ring-4    ring-neutral-300 dark:ring-dark-border  rounded-full size-24 md:size-24   aspect-square "
+              "relative group border border-neutral-300/60 dark:border-dark-border ring-4 ring-neutral-300 dark:ring-dark-border  rounded-full size-28  aspect-square "
             )}
           >
             <input
@@ -70,43 +84,64 @@ const ProfileStep = ({
               className="hidden"
               id="profile-input"
             />
-            <button className="absolute z-10 group-hover:opacity-100 opacity-0 transition-all duration-100 ease-in border border-neutral-300 dark:border-dark-border  bg-white dark:bg-[#363636] p-1.5 rounded-full left-0 bottom-0 drop-shadow-lg shadow-black/80 ">
+            {profileImage && (
+              <Image
+                src={profileImage}
+                alt=" "
+                style={{ objectFit: "cover" }}
+                className="rounded-full "
+                fill
+              />
+            )}
+            <button
+              className={cn(
+                "absolute z-10  transition-all duration-100 ease-in border border-neutral-300 dark:border-dark-border  bg-white dark:bg-[#363636] p-1.5 rounded-full left-0 bottom-0 drop-shadow-lg shadow-black/80 "
+                // profileImage && "hidden"
+              )}
+            >
               <label htmlFor="profile-input">
                 <Edit3 className="size-5 dark:opacity-70" />
               </label>
             </button>
           </div>
-
-          <div>
-            <h2 className="text-lg font-semibold dark:text-white">
-              Profile Picture
-            </h2>
-            <p className="text-xs leading-tight opacity-80 dark:text-neutral-400">
-              Upload a profile picture to help others recognize you.
-            </p>
-            <div>
-              <button>Choose a file</button>
-              <button>Remove file</button>
-            </div>
-          </div>
         </div>
-        <input
+        <Label htmlFor="displayName" className="mb-2 mt-6">
+          Name
+        </Label>
+        <Input
           type="text"
-          placeholder="Jon Doe"
+          id="displayName"
           value={displayName}
-          className="text-lg w-full dark:text-opacity-80 border border-neutral-300 dark:border-dark-border flex items-center justify-center overflow-hidden px-3 py-1.5 rounded-md bg-transparent dark:placeholder:text-neutral-500 focus-visible:outline-none"
+          className="md:text-lg w-full  dark:text-opacity-80 border border-neutral-300 dark:border-dark-border flex items-center justify-center overflow-hidden px-3 py-1.5 rounded-md bg-transparent dark:placeholder:text-neutral-500 focus-visible:outline-none"
           onChange={(e) => {
             setDisplayName(e.target.value);
-            // handleCheck(e.target.value);
           }}
         />
 
         <Button
-          //   onClick={() => onNext(username)}
-          //   disabled={!username || !isAvailable || isPending}
-          className="w-full bg-green-600 disabled:bg-green-700 dark:bg-green-500 dark:text-white hover:bg-green-700 dark:hover:bg-green-600 dark:disabled:bg-green-600"
+          variant={"secondary"}
+          disabled={!displayName || isPending}
+          onClick={async () => {
+            if (file) {
+              const url = await fileToBase64(file!);
+              if (!url) {
+                toast.error("Error uploading image");
+                return;
+              }
+              onNext({
+                displayName,
+                profileImage: url as string,
+              });
+              return;
+            }
+            onNext({
+              displayName,
+              profileImage: profileImage,
+            });
+          }}
+          className="w-full mt-4"
         >
-          {isPending && <Loader className="animate-spin size-4" />} Next
+          {isPending && <Loader className="animate-spin size-4 mr-2" />} Next
         </Button>
       </div>
     </div>

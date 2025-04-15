@@ -1,62 +1,56 @@
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { getSocialLinks } from "@/actions/social-links-actions";
-import { SocialPlatform } from "@/lib/types";
-import { capitalizeFirstLetter } from "@/lib/utils";
+import { capitalizeFirstLetter, getIcon } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { Facebook, Instagram, Link, Linkedin, Twitter } from "lucide-react";
+import Image from "next/image";
 import NextLink from "next/link";
 import { useParams } from "next/navigation";
+import { Button } from "../ui/button";
+import { Skeleton } from "../ui/skeleton";
 
 const SocialLinks = () => {
   const params = useParams<{ username: string }>();
-  const getIcon = (platform: SocialPlatform) => {
-    switch (platform) {
-      case "facebook":
-        return <Facebook strokeWidth={1.6} className="size-6 opacity-75" />;
-      case "twitter":
-        return <Twitter strokeWidth={1.6} className="size-6 opacity-75" />;
-      case "instagram":
-        return <Instagram strokeWidth={1.6} className="size-6 opacity-75" />;
-      case "linkedin":
-        return <Linkedin strokeWidth={1.6} className="size-6 opacity-75" />;
-      default:
-        return <Link strokeWidth={1.6} className="size-6 opacity-75" />;
-    }
-  };
 
-  const { data: links = [] } = useQuery({
+  const { data: links = [], isLoading } = useQuery({
     enabled: !!params?.username,
     queryKey: ["get-social-links", params?.username],
     queryFn: () => getSocialLinks(params?.username),
   });
 
-  if (links?.length === 0) return null;
-
   return (
-    <div className="w-full px-2">
-      <TooltipProvider>
-        <div className="flex w-full max-w-2xl mt-4 mb-4">
-          {links?.map((link, i) => (
-            <NextLink className="mr-4" href={link?.url} key={i} target="_blank">
-              <Tooltip>
-                <TooltipTrigger>
-                  {getIcon(link?.platform as any)}
-                </TooltipTrigger>
-                <TooltipContent>
-                  {capitalizeFirstLetter(link?.platform as string)}
-                </TooltipContent>
-              </Tooltip>
+    <div className="w-full ">
+      <div className="max-w-2xl w-full gap-2 text-sm md:text-base flex flex-wrap  mt-4 items-center justify-start">
+        {isLoading ? (
+          <SocialLinkSkeleton />
+        ) : (
+          links?.map((link, i) => (
+            <NextLink className="" href={link?.url} key={i} target="_blank">
+              <Button size={"sm"}>
+                <Image
+                  src={`/${getIcon(link?.platform as any)}`}
+                  className="aspect-square size-5"
+                  alt={link?.platform}
+                  width={20}
+                  height={20}
+                />
+                <span className="ml-2 opacity-75  tracking-tight leading-snug mr-2 ">
+                  {capitalizeFirstLetter(link?.platform)}
+                </span>
+              </Button>
             </NextLink>
-          ))}
-        </div>
-      </TooltipProvider>
+          ))
+        )}
+      </div>
     </div>
   );
 };
 
 export default SocialLinks;
+
+const SocialLinkSkeleton = () => {
+  return [...Array.from({ length: 8 })].map((_, i) => (
+    <Skeleton
+      key={i}
+      className="h-9 rounded-md px-3 w-[100px] bg-neutral-200/60 dark:bg-dark-border animate-none"
+    />
+  ));
+};

@@ -2,7 +2,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { createProfile, updateProfile } from "@/actions/profile-actions";
-import { cn } from "@/lib/utils";
+import { cn, fileToBase64 } from "@/lib/utils";
 import { useLocalStorage } from "@mantine/hooks";
 import { useMutation } from "@tanstack/react-query";
 import { deleteCookie, getCookie, hasCookie } from "cookies-next";
@@ -13,6 +13,7 @@ import { InterestsStep } from "./steps/Interests";
 import { UsernameStep } from "./steps/UsernameStep";
 import { WelcomeStep } from "./steps/WelcomeStep";
 import ProfileStep from "./steps/ProfileStep";
+import { useSession } from "next-auth/react";
 
 interface OnboardingProps {
   onComplete?: (data: any) => void;
@@ -20,12 +21,13 @@ interface OnboardingProps {
 
 export default function OnboardingFlow() {
   const router = useRouter();
+  const session = useSession();
   const [formData, setFormData] = useLocalStorage({
     key: "onboarding-data",
     defaultValue: {
       username: "",
-      displayName: "",
-      profileImage: "",
+      displayName: session?.data?.user?.name || "",
+      profileImage: session?.data?.user?.image || "",
       interests: [],
     },
   });
@@ -52,6 +54,41 @@ export default function OnboardingFlow() {
       toast.error("Failed to create profile: " + error.message);
     },
   });
+
+  const { mutate: addProfileDetails, isPending: isProfileUpdatePending } =
+    useMutation({
+      mutationFn: async (data: {
+        profileImage: string;
+        displayName: string;
+      }) => {
+        const formData = new FormData();
+        formData.append("file", data?.profileImage as string);
+        formData.append("type", "avatar");
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        return res.json();
+      },
+      onError: (error) => {
+        toast.error(error?.message);
+      },
+      onSuccess: async (data, params) => {
+        console.log({ data });
+        const resp = await updateProfile({
+          profileImage: data.url,
+          displayName: params?.displayName,
+        });
+        if (!resp?.success && resp.error) {
+          toast.error(resp?.error);
+          return;
+        }
+        toast.success("Profile picture updated successfully");
+        await session?.update();
+        setCurrentStep(3);
+      },
+    });
 
   const onComplete = async (data: any) => {
     try {
@@ -82,19 +119,19 @@ export default function OnboardingFlow() {
         />
       ),
     },
-    // {
-    //   id: "profile-details",
-    //   component: (
-    //     <ProfileStep
-    //       isPending={isPending}
-    //       formData={formData}
-    //       onNext={async ({ displayName, profileImage }) => {
-    //         // setFormData((prev) => ({ ...prev, username }));
-    //         // mutate(username);
-    //       }}
-    //     />
-    //   ),
-    // },
+    {
+      id: "profile-details",
+      component: (
+        <ProfileStep
+          isPending={isProfileUpdatePending}
+          formData={formData}
+          onNext={async ({ displayName, profileImage }) => {
+            setFormData((prev) => ({ ...prev, displayName, profileImage }));
+            addProfileDetails({ profileImage, displayName });
+          }}
+        />
+      ),
+    },
 
     {
       id: "interests",
@@ -103,7 +140,7 @@ export default function OnboardingFlow() {
           formData={formData}
           onNext={(interests: string[]) => {
             setFormData((prev) => ({ ...(prev as any), interests }));
-            setCurrentStep(3);
+            setCurrentStep(4);
           }}
         />
       ),
@@ -121,8 +158,8 @@ export default function OnboardingFlow() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
-      <div className="w-full max-w-md  border border-neutral-200 dark:border-dark-border/60 rounded-3xl shadow-xl dark:shadow-black/10 overflow-hidden">
-        <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait">
+        <div className="w-full max-w-md  border border-neutral-200 dark:border-dark-border/60 rounded-3xl shadow-xl dark:shadow-black/10 overflow-hidden">
           <motion.div
             style={{ height: "auto", minHeight: "250px" }}
             key={currentStep}
@@ -134,8 +171,8 @@ export default function OnboardingFlow() {
           >
             {steps[currentStep].component}
           </motion.div>
-        </AnimatePresence>
-      </div>
+        </div>
+      </AnimatePresence>
       <div className="flex justify-center gap-2 mt-10">
         {steps.map((_, index) => (
           <div
@@ -144,10 +181,10 @@ export default function OnboardingFlow() {
             className={cn(
               "w-2 h-2 rounded-full transition-all duration-300",
               currentStep === index
-                ? "w-8 bg-neutral-500 dark:bg-dark-border"
+                ? "w-8 bg-neutral-400 dark:bg-dark-border"
                 : currentStep > index
-                ? "bg-neutral-500 dark:bg-neutral-800"
-                : "bg-neutral-500 dark:bg-neutral-800"
+                ? "bg-neutral-300 dark:bg-neutral-800"
+                : "bg-neutral-300 dark:bg-neutral-800"
             )}
           />
         ))}

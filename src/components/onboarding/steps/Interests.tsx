@@ -53,9 +53,10 @@ export function InterestsStep({
       </div>
 
       <Button
+        variant={"secondary"}
         onClick={() => onNext(selectedInterests)}
         disabled={selectedInterests.length < 3}
-        className="w-full bg-green-600 disabled:bg-green-700 dark:bg-green-600 dark:text-white hover:bg-green-700 dark:hover:bg-green-700 dark:disabled:bg-green-700"
+        className="w-full "
       >
         Next ({selectedInterests.length}/3)
       </Button>

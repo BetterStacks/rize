@@ -8,7 +8,11 @@ export function WelcomeStep({ onNext }: { onNext: () => void }) {
         Welcome to <br />
         <span className="italic ml-2">Rize ✨</span>
       </h1>
-      <Button className="w-full self-end" onClick={onNext}>
+      <Button
+        variant={"secondary"}
+        className="w-full  self-end"
+        onClick={onNext}
+      >
         Get Started
       </Button>
     </div>

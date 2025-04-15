@@ -51,7 +51,7 @@ const EditSocialLink: React.FC<EditSocialLinkProps> = ({
     mutationFn: ({ id, url }: { id: string; url: string }) =>
       editSocialLink(id, url),
     onSuccess: () => {
-      toast.success(`${capitalizeFirstLetter(platform)} link Deleted`);
+      toast.success(`${capitalizeFirstLetter(platform)} link updated`);
       queryClient.invalidateQueries({ queryKey: ["get-social-links"] });
     },
     onError: (error) => {
@@ -109,7 +109,11 @@ const EditSocialLink: React.FC<EditSocialLinkProps> = ({
           >
             Cancel
           </Button>
-          <Button type="submit" onClick={handleSave}>
+          <Button
+            type="submit"
+            disabled={url.trim() === editedUrl.trim()}
+            onClick={handleSave}
+          >
             Save Changes
           </Button>
         </DialogFooter>

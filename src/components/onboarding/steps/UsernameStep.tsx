@@ -69,10 +69,11 @@ export function UsernameStep({
         Embark your creative journey with a username that resonates with you.
       </p>
       <div className="space-y-4">
-        <div className="border border-neutral-300 dark:border-dark-border flex items-center justify-center overflow-hidden px-3 py-1.5 rounded-md">
+        <div className="border border-neutral-300 dark:border-dark-border flex overflow-hidden px-3 py-1.5 rounded-lg">
+          <span className="opacity-70 text-lg">rize.so/</span>
           <input
             type="text"
-            placeholder="username"
+            placeholder="your-username"
             value={username}
             className="text-lg w-full dark:text-opacity-80 bg-transparent dark:placeholder:text-neutral-500 focus-visible:outline-none"
             onChange={(e) => {
@@ -80,13 +81,13 @@ export function UsernameStep({
               handleCheck(e.target.value);
             }}
           />
-          {isSearching && <Loader className="animate-spin size-4" />}
+          {isSearching && <Loader className="animate-spin size-6" />}
 
           {isAvailable !== null && !isSearching && (
             <div
               className={cn(
                 isAvailable ? "bg-green-500" : "bg-red-500",
-                "size-6 rounded-full flex items-center justify-center"
+                "size-6 rounded-full flex items-center aspect-square justify-center"
               )}
             >
               {isAvailable ? (
@@ -99,11 +100,12 @@ export function UsernameStep({
         </div>
 
         <Button
+          variant={"secondary"}
           onClick={() => onNext(username)}
           disabled={!username || !isAvailable || isPending}
-          className="w-full bg-green-600 disabled:bg-green-700 dark:bg-green-500 dark:text-white hover:bg-green-700 dark:hover:bg-green-600 dark:disabled:bg-green-600"
+          className="w-full"
         >
-          {isPending && <Loader className="animate-spin size-4" />} Next
+          {isPending && <Loader className="animate-spin size-4 mr-2" />} Next
         </Button>
       </div>
     </div>

@@ -14,11 +14,13 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useProfileDialog, useSearchDialog } from "../dialog-provider";
+import { useTheme } from "next-themes";
 
 const Sidebar = () => {
   const session = useSession();
   const setOpen = useProfileDialog()[1];
   const setOpenSearch = useSearchDialog()[1];
+  const { theme } = useTheme();
   const options = [
     {
       id: 1,
@@ -76,13 +78,23 @@ const Sidebar = () => {
     >
       <div className="mt-6">
         <Link href="/">
-          <Image
-            src="/logo2.png"
-            alt="logo"
-            width={42}
-            height={42}
-            className="rounded-xl size-10"
-          />
+          {theme === "dark" ? (
+            <Image
+              width={42}
+              height={42}
+              className="rounded-xl size-10"
+              alt=""
+              src={"/logo-dark.png"}
+            />
+          ) : (
+            <Image
+              width={42}
+              height={42}
+              className="rounded-xl size-10"
+              alt=""
+              src={"/logo-light.png"}
+            />
+          )}
         </Link>
       </div>
 

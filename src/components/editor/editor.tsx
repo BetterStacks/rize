@@ -27,7 +27,7 @@ import { useEditorState } from "./editor-context";
 import { withImages } from "./utils";
 
 type EditorProps = {
-  author: Partial<TProfile & { name: string; email: string }>;
+  author: Partial<TProfile & { name: string; email: string; image: string }>;
 };
 
 const RichTextExample = ({ author }: EditorProps) => {
@@ -95,7 +95,7 @@ const RichTextExample = ({ author }: EditorProps) => {
             <div className="aspect-square size-[60px] rounded-full animate-pulse bg-neutral-300  dark:bg-dark-border" />
           ) : (
             <Image
-              src={author?.profileImage as string}
+              src={author?.profileImage || (author?.image as string)}
               alt="image"
               width={50}
               height={50}
@@ -158,6 +158,7 @@ const RichTextExample = ({ author }: EditorProps) => {
           <span className="opacity-80">{time!.text}</span>
         </div>
       </div>
+
       <Editable
         readOnly={!isMyPage}
         renderElement={renderElement}
