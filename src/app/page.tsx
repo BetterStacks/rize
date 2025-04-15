@@ -1,123 +1,114 @@
 "use client";
 
-import ClaimUsernameForm from "@/components/claim-username";
 import Footer from "@/components/footer";
+import HeroSection from "@/components/home/hero";
 import TestimonialsMarquee from "@/components/home/testimonials";
 import UserReviews from "@/components/home/user-reviews";
-import { setServerCookie } from "@/lib/server-actions";
-import { setCookie } from "cookies-next";
-import { motion, Variants } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useRef } from "react";
 
-const heading = "Own Your Story \n Not Just Your Resume";
-const headingVariants: Variants = {
-  initial: {
-    opacity: 0,
-    y: 50,
-  },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 1,
-      staggerChildren: 0.3,
-      ease: "easeIn",
-    },
-  },
-  exit: {
-    opacity: 0,
-    y: -50,
-  },
-};
-const imageVariants: Variants = {
-  initial: {
-    opacity: 0,
-    y: -100,
-    scale: 0.8,
-    rotate: 20,
-  },
-  animate: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    rotate: 0,
-    transition: {
-      duration: 0.75,
-      type: "spring",
-      stiffness: 100,
-      damping: 20,
-      mass: 0.5,
-      ease: "easeInOut",
-      delay: 0.3,
-    },
-  },
-  exit: {
-    opacity: 0,
-    y: -50,
-  },
-};
 export default function Home() {
+  const { theme } = useTheme();
+  const imageContainerRef = useRef(null);
   const router = useRouter();
   const session = useSession();
+  const container = useRef(null);
+  const para = `Audienceful is email marketing re-invented for the 2020s.\n It's multiplayer, lightweight and setup for best practices by default.`;
+  const words = para.split(" ");
 
-  const handleSubmit = (data: string) => {
-    setCookie("username", data);
-    router.push(`/signup`);
-  };
+  const { scrollYProgress } = useScroll({
+    axis: "y",
+    target: imageContainerRef,
+    offset: ["start 0.9", "start 0.25"],
+  });
+  const opacity = useTransform(scrollYProgress, [1, 0.7, 0], [1, 0.5, 0]);
+  const y = useTransform(scrollYProgress, [1, 0.5, 0], [-100, -40, 0]);
+  const scale = useTransform(y, [0, -40, -100], [0.7, 0.9, 1]);
+
+  const MotionImage = motion(Image);
+
+  const { scrollYProgress: scrollYTextProgress } = useScroll({
+    target: container,
+    offset: ["start 0.9", "start 0.25"],
+  });
+  const cards = [
+    {
+      id: 1,
+      title: "Connect with Peers & Mentors",
+      description: "This is card 1",
+    },
+    { id: 2, title: "Live audio with a tap", description: "This is card 2" },
+    { id: 3, title: "A new way to have fun", description: "This is card 3" },
+    { id: 4, title: "Stay in the loop!", description: "This is card 4" },
+  ];
+
   return (
     <div className="w-full min-h-screen  flex flex-col items-center justify-center">
-      {session?.data?.user && (
-        <div className="absolute top-4 right-4 flex items-center gap-2">
-          <Link prefetch href={`/${session?.data?.user?.username}`}>
-            <Image
-              src={
-                (session?.data?.user?.profileImage ||
-                  session?.data?.user?.image) as string
-              }
-              alt={`${session?.data?.user?.name} profile image`}
-              width={50}
-              height={50}
-            />
-          </Link>
-        </div>
-      )}
-      <motion.div className="flex flex-col h-[90vh] md:h-screen items-center justify-center gap-3">
-        <motion.div
-          className="mb-3 md:mb-6 relative overflow-hidden size-12 md:size-14"
-          variants={imageVariants}
-          initial="initial"
-          animate="animate"
+      <HeroSection />
+      <section
+        ref={imageContainerRef}
+        className="w-full px-4 flex  flex-col items-center relative justify-center "
+      >
+        <MotionImage
+          style={{ opacity, y, scale }}
+          src={"/image.png"}
+          className="w-full aspect-video border border-neutral-300/60 dark:border-dark-border/80 md:max-w-6xl rounded-xl  ring-[9px] ring-black"
+          width={1920}
+          height={1080}
+          alt=""
+        />
+        <motion.section
+          ref={container}
+          className="w-full flex mb-20 flex-col items-center justify-center gap-2 mt-4"
         >
-          <Image alt="" fill src={"/logo2.png"} />
-        </motion.div>
-        <motion.h1
-          variants={headingVariants}
-          initial="initial"
-          animate="animate"
-          className="text-4xl md:text-5xl lg:text-6xl text-center font-semibold font-instrument tracking-tight leading-tight"
-        >
-          {heading.split("\n").map((line, index) => (
-            <motion.span key={index} variants={headingVariants}>
-              {line}
-              <br />
-            </motion.span>
-          ))}
-        </motion.h1>
-        <motion.div
-          variants={headingVariants}
-          initial="initial"
-          animate="animate"
-          className="w-full max-w-sm px-3 sm:px-0"
-        >
-          {" "}
-          <ClaimUsernameForm onSubmit={handleSubmit} />
-        </motion.div>
-      </motion.div>
-      <UserReviews />
-      <TestimonialsMarquee />
+          <motion.p className="max-w-6xl w-full text-3xl md:text-4xl lg:text-5xl font-medium md:font-semibold flex flex-wrap">
+            {words.map((line, index) => {
+              const start = index / words.length;
+
+              const end = start + 1 / words.length;
+              const opacity = useTransform(
+                scrollYTextProgress,
+                [start, end],
+                [0, 1]
+              );
+              return (
+                <span key={index} className=" relative">
+                  <span className="opacity-20 absolute">{line}</span>
+                  <motion.span style={{ opacity }} className="mr-2">
+                    {line}
+                  </motion.span>
+                </span>
+              );
+            })}
+          </motion.p>
+        </motion.section>
+      </section>
+
+      <section className="max-w-6xl px-4 mb-20 w-full md:grid-rows-5 grid md:grid-cols-2 gap-3 h-[140vh]">
+        {cards.map((card, index) => {
+          return (
+            <motion.div
+              key={index}
+              className={cn(
+                "bg-white shadow-lg border flex flex-col p-4 rounded-[1.9rem] w-full h-full",
+                index === 0 && "row-span-2",
+                index === 1 && "row-span-3",
+                index === 2 && "row-span-3",
+                index === 3 && "row-span-2"
+              )}
+            >
+              {/* <h3 className="text-3xl ">{card?.title}</h3> */}
+            </motion.div>
+          );
+        })}
+      </section>
+
       <Footer />
     </div>
   );

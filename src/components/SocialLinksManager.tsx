@@ -33,9 +33,10 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { capitalizeFirstLetter, cleanUrl, cn } from "@/lib/utils";
+import { capitalizeFirstLetter, cleanUrl, cn, getIcon } from "@/lib/utils";
 import { Button } from "./ui/button";
 import EditSocialLink from "./dialogs/EditSocialLinkDialog";
+import Image from "next/image";
 
 const SocialLinksManager = () => {
   const params = useParams<{ username: string }>();
@@ -89,7 +90,7 @@ const SocialLinksManager = () => {
   };
   return (
     <div className="w-full px-4 flex flex-col items-center justify-center mb-6">
-      <Card className="bg-white w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border rounded-3xl">
+      <Card className="bg-white w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl font-medium dark:text-white">
             Social Link Manager
@@ -167,20 +168,6 @@ const SocialLink: React.FC<SocialLinkProps> = ({
   id,
   onEdit,
 }) => {
-  const getIcon = () => {
-    switch (platform) {
-      case "facebook":
-        return <Facebook strokeWidth={1.7} className="size-6 opacity-80" />;
-      case "twitter":
-        return <Twitter strokeWidth={1.7} className="size-6 opacity-80" />;
-      case "instagram":
-        return <Instagram strokeWidth={1.7} className="size-6 opacity-80" />;
-      case "linkedin":
-        return <Linkedin strokeWidth={1.7} className="size-6 opacity-80" />;
-      default:
-        return <Link strokeWidth={1.7} className="size-6 opacity-80" />;
-    }
-  };
   const { mutate: deleteSocialLinkMutation, isPending: isDeleting } =
     useMutation({
       mutationFn: ({ id }: { id: string }) => removeSocialLink(id),
@@ -200,18 +187,24 @@ const SocialLink: React.FC<SocialLinkProps> = ({
         // getBgColor()
       )}
     >
-      <div className="flex items-center">
-        <div className={cn("p-2 rounded-full opacity-80 mr-3")}>
-          {getIcon()}
-        </div>
+      <div className="flex items-center justify-start space-x-2">
+        {/* <div className={cn("opacity-80 mr-3")}> */}
+        <Image
+          src={`/${getIcon(platform as SocialPlatform)}`}
+          className="aspect-square size-6 mr-3"
+          alt={platform}
+          width={20}
+          height={20}
+        />{" "}
+        {/* </div> */}
         <div className="flex flex-col">
-          <h3 className={cn("font-medium leading-tight tracking-tight")}>
+          <h3 className={cn("font-medium leading-none tracking-tight")}>
             {capitalizeFirstLetter(platform)}
           </h3>
           <NextLink
             href={url}
             target="_blank"
-            className="text-sm opacity-80 leading-tight hover:underline"
+            className="text-sm opacity-70 leading-tight hover:underline"
           >
             {cleanUrl(url)}
           </NextLink>

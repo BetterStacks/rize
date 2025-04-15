@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { Area } from "react-easy-crop";
 import { twMerge } from "tailwind-merge";
+import { SocialPlatform } from "./types";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -146,4 +147,43 @@ export const isVideoUrl = (url: string): boolean => {
 
 export const capitalizeFirstLetter = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+export const getIcon = (platform: SocialPlatform) => {
+  switch (platform) {
+    case "facebook":
+      return "facebook.svg";
+    case "twitter":
+      return "x.svg";
+    case "instagram":
+      return "instagram.svg";
+    case "linkedin":
+      return "linkedin.svg";
+    case "github":
+      return "github.svg";
+    case "youtube":
+      return "youtube.svg";
+    case "reddit":
+      return "reddit.svg";
+    default:
+      return "globe.svg";
+  }
+};
+
+export const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.readAsDataURL(file);
+
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject("Failed to convert file to base64.");
+      }
+    };
+
+    reader.onerror = (error) => reject(error);
+  });
 };

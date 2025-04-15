@@ -31,7 +31,6 @@ const UserReviews = () => {
   const matches = useMediaQuery(`(min-width: 768px)`, undefined, {
     getInitialValueInEffect: false,
   });
-  const [mounted, setMounted] = useState(false);
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const ref = useRef(null);
@@ -46,15 +45,12 @@ const UserReviews = () => {
       ref={ref}
       className="w-full px-4 flex relative flex-col mb-10 items-center justify-center"
     >
-      <span className="text-4xl tracking-tight font-semibold leading-none text-center ">
-        We Help you own <br />
+      <span className="text-3xl font-medium md:text-4xl tracking-tight md:font-semibold leading-none text-center ">
+        We Help you own <br className="hidden md:flex" />
         your Story not just your Resume
       </span>
       <motion.div
         layout
-        // style={{
-        //   ...(matches ? {maxWidth: "72rem",marginTop:"3rem",display:"flex" , } : { display: "grid",gridTemplateColumns:"" }),
-        // }}
         className={cn(
           "w-full",
           matches
@@ -63,13 +59,12 @@ const UserReviews = () => {
         )}
       >
         {arr.map((item, i) => {
-          const targetScale = 1 - (arr.length - i) * 0.1;
+          const targetScale = 1 - (arr.length - i) * 0.15;
           const scale = useTransform(
             scrollYProgress,
             [i * 0.35, 1],
             [1, targetScale]
           );
-
           if (matches) {
             return (
               <motion.div
@@ -77,7 +72,7 @@ const UserReviews = () => {
                 initial={{ flex: 1 }}
                 whileHover={{ flex: 2 }}
                 className="w-full h-full"
-                transition={{ duration: 0.3, ease: "linear" }}
+                transition={{ duration: 0.3 }}
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
               >

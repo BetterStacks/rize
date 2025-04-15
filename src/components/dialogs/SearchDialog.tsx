@@ -10,10 +10,12 @@ import { useSearchDialog } from "../dialog-provider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Skeleton } from "../ui/skeleton";
 
+type SearchResults = TProfile & { image: string | null; name: string | null };
+
 const SearchDialog = () => {
   const [open, setOpen] = useSearchDialog();
   const [query, setQuery] = React.useState<string>("");
-  const [results, setResults] = React.useState<TProfile[]>([]);
+  const [results, setResults] = React.useState<SearchResults[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
 
   const search = useDebouncedCallback(async (query: string) => {
@@ -86,7 +88,7 @@ const SearchDialog = () => {
                       )}
                     >
                       <Image
-                        src={item.profileImage!}
+                        src={String(item.profileImage || item.image)}
                         alt=""
                         fill
                         style={{ objectFit: "cover" }}

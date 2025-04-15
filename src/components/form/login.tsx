@@ -54,8 +54,8 @@ const Login = () => {
   return (
     <div className=" w-full space-y-4">
       <div>
-        <span className="text-3xl md:text-4xl font-instrument font-semibold">
-          Login to your Account
+        <span className="text-3xl font-medium tracking-tight leading-tight md:font-semibold">
+          Login to your account
         </span>
       </div>
 
@@ -97,7 +97,11 @@ const Login = () => {
             {...form.register("password")}
           />
         </Label>
-        <Button disabled={isLoading} className="w-full mt-2">
+        <Button
+          variant={"secondary"}
+          disabled={isLoading}
+          className="w-full mt-2"
+        >
           {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : null}
           Sign in with Email
         </Button>
@@ -108,11 +112,8 @@ const Login = () => {
         <hr className="h-[0.5px] w-full bg-neutral-400" />
       </div>
       <div className="flex flex-col space-y-2">
-        {/* <span className="my-2 text-sm opacity-80 tracking-tight leading-tight">
-          By clicking "Create Profile" you agree to our Code of Conduct, Terms
-          of Service and Privacy Policy.
-        </span> */}
         <Button
+          variant={"secondary"}
           disabled={!!isSocialLoading}
           onClick={() => handleSocialSignIn("google")}
           className="rounded-lg px-6"
@@ -130,7 +131,7 @@ const Login = () => {
           )}
           Sign in with Google
         </Button>
-        <Button
+        {/* <Button
           disabled={!!isSocialLoading}
           onClick={() => handleSocialSignIn("github")}
           className="rounded-lg px-6"
@@ -147,7 +148,7 @@ const Login = () => {
             />
           )}
           Sign in with Github
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

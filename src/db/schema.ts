@@ -1,6 +1,8 @@
 import {
   boolean,
+  customType,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -9,13 +11,13 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
-import { customType } from "drizzle-orm/pg-core";
 import { v4 as gen_uuid, v4 } from "uuid";
 
 export type TPronouns = "he/him" | "she/her" | "they/them" | "other";
 export type Media = "image" | "video";
 export type TPageMedia = "thumbnail" | "content-media";
 export type TPageStatus = "draft" | "published";
+export type TProjectStatus = "wip" | "completed" | "archived";
 
 const Pronouns = customType<{ data: TPronouns }>({
   dataType() {
@@ -33,6 +35,11 @@ const PageMediaType = customType<{ data: TPageMedia }>({
   },
 });
 const PageStatus = customType<{ data: TPageStatus }>({
+  dataType() {
+    return "text";
+  },
+});
+const ProjectStatus = customType<{ data: TProjectStatus }>({
   dataType() {
     return "text";
   },
@@ -62,13 +69,26 @@ export const profile = pgTable("profile", {
   username: varchar("username", { length: 20 }).unique(),
   age: integer("age").notNull().default(18),
   pronouns: Pronouns("pronouns").notNull().default("he/him"),
-  bio: varchar("bio", { length: 150 }),
+  bio: text("bio"),
   location: text("location"),
   website: text("website"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
     .$onUpdate(() => new Date()),
+});
+
+export const sections = pgTable("sections", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => v4()),
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => profile.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const socialLinks = pgTable("social_links", {
@@ -149,6 +169,26 @@ export const pageMedia = pgTable("page_media", {
       onDelete: "cascade",
     }),
   type: PageMediaType("type").notNull().default("content-media"),
+});
+
+export const projects = pgTable("projects", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => gen_uuid()),
+  name: varchar("name", { length: 120 }).notNull(),
+  description: text("description").notNull(),
+  profileId: uuid("profileId").references(() => profile.id, {
+    onDelete: "cascade",
+  }),
+  status: ProjectStatus("status").notNull().default("wip"),
+  logo: uuid("logo")
+    .notNull()
+    .references(() => media.id, {
+      onDelete: "cascade",
+    }),
+  url: text("url"),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
 });
 
 export const accounts = pgTable(

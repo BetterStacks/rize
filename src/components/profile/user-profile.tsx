@@ -5,6 +5,7 @@ import {
   GalleryItemProps,
   GetAllWritings,
   GetProfileByUsername,
+  TSection,
 } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
@@ -23,30 +24,6 @@ type UserProfileProps = {
   writings: GetAllWritings[];
 };
 
-type TSection = {
-  id: string;
-  name: string;
-  component: ReactNode;
-};
-
-const Highlights = dynamic(() => import("../highlights"), {
-  loading: () => (
-    <div className="w-full flex mt-4  items-start justify-center">
-      <div className="max-w-2xl w-full flex ">
-        <div className="w-full h-full flex space-x-3 items-center justify-center">
-          {[...Array(3)].map((_, i) => (
-            <Skeleton
-              key={i}
-              className="w-[170px]  rounded-3xl border border-neutral-200 dark:border-dark-border"
-              style={{ aspectRatio: 9 / 16 }}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  ),
-});
-
 const UserProfile = ({ data, isMine, gallery, writings }: UserProfileProps) => {
   const params = useParams<{ username: string }>();
   const { data: profileData, isLoading } = useQuery({
@@ -61,11 +38,13 @@ const UserProfile = ({ data, isMine, gallery, writings }: UserProfileProps) => {
       id: "gallery",
       name: "Gallery",
       component: <Gallery items={gallery} isMine={isMine} />,
+      enabled: true,
     },
     {
       id: "writings",
       name: "Writings",
       component: <Writings writings={writings} isMine={isMine} />,
+      enabled: writings.length > 0,
     },
   ];
 
@@ -77,10 +56,11 @@ const UserProfile = ({ data, isMine, gallery, writings }: UserProfileProps) => {
     <div className="w-full flex flex-col items-center justify-start">
       <Profile isMine={isMine} data={profileData} isLoading={isLoading} />
       <Separator className="w-full max-w-2xl" />
-      <Highlights data={gallery} isMine={isMine} />
-      {sections.map((section) => (
-        <React.Fragment key={section?.id}>{section.component}</React.Fragment>
-      ))}
+      {sections
+        ?.filter((section) => section.enabled)
+        .map((section) => (
+          <React.Fragment key={section?.id}>{section.component}</React.Fragment>
+        ))}
     </div>
   );
 };

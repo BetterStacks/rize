@@ -23,10 +23,7 @@ export function FinishStep({
         <p className="text-gray-600 dark:text-gray-300">
           Your profile is looking amazing! Ready to start connecting?
         </p>
-        <Button
-          onClick={onComplete}
-          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-700"
-        >
+        <Button variant={"secondary"} onClick={onComplete} className="w-full">
           Let's Go! 🚀
         </Button>
       </div>

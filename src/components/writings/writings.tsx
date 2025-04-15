@@ -52,10 +52,20 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
         </div>
         {isFetching
           ? [...Array.from({ length: 4 })].map((_, i) => (
-              <Skeleton
+              <div
+                className="flex flex-col mt-2 md:mt-0 md:grid md:grid-cols-[60px,1fr,160px] gap-6 md:items-start"
                 key={i}
-                className="w-full h-28 rounded-xl animate-pulse bg-neutral-200 dark:bg-dark-border"
-              />
+              >
+                <Skeleton
+                  key={i}
+                  className="w-full h-6 mt-3 rounded-md animate-pulse bg-neutral-200 dark:bg-dark-border"
+                />
+                <div className="flex pt-3 flex-col space-y-2 md:px-4">
+                  <Skeleton className="w-full h-6 rounded-md animate-pulse bg-neutral-200 dark:bg-dark-border" />
+                  <Skeleton className="w-2/5 h-6 rounded-md animate-pulse bg-neutral-200 dark:bg-dark-border" />
+                </div>
+                <Skeleton className="w-full h-[100px] rounded-3xl overflow-hidden bg-neutral-200 dark:bg-dark-border" />
+              </div>
             ))
           : data?.map((writing, i) => {
               return <WritingCard key={i} data={writing} />;

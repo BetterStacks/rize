@@ -19,60 +19,16 @@ import GalleryLimit from "../GalleryLimit";
 import SocialLinksManager from "../SocialLinksManager";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
+import SectionManager from "../SectionManager";
 
 const RightSidebar = () => {
-  const { sections, setSections } = useSections();
-
-  const tabs = {
-    gallery: {
-      name: "Gallery",
-    },
-    "social-links": {
-      name: "Social Links",
-    },
-  };
-  const [activeTab, setActiveTab] = useLocalStorage<keyof typeof tabs | null>({
-    key: "active-tab",
-    defaultValue: null,
-  });
-
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    if (active.id !== over.id) {
-      const oldIndex = sections.findIndex((s) => s.id === active.id);
-      const newIndex = sections.findIndex((s) => s.id === over.id);
-      setSections(arrayMove(sections, oldIndex, newIndex));
-    }
-  };
-
   return (
     <div className="h-screen w-full  flex flex-col items-start justify-between">
       <ScrollArea className="h-full w-full overflow-y-auto flex flex-col  ">
         <EditGallery />
         <SocialLinksManager />
+        <SectionManager />
       </ScrollArea>
-      {/* {!galleryItem && <EditGallery />} */}
-      {/* <div className="pt-10 w-full flex flex-col items-center justify-start px-4">
-        <DndContext
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={sections.map((s) => s.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {sections.map((section) => (
-              <SortableItem
-                key={section.id}
-                id={section.id}
-                name={section.name}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
-        {/* </div> */}
-      {/* {galleryItem && <EditGalleryItem id={galleryItem} />} */}
-      {/* </div> */}
     </div>
   );
 };
@@ -123,7 +79,7 @@ function EditGallery() {
   useEffect(() => {
     if (items.length === 0 || files.length === 0) return;
     const count = items.length;
-    const limit = 10;
+    const limit = 4;
     console.log("items", items, files);
 
     const total = count + files.length;
@@ -193,7 +149,7 @@ function EditGallery() {
     setFiles([]); // Clear file input
   };
 
-  const limit = Math.floor((items.length / 10) * 100);
+  const limit = Math.floor((items.length / 4) * 100);
 
   return (
     <div className="h-full overflow-hidden  w-full pt-6">

@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        "dark-border": "#383838",
-        "dark-bg": "#212121",
+        "dark-border": "#363636",
+        "dark-bg": "#222222",
         "light-bg": "#ffffff",
       },
       fontFamily: {

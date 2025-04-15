@@ -94,7 +94,7 @@ const TestimonialsMarquee = () => {
             >
               <div className="flex flex-col h-full">
                 <div className="mb-4">
-                  <p className=" italic opacity-80">"{testimonial.content}"</p>
+                  <p className=" italic opacity-70 ">"{testimonial.content}"</p>
                 </div>
                 <div className="flex w-full items-center pt-4  border-t border-neutral-300/60 dark:border-dark-border justify-start ">
                   <Image

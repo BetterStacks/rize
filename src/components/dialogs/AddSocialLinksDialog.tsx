@@ -84,6 +84,9 @@ const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
     "twitter",
     "instagram",
     "linkedin",
+    "github",
+    "youtube",
+    "reddit",
     "other",
   ].filter(
     (p) => p === "other" || !existingPlatforms.includes(p as SocialPlatform)

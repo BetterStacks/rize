@@ -28,6 +28,7 @@ import {
   toggleMark,
 } from "./utils";
 import { ImageElement, VideoElement } from "@/lib/types";
+import { Separator } from "../ui/separator";
 
 const Toolbar = () => {
   const editor = useSlate();
@@ -45,102 +46,89 @@ const Toolbar = () => {
   // console.log({ e });
 
   const leafs = [
-    { icon: <Bold className="size-6" />, format: "bold" },
-    { icon: <Underline className="size-6" />, format: "underline" },
-    { icon: <Italic className="size-6" />, format: "italic" },
-    { icon: <Code2 className="size-6" />, format: "code" },
+    {
+      icon: <Bold strokeWidth={1.7} className="size-4 opacity-80" />,
+      format: "bold",
+    },
+    {
+      icon: <Underline strokeWidth={1.7} className="size-4 opacity-80" />,
+      format: "underline",
+    },
+    {
+      icon: <Italic strokeWidth={1.7} className="size-4 opacity-80" />,
+      format: "italic",
+    },
+    {
+      icon: <Code2 strokeWidth={1.7} className="size-4 opacity-80" />,
+      format: "code",
+    },
   ];
   const alignOptions = [
-    { name: "Text", icon: <Type className="size-6" />, format: "paragraph" },
+    {
+      name: "Text",
+      icon: <Type strokeWidth={1.7} className="size-4 opacity-80" />,
+      format: "paragraph",
+    },
     {
       name: "Heading 1",
-      icon: <Heading1 className="size-6" />,
+      icon: <Heading1 strokeWidth={1.7} className="size-4 opacity-80" />,
       format: "heading",
     },
     {
       name: "Heading 2",
-      icon: <Heading2 className="size-6" />,
+      icon: <Heading2 strokeWidth={1.7} className="size-4 opacity-80" />,
       format: "heading-two",
     },
     {
       name: "Numbered List",
-      icon: <ListOrdered className="size-6" />,
+      icon: <ListOrdered strokeWidth={1.7} className="size-4 opacity-80" />,
       format: "numbered-list",
     },
     {
       name: "Bullet Points",
-      icon: <List className="size-6" />,
+      icon: <List strokeWidth={1.7} className="size-4 opacity-80" />,
       format: "bulleted-list",
     },
     {
       name: "",
-      icon: <AlignLeft className="size-6" />,
+      icon: <AlignLeft strokeWidth={1.7} className="size-4 opacity-80" />,
       format: "left",
     },
     {
       name: "",
-      icon: <AlignCenter className="size-6" />,
+      icon: <AlignCenter strokeWidth={1.7} className="size-4 opacity-80" />,
       format: "center",
     },
     {
       name: "",
-      icon: <AlignRight className="size-6" />,
+      icon: <AlignRight strokeWidth={1.7} className="size-4 opacity-80" />,
       format: "right",
     },
   ];
 
   return (
-    <div className="w-fit border shadow-xl bg-white/80 dark:bg-[#181818a1] dark:border-dark-border backdrop-blur border-neutral-300 flex items-center justify-center py-1 rounded-lg">
-      {/* <div>
-        <Select onValueChange={setValue} value={value}>
-          <SelectTrigger>
-            <SelectValue>{value}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {listOptions.map((list, i) => {
-              const isActive = isBlockActive(
-                editor,
-                list?.format,
-                TEXT_ALIGN_TYPES.includes(list?.format) ? "align" : "type"
-              );
-              return (
-                <div key={i} onClick={() => toggleBlock(editor, list.format)}>
-                  <SelectItem
-                    className="w-full flex items-center justify-start text-lg"
-                    value={list?.format}
-                  >
-                    {list.name}
-                  </SelectItem>
-                </div>
-              );
-            })}
-          </SelectContent>
-        </Select>
-      </div> */}
-      <div className="flex items-center justify-center ">
+    <div className="w-fit border shadow-xl bg-white/80 dark:bg-[#181818a1] dark:border-dark-border backdrop-blur border-neutral-300 flex items-center justify-center py-1.5 px-2 rounded-lg">
+      <div className="flex  gap-x-1 items-center justify-center ">
         {leafs.map((leaf, i) => {
           const isActive = isMarkActive(editor, leaf?.format);
           return (
-            // <div
-            // className="border-l first:border-none px-1.5 border-neutral-400/80"
-            // >
             <Button
               key={i}
               variant={"ghost"}
-              size={"icon"}
-              className={cn(isActive && "bg-neutral-200 dark:bg-dark-border")}
+              size={"smallIcon"}
+              className={cn(
+                isActive && "bg-neutral-200 dark:bg-dark-border",
+                "rounded-lg"
+              )}
               onClick={() => toggleMark(editor, leaf.format)}
             >
               {leaf.icon}
             </Button>
-            // </div>
           );
         })}
       </div>
-      <div>
+      <div className="flex gap-x-1 items-center justify-center  ">
         <Button
-          variant={"ghost"}
-          size={"icon"}
           onClick={() => {
             const url = prompt("Enter the URL");
             if (!url || !isImageUrl(url)) {
@@ -160,16 +148,19 @@ const Toolbar = () => {
               children: [{ text: "" }],
             });
           }}
+          variant={"ghost"}
+          size={"smallIcon"}
           className={cn(
             isBlockActive(editor, "image") &&
-              "bg-neutral-200 dark:bg-dark-border"
+              "bg-neutral-200 dark:bg-dark-border",
+            "rounded-lg"
           )}
         >
-          <Image className="size-6" />
+          <Image strokeWidth={1.7} className="size-4 opacity-80" />
         </Button>
         <Button
           variant={"ghost"}
-          size={"icon"}
+          size={"smallIcon"}
           onClick={() => {
             const url = prompt("Enter the URL");
             if (!url || !isVideoUrl(url)) {
@@ -187,10 +178,11 @@ const Toolbar = () => {
               "bg-neutral-200 dark:bg-dark-border"
           )}
         >
-          <Video className="size-6" />
+          <Video strokeWidth={1.7} className="size-4 opacity-80" />
         </Button>
       </div>
-      <div className="flex items-center justify-center  ">
+      <Separator orientation="vertical" className="w-0.5 h-6 mx-1 " />
+      <div className="flex gap-x-1 items-center justify-center  ">
         {alignOptions.map((align, i) => {
           const isActive = isBlockActive(
             editor,
@@ -202,8 +194,11 @@ const Toolbar = () => {
             <Button
               key={i}
               variant={"ghost"}
-              size={"icon"}
-              className={cn(isActive && "bg-neutral-200 dark:bg-dark-border")}
+              size={"smallIcon"}
+              className={cn(
+                isActive && "bg-neutral-200 dark:bg-dark-border",
+                "rounded-lg"
+              )}
               onClick={() => toggleBlock(editor, align.format)}
             >
               {align.icon}

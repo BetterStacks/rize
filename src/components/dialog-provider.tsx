@@ -15,6 +15,7 @@ type DialogContextType = {
   isSocialLinksDialogOpen?: boolean;
   isAddExperienceDialogOpen?: boolean;
   isSearchDialogOpen?: boolean;
+  isProjectsDialogOpen?: boolean;
 };
 
 type setDialogContextType = [
@@ -26,6 +27,7 @@ type setDialogContextType = [
     setIsSocialLinksDialogOpen: UpdateStateFunctionType;
     setIsAddExperienceDialogOpen: UpdateStateFunctionType;
     setIsSearchDialogOpen: UpdateStateFunctionType;
+    setIsProjectsDialogOpen: UpdateStateFunctionType;
   }
 ];
 
@@ -47,6 +49,7 @@ const DialogContext = createContext([
     setIsSocialLinksDialogOpen: () => {},
     setIsAddExperienceDialogOpen: () => {},
     setIsSearchDialogOpen: () => {},
+    setIsProjectsDialogOpen: () => {},
   },
 ] as setDialogContextType);
 
@@ -121,6 +124,18 @@ export const useSearchDialog = () => {
     context[1].setIsSearchDialogOpen,
   ] as const;
 };
+export const useProjectsDialog = () => {
+  const context = useContext(DialogContext);
+  if (!context) {
+    throw new Error(
+      "useProjectsDialog must be used within DialogContextProvider"
+    );
+  }
+  return [
+    context[0].isProjectsDialogOpen,
+    context[1].setIsProjectsDialogOpen,
+  ] as const;
+};
 
 const DialogContextProvider = ({ children }: { children: ReactNode }) => {
   const [openContext, setOpenContext] =
@@ -161,6 +176,12 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
     },
     [openContext, setOpenContext]
   );
+  const setIsProjectsDialogOpen = useCallback(
+    (isOpen: boolean) => {
+      setOpenContext({ ...openContext, isSearchDialogOpen: isOpen });
+    },
+    [openContext, setOpenContext]
+  );
   return (
     <DialogContext.Provider
       value={[
@@ -172,6 +193,7 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
           setIsSocialLinksDialogOpen,
           setIsAddExperienceDialogOpen,
           setIsSearchDialogOpen,
+          setIsProjectsDialogOpen,
         },
       ]}
     >

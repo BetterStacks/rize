@@ -109,7 +109,6 @@ export async function updatePageThumbnail(
       width: payload?.width,
     })
     .returning({ id: media.id });
-  console.log({ newMedia });
   if (newMedia.length === 0) {
     throw new Error("Error updating page thumbnail");
   }

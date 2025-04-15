@@ -1,5 +1,6 @@
 import { Copyright } from "lucide-react";
 import Image from "next/image";
+import Logo from "./logo";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -9,10 +10,13 @@ const Footer = () => {
       <div className=" mx-auto max-w-6xl px-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center">
-            <div className="size-8 relative overflow-hidden rounded-md flex items-center justify-center mr-2">
+            {/* <div className="size-8 relative overflow-hidden rounded-md flex items-center justify-center mr-2">
               <Image fill src="/logo2.png" alt="Rize Logo" />
-            </div>
-            <span className="text-xl tracking-tight font-medium ">Rize.so</span>
+            </div> */}
+            <Logo className="size-8 rounded-md" />
+            <span className="text-xl ml-4 tracking-tight font-medium ">
+              Rize.so
+            </span>
           </div>
 
           <div className="flex items-center text-sm opacity-80">

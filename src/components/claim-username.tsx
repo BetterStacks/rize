@@ -58,9 +58,9 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({ onSubmit }) => {
       }}
       className="w-full "
     >
-      <div className="w-full border mt-2 border-neutral-300 dark:border-none rounded-3xl text-lg md:text-xl   p-1 flex items-center justify-center bg-neutral-50 dark:bg-dark-border/60">
-        <div className="px-4 border border-neutral-300/60 dark:border-none py-1 bg-white dark:bg-neutral-700 rounded-3xl shadow-md ">
-          <span className="tracking-tight opacity-70 dark:opacity-60">
+      <div className="w-full border mt-2 border-neutral-400/60 dark:border-none rounded-3xl text-lg md:text-xl   p-1 flex items-center justify-center bg-neutral-50 dark:bg-dark-border/60">
+        <div className="px-4 border border-neutral-400/60 dark:border-none py-1 bg-white dark:bg-neutral-700 rounded-3xl shadow-lg ">
+          <span className="tracking-tight opacity-80 dark:opacity-60">
             rize.so
           </span>
         </div>
@@ -78,36 +78,20 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({ onSubmit }) => {
           />
         </div>
         {isSearching ? (
-          <Loader className="animate-spin size-6 mr-2" />
+          <Loader className="animate-spin size-6 mr-4" />
         ) : (
           <Button
             type="submit"
             disabled={!isAvailable || isSearching!}
-            className="rounded-3xl   bg-green-600 dark:bg-green-500 hover:dark:bg-green-700"
+            className="rounded-3xl  bg-black text-white dark:bg-white dark:text-neutral-800 hover:dark:bg-neutral-100 dark:hover:bg-neutral-300"
           >
             Claim
-            {/* <ArrowRight className="stroke-white" /> */}
           </Button>
         )}
       </div>
       {error && (
         <p className="text-sm text-red-500 leading-tight px-3 mt-2">{error}</p>
       )}
-      {/* {errors.username && (
-        <p className="text-sm text-red-500">{errors.username.message}</p>
-      )}
-      {isChecking && (
-        <p className="text-sm text-gray-500">Checking availability...</p>
-      )}
-      {!isChecking && isAvailable !== null && (
-        <p
-          className={`text-sm ${
-            isAvailable ? "text-green-500" : "text-red-500"
-          }`}
-        >
-          {isAvailable ? "Username is available" : "Username is not available"}
-        </p>
-      )} */}
     </form>
   );
 };

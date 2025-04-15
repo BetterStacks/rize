@@ -7,12 +7,12 @@ type GalleryLimitProps = {
 };
 
 const GalleryLimit: FC<GalleryLimitProps> = ({ itemCount }) => {
-  const limit = Math.floor((itemCount / 10) * 100);
+  const allowedItems = 4;
+  const limit = Math.floor((itemCount / allowedItems) * 100);
   return (
     <div
       className={cn(
-        "w-full mb-3 mx-auto mt-4 border shadow-lg px-6 py-6 flex flex-col space-y-3   rounded-3xl  items-start justify-center border-neutral-300/60 dark:border-dark-border"
-        // limit > 60 && "border-red-800 bg-red-500/50"
+        "w-full mb-3 mx-auto mt-4 border shadow-lg px-6 py-6 flex flex-col space-y-3   rounded-3xl  items-start justify-center border-neutral-300/60 dark:border-dark-border/80"
       )}
     >
       <span className="text-3xl font-semibold">{limit}%</span>
