@@ -1,17 +1,15 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import { Loader } from "lucide-react";
+import { signIn } from "next-auth/react";
+import Image from "next/image";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import Image from "next/image";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { signIn, useSession } from "next-auth/react";
-import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
-import { Loader } from "lucide-react";
-import { useState } from "react";
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -23,7 +21,6 @@ const LoginSchema = z.object({
 type TLoginValues = z.infer<typeof LoginSchema>;
 
 const Login = () => {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isSocialLoading, setIsSocialLoading] = useState<
     "google" | "github" | null

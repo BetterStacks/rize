@@ -2,11 +2,9 @@
 
 import Footer from "@/components/footer";
 import HeroSection from "@/components/home/hero";
-import TestimonialsMarquee from "@/components/home/testimonials";
 import UserReviews from "@/components/home/user-reviews";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import Image from "next/image";
@@ -65,9 +63,9 @@ export default function Home() {
         />
         <motion.section
           ref={container}
-          className="w-full flex mb-20 flex-col items-center justify-center gap-2 mt-4"
+          className="w-full max-w-6xl flex mb-20  flex-col items-center justify-center gap-2 mt-4"
         >
-          <motion.p className="max-w-6xl w-full text-3xl md:text-4xl lg:text-5xl font-medium md:font-semibold flex flex-wrap">
+          <motion.p className=" w-full text-3xl md:text-4xl lg:text-5xl font-medium md:font-semibold flex flex-wrap">
             {words.map((line, index) => {
               const start = index / words.length;
 
@@ -90,26 +88,43 @@ export default function Home() {
         </motion.section>
       </section>
 
-      <section className="max-w-6xl px-4 mb-20 w-full md:grid-rows-5 grid md:grid-cols-2 gap-3 h-[140vh]">
+      <section className="max-w-6xl px-4 md:px-0 mb-20 w-full md:grid-rows-5 grid md:grid-cols-2 gap-4 md:h-[150vh]">
         {cards.map((card, index) => {
           return (
             <motion.div
               key={index}
               className={cn(
-                "bg-white shadow-lg border flex flex-col p-4 rounded-[1.9rem] w-full h-full",
+                "bg-white dark:bg-dark-border shadow-lg border border-neutral-300/60 dark:border-none flex flex-col p-4 rounded-[2.3rem] w-full  h-[400px] overflow-hidden relative md:h-full",
                 index === 0 && "row-span-2",
                 index === 1 && "row-span-3",
                 index === 2 && "row-span-3",
                 index === 3 && "row-span-2"
               )}
             >
+              {index === 3 && <Card4 />}
               {/* <h3 className="text-3xl ">{card?.title}</h3> */}
             </motion.div>
           );
         })}
       </section>
-
+      <UserReviews />
       <Footer />
     </div>
   );
 }
+
+const Card4 = () => {
+  return (
+    <div className="relative w-full group  h-full flex flex-col items-center justify-center">
+      {[...Array.from({ length: 3 })].map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{ zIndex: i, scale: 1 + i * 0.12 }}
+          className="w-full max-w-[240px] md:max-w-xs -my-8 group-hover:-my-6 transition-all duration-75 ease-in-out drop-shadow-xl border dark:border-dark-border/80 h-[100px] bg-neutral-100 dark:bg-dark-bg  rounded-3xl  flex items-center justify-center flex-wrap gap-2 -space-x-16 "
+        >
+          {/* {i} */}
+        </motion.div>
+      ))}
+    </div>
+  );
+};

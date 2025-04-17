@@ -4,24 +4,24 @@ import {
   TitleElement,
   VideoElement,
 } from "@/lib/types";
-import { isImageUrl, isVideoUrl } from "@/lib/utils";
+import { isImageUrl } from "@/lib/utils";
 import {
-  Editor,
-  Transforms,
-  Element as SlateElement,
-  Node,
   Descendant,
+  Editor,
+  Node,
+  Element as SlateElement,
+  Transforms,
 } from "slate";
 
 const LIST_TYPES = ["numbered-list", "bulleted-list"];
 const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
 
-const HOTKEYS = {
-  "mod+b": "bold",
-  "mod+i": "italic",
-  "mod+u": "underline",
-  "mod+`": "code",
-};
+// const HOTKEYS = {
+//   "mod+b": "bold",
+//   "mod+i": "italic",
+//   "mod+u": "underline",
+//   "mod+`": "code",
+// };
 export function extractTextFromEditor(editor: Editor): string {
   return editor.children.map((node) => Node.string(node)).join("\n");
 }
@@ -198,7 +198,6 @@ const toggleBlock = (editor: Editor, format: any) => {
       !Editor.isEditor(n) &&
       SlateElement.isElement(n) &&
       // @ts-ignore
-
       LIST_TYPES.includes(n.type) &&
       !TEXT_ALIGN_TYPES.includes(format),
     split: true,
@@ -257,14 +256,14 @@ const isMarkActive = (editor: Editor, format: string) => {
 };
 
 export {
-  toggleBlock,
-  toggleMark,
-  isBlockActive,
-  isMarkActive,
-  withLayout,
+  initialValue,
   insertImage,
   insertVideo,
-  initialValue,
+  isBlockActive,
+  isMarkActive,
   LIST_TYPES,
   TEXT_ALIGN_TYPES,
+  toggleBlock,
+  toggleMark,
+  withLayout,
 };

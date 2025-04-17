@@ -1,12 +1,10 @@
-import React, { FC } from "react";
-import { Button } from "./ui/button";
-import Menu from "./menu";
-import { Edit3, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Edit3, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { FC } from "react";
 import { useProfileDialog } from "./dialog-provider";
-import Logo from "./logo";
-import { useSession } from "next-auth/react";
+import Menu from "./menu";
+import { Button } from "./ui/button";
 
 type NavbarProps = {
   isMine: boolean;
@@ -15,7 +13,7 @@ type NavbarProps = {
 const Navbar: FC<NavbarProps> = ({ isMine }) => {
   const { theme, setTheme } = useTheme();
   const setOpen = useProfileDialog()[1];
-  const session = useSession();
+  // const session = useSession();
 
   return (
     <nav className="absolute  w-full flex items-center justify-center z-50 py-3 px-2 md:px-0 ">
@@ -52,7 +50,7 @@ const Navbar: FC<NavbarProps> = ({ isMine }) => {
               <Button
                 variant={"outline"}
                 size={"icon"}
-                className="rounded-2xl p-2"
+                className="rounded-2xl size-10 p-2"
                 onClick={() => setOpen(true)}
               >
                 <Edit3 strokeWidth={1.5} className="size-5 opacity-70" />

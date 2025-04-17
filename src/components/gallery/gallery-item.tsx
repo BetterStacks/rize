@@ -1,15 +1,11 @@
 import { removeGalleryItem } from "@/actions/gallery-actions";
 import { queryClient } from "@/lib/providers";
-import { GalleryConfigProps, GalleryItemProps } from "@/lib/types";
+import { GalleryItemProps } from "@/lib/types";
 import { cn, isImageUrl } from "@/lib/utils";
-import { useLocalStorage } from "@mantine/hooks";
-import { motion, Variants } from "framer-motion";
-import { Trash2, X } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
-import { galleryLayouts } from "./gallery";
 
 type TGalleryItemProps = {
   item: GalleryItemProps;

@@ -2,7 +2,6 @@ import {
   boolean,
   customType,
   integer,
-  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -25,11 +24,6 @@ const Pronouns = customType<{ data: TPronouns }>({
   },
 });
 const MediaType = customType<{ data: Media }>({
-  dataType() {
-    return "text";
-  },
-});
-const PageMediaType = customType<{ data: TPageMedia }>({
   dataType() {
     return "text";
   },
@@ -145,6 +139,9 @@ export const page = pgTable("page", {
   id: uuid("id")
     .primaryKey()
     .$defaultFn(() => gen_uuid()),
+  thumbnail: uuid("thumbnail").references(() => media.id, {
+    onDelete: "cascade",
+  }),
   title: varchar("title", { length: 120 }).notNull(),
   content: text("content").notNull(),
   profileId: uuid("profileId").references(() => profile.id, {
@@ -155,20 +152,6 @@ export const page = pgTable("page", {
   updatedAt: timestamp("updated_at")
     .notNull()
     .$onUpdate(() => new Date()),
-});
-
-export const pageMedia = pgTable("page_media", {
-  pageId: uuid("page_id")
-    .notNull()
-    .references(() => page.id, {
-      onDelete: "cascade",
-    }),
-  mediaId: uuid("media_id")
-    .notNull()
-    .references(() => media.id, {
-      onDelete: "cascade",
-    }),
-  type: PageMediaType("type").notNull().default("content-media"),
 });
 
 export const projects = pgTable("projects", {

@@ -97,11 +97,7 @@ export async function getCroppedImg(
     pixelCrop.height
   );
 
-  // As Base64 string
-  // return croppedCanvas.toDataURL('image/jpeg');
-
-  // As a blob
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     croppedCanvas.toBlob((file) => {
       resolve(URL.createObjectURL(file as File));
     }, "image/jpeg");
@@ -109,15 +105,13 @@ export async function getCroppedImg(
 }
 
 export async function toBase64(blobUrl: string) {
-  // Step 1: Fetch the Blob from the Blob URL
   const blob = await fetch(blobUrl).then((response) => response.blob());
 
-  // Step 2: Convert the Blob to Base64 using FileReader
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = () => resolve((reader.result as string).split(",")[1]); // Extract only the Base64 part
+    reader.onloadend = () => resolve((reader.result as string).split(",")[1]);
     reader.onerror = reject;
-    reader.readAsDataURL(blob); // Read Blob as Base64
+    reader.readAsDataURL(blob);
   });
 }
 

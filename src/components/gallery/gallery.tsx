@@ -2,23 +2,14 @@ import { getGalleryItems } from "@/actions/gallery-actions";
 import { GalleryItemProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
-  closestCenter,
-  DndContext,
   DragEndEvent,
-  DragOverlay,
   DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useQuery } from "@tanstack/react-query";
 import { motion, Variants } from "framer-motion";
 import { useParams } from "next/navigation";
@@ -97,34 +88,34 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
     setSortedItems(data);
   }, [data]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        delay: 50, // Require 200ms press before drag starts
-        tolerance: 2, // Prevent accidental drags
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (active.id !== over?.id) {
-      const oldIndex = sortedItems.findIndex((item) => item.id === active.id);
-      const newIndex = sortedItems.findIndex((item) => item.id === over?.id);
+  // const sensors = useSensors(
+  //   useSensor(PointerSensor, {
+  //     activationConstraint: {
+  //       delay: 50, // Require 200ms press before drag starts
+  //       tolerance: 2, // Prevent accidental drags
+  //     },
+  //   }),
+  //   useSensor(KeyboardSensor, {
+  //     coordinateGetter: sortableKeyboardCoordinates,
+  //   })
+  // );
+  // const handleDragEnd = (event: DragEndEvent) => {
+  //   const { active, over } = event;
+  //   if (active.id !== over?.id) {
+  //     const oldIndex = sortedItems.findIndex((item) => item.id === active.id);
+  //     const newIndex = sortedItems.findIndex((item) => item.id === over?.id);
 
-      setSortedItems((items) => arrayMove(items, oldIndex, newIndex));
-    }
-  };
-  const handleDragStart = (event: DragStartEvent) => {
-    const draggedItem = items.find((item) => item.id === event.active.id);
-    if (draggedItem) setActiveItem(draggedItem);
-  };
+  //     setSortedItems((items) => arrayMove(items, oldIndex, newIndex));
+  //   }
+  // };
+  // const handleDragStart = (event: DragStartEvent) => {
+  //   const draggedItem = items.find((item) => item.id === event.active.id);
+  //   if (draggedItem) setActiveItem(draggedItem);
+  // };
 
   return (
-    <div className="w-full mt-6  flex flex-col items-center justify-center">
-      <motion.div className="w-full relative max-w-3xl hidden md:flex items-center justify-center mt-10">
+    <div className="w-full mt-6  hidden md:flex flex-col items-center justify-center">
+      <motion.div className="w-full relative max-w-3xl flex flex-col  items-center justify-center mt-10">
         {isLoading ? (
           <GallerySkeleton />
         ) : (

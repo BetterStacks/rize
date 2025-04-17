@@ -1,12 +1,14 @@
 import { useSections } from "@/lib/context";
-import React, { useEffect, useMemo } from "react";
+import { cn } from "@/lib/utils";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -14,21 +16,17 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import {
-  closestCenter,
-  DndContext,
-  DragEndEvent,
-  DragStartEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { AlignJustify } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { CSS } from "@dnd-kit/utilities";
-import { Checkbox } from "./ui/checkbox";
 import { motion } from "framer-motion";
+import { AlignJustify } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Checkbox } from "./ui/checkbox";
 
 const SectionManager = () => {
   const { sections, setSections } = useSections();
@@ -79,7 +77,8 @@ const SectionManager = () => {
                 {sections?.map((section) => (
                   <SortableItem
                     checked={
-                      sections.find((s) => s.id === section.id)?.enabled!
+                      sections.find((s) => s.id === section.id)
+                        ?.enabled as boolean
                     }
                     handleCheck={(id) => {
                       setSections((prevSections) =>

@@ -2,9 +2,9 @@ import { v2 as cloudinary, UploadApiOptions } from "cloudinary";
 import { NextRequest } from "next/server";
 
 cloudinary.config({
-  api_key: "537392939961543",
-  api_secret: "ao9f7xxkcT3qjMyTqe-JjYPgGNM",
-  cloud_name: "dfccipzwz",
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
 });
 
 export async function POST(req: NextRequest) {

@@ -1,10 +1,5 @@
 import { cn } from "@/lib/utils";
-import {
-  AnimatePresence,
-  motion,
-  MotionValue,
-  useTransform,
-} from "framer-motion";
+import { AnimatePresence, motion, MotionValue } from "framer-motion";
 import Image from "next/image";
 import { FC, Fragment } from "react";
 
@@ -54,8 +49,7 @@ const UserReviewCard: FC<UserReviewCardProps> = ({
       />
       <AnimatePresence>
         <motion.div
-          layout
-          transition={{ duration: 0.2, type: "tween" }}
+          transition={{ duration: 0.6, ease: [0.075, 0.82, 0.165, 1] }}
           className={cn(
             "z-20  flex flex-col w-full items-start px-6 pb-6 justify-center space-y-3 absolute bottom-0 left-0 right-0 ",
             matches && hovered !== null && hovered !== index && "brightness-50"
@@ -77,9 +71,8 @@ const UserReviewCard: FC<UserReviewCardProps> = ({
                 initial={{ y: 60, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{
-                  // type: "tween",
-                  ease: "easeIn",
-                  duration: 0.4,
+                  // ease: [0.075, 0.82, 0.165, 1],
+                  duration: 0.3,
                 }}
                 className=" mt-4  tracking-tight   text-xl font-medium leading-snug"
               >
@@ -97,11 +90,6 @@ const UserReviewCard: FC<UserReviewCardProps> = ({
             <motion.p
               initial={{ y: 60, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{
-                // type: "tween",
-                ease: "easeIn",
-                duration: 0.4,
-              }}
               className=" mt-4  tracking-tight   text-xl font-medium leading-snug"
             >
               "

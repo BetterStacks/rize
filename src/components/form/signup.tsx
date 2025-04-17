@@ -1,17 +1,17 @@
 "use client";
+import { register } from "@/actions/user-actions";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { Loader } from "lucide-react";
+import { signIn } from "next-auth/react";
+import Image from "next/image";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import Image from "next/image";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { signIn } from "next-auth/react";
-import { register } from "@/actions/user-actions";
-import toast from "react-hot-toast";
-import { Loader, Loader2 } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
 
 const RegisterSchema = z.object({
   name: z.string().min(3, { message: "Name must be at least 3 characters." }),
@@ -37,7 +37,7 @@ const SignUp = () => {
   const { mutate: signup, isPending } = useMutation({
     mutationFn: register,
     onSuccess: async (data, payload) => {
-      const res = await signIn("credentials", {
+      await signIn("credentials", {
         email: payload?.email,
         password: payload?.password,
         redirect: true,

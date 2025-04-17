@@ -1,11 +1,9 @@
 "use client";
-import { useSections } from "@/lib/context";
-import { queryClient } from "@/lib/providers";
 import { addGalleryItem, getGalleryItem } from "@/actions/gallery-actions";
+import { queryClient } from "@/lib/providers";
 import { cn, isImageUrl, isVideoUrl } from "@/lib/utils";
-import { arrayMove, useSortable } from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useLocalStorage } from "@mantine/hooks";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { AlignJustify, Loader, Upload, X } from "lucide-react";
@@ -16,10 +14,10 @@ import toast from "react-hot-toast";
 import { v4 } from "uuid";
 import { useGalleryItems } from "../gallery/gallery-context";
 import GalleryLimit from "../GalleryLimit";
+import SectionManager from "../SectionManager";
 import SocialLinksManager from "../SocialLinksManager";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
-import SectionManager from "../SectionManager";
 
 const RightSidebar = () => {
   return (
@@ -199,7 +197,9 @@ function EditGallery() {
                   <X className="size-5" />
                 </Button>
                 {file.type === "image" ? (
-                  <img
+                  <Image
+                    width={500}
+                    height={500}
                     src={file.url}
                     alt="Preview"
                     className="w-full h-[300px] object-cover rounded-md shadow-md"
@@ -227,39 +227,39 @@ type GalleryItemProps = {
   id: string;
 };
 
-function EditGalleryItem({ id }: GalleryItemProps) {
-  const { data } = useQuery({
-    queryKey: ["get-gallery-item", id],
-    queryFn: () => getGalleryItem(id),
-  });
-  console.log(data);
-  return (
-    <div className="">
-      <div className="mt-6 px-4 pt-3">
-        {data && isImageUrl(data?.url) && (
-          <Image
-            src={data?.url}
-            className="rounded-3xl aspect-square"
-            style={{ objectFit: "cover" }}
-            width={500}
-            height={500}
-            alt=""
-          />
-        )}
-        {data && isVideoUrl(data?.url) && (
-          <video
-            className="rounded-3xl aspect-square"
-            style={{ objectFit: "cover" }}
-            width={500}
-            height={500}
-            muted
-            src={data?.url}
-            controls
-          />
-        )}
-      </div>
-    </div>
-  );
-}
+// function EditGalleryItem({ id }: GalleryItemProps) {
+//   const { data } = useQuery({
+//     queryKey: ["get-gallery-item", id],
+//     queryFn: () => getGalleryItem(id),
+//   });
+//   console.log(data);
+//   return (
+//     <div className="">
+//       <div className="mt-6 px-4 pt-3">
+//         {data && isImageUrl(data?.url) && (
+//           <Image
+//             src={data?.url}
+//             className="rounded-3xl aspect-square"
+//             style={{ objectFit: "cover" }}
+//             width={500}
+//             height={500}
+//             alt=""
+//           />
+//         )}
+//         {data && isVideoUrl(data?.url) && (
+//           <video
+//             className="rounded-3xl aspect-square"
+//             style={{ objectFit: "cover" }}
+//             width={500}
+//             height={500}
+//             muted
+//             src={data?.url}
+//             controls
+//           />
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
 
 export default RightSidebar;

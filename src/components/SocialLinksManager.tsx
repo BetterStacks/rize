@@ -4,27 +4,21 @@ import {
   removeSocialLink,
 } from "@/actions/social-links-actions";
 import { SocialPlatform } from "@/lib/types";
-import {
-  Facebook,
-  Twitter,
-  Instagram,
-  Linkedin,
-  Trash2,
-  Link,
-  Edit3,
-  Loader,
-  Plus,
-} from "lucide-react";
+import { Edit3, Loader, Plus, Trash2 } from "lucide-react";
 import NextLink from "next/link";
 
+import { queryClient } from "@/lib/providers";
+import { capitalizeFirstLetter, cleanUrl, cn, getIcon } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Share2 } from "lucide-react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import React from "react";
-import SocialLinksDialog from "./dialogs/AddSocialLinksDialog";
 import toast from "react-hot-toast";
-import { queryClient } from "@/lib/providers";
 import { useSocialLinksDialog } from "./dialog-provider";
-import { Copy, Share2 } from "lucide-react";
+import SocialLinksDialog from "./dialogs/AddSocialLinksDialog";
+import EditSocialLink from "./dialogs/EditSocialLinkDialog";
+import { Button } from "./ui/button";
 import {
   Card,
   CardContent,
@@ -33,10 +27,6 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { capitalizeFirstLetter, cleanUrl, cn, getIcon } from "@/lib/utils";
-import { Button } from "./ui/button";
-import EditSocialLink from "./dialogs/EditSocialLinkDialog";
-import Image from "next/image";
 
 const SocialLinksManager = () => {
   const params = useParams<{ username: string }>();

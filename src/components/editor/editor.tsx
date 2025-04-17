@@ -7,7 +7,7 @@ import { Dot, Loader, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { FC, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import TextAreaAutosize from "react-textarea-autosize";
 import readingTime from "reading-time";
@@ -43,7 +43,7 @@ const RichTextExample = ({ author }: EditorProps) => {
     []
   );
   const time = useMemo(() => {
-    const editorContent = JSON.parse(state?.content!);
+    const editorContent = JSON.parse(state?.content as string);
     const stringifiedContent = editorContent
       .map((node: Node) => Node.string(node))
       .join("\n");
@@ -53,8 +53,8 @@ const RichTextExample = ({ author }: EditorProps) => {
   const onSave = async () => {
     const p: typeof TPage = {
       id: params.id as string,
-      title: state?.title!,
-      content: state?.content!,
+      title: state?.title as string,
+      content: state?.content as string,
     };
     setIsSaving(true);
     const { error, ok } = await updatePage(p);
@@ -67,17 +67,17 @@ const RichTextExample = ({ author }: EditorProps) => {
     toast.success("Saved successfully");
   };
 
-  const deleteSelectedElement = (editor: Editor) => {
-    if (!editor.selection) return; // No selection, nothing to delete
+  // const deleteSelectedElement = (editor: Editor) => {
+  //   if (!editor.selection) return; // No selection, nothing to delete
 
-    const [match] = Editor.nodes(editor, {
-      match: (n) => Editor.isVoid(editor, n as any), // Find the block element
-    });
+  //   const [match] = Editor.nodes(editor, {
+  //     match: (n) => Editor.isVoid(editor, n as any), // Find the block element
+  //   });
 
-    if (match) {
-      Transforms.removeNodes(editor, { at: editor.selection });
-    }
-  };
+  //   if (match) {
+  //     Transforms.removeNodes(editor, { at: editor.selection });
+  //   }
+  // };
 
   useWindowEvent("keydown", (event) => {
     if (event?.ctrlKey && event.key === "s") {
@@ -123,7 +123,10 @@ const RichTextExample = ({ author }: EditorProps) => {
         {isMyPage && (
           <div className="mb-2">
             <Button variant={"outline"} onClick={onSave}>
-              {isSaving && <Loader className="mr-2 animate-spin" />} Save
+              {isSaving && (
+                <Loader className="mr-2 size-4 opacity-80 animate-spin" />
+              )}{" "}
+              Save
             </Button>
           </div>
         )}
@@ -313,9 +316,10 @@ const Leaf = ({ attributes, children, leaf }: any) => {
 // };
 
 const SlateImage = (props: any) => {
-  const { element, attributes, children, style } = props;
+  const { element, attributes } = props;
   const editor = useSlateStatic();
   const selected = useSelected();
+
   const [size, setSize] = useState({ width: 500, height: 450 });
   const focused = useFocused();
   const path = useMemo(
@@ -351,7 +355,7 @@ const SlateImage = (props: any) => {
         size={"icon"}
         className="absolute group-hover:opacity-100 opacity-0 transition-all cursor-pointer z-10 top-3 left-3 rounded-full"
       >
-        <Trash2 />
+        <Trash2 strokeWidth={1.7} className="size-4" />
       </Button>
       <Image
         src={element.url as string}

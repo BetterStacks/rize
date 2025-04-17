@@ -6,6 +6,7 @@ import NextLink from "next/link";
 import { useParams } from "next/navigation";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
+import { SocialPlatform } from "@/lib/types";
 
 const SocialLinks = () => {
   const params = useParams<{ username: string }>();

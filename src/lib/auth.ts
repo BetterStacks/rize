@@ -1,16 +1,15 @@
+import { userExists } from "@/actions/user-actions";
 import { profile, users } from "@/db/schema";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { compareSync } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import NextAuth, { DefaultSession } from "next-auth";
-import { encode as defaultEncode, JWT } from "next-auth/jwt";
+import { encode as defaultEncode } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import Github from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
-import db from "./db";
-import { userExists } from "@/actions/user-actions";
 import { v4 } from "uuid";
-import { getProfileByUserId } from "@/actions/profile-actions";
+import db from "./db";
 
 declare module "next-auth/jwt" {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
@@ -98,17 +97,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       return session;
     },
-    signIn: async (payload) => {
-      const { user, account } = payload;
-      const provider = account?.provider;
-      console.log(payload);
-      // if (provider === "google" && user?.id) {
-      //   // const userProfile = await getProfileByUserId(user.id);
-      //   // console.log({ userProfile });
-      // }
+    // signIn: async (payload) => {
+    //   const { user, account } = payload;
+    //   const provider = account?.provider;
+    //   console.log(payload);
+    //   // if (provider === "google" && user?.id) {
+    //   //   // const userProfile = await getProfileByUserId(user.id);
+    //   //   // console.log({ userProfile });
+    //   // }
 
-      return true;
-    },
+    //   return true;
+    // },
   },
   jwt: {
     encode: async function (params) {

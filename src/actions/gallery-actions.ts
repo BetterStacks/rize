@@ -18,7 +18,7 @@ export const getGalleryId = async () => {
       id: gallery.id,
     })
     .from(gallery)
-    .where(eq(gallery.profileId, session?.user?.profileId!));
+    .where(eq(gallery.profileId, session?.user?.profileId as string));
 
   if (galleryId.length === 0) {
     const newGallery = await db

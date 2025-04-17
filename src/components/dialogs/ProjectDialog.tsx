@@ -1,32 +1,32 @@
-import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { TNewProject } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Trash2, Upload } from "lucide-react";
-import toast from "react-hot-toast";
-import { TNewProject } from "@/lib/types";
-import { useProjectsDialog } from "../dialog-provider";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { z } from "zod";
+import { useProjectsDialog } from "../dialog-provider";
 
 interface ProjectDialogProps {
   // open: boolean;
@@ -48,21 +48,19 @@ const ProjectDialog: React.FC<ProjectDialogProps> = ({
   mode = "create",
 }) => {
   const [open, setOpen] = useProjectsDialog();
-  const [project, setProject] = useState<TNewProject>();
+  // const [project, setProject] = useState<TNewProject>();
+  // const [logoFile, setLogoFile] = useState<File | null>(null);
   const [startDate, setStartDate] = useState<Date | undefined>(
     initialProject?.startDate || new Date()
   );
   const [endDate, setEndDate] = useState<Date | undefined>(
     initialProject?.endDate || new Date()
   );
-  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | undefined>(
     initialProject?.logo
   );
 
-  const { register, getValues, setValue } = useForm<
-    z.infer<typeof ProjectSchema>
-  >({
+  const { register, getValues } = useForm<z.infer<typeof ProjectSchema>>({
     resolver: zodResolver(ProjectSchema),
     defaultValues: {
       name: initialProject?.name || "",
@@ -70,19 +68,19 @@ const ProjectDialog: React.FC<ProjectDialogProps> = ({
       description: initialProject?.description || "",
     },
   });
-  const values = getValues();
+  // const values = getValues();
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    // const { name, value } = e.target;
     // setProject((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setLogoFile(file);
+      // setLogoFile(file);
 
       // Create a preview URL
       const reader = new FileReader();
@@ -144,7 +142,7 @@ const ProjectDialog: React.FC<ProjectDialogProps> = ({
                     size={"icon"}
                     className="absolute shadow-lg z-10 size-8 p-1 rounded-full -top-2 -right-2"
                     onClick={() => {
-                      setLogoFile(null);
+                      // setLogoFile(null);
                       setLogoPreview(undefined);
                     }}
                   >

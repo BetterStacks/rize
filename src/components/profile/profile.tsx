@@ -9,7 +9,7 @@ type ProfileProps = {
   isMine: boolean;
 };
 
-const Profile = ({ data, isLoading, isMine }: ProfileProps) => {
+const Profile = ({ data }: ProfileProps) => {
   return (
     <div className=" w-full flex flex-col items-center justify-start   mb-2">
       <div className=" max-w-2xl mb-4 w-full flex flex-col items-center justify-start">

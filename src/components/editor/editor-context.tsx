@@ -1,10 +1,10 @@
 "use client";
+import { TPage } from "@/lib/types";
 import { createContext, ReactNode, useContext, useMemo, useState } from "react";
 import { createEditor } from "slate";
 import { withHistory } from "slate-history";
 import { Slate, withReact } from "slate-react";
-import { initialValue, withImages, withLayout } from "./utils";
-import { TPage } from "@/lib/types";
+import { initialValue, withImages } from "./utils";
 
 type EditorContextProviderProps = {
   children: ReactNode;
@@ -43,7 +43,7 @@ const EditorContextProvider = ({
   return (
     <Slate
       editor={editor}
-      initialValue={JSON.parse(value?.content!)}
+      initialValue={JSON.parse(value?.content as string)}
       onValueChange={(value) =>
         setValue((prev) => ({ ...prev, content: JSON.stringify(value) }))
       }

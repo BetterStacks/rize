@@ -1,14 +1,7 @@
 "use server";
 
-import { v2 as cloudinary } from "cloudinary";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-
-cloudinary.config({
-  api_key: "537392939961543",
-  api_secret: "ao9f7xxkcT3qjMyTqe-JjYPgGNM",
-  cloud_name: "dfccipzwz",
-});
 
 export const setServerCookie = async (key: string, value: string) => {
   return (await cookies()).set(key, value);
