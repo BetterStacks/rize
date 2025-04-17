@@ -1,23 +1,19 @@
 "use client";
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
 import { createProfile, updateProfile } from "@/actions/profile-actions";
-import { cn, fileToBase64 } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useLocalStorage } from "@mantine/hooks";
 import { useMutation } from "@tanstack/react-query";
-import { deleteCookie, getCookie, hasCookie } from "cookies-next";
+import { deleteCookie, hasCookie } from "cookies-next";
+import { AnimatePresence, motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { FinishStep } from "./steps/FinishStep";
 import { InterestsStep } from "./steps/Interests";
+import ProfileStep from "./steps/ProfileStep";
 import { UsernameStep } from "./steps/UsernameStep";
 import { WelcomeStep } from "./steps/WelcomeStep";
-import ProfileStep from "./steps/ProfileStep";
-import { useSession } from "next-auth/react";
-
-interface OnboardingProps {
-  onComplete?: (data: any) => void;
-}
 
 export default function OnboardingFlow() {
   const router = useRouter();
@@ -36,8 +32,7 @@ export default function OnboardingFlow() {
     mutationFn: createProfile,
     onSuccess: async (data) => {
       const res = await updateProfile({
-        isOnboarded: true,
-        username: data?.username!,
+        username: data?.username as string,
       });
       if (res.error) {
         toast.error(res.error);
@@ -75,10 +70,10 @@ export default function OnboardingFlow() {
         toast.error(error?.message);
       },
       onSuccess: async (data, params) => {
-        console.log({ data });
         const resp = await updateProfile({
           profileImage: data.url,
           displayName: params?.displayName,
+          isOnboarded: true,
         });
         if (!resp?.success && resp.error) {
           toast.error(resp?.error);
@@ -90,7 +85,7 @@ export default function OnboardingFlow() {
       },
     });
 
-  const onComplete = async (data: any) => {
+  const onComplete = async () => {
     try {
       router.push(`/${formData?.username}`);
       localStorage.removeItem("onboarding-data");
@@ -148,10 +143,7 @@ export default function OnboardingFlow() {
     {
       id: "finish",
       component: (
-        <FinishStep
-          formData={formData}
-          onComplete={() => onComplete(formData)}
-        />
+        <FinishStep formData={formData} onComplete={() => onComplete()} />
       ),
     },
   ];

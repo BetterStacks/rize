@@ -37,7 +37,7 @@ const profileSchema = z.object({
 
 export function ProfileForm() {
   const { data: session, update } = useSession();
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["get-profile-by-username", session?.user?.username],
     queryFn: () => getProfileByUsername(session?.user?.username as string),
   });

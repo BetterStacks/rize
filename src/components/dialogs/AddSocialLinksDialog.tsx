@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { Input } from "../ui/input";
 import {
   Select,
   SelectContent,
@@ -21,7 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Input } from "../ui/input";
 
 type SocialLinksProps = {
   value: string;
@@ -60,7 +60,8 @@ const isValidUrl = (url: string): boolean => {
   try {
     new URL(url);
     return true;
-  } catch (e) {
+  } catch (error) {
+    console.error("Invalid URL:", error);
     return false;
   }
 };
@@ -74,7 +75,6 @@ const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
   existingPlatforms,
   onAdd,
 }) => {
-  const [socialLinks, setSocialLinks] = useState<SocialLinksProps[]>(initial);
   const [open, setOpen] = useSocialLinksDialog();
   const [platform, setPlatform] = useState<SocialPlatform>("other");
   const [url, setUrl] = useState("");

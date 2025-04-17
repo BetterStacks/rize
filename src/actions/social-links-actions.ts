@@ -12,7 +12,6 @@ export const getSocialLinks = async (username: string) => {
   if (!profileId?.id) {
     throw new Error("Profile not found");
   }
-  const { ...rest } = getTableColumns(profile);
   const links = await db
     .select()
     .from(socialLinks)

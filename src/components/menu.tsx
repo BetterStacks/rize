@@ -27,23 +27,7 @@ const Menu = () => {
   const ref = useClickOutside(() => {
     setOpen(false);
   });
-  const options = [
-    {
-      id: 1,
-      name: "Explore",
-      href: "/",
-      onClick: () => {},
-      icon: <Compass className="opacity-80 size-5" strokeWidth={1.5} />,
-    },
-    {
-      id: 3,
-      name: "Search",
-      href: null,
-      onClick: () => {
-        setOpenSearch(true);
-      },
-      icon: <Search className="opacity-80 size-5" strokeWidth={1.5} />,
-    },
+  const loggedInOptions = [
     {
       id: 4,
       name: "Notifications",
@@ -77,6 +61,25 @@ const Menu = () => {
       icon: <LogOut className="opacity-80 size-5" strokeWidth={1.5} />,
     },
   ];
+  const options = [
+    {
+      id: 1,
+      name: "Explore",
+      href: "/",
+      onClick: () => {},
+      icon: <Compass className="opacity-80 size-5" strokeWidth={1.5} />,
+    },
+    {
+      id: 3,
+      name: "Search",
+      href: null,
+      onClick: () => {
+        setOpenSearch(true);
+      },
+      icon: <Search className="opacity-80 size-5" strokeWidth={1.5} />,
+    },
+  ];
+
   const menuVariants: Variants = {
     hide: {
       y: -20,
@@ -96,8 +99,8 @@ const Menu = () => {
       <Button
         variant={"outline"}
         size={"icon"}
-        className="rounded-2xl z-50 size-10 p-2"
-        onClick={() => setOpen(!open)}
+        className="rounded-2xl size-10 p-2"
+        onClick={() => setOpen(true)}
       >
         {open ? (
           <X strokeWidth={1.5} className="size-5 opacity-70" />
@@ -119,16 +122,20 @@ const Menu = () => {
               isMine ? "right-8" : "right-0"
             )}
           >
-            {options.map((option, i) => (
-              <motion.div
-                key={i}
-                className="flex w-full items-center border-t first:border-none pt-1 border-neutral-300/60 dark:border-dark-border/80 justify-start gap-x-4 cursor-pointer px-4"
-                onClick={option.onClick}
-              >
-                {option.icon}
-                <span className="tracking-tight opacity-80">{option.name}</span>
-              </motion.div>
-            ))}
+            {[...options, ...(session?.data ? loggedInOptions : [])].map(
+              (option, i) => (
+                <motion.div
+                  key={i}
+                  className="flex w-full items-center border-t first:border-none pt-1 border-neutral-300/60 dark:border-dark-border/80 justify-start gap-x-4 cursor-pointer px-4"
+                  onClick={option.onClick}
+                >
+                  {option.icon}
+                  <span className="tracking-tight opacity-80">
+                    {option.name}
+                  </span>
+                </motion.div>
+              )
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,20 +1,11 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import {
-  AlignJustify,
-  Bell,
-  Compass,
-  Search,
-  Settings,
-  UserRound,
-} from "lucide-react";
+import { Bell, Compass, Search, Settings, UserRound } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import { useProfileDialog, useSearchDialog } from "../dialog-provider";
-import { useTheme } from "next-themes";
 
 const Sidebar = () => {
   const session = useSession();
@@ -140,36 +131,5 @@ const Sidebar = () => {
     </div>
   );
 };
-
-function SortableItem({ id, name }: { [key: string]: string }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "p-2 mb-2 bg-white w-full flex items-center justify-between border border-neutral-200 dark:border-dark-border dark:bg-neutral-800   rounded-lg cursor-pointer",
-        isDragging && "drop-shadow-xl z-10 shadow-black/40 "
-      )}
-    >
-      <span className="ml-2">{name}</span>
-      <button {...attributes} {...listeners}>
-        <AlignJustify strokeWidth={1.4} className="size-4" />
-      </button>
-    </div>
-  );
-}
 
 export default Sidebar;

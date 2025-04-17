@@ -1,13 +1,12 @@
 "use server";
 
 import { initialValue } from "@/components/editor/utils";
-import { media, page, pageMedia } from "@/db/schema";
+import { media, page } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { TPage, TUploadFilesResponse } from "@/lib/types";
 import { and, eq, getTableColumns } from "drizzle-orm";
 import { getProfileIdByUsername } from "./profile-actions";
-import { isImageUrl } from "@/lib/utils";
 
 export const createPage = async () => {
   try {
@@ -58,12 +57,8 @@ export const getAllPages = async (username: string) => {
       thumbnail: media.url,
     })
     .from(page)
-    .leftJoin(
-      pageMedia,
-      and(eq(pageMedia.pageId, page.id), eq(pageMedia.type, "thumbnail"))
-    )
-    .leftJoin(media, eq(media.id, pageMedia.mediaId))
-    .where(eq(page.profileId, profileId?.id!));
+    .leftJoin(media, eq(media.id, page.thumbnail))
+    .where(eq(page.profileId, profileId?.id as string));
   if (pages.length === 0) {
     return [];
   }
@@ -77,11 +72,7 @@ export const getPageById = async (id: string) => {
       thumbnail: media.url,
     })
     .from(page)
-    .leftJoin(
-      pageMedia,
-      and(eq(pageMedia.pageId, page.id), eq(pageMedia.type, "thumbnail"))
-    )
-    .leftJoin(media, eq(media.id, pageMedia.mediaId))
+    .leftJoin(media, eq(media.id, page.thumbnail))
     .where(and(eq(page.id, id)))
     .limit(1);
   // console.log(pages);
@@ -103,26 +94,44 @@ export async function updatePageThumbnail(
     .insert(media)
     .values({
       url: payload?.url,
-      type: isImageUrl(payload?.url) ? "image" : "video",
+      type: "image",
       profileId: session?.user?.profileId,
       height: payload?.height,
       width: payload?.width,
     })
     .returning({ id: media.id });
   if (newMedia.length === 0) {
-    throw new Error("Error updating page thumbnail");
+    throw new Error("Error creating thumbnail media");
   }
-  const newPageMedia = await db
-    .insert(pageMedia)
-    .values({
-      mediaId: newMedia[0].id,
-      pageId: payload?.pageId,
-      type: "thumbnail",
-    })
+
+  const newThumbnail = await db
+    .update(page)
+    .set({ thumbnail: newMedia[0].id })
+    .where(eq(page.id, payload?.pageId))
     .returning();
 
-  if (newPageMedia.length === 0) {
+  if (newThumbnail.length === 0) {
     throw new Error("Error updating page thumbnail");
   }
-  return { success: true, error: null };
+
+  return true;
+}
+
+export async function removePageThumbnail({ pageId }: { pageId: string }) {
+  const session = await auth();
+  if (!session || !session?.user?.profileId) {
+    throw new Error("Session not found");
+  }
+
+  const newThumbnail = await db
+    .update(page)
+    .set({ thumbnail: null })
+    .where(eq(page.id, pageId))
+    .returning();
+
+  if (newThumbnail.length === 0) {
+    throw new Error("Error deleting page thumbnail");
+  }
+
+  return true;
 }

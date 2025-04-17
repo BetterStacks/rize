@@ -1,3 +1,4 @@
+import { ImageElement } from "@/lib/types";
 import { cn, isImageUrl, isVideoUrl } from "@/lib/utils";
 import {
   AlignCenter,
@@ -19,6 +20,7 @@ import React from "react";
 import { Editor, Element, Transforms } from "slate";
 import { useSlate } from "slate-react";
 import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
 import {
   insertVideo,
   isBlockActive,
@@ -27,21 +29,19 @@ import {
   toggleBlock,
   toggleMark,
 } from "./utils";
-import { ImageElement, VideoElement } from "@/lib/types";
-import { Separator } from "../ui/separator";
 
 const Toolbar = () => {
   const editor = useSlate();
-  const [value, setValue] = React.useState("paragraph");
-  function getActiveBlock() {
-    if (!editor.selection) return null;
+  // const [value, setValue] = React.useState("paragraph");
+  // function getActiveBlock() {
+  //   if (!editor.selection) return null;
 
-    const [match] = Editor.nodes(editor, {
-      match: (n) => Element.isElement(n) && Editor.isBlock(editor, n),
-    });
+  //   const [match] = Editor.nodes(editor, {
+  //     match: (n) => Element.isElement(n) && Editor.isBlock(editor, n),
+  //   });
 
-    return match ? match[0] : null;
-  }
+  //   return match ? match[0] : null;
+  // }
   // const e = getActiveBlock();
   // console.log({ e });
 

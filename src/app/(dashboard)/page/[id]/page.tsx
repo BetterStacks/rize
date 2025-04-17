@@ -43,7 +43,7 @@ const Page: FC<PageProps> = async ({ params }) => {
       <PageLayout isMyPage={isMyPage}>
         <div className="w-full flex items-center justify-center">
           <div className="w-full max-w-3xl">
-            {/* @ts-ignore */}
+            {/* @ts-expect-error */}
             <Editor author={author} />
           </div>
         </div>

@@ -19,7 +19,7 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({ children, isMine }) => {
       direction="horizontal"
     >
       <GalleryContextProvider>
-        <Sidebar />
+        {/* <Sidebar /> */}
         <ResizablePanel className="w-full h-screen   relative">
           <Navbar isMine={isMine!} />
           <ScrollArea className="h-screen overflow-y-auto relative w-full ">

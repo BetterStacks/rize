@@ -1,10 +1,14 @@
-import { getPageById, updatePageThumbnail } from "@/actions/page-actions";
+import {
+  getPageById,
+  removePageThumbnail,
+  updatePageThumbnail,
+} from "@/actions/page-actions";
 import { queryClient } from "@/lib/providers";
 import { TUploadFilesResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { Loader, Upload } from "lucide-react";
+import { Loader, Trash2, Upload } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -19,7 +23,6 @@ const PageSidebar = () => {
     queryFn: () => getPageById(params?.id as string),
   });
   const [file, setFile] = useState<{ url: string; file: File } | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   useEffect(() => {
     if (data?.thumbnail) {
       setFile({
@@ -30,7 +33,6 @@ const PageSidebar = () => {
   }, [data?.thumbnail]);
 
   const onDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-    console.log("dropped", { rejectedFiles, acceptedFiles });
     if (rejectedFiles && rejectedFiles[0]?.errors) {
       rejectedFiles[0]?.errors?.map((err) => toast.error(err?.message));
 
@@ -45,7 +47,6 @@ const PageSidebar = () => {
     useDropzone({
       onDrop,
       maxFiles: 1,
-      // validator: sizeValidator
       maxSize: 2 * 1024 * 1024,
       accept: {
         "image/*": [".png", ".jpg", ".jpeg", ".gif"],
@@ -56,35 +57,48 @@ const PageSidebar = () => {
       },
     });
 
-  const handleUpload = async () => {
-    try {
+  const { mutate: handleThumbnailUpload, isPending } = useMutation({
+    mutationFn: () => {
       const formData = new FormData();
       formData.append("files", file?.file!);
       formData.append("folder", "fyp-stacks/pages");
-      setIsUploading(true);
-      const res = await axios.post("/api/upload/files", formData);
-      // console.log({ res });
-
-      if (!res?.data?.status && res?.data?.error) {
-        // console.log({ res });
-        throw new Error(res?.data?.error);
-      }
-      const fileData = res?.data?.data[0] as TUploadFilesResponse;
+      return axios.post("/api/upload/files", formData);
+    },
+    onSuccess: async (res) => {
+      const response = res?.data;
+      const fileData = response?.data[0] as TUploadFilesResponse;
       await updatePageThumbnail({
         ...fileData,
         pageId: params?.id as string,
       });
-      setIsUploading(false);
       toast.success("Thumbnail updated successfully");
       queryClient.invalidateQueries({
         queryKey: ["get-writings"],
       });
-    } catch (error) {
-      console.error(error);
-      toast.error((error as Error)?.message || "Error uploading thumbnail");
-      setIsUploading(false);
-    }
-  };
+      queryClient.invalidateQueries({
+        queryKey: ["get-page-by-id", params?.id],
+      });
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error((err as Error)?.message || "Error uploading thumbnail");
+    },
+  });
+
+  const { mutate: deleteThumbnail, isPending: isDeleting } = useMutation({
+    mutationFn: removePageThumbnail,
+    onSuccess: async () => {
+      toast.success("Thumbnail removed successfully");
+      setFile(null);
+      queryClient.invalidateQueries({
+        queryKey: ["get-page-by-id", params?.id],
+      });
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error((err as Error)?.message || "Error removing thumbnail");
+    },
+  });
 
   return (
     <div className="w-full h-full px-4 pt-8">
@@ -96,33 +110,49 @@ const PageSidebar = () => {
       <div className="w-full flex flex-col items-center justify-center h-full">
         <div className="w-full h-full">
           <div
-            {...getRootProps()}
             className={cn(
-              "w-full overflow-hidden rounded-2xl dark:border-dark-border relative  flex flex-col items-center justify-center group h-[200px] border-2  border-neutral-300",
+              "w-full overflow-hidden rounded-2xl group dark:border-dark-border relative  flex flex-col items-center justify-center group h-[200px] border-2  border-neutral-300/60",
               !file && "border-dashed",
               isDragActive && "border-blue-500 bg-blue-50"
             )}
           >
-            <input {...getInputProps()} />
-            {file ? (
-              <Image
-                src={file?.url}
-                fill
-                alt="Thumbnail"
-                quality={100}
-                className="-z-10"
-                style={{ objectFit: "cover" }}
-              />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center">
-                <div className="mb-2">
-                  <Upload className="opacity-70 size-12" strokeWidth={1.6} />
-                </div>
-                <p className="text-neutral-600 dark:text-neutral-400 max-w-[200px] text-center text-sm">
-                  Drag & Drop images or videos here, or click to select files
-                </p>
+            {data?.thumbnail && (
+              <div className="absolute opacity-0 group-hover:opacity-100 top-2 right-2 z-50">
+                <Button
+                  disabled={isDeleting}
+                  onClick={() =>
+                    deleteThumbnail({ pageId: params?.id as string })
+                  }
+                  variant={"outline"}
+                  size={"icon"}
+                  className="rounded-2xl z-50"
+                >
+                  <Trash2 className="size-4 opacity-80" strokeWidth={1.7} />
+                </Button>
               </div>
             )}
+            <div {...getRootProps()} className="w-full h-full relative">
+              <input {...getInputProps()} />
+              {file ? (
+                <Image
+                  src={file?.url}
+                  fill
+                  alt="Thumbnail"
+                  quality={100}
+                  className="-z-10"
+                  style={{ objectFit: "cover" }}
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center">
+                  <div className="mb-2">
+                    <Upload className="opacity-70 size-12" strokeWidth={1.6} />
+                  </div>
+                  <p className="text-neutral-600 dark:text-neutral-400 max-w-[200px] text-center text-sm">
+                    Drag & Drop images or videos here, or click to select files
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
           {file && (
             <div className="w-full mt-4 flex flex-col items-center justify-center gap-2">
@@ -130,10 +160,11 @@ const PageSidebar = () => {
                 <Button
                   type="button"
                   variant="outline"
+                  disabled={isPending}
                   className="w-full flex items-center justify-center gap-2"
-                  onClick={handleUpload}
+                  onClick={() => handleThumbnailUpload()}
                 >
-                  {isUploading ? (
+                  {isPending ? (
                     <Loader className="size-4 animate-spin" />
                   ) : (
                     <>

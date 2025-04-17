@@ -39,7 +39,7 @@ const PageLayout = ({
         <>
           <ResizableHandle
             withHandle
-            className="border border-neutral-300/60 dark:border-dark-border/50"
+            className="border border-neutral-200 dark:border-dark-border/30"
           />
           <ResizablePanel
             id="page-sidebar"

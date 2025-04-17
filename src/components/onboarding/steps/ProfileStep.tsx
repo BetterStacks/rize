@@ -1,9 +1,7 @@
-import { updateProfile } from "@/actions/profile-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn, fileToBase64 } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
 import { Edit3, Loader } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";

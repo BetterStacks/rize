@@ -1,21 +1,21 @@
 "use client";
-import { useSections } from "@/lib/context";
 import { getProfileByUsername } from "@/actions/profile-actions";
+import { useSections } from "@/lib/context";
 import {
   GalleryItemProps,
   GetAllWritings,
   GetProfileByUsername,
   TSection,
 } from "@/lib/types";
+import { useMediaQuery } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import React, { ReactNode, Suspense, useEffect } from "react";
+import React, { useEffect } from "react";
 import Gallery from "../gallery/gallery";
+import MansoryGallery from "../gallery/mansory-gallery";
 import { Separator } from "../ui/separator";
 import Writings from "../writings/writings";
 import Profile from "./profile";
-import dynamic from "next/dynamic";
-import { Skeleton } from "../ui/skeleton";
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -26,6 +26,7 @@ type UserProfileProps = {
 
 const UserProfile = ({ data, isMine, gallery, writings }: UserProfileProps) => {
   const params = useParams<{ username: string }>();
+  const matches = useMediaQuery("(min-width: 768px)");
   const { data: profileData, isLoading } = useQuery({
     queryKey: ["get-profile-by-username", params.username],
     initialData: data,
@@ -37,7 +38,12 @@ const UserProfile = ({ data, isMine, gallery, writings }: UserProfileProps) => {
     {
       id: "gallery",
       name: "Gallery",
-      component: <Gallery items={gallery} isMine={isMine} />,
+      component: (
+        <>
+          <Gallery items={gallery} isMine={isMine} />
+          <MansoryGallery items={gallery} isMine={isMine} />
+        </>
+      ),
       enabled: true,
     },
     {

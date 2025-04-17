@@ -70,7 +70,7 @@ export function UsernameStep({
       </p>
       <div className="space-y-4">
         <div className="border border-neutral-300 dark:border-dark-border flex overflow-hidden px-3 py-1.5 rounded-lg">
-          <span className="opacity-70 text-lg">rize.so/</span>
+          {/* <span className="opacity-70 text-lg">rize.so/</span> */}
           <input
             type="text"
             placeholder="your-username"
@@ -81,7 +81,11 @@ export function UsernameStep({
               handleCheck(e.target.value);
             }}
           />
-          {isSearching && <Loader className="animate-spin size-6" />}
+          {isSearching && (
+            <div className="flex items-center justify-center ">
+              <Loader className="animate-spin size-4 opacity-80" />
+            </div>
+          )}
 
           {isAvailable !== null && !isSearching && (
             <div

@@ -1,8 +1,7 @@
 import { TPage } from "@/lib/types";
-import { ImageIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { FC, useMemo } from "react";
+import { FC, useMemo } from "react";
 import readingTime from "reading-time";
 import { Node } from "slate";
 

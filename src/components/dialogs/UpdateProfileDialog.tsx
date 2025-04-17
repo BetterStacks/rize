@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  getProfileByUsername,
+  isUsernameAvailable,
+  updateProfile,
+} from "@/actions/profile-actions";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -12,11 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { queryClient } from "@/lib/providers";
-import {
-  getProfileByUsername,
-  isUsernameAvailable,
-  updateProfile,
-} from "@/actions/profile-actions";
+import { revalidatePageOnClient } from "@/lib/server-actions";
 import { profileSchema, usernameSchema } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,7 +34,8 @@ import {
   X,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -41,9 +43,6 @@ import Textarea from "react-textarea-autosize";
 import { z } from "zod";
 import { useProfileDialog } from "../dialog-provider";
 import { ScrollArea } from "../ui/scroll-area";
-import { useQueryState } from "nuqs";
-import { useRouter } from "next/navigation";
-import { revalidatePageOnClient } from "@/lib/server-actions";
 
 // import { updateProfile } from "@/app/actions/updateProfile";
 
@@ -95,7 +94,7 @@ export function ProfileUpdateDialog() {
         setTab(null);
       }}
     >
-      <DialogContent className="max-w-2xl bg-light-bg dark:bg-neutral-900 p-0 flex h-[80vh] overflow-hidden w-full md:rounded-3xl">
+      <DialogContent className="md:max-w-2xl max-w-md rounded-3xl bg-light-bg dark:bg-neutral-900 p-0 flex h-[80vh] overflow-hidden md:w-full md:rounded-3xl">
         <DialogTitle className="hidden">Profile</DialogTitle>
         <DialogSidebar
           active={active}
@@ -140,7 +139,7 @@ type DialogSidebarProps = {
 
 const DialogSidebar = ({ options, active, setActive }: DialogSidebarProps) => {
   return (
-    <div className="w-[40%] border-r border-neutral-300 dark:border-dark-border/50  h-full overflow-y-auto">
+    <div className="w-[40%] hidden md:flex border-r border-neutral-300 dark:border-dark-border/50  h-full overflow-y-auto">
       <div className="flex pt-6 px-5  items-center justify-between">
         <h1 className="text-xl font-medium">Settings</h1>
       </div>
@@ -182,9 +181,9 @@ const DialogSidebar = ({ options, active, setActive }: DialogSidebarProps) => {
 const EditProfile = () => {
   const { data, update } = useSession();
   const [isUpdating, setIsUpdating] = useState(false);
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile } = useQuery({
     queryKey: ["get-profile-by-username", data?.user?.username],
-    queryFn: () => getProfileByUsername(data?.user?.username!),
+    queryFn: () => getProfileByUsername(data?.user?.username as string),
   });
   const {
     register,
@@ -225,7 +224,9 @@ const EditProfile = () => {
     revalidatePageOnClient(`/${data.username}`);
     setIsUpdating(false);
     toast.dismiss();
-    isAvailable && router.push(`/${data.username}`);
+    if (isAvailable) {
+      router.push(`/${data.username}`);
+    }
     setOpen(false);
     toast.success("Profile updated successfully");
   };

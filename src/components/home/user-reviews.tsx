@@ -59,7 +59,7 @@ const UserReviews = () => {
         )}
       >
         {arr.map((item, i) => {
-          const targetScale = 1 - (arr.length - i) * 0.15;
+          const targetScale = 1 - (arr.length - i) * 0.1;
           const scale = useTransform(
             scrollYProgress,
             [i * 0.35, 1],
@@ -72,7 +72,7 @@ const UserReviews = () => {
                 initial={{ flex: 1 }}
                 whileHover={{ flex: 2 }}
                 className="w-full h-full"
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.4, ease: [0.075, 0.82, 0.165, 1] }}
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
               >
