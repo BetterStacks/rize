@@ -144,7 +144,7 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
             variants={imagesContainerVariants}
             initial="hidden"
             animate="visible"
-            className="flex items-center justify-center flex-wrap gap-2 -space-x-16 "
+            className="grid grid-cols-4"
           >
             {sortedItems?.map((item, i) => {
               return (
@@ -218,10 +218,10 @@ const SortableGalleryItem: FC<{
         scale: 1.08,
         x: -10,
         y: -20,
-        zIndex: index,
+        zIndex: 100,
       }}
       className={cn(
-        "group aspect-square w-full h-full relative overflow-hidden bg-neutral-100 dark:bg-dark-border cursor-grab size-56 first:mt-0 active:cursor-grabbing"
+        "group aspect-square w-full h-full -my-4 -mx-8 relative overflow-hidden bg-neutral-100 dark:bg-dark-border cursor-grab size-56 active:cursor-grabbing"
         // isDragging && "opacity-70"
       )}
     >

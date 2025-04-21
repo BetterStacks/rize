@@ -58,6 +58,10 @@ export type SocialPlatform =
   | "github"
   | "youtube"
   | "reddit"
+  | "discord"
+  | "snapchat"
+  | "spotify"
+  | "pinterest"
   | "other";
 
 export type GalleryConfigProps = {
@@ -218,12 +222,12 @@ export const profileSchema = z.object({
   displayName: z.string().min(5).max(25).optional(),
   isOnboarded: z.boolean().optional(),
   username: z.string().min(5).max(20).optional(),
-  age: z.number().int().min(18).max(120).optional(),
-  pronouns: PronounsEnum.optional(),
+  // age: z.number().int().min(18).max(120).optional(),
+  // pronouns: PronounsEnum.optional(),
   profileImage: z.string().url().optional(),
   bio: z.string().optional(),
-  location: z.string().optional(),
-  website: z.string().url().optional(),
+  // location: z.string().optional(),
+  // website: z.string().url().optional(),
 });
 
 export type UsernameFormData = z.infer<typeof usernameSchema>;

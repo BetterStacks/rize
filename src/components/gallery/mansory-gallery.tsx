@@ -1,11 +1,11 @@
 import { getGalleryItems } from "@/actions/gallery-actions";
 import { GalleryItemProps } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
-import { motion, Variants } from "framer-motion";
-import { useParams } from "next/navigation";
-import React, { FC } from "react";
-import { Skeleton } from "../ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { useParams } from "next/navigation";
+import { FC } from "react";
+import { Skeleton } from "../ui/skeleton";
 import GalleryItem from "./gallery-item";
 
 type GalleryProps = {
@@ -28,7 +28,7 @@ const MansoryGallery: FC<GalleryProps> = ({ isMine, items }) => {
         {isLoading ? (
           <GallerySkeleton />
         ) : (
-          <motion.div className="columns-2 md:columns-3 space-1 relative w-full">
+          <motion.div className="columns-2 md:columns-3 space-0 gap-2.5 relative w-full">
             {data?.map((item, i) => {
               return (
                 <motion.div
@@ -36,7 +36,7 @@ const MansoryGallery: FC<GalleryProps> = ({ isMine, items }) => {
                     aspectRatio: item.width / item.height,
                   }}
                   key={i}
-                  className="flex relative first:mt-0 mt-3 overflow-hidden rounded-3xl"
+                  className="flex relative first:mt-0 mt-2.5 rounded-3xl overflow-hidden "
                 >
                   <GalleryItem index={i} isMine={isMine} item={item} />
                 </motion.div>

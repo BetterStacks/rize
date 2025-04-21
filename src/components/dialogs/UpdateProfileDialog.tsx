@@ -43,6 +43,8 @@ import Textarea from "react-textarea-autosize";
 import { z } from "zod";
 import { useProfileDialog } from "../dialog-provider";
 import { ScrollArea } from "../ui/scroll-area";
+import { Separator } from "../ui/separator";
+import Image from "next/image";
 
 // import { updateProfile } from "@/app/actions/updateProfile";
 
@@ -139,7 +141,7 @@ type DialogSidebarProps = {
 
 const DialogSidebar = ({ options, active, setActive }: DialogSidebarProps) => {
   return (
-    <div className="w-[40%] hidden md:flex border-r border-neutral-300 dark:border-dark-border/50  h-full overflow-y-auto">
+    <div className="w-[40%] hidden md:flex border-r  flex-col border-neutral-300 dark:border-dark-border/50  h-full overflow-y-auto">
       <div className="flex pt-6 px-5  items-center justify-between">
         <h1 className="text-xl font-medium">Settings</h1>
       </div>
@@ -161,7 +163,7 @@ const DialogSidebar = ({ options, active, setActive }: DialogSidebarProps) => {
             </span>
             {active === option.id && (
               <motion.div
-                className="h-9 w-1 bg-neutral-400 dark:bg-dark-border rounded-full absolute right-0"
+                className="h-9 flex items-center justify-end w-full -z-10 bg-indigo-50 dark:bg-indigo-400/20  absolute right-0"
                 transition={{
                   layout: {
                     duration: 0.2,
@@ -169,7 +171,9 @@ const DialogSidebar = ({ options, active, setActive }: DialogSidebarProps) => {
                   },
                 }}
                 layoutId={`active-line`}
-              />
+              >
+                <div className="w-1 h-9 bg-indigo-600 rounded-full" />
+              </motion.div>
             )}
           </div>
         ))}
@@ -189,17 +193,12 @@ const EditProfile = () => {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
   } = useForm<z.infer<typeof profileSchema>>({
     values: {
       email: profile?.email || "",
       displayName: profile?.displayName || "",
       username: profile?.username || "",
-      age: profile?.age || 18,
       bio: profile?.bio || "",
-      location: profile?.location || "",
-      pronouns: profile?.pronouns || "he/him",
-      website: profile?.website || "",
     },
     resolver: zodResolver(profileSchema),
   });
@@ -269,16 +268,25 @@ const EditProfile = () => {
       onSubmit={handleSubmit(onSubmit)}
       className="space-y-4 flex flex-col max-w-sm w-full mb-10"
     >
-      {/* <div className="size-24 ring-4 mb-2 ring-neutral-300 dark:ring-dark-border overflow-hidden rounded-full ">
-        <Image
-          src={profile?.profileImage as string}
-          alt="Profile"
-          width={100}
-          className="rounded-full aspect-square"
-          height={100}
-        />
-      </div> */}
       {/* <div className="flex items-center justify-center w-full gap-3"> */}
+      <div className="flex flex-col   ">
+        <h1 className="text-xl font-medium">Edit Profile</h1>
+        <p className="text-sm opacity-80 mt-2">
+          Update your profile information. This will be visible to other users.
+        </p>
+        <Separator className="bg-neutral-300 mt-4 h-[1px] w-full dark:bg-dark-border/80" />
+      </div>
+      {profile?.image && (
+        <div className="size-24 ring-4 mb-2 ring-neutral-300 dark:ring-dark-border overflow-hidden rounded-full ">
+          <Image
+            src={profile?.image}
+            alt="Profile"
+            width={100}
+            className="rounded-full aspect-square"
+            height={100}
+          />
+        </div>
+      )}
       <div className="space-y-2  w-full">
         <Label htmlFor="displayName">Name</Label>
         <Input
@@ -343,7 +351,7 @@ const EditProfile = () => {
           <p className="text-sm text-red-500">Username is not available</p>
         )} */}
 
-        <div className="space-y-2 w-full">
+        {/* <div className="space-y-2 w-full">
           <Label htmlFor="age">Age</Label>
           <Input
             className="text-opacity-80"
@@ -354,9 +362,9 @@ const EditProfile = () => {
           {errors.age && (
             <p className="text-sm text-red-500">{errors.age.message}</p>
           )}
-        </div>
+        </div> */}
       </div>
-      <div className="flex items-center justify-center w-full gap-3">
+      {/* <div className="flex items-center justify-center w-full gap-3">
         <div className="space-y-2  w-full">
           <Label htmlFor="pronouns">Pronouns</Label>
           <Select
@@ -399,13 +407,13 @@ const EditProfile = () => {
         {errors.website && (
           <p className="text-sm text-red-500">{errors.website.message}</p>
         )}
-      </div>
+      </div> */}
       <div className="space-y-2">
         <Label htmlFor="bio">Bio</Label>
         <Textarea
           minRows={3}
           maxRows={6}
-          className="w-full  p-2 text-opacity-80 text-sm appearance-none border focus-visible:outline-none border-neutral-300 dark:border-dark-border bg-transparent rounded-md"
+          className="w-full  p-2 text-opacity-80 text-sm appearance-none border focus-visible:outline-none border-neutral-300 dark:border-dark-border resize-none bg-transparent rounded-md"
           id="bio"
           {...register("bio")}
         />
