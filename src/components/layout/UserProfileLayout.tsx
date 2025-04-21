@@ -6,6 +6,9 @@ import RightSidebar from "../sidebar/RightSidebar";
 import Sidebar from "../sidebar/Sidebar";
 import { ResizablePanel, ResizablePanelGroup } from "../ui/resizable";
 import { ScrollArea } from "../ui/scroll-area";
+import { useRightSidebar } from "@/lib/context";
+import { useMediaQuery } from "@mantine/hooks";
+import { Sheet, SheetContent } from "../ui/sheet";
 
 type ProfileLayoutProps = {
   children: ReactNode;
@@ -13,6 +16,8 @@ type ProfileLayoutProps = {
 };
 
 const ProfileLayout: FC<ProfileLayoutProps> = ({ children, isMine }) => {
+  const [open, setOpen] = useRightSidebar();
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   return (
     <ResizablePanelGroup
       className="w-full h-full flex items-center  justify-center"
@@ -29,10 +34,16 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({ children, isMine }) => {
           </ScrollArea>
         </ResizablePanel>
 
-        {isMine && (
+        {isMine && isDesktop ? (
           <div className="w-full  hidden lg:flex items-center justify-end h-full max-w-md border-l border-neutral-200  dark:border-dark-border/60">
             <RightSidebar />
           </div>
+        ) : (
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetContent className="max-w-md w-full h-screen p-0 bg-white dark:bg-dark-border/80 border border-neutral-200 dark:border-dark-border/60 dark:bg-dark-bg">
+              <RightSidebar />
+            </SheetContent>
+          </Sheet>
         )}
       </GalleryContextProvider>
     </ResizablePanelGroup>

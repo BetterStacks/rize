@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn, MAX_GALLERY_ITEMS } from "@/lib/utils";
 import { motion } from "framer-motion";
 import React, { FC } from "react";
 
@@ -7,8 +7,7 @@ type GalleryLimitProps = {
 };
 
 const GalleryLimit: FC<GalleryLimitProps> = ({ itemCount }) => {
-  const allowedItems = 4;
-  const limit = Math.floor((itemCount / allowedItems) * 100);
+  const limit = Math.floor((itemCount / MAX_GALLERY_ITEMS) * 100);
   return (
     <div
       className={cn(

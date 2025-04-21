@@ -1,7 +1,7 @@
 "use client";
 import { addGalleryItem, getGalleryItem } from "@/actions/gallery-actions";
 import { queryClient } from "@/lib/providers";
-import { cn, isImageUrl, isVideoUrl } from "@/lib/utils";
+import { cn, isImageUrl, isVideoUrl, MAX_GALLERY_ITEMS } from "@/lib/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -77,16 +77,14 @@ function EditGallery() {
   useEffect(() => {
     if (items.length === 0 || files.length === 0) return;
     const count = items.length;
-    const limit = 4;
+    const limit = MAX_GALLERY_ITEMS;
     console.log("items", items, files);
 
     const total = count + files.length;
 
     if (total >= limit) {
       setIsDisabled(true);
-      // toast.error(
-      //   `You can only add ${limit} items to the gallery. Please remove some items before adding new ones.`
-      // );
+
       setFiles((prev) => prev.slice(0, limit - count));
     } else {
       setIsDisabled(false);
@@ -125,6 +123,7 @@ function EditGallery() {
   const { mutate: handleUpload, isPending } = useMutation({
     mutationFn: uploadMedia,
     onSuccess: async (data) => {
+      setFiles([]);
       await Promise.all(
         data.map(async (result: any) => {
           const item = await addGalleryItem(result);
@@ -144,17 +143,16 @@ function EditGallery() {
     formData.append("folder", "fyp-stacks/gallery");
 
     handleUpload(formData);
-    setFiles([]); // Clear file input
   };
 
-  const limit = Math.floor((items.length / 4) * 100);
+  const limit = Math.floor((items.length / MAX_GALLERY_ITEMS) * 100);
 
   return (
     <div className="h-full overflow-hidden  w-full pt-6">
       {limit !== 100 && (
         <div className="flex flex-col">
           <h3 className="text-xl px-4 leading-tight tracking-tight mb-3">
-            Edit Gallery
+            Add To Gallery
           </h3>
           <div className="p-4 flex flex-col">
             <div
@@ -175,44 +173,54 @@ function EditGallery() {
               </div>{" "}
             </div>
           </div>
-          <div className="w-full h-full px-4 pt-2 mb-10">
+          <div className="w-full h-full px-4 pt-2 mb-4">
             <Button
               disabled={files.length === 0}
               onClick={handleAddItems}
               className="w-full"
+              variant="outline"
             >
               {isPending && (
-                <Loader className="opacity-80 animate-spin size-4" />
+                <Loader className="opacity-80 animate-spin size-4 mr-2" />
               )}{" "}
               Add Media
             </Button>
-            {files.map((file) => (
-              <div key={file.id} className="relative group mt-3">
-                <Button
-                  onClick={() => removeFile(file?.id)}
-                  variant={"outline"}
-                  size={"icon"}
-                  className="absolute top-2 z-10 right-2"
+            <div className="w-full flex flex-wrap gap-2 mt-4">
+              {files.map((file) => (
+                <div
+                  key={file.id}
+                  className="w-fit flex items-center justify-center gap-x-2 border border-neutral-300/60 dark:border-dark-border/80 rounded-xl relative group p-1 "
                 >
-                  <X className="size-5" />
-                </Button>
-                {file.type === "image" ? (
-                  <Image
-                    width={500}
-                    height={500}
-                    src={file.url}
-                    alt="Preview"
-                    className="w-full h-[300px] object-cover rounded-md shadow-md"
-                  />
-                ) : (
-                  <video
-                    src={file.url}
-                    controls
-                    className="w-full h-[300px] rounded-md shadow-md"
-                  />
-                )}
-              </div>
-            ))}
+                  <div className="size-8 relative rounded-lg overflow-hidden">
+                    {file.type === "image" ? (
+                      <Image
+                        fill
+                        src={file.url}
+                        alt="Preview"
+                        className="w-full aspect-square object-cover "
+                      />
+                    ) : (
+                      <video
+                        src={file.url}
+                        className="w-full aspect-square object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="max-w-[80px] line-clamp-1">
+                    <span className="opacity-90">{file?.file?.name}</span>
+                  </div>
+                  <Button
+                    onClick={() => removeFile(file?.id)}
+                    variant={"outline"}
+                    size={"smallIcon"}
+                    className="size-6"
+                    // className="absolute top-2 z-10 right-2"
+                  >
+                    <X className="size-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

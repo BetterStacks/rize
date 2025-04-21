@@ -2,6 +2,9 @@ import { clsx, type ClassValue } from "clsx";
 import { Area } from "react-easy-crop";
 import { twMerge } from "tailwind-merge";
 import { SocialPlatform } from "./types";
+
+export const MAX_GALLERY_ITEMS = 8;
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -143,6 +146,21 @@ export const capitalizeFirstLetter = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
+export const availablePlatforms: SocialPlatform[] = [
+  "facebook",
+  "twitter",
+  "instagram",
+  "linkedin",
+  "github",
+  "youtube",
+  "reddit",
+  "other",
+  "discord",
+  "snapchat",
+  "spotify",
+  "pinterest",
+];
+
 export const getIcon = (platform: SocialPlatform) => {
   switch (platform) {
     case "facebook":
@@ -159,7 +177,15 @@ export const getIcon = (platform: SocialPlatform) => {
       return "youtube.svg";
     case "reddit":
       return "reddit.svg";
-    default:
+    case "discord":
+      return "discord.svg";
+    case "snapchat":
+      return "snapchat.svg";
+    case "spotify":
+      return "spotify.svg";
+    case "pinterest":
+      return "pinterest.svg";
+    case "other":
       return "globe.svg";
   }
 };

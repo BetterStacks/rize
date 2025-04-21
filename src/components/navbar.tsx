@@ -1,10 +1,12 @@
 import { cn } from "@/lib/utils";
-import { Edit3, Moon, Sun } from "lucide-react";
+import { Edit3, Moon, Sidebar, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { FC } from "react";
 import { useProfileDialog } from "./dialog-provider";
 import Menu from "./menu";
 import { Button } from "./ui/button";
+import { useMediaQuery } from "@mantine/hooks";
+import { useRightSidebar } from "@/lib/context";
 
 type NavbarProps = {
   isMine: boolean;
@@ -13,8 +15,8 @@ type NavbarProps = {
 const Navbar: FC<NavbarProps> = ({ isMine }) => {
   const { theme, setTheme } = useTheme();
   const setOpen = useProfileDialog()[1];
-  // const session = useSession();
-
+  const setSidebarOpen = useRightSidebar()[1];
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   return (
     <nav className="absolute  w-full flex items-center justify-center z-50 py-3 px-2 md:px-0 ">
       <div
@@ -55,6 +57,16 @@ const Navbar: FC<NavbarProps> = ({ isMine }) => {
               >
                 <Edit3 strokeWidth={1.5} className="size-5 opacity-70" />
               </Button>
+              {!isDesktop && (
+                <Button
+                  variant={"outline"}
+                  size={"icon"}
+                  className="rounded-2xl size-10 ml-1 p-2"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Sidebar strokeWidth={1.5} className="size-5 opacity-70" />
+                </Button>
+              )}
             </>
           )}
         </div>

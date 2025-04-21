@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { availablePlatforms as platforms } from "@/lib/utils";
 
 type SocialLinksProps = {
   value: string;
@@ -79,16 +80,7 @@ const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
   const [platform, setPlatform] = useState<SocialPlatform>("other");
   const [url, setUrl] = useState("");
 
-  const availablePlatforms: SocialPlatform[] = [
-    "facebook",
-    "twitter",
-    "instagram",
-    "linkedin",
-    "github",
-    "youtube",
-    "reddit",
-    "other",
-  ].filter(
+  const availablePlatforms: SocialPlatform[] = [...platforms].filter(
     (p) => p === "other" || !existingPlatforms.includes(p as SocialPlatform)
   ) as SocialPlatform[];
 
