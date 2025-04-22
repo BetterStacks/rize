@@ -22,6 +22,9 @@ import {
   messyGridVariants,
 } from "./gallery-config";
 import GalleryItem from "./gallery-item";
+import { Camera, ImageIcon, Plus, Upload } from "lucide-react";
+import { Button } from "../ui/button";
+import { EmptyGalleryState } from "./gallery-empty-state";
 
 export const galleryLayouts = {
   "messy-grid": {
@@ -118,6 +121,8 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
       <motion.div className="w-full relative max-w-3xl flex flex-col  items-center justify-center mt-10">
         {isLoading ? (
           <GallerySkeleton />
+        ) : sortedItems.length === 0 ? (
+          <EmptyGalleryState />
         ) : (
           // <DndContext
           //   sensors={sensors}

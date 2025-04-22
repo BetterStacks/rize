@@ -16,7 +16,7 @@ const Providers = ({ children }: { children: ReactNode }) => {
       <NuqsAdapter>
         <SessionProvider>
           <QueryClientProvider client={queryClient}>
-            <ThemeProvider attribute={"class"} defaultTheme="system">
+            <ThemeProvider attribute={"class"} defaultTheme="dark">
               <Context>
                 <DialogContextProvider>
                   <Toaster />

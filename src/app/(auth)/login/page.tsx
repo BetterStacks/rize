@@ -5,7 +5,7 @@ import React from "react";
 const Page = () => {
   return (
     <div className="w-full h-screen flex items-center justify-center">
-      <div className="flex max-w-xs w-full flex-col">
+      <div className="flex max-w-sm w-full flex-col">
         <Login />
         <div className="w-full mt-4 flex items-center justify-center">
           <span className="text-sm w-full text-center font-medium opacity-80">

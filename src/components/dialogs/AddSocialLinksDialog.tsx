@@ -116,7 +116,7 @@ const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md sm:rounded-3xl">
+      <DialogContent className="sm:max-w-md rounded-2xl dark:bg-dark-bg  sm:rounded-3xl">
         <DialogHeader>
           <DialogTitle>Add Social Link</DialogTitle>
           <DialogDescription>
@@ -153,10 +153,9 @@ const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
             />
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="gap-y-2">
           <Button
             type="button"
-            variant="secondary"
             onClick={() => {
               setOpen(false);
               setPlatform("other");
@@ -165,7 +164,7 @@ const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
           >
             Cancel
           </Button>
-          <Button type="submit" onClick={handleAdd}>
+          <Button variant="secondary" type="submit" onClick={handleAdd}>
             Add Link
           </Button>
         </DialogFooter>
