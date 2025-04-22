@@ -118,7 +118,7 @@ const ProfileStep = ({
 
         <Button
           variant={"secondary"}
-          disabled={!displayName || isPending}
+          disabled={!displayName || isPending || !profileImage}
           onClick={async () => {
             if (file) {
               const url = await fileToBase64(file!);
@@ -139,7 +139,8 @@ const ProfileStep = ({
           }}
           className="w-full mt-4"
         >
-          {isPending && <Loader className="animate-spin size-4 mr-2" />} Next
+          {isPending && <Loader className="animate-spin size-4 mr-2" />}{" "}
+          Continue
         </Button>
       </div>
     </div>

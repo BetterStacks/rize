@@ -109,7 +109,8 @@ export function UsernameStep({
           disabled={!username || !isAvailable || isPending}
           className="w-full"
         >
-          {isPending && <Loader className="animate-spin size-4 mr-2" />} Next
+          {isPending && <Loader className="animate-spin size-4 mr-2" />}{" "}
+          Continue
         </Button>
       </div>
     </div>

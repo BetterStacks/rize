@@ -107,7 +107,7 @@ const Toolbar = () => {
   ];
 
   return (
-    <div className="w-fit border shadow-xl bg-white/80 dark:bg-[#181818a1] dark:border-dark-border backdrop-blur border-neutral-300 flex items-center justify-center py-1.5 px-2 rounded-lg">
+    <div className="max-w-xs md:max-w-md lg:max-w-xl overflow-x-auto border shadow-xl bg-white/80 dark:bg-[#181818a1] dark:border-dark-border backdrop-blur border-neutral-300 flex items-center justify-center py-1.5 px-2 rounded-lg">
       <div className="flex  gap-x-1 items-center justify-center ">
         {leafs.map((leaf, i) => {
           const isActive = isMarkActive(editor, leaf?.format);

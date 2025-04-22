@@ -50,7 +50,7 @@ const UserProfile = ({ data, isMine, gallery, writings }: UserProfileProps) => {
       id: "writings",
       name: "Writings",
       component: <Writings writings={writings} isMine={isMine} />,
-      enabled: writings.length > 0,
+      enabled: true,
     },
   ];
 

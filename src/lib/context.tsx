@@ -7,6 +7,8 @@ type TAppContext = {
   setSections: React.Dispatch<React.SetStateAction<TSection[]>>;
   isRightSidebarOpen: boolean;
   setIsRightSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isPageSidebarOpen: boolean;
+  setIsPageSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const AppContext = createContext<TAppContext>({
@@ -14,6 +16,8 @@ const AppContext = createContext<TAppContext>({
   setSections: () => {},
   isRightSidebarOpen: false,
   setIsRightSidebarOpen: () => {},
+  isPageSidebarOpen: false,
+  setIsPageSidebarOpen: () => {},
 });
 
 export const useSections = () => {
@@ -26,10 +30,16 @@ export const useRightSidebar = () => {
 
   return [ctx.isRightSidebarOpen, ctx.setIsRightSidebarOpen] as const;
 };
+export const usePageSidebar = () => {
+  const ctx = useContext(AppContext);
+
+  return [ctx.isPageSidebarOpen, ctx.setIsPageSidebarOpen] as const;
+};
 
 const Context = ({ children }: { children: ReactNode }) => {
   const [sections, setSections] = useState<TSection[]>([]);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+  const [isPageSidebarOpen, setIsPageSidebarOpen] = useState(false);
 
   return (
     <div className="w-full ">
@@ -39,6 +49,8 @@ const Context = ({ children }: { children: ReactNode }) => {
           setSections,
           isRightSidebarOpen,
           setIsRightSidebarOpen,
+          isPageSidebarOpen,
+          setIsPageSidebarOpen,
         }}
       >
         {children}

@@ -67,7 +67,7 @@ const HeroSection = () => {
   return (
     <div className="">
       {session?.data?.user && (
-        <div className="absolute rounded-full top-4 right-4 flex items-center gap-2">
+        <div className="absolute rounded-full top-4 right-4 z-50 flex items-center gap-2">
           <Link prefetch href={`/${session?.data?.user?.username}`}>
             <Image
               src={
@@ -103,7 +103,7 @@ const HeroSection = () => {
         >
           {heading.split(" ").map((line, index) => (
             <motion.span
-              className="leading-none mx-1"
+              className="leading-none mx-1 md:mx-1.5"
               key={index}
               variants={headingVariants}
             >
@@ -116,7 +116,7 @@ const HeroSection = () => {
           variants={headingVariants}
           initial="initial"
           animate="animate"
-          className="text-center  mt-2"
+          className="text-center  mt-2 px-5"
         >
           {description.split("\n").map((line, index) => (
             <motion.span

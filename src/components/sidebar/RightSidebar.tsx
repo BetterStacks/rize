@@ -21,11 +21,13 @@ import { ScrollArea } from "../ui/scroll-area";
 
 const RightSidebar = () => {
   return (
-    <div className="h-screen w-full  flex flex-col items-start justify-between">
-      <ScrollArea className="h-full w-full overflow-y-auto flex flex-col  ">
-        <EditGallery />
-        <SocialLinksManager />
-        <SectionManager />
+    <div className="h-screen w-full  flex flex-col items-start justify-between ">
+      <ScrollArea className="h-full w-full overflow-y-auto flex flex-col ">
+        <div className="mb-10">
+          <EditGallery />
+          <SocialLinksManager />
+          <SectionManager />
+        </div>
       </ScrollArea>
     </div>
   );
@@ -71,7 +73,7 @@ type MediaFile = {
 
 function EditGallery() {
   const [files, setFiles] = useState<MediaFile[]>([]);
-  const { items, addItem } = useGalleryItems();
+  const { items } = useGalleryItems();
   const [isDisabled, setIsDisabled] = useState(false);
 
   useEffect(() => {

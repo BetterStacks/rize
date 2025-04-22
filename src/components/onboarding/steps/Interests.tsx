@@ -58,7 +58,8 @@ export function InterestsStep({
         disabled={selectedInterests.length < 3}
         className="w-full "
       >
-        Next ({selectedInterests.length}/3)
+        Continue
+        {/* ({selectedInterests.length}/3) */}
       </Button>
     </div>
   );
