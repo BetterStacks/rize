@@ -207,3 +207,33 @@ export const fileToBase64 = (file: File): Promise<string> => {
     reader.onerror = (error) => reject(error);
   });
 };
+
+export function isEqual(a: any, b: any): boolean {
+  // Handle same reference or primitive equality
+  if (a === b) return true;
+
+  // Handle Date objects
+  if (a instanceof Date && b instanceof Date) {
+    return a.getTime() === b.getTime();
+  }
+
+  // Handle null or undefined
+  if (a == null || b == null) return a === b;
+
+  // Handle arrays
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    return a.every((item, i) => isEqual(item, b[i]));
+  }
+
+  // Handle objects
+  if (typeof a === "object" && typeof b === "object") {
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length) return false;
+    return aKeys.every((key) => isEqual(a[key], b[key]));
+  }
+
+  // Fallback
+  return false;
+}

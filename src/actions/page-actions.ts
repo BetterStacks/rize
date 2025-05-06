@@ -1,7 +1,7 @@
 "use server";
 
 import { initialValue } from "@/components/editor/utils";
-import { media, page } from "@/db/schema";
+import { media, page, profile } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { TPage, TUploadFilesResponse } from "@/lib/types";
@@ -55,9 +55,11 @@ export const getAllPages = async (username: string) => {
     .select({
       ...rest,
       thumbnail: media.url,
+      avatar: profile.profileImage,
     })
     .from(page)
     .leftJoin(media, eq(media.id, page.thumbnail))
+    .innerJoin(profile, eq(profile.id, page.profileId))
     .where(eq(page.profileId, profileId?.id as string));
   if (pages.length === 0) {
     return [];

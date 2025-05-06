@@ -63,7 +63,7 @@ const PageLayout = ({
         </>
       ) : (
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent className="max-w-sm w-full h-screen p-0 bg-white dark:bg-dark-border/80 border border-neutral-200 dark:border-dark-border/60 dark:bg-dark-bg">
+          <SheetContent className="w-[80%] h-screen p-0 bg-white dark:bg-dark-border/80 border border-neutral-200 dark:border-dark-border/60 dark:bg-dark-bg">
             <PageSidebar />
           </SheetContent>
         </Sheet>

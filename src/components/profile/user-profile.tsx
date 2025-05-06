@@ -3,16 +3,22 @@ import { getProfileByUsername } from "@/actions/profile-actions";
 import { useSections } from "@/lib/context";
 import {
   GalleryItemProps,
+  GetAllProjects,
   GetAllWritings,
   GetProfileByUsername,
+  TEducation,
+  TExperience,
   TSection,
 } from "@/lib/types";
 import { useMediaQuery } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import React, { useEffect } from "react";
+import Education from "../education/education";
+import WorkExperience from "../experience/experience";
 import Gallery from "../gallery/gallery";
 import MansoryGallery from "../gallery/mansory-gallery";
+import Projects from "../projects/projects";
 import { Separator } from "../ui/separator";
 import Writings from "../writings/writings";
 import Profile from "./profile";
@@ -22,9 +28,20 @@ type UserProfileProps = {
   isMine: boolean;
   gallery: GalleryItemProps[];
   writings: GetAllWritings[];
+  projects: GetAllProjects[];
+  education: TEducation[];
+  workExperience: TExperience[];
 };
 
-const UserProfile = ({ data, isMine, gallery, writings }: UserProfileProps) => {
+const UserProfile = ({
+  data,
+  isMine,
+  gallery,
+  writings,
+  projects,
+  education,
+  workExperience,
+}: UserProfileProps) => {
   const params = useParams<{ username: string }>();
   const matches = useMediaQuery("(min-width: 768px)");
   const { data: profileData, isLoading } = useQuery({
@@ -52,6 +69,26 @@ const UserProfile = ({ data, isMine, gallery, writings }: UserProfileProps) => {
       component: <Writings writings={writings} isMine={isMine} />,
       enabled: true,
     },
+    {
+      id: "projects",
+      name: "Projects",
+      component: <Projects projects={projects} isMine={isMine} />,
+      enabled: true,
+    },
+    {
+      id: "education",
+      name: "Education",
+      component: <Education education={education} isMine={isMine} />,
+      enabled: true,
+    },
+    {
+      id: "work-experience",
+      name: "Experience",
+      component: (
+        <WorkExperience workExperience={workExperience} isMine={isMine} />
+      ),
+      enabled: true,
+    },
   ];
 
   useEffect(() => {
@@ -65,7 +102,10 @@ const UserProfile = ({ data, isMine, gallery, writings }: UserProfileProps) => {
       {sections
         ?.filter((section) => section.enabled)
         .map((section) => (
-          <React.Fragment key={section?.id}>{section.component}</React.Fragment>
+          <React.Fragment key={section?.id}>
+            {section.component}
+            <Separator className="w-full max-w-2xl" />
+          </React.Fragment>
         ))}
     </div>
   );

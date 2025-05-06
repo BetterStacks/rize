@@ -59,7 +59,6 @@ export function InterestsStep({
         className="w-full "
       >
         Continue
-        {/* ({selectedInterests.length}/3) */}
       </Button>
     </div>
   );

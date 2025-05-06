@@ -1,4 +1,6 @@
 import {
+  education,
+  experience,
   galleryMedia,
   media,
   page,
@@ -20,7 +22,12 @@ export const TGalleryItem = galleryMedia.$inferSelect;
 export const NewProfile = profile.$inferInsert;
 export const TMedia = media.$inferSelect;
 export type TSocialLink = typeof socialLinks.$inferSelect;
-export type TNewProject = typeof projects.$inferSelect;
+export type TProject = typeof projects.$inferSelect;
+export type TNewProject = typeof projects.$inferInsert;
+export type TEducation = typeof education.$inferSelect;
+export type TNewEducation = typeof education.$inferInsert;
+export type TExperience = typeof experience.$inferSelect;
+export type TNewExperience = typeof experience.$inferInsert;
 
 export type TUploadFilesResponse = {
   width: number;
@@ -48,7 +55,11 @@ export type GalleryItemProps = typeof TMedia & {
   // height: number;
 };
 
-export type GetAllWritings = typeof TPage & { thumbnail: string };
+export type GetAllWritings = typeof TPage & {
+  avatar: string;
+  thumbnail: string;
+};
+export type GetAllProjects = TProject & { thumbnail: string };
 
 export type SocialPlatform =
   | "facebook"

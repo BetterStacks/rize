@@ -2,7 +2,7 @@
 import { register } from "@/actions/user-actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Loader } from "lucide-react";
+import { Eye, EyeClosed, Loader } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
@@ -12,6 +12,8 @@ import { z } from "zod";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import Logo from "../logo";
+import Link from "next/link";
 
 const RegisterSchema = z.object({
   name: z.string().min(3, { message: "Name must be at least 3 characters." }),
@@ -55,149 +57,102 @@ const SignUp = () => {
   const handleSocialSignIn = async (provider: "google" | "github") => {
     try {
       setIsSocialLoading(provider);
-      await signIn(provider);
+      await signIn(provider, {
+        redirect: true,
+        redirectTo: "/onboarding",
+      });
     } finally {
       setIsSocialLoading(null);
     }
   };
 
   return (
-    <div className=" w-full space-y-4">
-      <div>
-        <span className="text-3xl font-medium  md:font-semibold tracking-tight leading-tight">
-          Signup & Create <br /> your Account
+    <div className=" w-full shadow-2xl bg-white dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 space-y-4 rounded-3xl p-6">
+      <div className="flex flex-col items-center justify-center">
+        <Logo className="mx-auto mb-4 size-12" />
+        <h2 className="text-2xl font-medium tracking-tight leading-tight md:font-semibold">
+          Create Account
+        </h2>
+        <span className="mt-2 text-sm opacity-80">
+          Please enter your details to register
         </span>
       </div>
-
-      <form
-        onSubmit={form.handleSubmit((values) => signup(values))}
-        // onSubmit={form.handleSubmit(async (values) => {
-        //   signup(values)
-        // try {
-        //   setIsLoading(true);
-        //   console.log(values);
-        //   const respo= await register(values);
-        //   console.log({ data });
-        //   // if (error) {
-        //   //   toast.error(error);
-        //   //   return;
-        //   // }
-        //   // const res = await signIn("credentials", {
-        //   //   email: data?.email,
-        //   //   password: data?.password,
-        //   //   redirect: true,
-        //   //   redirectTo: "/onboarding",
-        //   // });
-
-        //   // if (!res?.ok) {
-        //   //   toast.error(res?.error);
-        //   //   return;
-        //   // }
-        //   toast.success("Account created successfully");
-        // } finally {
-        //   setIsLoading(false);
-        // }
-        // })}
-        className="space-y-2"
-      >
-        <Label>
-          Name
-          <Input
-            className="border-neutral-400/80"
-            type="text"
-            {...form.register("name")}
-          />
-        </Label>
-        {form?.formState.errors.name && (
-          <span className="text-red-500 text-sm">
-            {form?.formState.errors.name?.message}
-          </span>
-        )}
-        <Label>
-          Email
-          <Input
-            className="border-neutral-400/80"
-            type="email"
-            {...form.register("email")}
-          />
-        </Label>
-        {form?.formState.errors.email && (
-          <span className="text-red-500 text-sm">
-            {form?.formState.errors.email?.message}
-          </span>
-        )}
-
-        <Label className="mt-2">
-          Password
-          <Input
-            className="border-neutral-400/80"
-            type="password"
-            {...form.register("password")}
-          />
-        </Label>
-        {form?.formState.errors.password && (
-          <span className="text-red-500 text-sm">
-            {form?.formState.errors.password?.message}
-          </span>
-        )}
-        <Button
-          variant={"secondary"}
-          disabled={isPending}
-          type="submit"
-          className="w-full mt-2"
-        >
-          {isPending ? <Loader className="h-4 w-4 animate-spin mr-2" /> : null}
-          Create Account
-        </Button>
-      </form>
-      <div className="flex items-center justify-center">
-        <hr className="h-[0.5px] w-full bg-neutral-400" />
-        <span className="text-xs opacity-80 mx-1">OR</span>
-        <hr className="h-[0.5px] w-full bg-neutral-400" />
-      </div>
       <div className="flex flex-col space-y-2">
-        {/* <span className="my-2 text-sm opacity-80 tracking-tight leading-tight">
-          By clicking "Create Profile" you agree to our Code of Conduct, Terms
-          of Service and Privacy Policy.
-        </span> */}
         <Button
-          variant={"secondary"}
+          variant={"outline"}
           disabled={!!isSocialLoading}
           onClick={() => handleSocialSignIn("google")}
           className="rounded-lg px-6"
         >
           {isSocialLoading === "google" ? (
-            <Loader className="h-4 w-4 animate-spin mr-2" />
+            <Loader className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <Image
               width={25}
-              className="aspect-square size-6 mr-1"
               height={25}
-              src={"/google.svg"}
+              src="/google.svg"
               alt="Google Logo"
+              className="size-6 mr-2"
             />
           )}
-          SignIn with Google
+          Sign in with Google
         </Button>
-        {/* <Button
+      </div>
+
+      <div className="flex items-center justify-center max-w-xs w-full gap-x-2 mt-4 mb-2">
+        <div className="w-full bg-neutral-200 dark:bg-dark-border/80 h-[0.5px]" />
+        <span className="text-xs opacity-60">OR</span>
+        <div className="w-full bg-neutral-200 dark:bg-dark-border/80 h-[0.5px]" />
+      </div>
+      <form
+        onSubmit={form.handleSubmit(async (values) => signup(values))}
+        className="gap-y-2 flex flex-col "
+      >
+        <div>
+          <Label className="text-sm font-medium ">Name</Label>
+
+          <Input
+            className="border-neutral-300/80"
+            type="text"
+            placeholder="name"
+            {...form.register("name")}
+          />
+        </div>
+        <div>
+          <Label className="text-sm font-medium ">Email Address</Label>
+          <Input
+            className="border-neutral-300/80"
+            type="email"
+            placeholder="example@gmail.com"
+            {...form.register("email")}
+          />
+        </div>
+        <div>
+          <Label className="text-sm font-medium ">Password</Label>
+          <Input
+            className="border-neutral-300/80"
+            type="password"
+            placeholder="password"
+            {...form.register("password")}
+          />
+        </div>
+        <Button
           variant={"secondary"}
-          disabled={!!isSocialLoading}
-          onClick={() => handleSocialSignIn("github")}
-          className="rounded-lg px-6"
+          disabled={!!form.formState.errors || isPending}
+          className="w-full mt-2"
         >
-          {isSocialLoading === "github" ? (
-            <Loader className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <Image
-              width={25}
-              className="aspect-square size-6 mr-1"
-              height={25}
-              src={"/github.svg"}
-              alt="Github Logo"
-            />
-          )}
-          SignIn with Github
-        </Button> */}
+          {isPending ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Create Account
+        </Button>
+      </form>
+      <div className="w-full mt-6 mb-10 flex items-center justify-center">
+        <span className="text-sm w-full text-center font-medium opacity-80">
+          {" "}
+          Already have a account?{" "}
+          <Link href={"/login"} className="text-indigo-500">
+            Login
+          </Link>
+        </span>
       </div>
     </div>
   );

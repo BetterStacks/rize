@@ -1,13 +1,12 @@
 "use client";
+import { useRightSidebar } from "@/lib/context";
+import { useMediaQuery } from "@mantine/hooks";
 import { FC, ReactNode } from "react";
 import GalleryContextProvider from "../gallery/gallery-context";
 import Navbar from "../navbar";
 import RightSidebar from "../sidebar/RightSidebar";
-import Sidebar from "../sidebar/Sidebar";
 import { ResizablePanel, ResizablePanelGroup } from "../ui/resizable";
 import { ScrollArea } from "../ui/scroll-area";
-import { useRightSidebar } from "@/lib/context";
-import { useMediaQuery } from "@mantine/hooks";
 import { Sheet, SheetContent } from "../ui/sheet";
 
 type ProfileLayoutProps = {
@@ -40,7 +39,7 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({ children, isMine }) => {
           </div>
         ) : (
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetContent className="max-w-xs w-full h-screen p-0 bg-white dark:bg-dark-border/80 border border-neutral-200 dark:border-dark-border/60 dark:bg-dark-bg ">
+            <SheetContent className="max-w-md sm:max-w-lg w-full h-screen p-0 bg-white dark:bg-dark-border/80 border border-neutral-200 dark:border-dark-border/60 dark:bg-dark-bg ">
               <RightSidebar />
             </SheetContent>
           </Sheet>

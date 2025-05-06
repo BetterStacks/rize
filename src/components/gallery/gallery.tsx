@@ -1,6 +1,6 @@
 import { getGalleryItems } from "@/actions/gallery-actions";
 import { GalleryItemProps } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, MAX_GALLERY_ITEMS } from "@/lib/utils";
 import {
   DragEndEvent,
   DragStartEvent,
@@ -117,11 +117,11 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
   // };
 
   return (
-    <div className="w-full mt-6  hidden md:flex flex-col items-center justify-center">
+    <div className="w-full mt-6 mb-16  hidden md:flex flex-col items-center justify-center">
       <motion.div className="w-full relative max-w-3xl flex flex-col  items-center justify-center mt-10">
         {isLoading ? (
           <GallerySkeleton />
-        ) : sortedItems.length === 0 ? (
+        ) : sortedItems?.length === 0 ? (
           <EmptyGalleryState />
         ) : (
           // <DndContext
@@ -161,6 +161,26 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
                 />
               );
             })}
+            {sortedItems?.length !== MAX_GALLERY_ITEMS && (
+              <motion.div
+                style={{ borderRadius: "12%" }}
+                variants={itemVariants}
+                whileHover={{
+                  scale: 1.08,
+                  x: -10,
+                  y: -20,
+                  zIndex: 100,
+                }}
+                className={cn(
+                  "group aspect-square w-full h-full -my-4 -mx-8 relative overflow-hidden bg-neutral-100 dark:bg-dark-bg cursor-grab size-56 border-2 flex items-center justify-center border-dashed border-neutral-300/60 dark:border-dark-border active:cursor-grabbing"
+                )}
+              >
+                <Plus
+                  className="size-10 stroke-neutral-600 dark:stroke-neutral-400"
+                  strokeWidth={1.6}
+                />
+              </motion.div>
+            )}
           </motion.div>
           //   </SortableContext>
           // </DndContext>
@@ -226,7 +246,7 @@ const SortableGalleryItem: FC<{
         zIndex: 100,
       }}
       className={cn(
-        "group aspect-square w-full h-full -my-4 -mx-8 relative overflow-hidden bg-neutral-100 dark:bg-dark-border cursor-grab size-56 active:cursor-grabbing"
+        "group aspect-square w-full h-full -my-4 -mx-8 relative overflow-hidden bg-neutral-100 dark:bg-dark-border cursor-grab size-56 active:cursor-grabbing shadow-2xl "
         // isDragging && "opacity-70"
       )}
     >

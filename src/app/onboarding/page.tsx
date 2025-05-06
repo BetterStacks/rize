@@ -5,9 +5,9 @@ import { redirect } from "next/navigation";
 
 export default async function OnboardingPage() {
   const session = await auth();
-  // if (session?.user?.username && session?.user?.isOnboarded) {
-  //   redirect(`/${session?.user?.username}`);
-  // }
+  if (session?.user?.username && session?.user?.isOnboarded) {
+    redirect(`/${session?.user?.username}`);
+  }
 
   return (
     <AuthGuard authOnly>

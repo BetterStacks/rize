@@ -7,21 +7,21 @@ import UserReviewCard from "./user-review-card";
 
 const arr = [
   {
-    name: "Ravi Teja",
-    img: "https://i.pinimg.com/736x/4c/33/7a/4c337a2224e5be2efd77d76fe4b1017c.jpg",
+    name: "Dan koe",
+    img: "https://yt3.googleusercontent.com/B4XuOHeo6s6XAbi85LUXK70itVCivYf63Bw5u1gHz-HmN2-cmgbVvAM_B8j2SAzxtbeYJT4RfA=s900-c-k-c0x00ffffff-no-rj",
     position: "Indie Maker Running $4000\n MRR Saas products remotely ",
     content: `I’ve been using it daily for three\n months now. I shipped in three\n months what my pipeline was for this\n year.`,
   },
   {
-    name: "Emily Rivera",
-    img: "https://i.pinimg.com/736x/f3/ae/78/f3ae7877ac2a77dc32ad8aab9a71ba00.jpg",
+    name: "Alex Hormozi",
+    img: "https://assets.entrepreneur.com/content/3x2/2000/1675793968-alex.jpg?format=pjeg&auto=webp&crop=1:1",
     position:
       "Freelance UI/UX Designer \n Makes $6000+ in freelancing \n every month.",
     content: `I love tools that allow you to add \n content in an unstructured way but\n find everything back in a structured\n manner. Realm just does that.`,
   },
   {
-    name: "Andy To",
-    img: "https://i.pinimg.com/736x/9d/96/83/9d96833705d9d5d17e508b905a4f1b7c.jpg",
+    name: "Joe Rogan",
+    img: "https://pbs.twimg.com/profile_images/552307347851210752/vrXDcTFC_400x400.jpeg",
     position: `Filmmaker & Content Creator\n One of the top 30 travel\n influencers globally`,
     content:
       "It is an immensely underrated tool. It\n can empower the creative process of\n content creators, dump everything\n and never forget",
@@ -45,7 +45,7 @@ const UserReviews = () => {
       ref={ref}
       className="w-full px-4 flex relative flex-col mb-10 items-center justify-center"
     >
-      <span className="text-3xl font-medium md:text-4xl tracking-tight md:font-semibold leading-none text-center ">
+      <span className="text-3xl font-medium  mb-6 tracking-tight  leading-none text-center ">
         We Help you own <br className="hidden md:flex" />
         your Story not just your Resume
       </span>

@@ -1,3 +1,4 @@
+import { createProject, getProjectByID } from "@/actions/project-actions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -16,22 +17,25 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { TNewProject } from "@/lib/types";
+import { queryClient } from "@/lib/providers";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Trash2, Upload } from "lucide-react";
+import { Calendar as CalendarIcon, Loader, Trash2, Upload } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
+import { useDropzone } from "react-dropzone";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 import { useProjectsDialog } from "../dialog-provider";
+import { TNewProject } from "@/lib/types";
+import { useParams } from "next/navigation";
 
 interface ProjectDialogProps {
-  // open: boolean;
-  // onOpenChange: (open: boolean) => void;
-  initialProject?: TNewProject;
+  initialProject?: string;
   mode?: "create" | "edit";
 }
 
@@ -42,86 +46,86 @@ const ProjectSchema = z.object({
 });
 
 const ProjectDialog: React.FC<ProjectDialogProps> = ({
-  // open,
-  // onOpenChange,
   initialProject,
-  mode = "create",
+  mode,
 }) => {
+  const { username } = useParams<{ username: string }>();
+  const { data: project, isFetching } = useQuery({
+    queryKey: ["get-projects-by-id", username, initialProject!],
+    enabled: !!initialProject,
+    queryFn: () => getProjectByID(username, initialProject!),
+  });
+  console.log({ project });
   const [open, setOpen] = useProjectsDialog();
-  // const [project, setProject] = useState<TNewProject>();
-  // const [logoFile, setLogoFile] = useState<File | null>(null);
   const [startDate, setStartDate] = useState<Date | undefined>(
-    initialProject?.startDate || new Date()
+    project?.startDate || new Date()
   );
   const [endDate, setEndDate] = useState<Date | undefined>(
-    initialProject?.endDate || new Date()
+    project?.endDate || new Date()
   );
   const [logoPreview, setLogoPreview] = useState<string | undefined>(
-    initialProject?.logo
+    project?.logo || undefined
   );
+  const [logoFile, setLogoFile] = useState<File | undefined>(undefined);
+
+  const onDrop = (acceptedFiles: File[]) => {
+    setLogoFile(acceptedFiles[0]);
+    setLogoPreview(URL.createObjectURL(acceptedFiles[0]));
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    multiple: false,
+    accept: {
+      "image/*": [".png", ".jpg", ".jpeg", ".heic", ".webp", ".gif"],
+    },
+  });
+  const uploadMedia = async (formData: FormData) => {
+    const res = await axios.post("/api/upload/files", formData);
+    if (res.status !== 200) throw new Error("Upload failed");
+    return res.data?.data;
+  };
 
   const { register, getValues } = useForm<z.infer<typeof ProjectSchema>>({
     resolver: zodResolver(ProjectSchema),
-    defaultValues: {
-      name: initialProject?.name || "",
-      url: initialProject?.url || "",
-      description: initialProject?.description || "",
+    values: {
+      name: project?.name || "",
+      url: project?.url || "",
+      description: project?.description || "",
     },
   });
-  // const values = getValues();
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    // const { name, value } = e.target;
-    // setProject((prev) => ({ ...prev, [name]: value }));
-  };
+  const { mutate: handleUpload, isPending } = useMutation({
+    mutationFn: uploadMedia,
+    onSuccess: async (data) => {
+      const uploadedLogo = data[0];
+      console.log({ uploadedLogo });
+      const newProject = {
+        description: getValues("description"),
+        endDate: endDate,
+        logo: uploadedLogo?.url,
+        name: getValues("name"),
+        startDate: startDate,
+        url: getValues("url"),
+      } as TNewProject;
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      // setLogoFile(file);
-
-      // Create a preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const preview = reader.result as string;
-        setLogoPreview(preview);
-        // setProject((prev) => ({ ...prev, logo: preview }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSave = () => {
-    // if (!project.name) {
-    //   toast.error("Project name is required");
-    //   return;
-    // }
-
-    if (mode === "edit" && initialProject?.id) {
-      //   updateProject(initialProject.id, {
-      //     ...project,
-      //     date: date?.toISOString() || new Date().toISOString(),
-      //   });
-      toast.success("Project updated successfully");
-    } else {
-      //   addProject({
-      //     ...project,
-      //     date: date?.toISOString() || new Date().toISOString(),
-      //   });
-      toast.success("Project added successfully");
-    }
-    setOpen(false);
-  };
+      const res = await createProject({
+        ...newProject,
+        ...{ width: uploadedLogo?.width, height: uploadedLogo?.height },
+      });
+      console.log(res);
+      queryClient.invalidateQueries({ queryKey: ["get-gallery-items"] });
+    },
+    onError: (error) => {
+      toast.error(error?.message);
+    },
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-xl sm:rounded-3xl dark:bg-dark-bg">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "create" ? "Add New Project" : "Edit Project"}
-          </DialogTitle>
+          <DialogTitle>Add New Project</DialogTitle>
           <DialogDescription>
             Enter the details of your project below
           </DialogDescription>
@@ -130,6 +134,7 @@ const ProjectDialog: React.FC<ProjectDialogProps> = ({
         <div className="grid gap-5 py-4">
           <div className="flex flex-col gap-3 items-start">
             <div
+              {...getRootProps()}
               className={cn(
                 !logoPreview && "border-2 border-dashed rounded-2xl",
                 " flex relative  items-center justify-center  border-neutral-300 dark:border-dark-border size-20"
@@ -142,7 +147,7 @@ const ProjectDialog: React.FC<ProjectDialogProps> = ({
                     size={"icon"}
                     className="absolute shadow-lg z-10 size-8 p-1 rounded-full -top-2 -right-2"
                     onClick={() => {
-                      // setLogoFile(null);
+                      setLogoFile(undefined);
                       setLogoPreview(undefined);
                     }}
                   >
@@ -152,12 +157,7 @@ const ProjectDialog: React.FC<ProjectDialogProps> = ({
                 </>
               ) : (
                 <>
-                  <input
-                    id="logo-input"
-                    className="hidden"
-                    onChange={handleLogoChange}
-                    type="file"
-                  />
+                  <input {...getInputProps()} className="hidden" type="file" />
                   <label htmlFor="logo-input" className="cursor-pointer">
                     <Upload
                       className="opacity-50"
@@ -242,10 +242,7 @@ const ProjectDialog: React.FC<ProjectDialogProps> = ({
           <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
-              id="description"
-              name="description"
-              //   value={project.description || ""}
-              onChange={handleInputChange}
+              {...register("description")}
               placeholder="A brief description of what this project does"
               className="resize-none min-h-[80px]"
             />
@@ -256,8 +253,24 @@ const ProjectDialog: React.FC<ProjectDialogProps> = ({
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
-            {mode === "create" ? "Create Project" : "Save Changes"}
+          <Button
+            disabled={isPending}
+            onClick={() => {
+              if (mode === "edit") {
+                return;
+              }
+              if (!logoFile) {
+                toast.error("Please upload a project logo");
+                return;
+              }
+              const formData = new FormData();
+              formData.append("files", logoFile);
+              formData.append("folder", "fyp-stacks/projects");
+              handleUpload(formData);
+            }}
+          >
+            {isPending && <Loader className="size-4 opacity-80 mr-2" />}
+            {mode === "edit" ? "Edit Project" : "Create Project"}
           </Button>
         </DialogFooter>
       </DialogContent>
