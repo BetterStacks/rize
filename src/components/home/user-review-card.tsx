@@ -58,7 +58,7 @@ const UserReviewCard: FC<UserReviewCardProps> = ({
           <h2 className="tracking-tight font-medium md:font-semibold text-xl md:text-2xl">
             {name}
           </h2>
-          <p className="mt-3 text-lg opacity-90 leading-tight ">
+          <p className="mt-3 shrink-0 text-nowrap text-lg opacity-90 leading-tight ">
             {position.split("\n").map((line, i) => (
               <Fragment key={i}>
                 {line} <br />

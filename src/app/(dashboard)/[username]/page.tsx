@@ -6,6 +6,9 @@ import UserProfileLayout from "@/components/layout/UserProfileLayout";
 import { auth } from "@/lib/auth";
 import { getGalleryItems } from "@/actions/gallery-actions";
 import { getAllPages } from "@/actions/page-actions";
+import { getAllProjects } from "@/actions/project-actions";
+import { getAllEducation } from "@/actions/education-actions";
+import { getAllExperience } from "@/actions/experience-actions";
 
 type Props = {
   params: Promise<{ username: string }>;
@@ -30,10 +33,14 @@ const Page: FC<Props> = async ({ params }) => {
   }
 
   const user = await getProfileByUsername(username);
-  const [gallery, writings] = await Promise.all([
-    getGalleryItems(username),
-    getAllPages(username),
-  ]);
+  const [gallery, writings, projects, education, workExperience] =
+    await Promise.all([
+      getGalleryItems(username),
+      getAllPages(username),
+      getAllProjects(username),
+      getAllEducation(username),
+      getAllExperience(username),
+    ]);
 
   const isMine = user?.username === session?.user?.username;
   return (
@@ -44,6 +51,9 @@ const Page: FC<Props> = async ({ params }) => {
           data={user}
           gallery={gallery}
           writings={writings}
+          projects={projects}
+          education={education}
+          workExperience={workExperience}
         />
       </div>
     </UserProfileLayout>

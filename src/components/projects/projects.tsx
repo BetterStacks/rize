@@ -1,78 +1,76 @@
 "use client";
-import { createPage, getAllPages } from "@/actions/page-actions";
+import { getAllProjects } from "@/actions/project-actions";
+import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
+import { GetAllProjects } from "@/lib/types";
+import { useMediaQuery } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, PenLine, Plus } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import { Button } from "../ui/button";
-import WritingCard from "./writing-card";
-import { Skeleton } from "../ui/skeleton";
-import { GetAllWritings } from "@/lib/types";
-import { Variants, motion } from "framer-motion";
+import { motion } from "framer-motion";
+import { Brain, Plus } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useState } from "react";
+import { Button } from "../ui/button";
+import { Skeleton } from "../ui/skeleton";
+import ProjectCard from "./project-card";
 
-type WritingsProps = {
+type ProjectsProps = {
   isMine: boolean;
-  writings: GetAllWritings[];
+  projects: GetAllProjects[];
 };
 
-const Writings = ({ isMine, writings }: WritingsProps) => {
-  const router = useRouter();
-
+const Projects = ({ isMine, projects }: ProjectsProps) => {
   const { username } = useParams<{ username: string }>();
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const setOpen = useRightSidebar()[1];
   const { data, isFetching } = useQuery({
-    queryKey: ["get-writings", username],
-    initialData: writings,
-    queryFn: () => getAllPages(username),
-    // refetchOnWindowFocus: false,
-    // refetchOnMount: false,
+    queryKey: ["get-projects", username],
+    initialData: projects,
+    queryFn: () => getAllProjects(username),
+    refetchOnWindowFocus: false,
+    // refetchOnReconnect: false,
+    refetchOnMount: false,
   });
 
-  const createNewPage = async () => {
-    const page = await createPage();
-    if (page?.error) {
-      toast.error(page.error);
-      return;
-    }
-    toast.success("Page created");
-    router.push(`/page/${page?.data?.id}`);
-  };
+  const setActiveTab = useActiveSidebarTab()[1];
+
   return (
     <div
-      id="writings"
+      id="projects"
       className="w-full my-12 px-2 md:px-4 flex flex-col items-center justify-start"
     >
-      <div className="max-w-2xl w-full flex items-center justify-between">
-        <h2 className="text-xl font-medium mb-2 md:mb-4">Writings</h2>
+      <div className="w-full max-w-2xl mb-2 flex items-center justify-between">
+        <h2 className="text-xl font-medium mb-2 md:mb-4">Projects</h2>
         {isMine && (
           <Button
-            className="  rounded-lg scale-90 text-sm"
-            onClick={createNewPage}
-            size={"sm"}
             variant={"outline"}
+            className="  rounded-lg scale-90 text-sm"
+            size={"sm"}
+            onClick={() => {
+              setActiveTab({ id: null, tab: "projects" });
+              if (!isDesktop) {
+                setOpen(true);
+              }
+            }}
           >
             <Plus className="opacity-80 mr-2 size-4" />
-            New Page
+            New Project
           </Button>
         )}
       </div>
-      <div className="w-full max-w-2xl mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-6 ">
+      <div className="w-full grid grid-cols-1  max-w-2xl gap-4 ">
         {isFetching ? (
           [...Array.from({ length: 4 })].map((_, i) => (
             <Skeleton
               key={i}
-              className="w-full h-[140px] mt-3 rounded-xl animate-pulse bg-neutral-200 dark:bg-dark-border"
+              className="w-full h-[80px]  rounded-xl animate-pulse bg-neutral-200 dark:bg-dark-border"
             />
           ))
         ) : data?.length === 0 ? (
-          <EmptyWritingState onCreateNew={createNewPage} />
+          <EmptyWritingState
+            onCreateNew={() => setActiveTab({ id: null, tab: "projects" })}
+          />
         ) : (
-          data?.map((writing, i) => {
-            return (
-              <motion.div key={i} custom={i}>
-                <WritingCard data={writing} />
-              </motion.div>
-            );
+          data?.map((project, i) => {
+            return <ProjectCard key={i} project={project} isMine={isMine} />;
           })
         )}
       </div>
@@ -80,7 +78,7 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
   );
 };
 
-interface EmptyWritingStateProps {
+interface EmptyProjectStateProps {
   title?: string;
   description?: string;
   ctaText?: string;
@@ -88,11 +86,11 @@ interface EmptyWritingStateProps {
 }
 
 export function EmptyWritingState({
-  title = "Start Your Writing Journey",
+  title = "Start Sharing your Projects Journey",
   description = "Your ideas deserve to be shared. Create your first piece and let your words flow.",
-  ctaText = "Create New Document",
+  ctaText = "Add New Project",
   onCreateNew = () => {},
-}: EmptyWritingStateProps) {
+}: EmptyProjectStateProps) {
   const [isHovering, setIsHovering] = useState(false);
 
   return (
@@ -109,7 +107,7 @@ export function EmptyWritingState({
             transition={{ type: "spring", stiffness: 300, damping: 15 }}
           >
             <div className="relative">
-              <FileText
+              <Brain
                 className="size-6 text-violet-500 dark:text-violet-400"
                 strokeWidth={1.5}
               />
@@ -144,4 +142,4 @@ export function EmptyWritingState({
   );
 }
 
-export default Writings;
+export default Projects;

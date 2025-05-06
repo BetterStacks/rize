@@ -38,6 +38,7 @@ const defaultContextState: DialogContextType = {
   isSocialLinksDialogOpen: false,
   isAddExperienceDialogOpen: false,
   isSearchDialogOpen: false,
+  isProjectsDialogOpen: false,
 };
 
 const DialogContext = createContext([
@@ -178,7 +179,7 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
   );
   const setIsProjectsDialogOpen = useCallback(
     (isOpen: boolean) => {
-      setOpenContext({ ...openContext, isSearchDialogOpen: isOpen });
+      setOpenContext({ ...openContext, isProjectsDialogOpen: isOpen });
     },
     [openContext, setOpenContext]
   );

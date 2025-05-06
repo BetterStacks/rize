@@ -1,6 +1,8 @@
+import { relations } from "drizzle-orm";
 import {
   boolean,
   customType,
+  date,
   integer,
   pgTable,
   primaryKey,
@@ -72,18 +74,18 @@ export const profile = pgTable("profile", {
     .$onUpdate(() => new Date()),
 });
 
-export const sections = pgTable("sections", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => v4()),
-  profileId: uuid("profile_id")
-    .notNull()
-    .references(() => profile.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  enabled: boolean("enabled").notNull().default(true),
-  order: integer("order").notNull().default(0),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+// export const sections = pgTable("sections", {
+//   id: uuid("id")
+//     .primaryKey()
+//     .$defaultFn(() => v4()),
+//   profileId: uuid("profile_id")
+//     .notNull()
+//     .references(() => profile.id, { onDelete: "cascade" }),
+//   name: text("name").notNull(),
+//   enabled: boolean("enabled").notNull().default(true),
+//   order: integer("order").notNull().default(0),
+//   createdAt: timestamp("created_at").notNull().defaultNow(),
+// });
 
 export const socialLinks = pgTable("social_links", {
   id: uuid("id")
@@ -173,6 +175,62 @@ export const projects = pgTable("projects", {
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
 });
+
+export const education = pgTable("education", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => gen_uuid()),
+  profileId: uuid("profileId")
+    .notNull()
+    .references(() => profile.id, { onDelete: "cascade" }),
+  school: varchar("school", { length: 255 }).notNull(),
+  degree: varchar("degree", { length: 255 }),
+  fieldOfStudy: varchar("field_of_study", { length: 255 }),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  grade: varchar("grade", { length: 50 }),
+
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const educationRelations = relations(education, ({ one }) => ({
+  profile: one(profile, {
+    fields: [education.profileId],
+    references: [profile.id],
+  }),
+}));
+
+export const experience = pgTable("experience", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => gen_uuid()),
+  profileId: uuid("profileId")
+    .notNull()
+    .references(() => profile.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }).notNull(),
+  company: varchar("company", { length: 255 }).notNull(),
+  location: varchar("location", { length: 255 }),
+  employmentType: varchar("employment_type", { length: 100 }),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  currentlyWorking: boolean("currently_working").notNull().default(false),
+  companyLogo: uuid("company_logo").references(() => media.id, {
+    onDelete: "cascade",
+  }),
+  website: text("website"),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const experienceRelations = relations(experience, ({ one }) => ({
+  profile: one(profile, {
+    fields: [experience.profileId],
+    references: [profile.id],
+  }),
+}));
 
 export const accounts = pgTable(
   "account",

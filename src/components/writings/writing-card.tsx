@@ -41,7 +41,7 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
             <></>
           )}
         </div>
-        <div className="space-y-2 md:px-4">
+        <div className="space-y-2 md:px-4 mt-2">
           <h3 className="text-lg tracking-tight opacity-80 group-hover:opacity-100 leading-tight  ">
             {data?.title}
           </h3>

@@ -14,7 +14,7 @@ export default function Home() {
       <TextReveal />
       <BentoGrid />
       <UserReviews />
-      <div className="w-full h-full bg-gradient-to-b from-transparent to-indigo-500/70 dark:to-indigo-500/90">
+      <div className="w-full h-full bg-gradient-to-b from-transparent to-indigo-500 dark:to-indigo-500/90">
         <FAQSection />
         <Footer />
       </div>

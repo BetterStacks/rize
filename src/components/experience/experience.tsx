@@ -1,77 +1,96 @@
 "use client";
-import { createPage, getAllPages } from "@/actions/page-actions";
-import { useQuery } from "@tanstack/react-query";
-import { FileText, PenLine, Plus } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import {
+  deleteExperience,
+  getAllExperience,
+} from "@/actions/experience-actions";
+import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
+import { queryClient } from "@/lib/providers";
+import { TExperience } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import {
+  BriefcaseBusiness,
+  CalendarIcon,
+  Edit2,
+  Loader,
+  Plus,
+  Trash,
+} from "lucide-react";
+import { useParams } from "next/navigation";
+import { useQueryState } from "nuqs";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
-import WritingCard from "./writing-card";
 import { Skeleton } from "../ui/skeleton";
-import { GetAllWritings } from "@/lib/types";
-import { Variants, motion } from "framer-motion";
-import { useState } from "react";
+import ExperienceCard from "./experience-card";
+import { useMediaQuery } from "@mantine/hooks";
 
-type WritingsProps = {
+type WorkExperienceProps = {
   isMine: boolean;
-  writings: GetAllWritings[];
+  workExperience: TExperience[];
 };
 
-const Writings = ({ isMine, writings }: WritingsProps) => {
-  const router = useRouter();
-
+const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
   const { username } = useParams<{ username: string }>();
+  const setOpen = useRightSidebar()[1];
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+
   const { data, isFetching } = useQuery({
-    queryKey: ["get-writings", username],
-    initialData: writings,
-    queryFn: () => getAllPages(username),
-    // refetchOnWindowFocus: false,
-    // refetchOnMount: false,
+    queryKey: ["get-all-experience", username],
+    initialData: workExperience,
+    queryFn: () => getAllExperience(username),
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
-  const createNewPage = async () => {
-    const page = await createPage();
-    if (page?.error) {
-      toast.error(page.error);
-      return;
-    }
-    toast.success("Page created");
-    router.push(`/page/${page?.data?.id}`);
-  };
+  const setActiveTab = useActiveSidebarTab()[1];
+
   return (
     <div
-      id="writings"
+      id="projects"
       className="w-full my-12 px-2 md:px-4 flex flex-col items-center justify-start"
     >
-      <div className="max-w-2xl w-full flex items-center justify-between">
-        <h2 className="text-xl font-medium mb-2 md:mb-4">Writings</h2>
+      <div className="max-w-2xl mb-2 w-full flex items-center justify-between">
+        <h2 className="text-xl font-medium mb-2 md:mb-4">Work Experience</h2>
         {isMine && (
           <Button
-            className="  rounded-lg scale-90 text-sm"
-            onClick={createNewPage}
-            size={"sm"}
             variant={"outline"}
+            className="  rounded-lg scale-90 text-sm"
+            size={"sm"}
+            onClick={() => {
+              setActiveTab({ id: null, tab: "work-experience" });
+              if (!isDesktop) {
+                setOpen(true);
+              }
+            }}
           >
             <Plus className="opacity-80 mr-2 size-4" />
-            New Page
+            Add Experience
           </Button>
         )}
       </div>
-      <div className="w-full max-w-2xl mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-6 ">
+      <div className="w-full flex flex-col max-w-2xl gap-y-5 relative">
         {isFetching ? (
           [...Array.from({ length: 4 })].map((_, i) => (
             <Skeleton
               key={i}
-              className="w-full h-[140px] mt-3 rounded-xl animate-pulse bg-neutral-200 dark:bg-dark-border"
+              className="w-full h-[100px] mt-3 rounded-xl animate-pulse bg-neutral-200 dark:bg-dark-border"
             />
           ))
         ) : data?.length === 0 ? (
-          <EmptyWritingState onCreateNew={createNewPage} />
+          <EmptyWritingState
+            onCreateNew={() => {
+              setActiveTab({ id: null, tab: "work-experience" });
+              if (!isDesktop) {
+                setOpen(true);
+              }
+            }}
+          />
         ) : (
-          data?.map((writing, i) => {
+          data?.map((experience, i) => {
             return (
-              <motion.div key={i} custom={i}>
-                <WritingCard data={writing} />
-              </motion.div>
+              <ExperienceCard key={i} experience={experience} isMine={isMine} />
             );
           })
         )}
@@ -80,7 +99,7 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
   );
 };
 
-interface EmptyWritingStateProps {
+interface EmptyWorkExperienceStateProps {
   title?: string;
   description?: string;
   ctaText?: string;
@@ -88,11 +107,11 @@ interface EmptyWritingStateProps {
 }
 
 export function EmptyWritingState({
-  title = "Start Your Writing Journey",
+  title = "Share your Work Experience ",
   description = "Your ideas deserve to be shared. Create your first piece and let your words flow.",
-  ctaText = "Create New Document",
+  ctaText = "Add Experience",
   onCreateNew = () => {},
-}: EmptyWritingStateProps) {
+}: EmptyWorkExperienceStateProps) {
   const [isHovering, setIsHovering] = useState(false);
 
   return (
@@ -109,21 +128,10 @@ export function EmptyWritingState({
             transition={{ type: "spring", stiffness: 300, damping: 15 }}
           >
             <div className="relative">
-              <FileText
+              <BriefcaseBusiness
                 className="size-6 text-violet-500 dark:text-violet-400"
                 strokeWidth={1.5}
               />
-              {/* <motion.div
-                initial={{ opacity: 0, x: 5, y: 5 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="absolute -right-1 -top-1"
-              >
-                <PenLine
-                  className="h-5 w-5 text-indigo-500 dark:text-indigo-400"
-                  strokeWidth={1.5}
-                />
-              </motion.div> */}
             </div>
           </motion.div>
         </div>
@@ -144,4 +152,4 @@ export function EmptyWritingState({
   );
 }
 
-export default Writings;
+export default WorkExperience;

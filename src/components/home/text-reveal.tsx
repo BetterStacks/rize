@@ -15,6 +15,7 @@ const TextReveal = () => {
   });
   const opacity = useTransform(scrollYProgress, [1, 0.7, 0], [1, 0.5, 0]);
   const y = useTransform(scrollYProgress, [1, 0.4, 0], [-100, -40, 0]);
+  const scale = useTransform(scrollYProgress, [1, 0.4, 0], [1, 0.8, 0]);
 
   const MotionImage = motion.create(Image);
 
@@ -28,7 +29,7 @@ const TextReveal = () => {
       className="w-full px-4 flex  flex-col items-center relative justify-center "
     >
       <MotionImage
-        style={{ opacity, y }}
+        style={{ opacity, y, scale }}
         transition={{
           ease: [0.12, 0.146, -0.18, 1],
           duration: 0.4,

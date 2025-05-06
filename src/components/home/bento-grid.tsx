@@ -75,7 +75,7 @@ const ArticleCards = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -50, scale: 0.95 }}
             transition={{ duration: 0.8 }}
-            className="absolute max-w-[280px] md:max-w-md z-50 w-full bg-white dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border rounded-3xl min-h-[150px] shadow-md p-4 flex items-center flex-col-reverse md:flex-row justify-center gap-x-2 md:pb-0 pb-6"
+            className="absolute max-w-[280px] md:max-w-md z-50 w-full bg-white dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border rounded-3xl min-h-[150px] shadow-md p-4 flex items-center flex-col-reverse md:flex-row justify-center  gap-x-2 md:pb-0 pb-6"
           >
             <div className="w-full flex flex-col justify-start items-start px-4">
               <h2 className="md:text-lg font-medium  leading-tight tracking-tight">
