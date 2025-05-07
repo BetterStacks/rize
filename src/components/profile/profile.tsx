@@ -32,7 +32,7 @@ const Profile = ({ data, isMine, isLoading }: ProfileProps) => {
           {data?.displayName || data?.name}
         </h1>
         <motion.div className="w-full flex flex-col items-start justify-center mt-6">
-          <div className="dark:opacity-80 gap-y-2  opacity-80 leading-tight  flex flex-col ">
+          {/* <div className="dark:opacity-80 gap-y-2  opacity-80 leading-tight  flex flex-col ">
             {data?.bio
               ? data?.bio?.split("\n").map((line, i) => {
                   return (
@@ -48,7 +48,7 @@ const Profile = ({ data, isMine, isLoading }: ProfileProps) => {
                     </span>
                   );
                 })}{" "}
-          </div>
+          </div> */}
         </motion.div>
         <SocialLinks />
       </div>

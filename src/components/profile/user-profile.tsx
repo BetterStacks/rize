@@ -43,7 +43,6 @@ const UserProfile = ({
   workExperience,
 }: UserProfileProps) => {
   const params = useParams<{ username: string }>();
-  const matches = useMediaQuery("(min-width: 768px)");
   const { data: profileData, isLoading } = useQuery({
     queryKey: ["get-profile-by-username", params.username],
     initialData: data,
@@ -58,7 +57,7 @@ const UserProfile = ({
       component: (
         <>
           <Gallery items={gallery} isMine={isMine} />
-          <MansoryGallery items={gallery} isMine={isMine} />
+          {/* <MansoryGallery items={gallery} isMine={isMine} /> */}
         </>
       ),
       enabled: true,

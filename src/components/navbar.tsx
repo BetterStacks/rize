@@ -1,7 +1,7 @@
 import { useRightSidebar } from "@/lib/context";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@mantine/hooks";
-import { Moon, Sidebar, Sun } from "lucide-react";
+import { Edit3, Moon, Sidebar, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { FC } from "react";
 import { useProfileDialog } from "./dialog-provider";
@@ -20,8 +20,8 @@ const Navbar: FC<NavbarProps> = ({ isMine }) => {
     <nav className="absolute bg-white dark:bg-dark-bg md:bg-transparent md:dark:bg-transparent top-0 w-full flex items-center justify-center z-50 py-3 px-2 md:px-0 ">
       <div
         className={cn(
-          !isMine && "max-w-2xl",
-          "w-full flex items-center relative justify-between md:justify-end px-2 md:px-4 space-x-3 "
+          // !isMine && "max-w-2xl",
+          "w-full flex items-center relative justify-between md:justify-end px-2 md:px-4  "
         )}
       >
         {isMine && !isDesktop && (
@@ -56,18 +56,18 @@ const Navbar: FC<NavbarProps> = ({ isMine }) => {
           </Button>
 
           {/* <Menu /> */}
-          {/* {isMine && (
+          {isMine && (
             <>
               <Button
                 variant={"outline"}
                 size={"icon"}
-                className=" size-10 p-2"
+                className=" rounded-2xl size-10 p-2"
                 onClick={() => setOpen(true)}
               >
                 <Edit3 strokeWidth={1.5} className="size-5 opacity-70" />
               </Button>
             </>
-          )} */}
+          )}
         </div>
       </div>
     </nav>

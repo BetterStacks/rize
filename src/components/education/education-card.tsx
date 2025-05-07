@@ -1,5 +1,5 @@
 import { deleteEducation } from "@/actions/education-actions";
-import { useActiveSidebarTab } from "@/lib/context";
+import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
 import { queryClient } from "@/lib/providers";
 import { TEducation } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import { FC } from "react";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
+import { useMediaQuery } from "@mantine/hooks";
 
 type EducationCardProps = {
   education: TEducation;
@@ -19,6 +20,8 @@ type EducationCardProps = {
 const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
   const [tab, setTab] = useActiveSidebarTab();
   const session = useSession();
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const setOpen = useRightSidebar()[1];
   const formatDate = (date?: string) =>
     date
       ? new Date(date).toLocaleDateString(undefined, {
@@ -62,6 +65,9 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
                     id: prev?.id === education?.id ? null : education?.id,
                     tab: "education",
                   }));
+                  if (!isDesktop) {
+                    setOpen(true);
+                  }
                 }}
               >
                 <Edit2 className="size-4 opacity-80" />
