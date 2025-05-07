@@ -1,10 +1,10 @@
 "use server";
 
-import { profile, users } from "@/db/schema";
+import { profile, profileSections, users } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { GetProfileByUsername, profileSchema } from "@/lib/types";
-import { eq, getTableColumns, ilike, or } from "drizzle-orm";
+import { and, eq, getTableColumns, ilike, or } from "drizzle-orm";
 import { cache } from "react";
 import { z } from "zod";
 
@@ -137,3 +137,53 @@ export const getProfileByUserId = async (userId: string) => {
   }
   return userProfile[0];
 };
+
+const sectionSchema = z.object({
+  // id: z.string().optional(),
+  slug: z.string(),
+  enabled: z.boolean(),
+  order: z.number(),
+});
+
+export const bulkInsertProfileSections = async (
+  data: z.infer<typeof sectionSchema>[]
+) => {
+  const session = await auth();
+  if (!session) {
+    throw new Error("Session not found");
+  }
+  const profileId = session.user.profileId;
+  const sections = data.map((section) => ({
+    ...section,
+    profileId: profileId,
+  }));
+  console.log(sections);
+  await db.insert(profileSections).values(sections);
+};
+
+export async function updateSectionsAction(
+  sections: z.infer<typeof sectionSchema>[]
+) {
+  const session = await auth();
+  if (!session) {
+    throw new Error("Session not found");
+  }
+  const profileId = session.user.profileId;
+
+  await Promise.all(
+    sections.map((section, index) =>
+      db
+        .update(profileSections)
+        .set({
+          enabled: section.enabled,
+          order: index, // index from array = new order
+        })
+        .where(
+          and(
+            eq(profileSections.profileId, profileId),
+            eq(profileSections.slug, section.slug)
+          )
+        )
+    )
+  );
+}

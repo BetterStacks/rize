@@ -37,15 +37,6 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, isMine }) => {
   });
   return (
     <motion.div
-      onClick={() => {
-        setTab((prev) => ({
-          id: prev?.id === project?.id ? null : project?.id,
-          tab: "projects",
-        }));
-        if (!isDesktop) {
-          setOpen(true);
-        }
-      }}
       className={cn(
         "flex w-full bg-neutral-100 group relative dark:bg-neutral-800 transition-all  rounded-2xl border border-neutral-300/60 dark:border-dark-border px-4 py-4 ",
         tab?.id === project?.id &&
@@ -84,6 +75,9 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, isMine }) => {
                 id: prev?.id === project?.id ? null : project?.id,
                 tab: "projects",
               }));
+              if (!isDesktop) {
+                setOpen(true);
+              }
             }}
           >
             <Edit2 className="size-4 opacity-80" />

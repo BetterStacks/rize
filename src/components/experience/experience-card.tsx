@@ -10,7 +10,8 @@ import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/providers";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
-import { useActiveSidebarTab } from "@/lib/context";
+import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
+import { useMediaQuery } from "@mantine/hooks";
 
 type ExperienceCardProps = {
   experience: TExperience;
@@ -20,6 +21,8 @@ type ExperienceCardProps = {
 const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
   const session = useSession();
   const [activeTab, setActiveTab] = useActiveSidebarTab();
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const setOpen = useRightSidebar()[1];
   const formatDate = (date?: string) =>
     date
       ? new Date(date).toLocaleDateString(undefined, {
@@ -63,6 +66,9 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
                     id: prev?.id === experience.id ? null : experience.id,
                     tab: "work-experience",
                   }));
+                  if (!isDesktop) {
+                    setOpen(true);
+                  }
                 }}
               >
                 <Edit2 className="size-4 opacity-80" />

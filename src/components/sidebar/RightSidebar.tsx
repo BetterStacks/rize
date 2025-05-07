@@ -370,22 +370,22 @@ export const ProjectsTab: FC<ProjectTabProps> = ({ id }) => {
   const startDate = form.watch("startDate");
 
   const onSubmit = (data: z.infer<typeof ProjectSchema>) => {
-    startTransition(() => {
-      if (mode == "edit" && tab?.id) {
-        handleUpdateProject({
-          ...data,
-        });
-      } else {
-        if (!logoFile) {
-          toast.error("Please upload a project logo");
-          return;
-        }
-        const formData = new FormData();
-        formData.append("files", logoFile);
-        formData.append("folder", "fyp-stacks/projects");
-        handleUpload(formData);
+    // startTransition(() => {
+    if (mode == "edit" && tab?.id) {
+      handleUpdateProject({
+        ...data,
+      });
+    } else {
+      if (!logoFile) {
+        toast.error("Please upload a project logo");
+        return;
       }
-    });
+      const formData = new FormData();
+      formData.append("files", logoFile);
+      formData.append("folder", "fyp-stacks/projects");
+      handleUpload(formData);
+    }
+    // });
   };
 
   const onDrop = (acceptedFiles: File[]) => {
@@ -407,20 +407,23 @@ export const ProjectsTab: FC<ProjectTabProps> = ({ id }) => {
       const uploadedLogo = data[0];
       const payload = form.getValues();
       const newProject = {
-        ...payload,
-        logo: uploadedLogo?.url,
-      } as TNewProject;
+        name: payload.name,
+        url: payload.url,
+        description: payload.description as string,
+        startDate: (payload.startDate as Date)?.toISOString(),
+        endDate: payload.endDate?.toISOString(),
+        logo: uploadedLogo?.url as string,
+        width: String(uploadedLogo?.width),
+        height: String(uploadedLogo?.height),
+      };
 
-      await createProject({
-        ...newProject,
-        ...{ width: uploadedLogo?.width, height: uploadedLogo?.height },
-      });
+      await createProject(newProject);
 
       toast.success("Project created successfully");
       queryClient.invalidateQueries({ queryKey: ["get-projects"] });
     },
     onError: (error) => {
-      toast.error(error?.message);
+      // toast.error(error?.message);
     },
   });
 
@@ -571,12 +574,10 @@ export const ProjectsTab: FC<ProjectTabProps> = ({ id }) => {
                     ) : (
                       <>
                         <input
-                          id="file-input"
-                          type="file"
                           {...getInputProps()}
-                          className="hidden"
+                          // className="hidden"
                         />
-                        <Label htmlFor="file-input">
+                        <Label>
                           <Upload
                             strokeWidth={1.6}
                             className="size-8 opacity-80"
@@ -691,12 +692,12 @@ export const ProjectsTab: FC<ProjectTabProps> = ({ id }) => {
               </>
             )}
             <Button
-              disabled={isFormPending}
+              disabled={isPending}
               variant={"secondary"}
               className="mt-4 w-full"
               type="submit"
             >
-              {isFormPending && (
+              {isPending && (
                 <Loader className="size-4 animate-spin opacity-80 mr-2" />
               )}
               {mode === "edit" ? "Edit Project" : "Create Project"}

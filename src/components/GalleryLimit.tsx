@@ -11,7 +11,9 @@ const GalleryLimit: FC<GalleryLimitProps> = ({ itemCount }) => {
   return (
     <div
       className={cn(
-        "w-full mb-3 mx-auto mt-4 border shadow-lg px-6 py-6 flex flex-col space-y-3   rounded-3xl  items-start justify-center border-neutral-300/60 dark:border-dark-border/80"
+        "w-full mb-3 mx-auto mt-4 border shadow-lg px-6 py-6 flex flex-col space-y-3   rounded-3xl  items-start justify-center border-neutral-300/60 dark:border-dark-border/80",
+        limit === 100 &&
+          "border-dashed border-2 dark:bg-red-500/5 dark:border-red-500/20 bg-red-500/5 border-red-500/20"
       )}
     >
       <span className="text-3xl font-semibold">{limit}%</span>

@@ -12,6 +12,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
+import { title } from "process";
 import { v4 as gen_uuid, v4 } from "uuid";
 
 export type TPronouns = "he/him" | "she/her" | "they/them" | "other";
@@ -231,6 +232,18 @@ export const experienceRelations = relations(experience, ({ one }) => ({
     references: [profile.id],
   }),
 }));
+
+export const profileSections = pgTable("profile_sections", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => gen_uuid()),
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => profile.id),
+  slug: text("slug").unique().notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  order: integer("order").notNull(),
+});
 
 export const accounts = pgTable(
   "account",

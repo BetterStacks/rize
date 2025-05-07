@@ -27,9 +27,22 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
+import { useEffect, useState } from "react";
+import { bulkInsertProfileSections } from "@/actions/profile-actions";
+import { TSection } from "@/lib/types";
 
 const SectionManager = () => {
   const { sections, setSections } = useSections();
+  const [initialSections, setInitialSections] = useState<TSection[] | null>(
+    null
+  );
+
+  useEffect(() => {
+    if (sections.length > 0 && initialSections === null) {
+      setInitialSections(sections);
+    }
+  }, [sections, initialSections]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {

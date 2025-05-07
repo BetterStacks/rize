@@ -51,35 +51,32 @@ export const getProjectByID = async (username: string, id: string) => {
 
 const newProjectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
-  url: z.string().url("Invalid URL"),
+  url: z.string(),
   description: z.string(),
-  startDate: z.date(),
-  endDate: z.date().optional(),
+  startDate: z.string(),
+  endDate: z.string().optional(),
   logo: z.string().url("Invalid URL"),
+  width: z.string().optional(),
+  height: z.string().optional(),
 });
 
-export const createProject = async (
-  data: TNewProject & { width: number; height: number }
-) => {
+export const createProject = async (data: z.infer<typeof newProjectSchema>) => {
   const session = await auth();
   if (!session?.user?.profileId) {
     throw new Error("User not authenticated");
   }
 
-  const parsed = newProjectSchema.safeParse(data);
-  console.log(parsed);
-  if (!parsed.success && parsed.error.errors) {
-    throw new Error(parsed.error.errors[0].message);
-  }
-
+  const parsed = newProjectSchema.parse(data);
+  console.log({ parsed });
   const logoMedia = await db
     .insert(media)
     .values({
+      // @ts-ignore
       url: data?.logo,
       type: "image",
       profileId: session?.user?.profileId,
-      height: data?.height,
-      width: data?.width,
+      height: parseInt(data?.height as string),
+      width: parseInt(data?.width as string),
     })
     .returning({ id: media.id });
 
@@ -89,13 +86,11 @@ export const createProject = async (
   const logoId = logoMedia[0].id;
 
   const project = await db.insert(projects).values({
-    name: data?.name,
-    description: data?.description,
+    ...parsed,
+    endDate: new Date(parsed?.endDate as string) || null,
+    startDate: new Date(parsed?.startDate as string),
     profileId: session?.user?.profileId,
     logo: logoId,
-    url: data?.url,
-    startDate: data?.startDate,
-    endDate: data?.endDate || null,
   });
   return project;
 };
@@ -141,7 +136,6 @@ export const updateProject = async (
     if (p.length === 0) {
       throw new Error("Error updating page");
     }
-    revalidatePath("/[username]");
 
     return { ok: true, error: null };
   } catch (error) {

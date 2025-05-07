@@ -26,8 +26,8 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
     initialData: projects,
     queryFn: () => getAllProjects(username),
     refetchOnWindowFocus: false,
-    // refetchOnReconnect: false,
     refetchOnMount: false,
+    staleTime: Infinity,
   });
 
   const setActiveTab = useActiveSidebarTab()[1];
