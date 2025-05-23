@@ -1,14 +1,18 @@
-import UserProfile from "@/components/profile/user-profile";
-import { getProfileByUsername } from "@/actions/profile-actions";
-import { Metadata } from "next";
-import { FC } from "react";
-import UserProfileLayout from "@/components/layout/UserProfileLayout";
-import { auth } from "@/lib/auth";
-import { getGalleryItems } from "@/actions/gallery-actions";
-import { getAllPages } from "@/actions/page-actions";
-import { getAllProjects } from "@/actions/project-actions";
 import { getAllEducation } from "@/actions/education-actions";
 import { getAllExperience } from "@/actions/experience-actions";
+import { getGalleryItems } from "@/actions/gallery-actions";
+import { getSections } from "@/actions/general-actions";
+import { getAllPages } from "@/actions/page-actions";
+import { getUserPosts } from "@/actions/post-actions";
+import { getProfileByUsername } from "@/actions/profile-actions";
+import { getAllProjects } from "@/actions/project-actions";
+import UserProfile from "@/components/profile/user-profile";
+import ProfilePage from "@/components/ProfilePage";
+import { auth } from "@/lib/auth";
+import SectionContextProvider from "@/lib/section-context";
+import { classifyText } from "@/lib/utils";
+import { Metadata } from "next";
+import { FC } from "react";
 
 type Props = {
   params: Promise<{ username: string }>;
@@ -27,37 +31,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const Page: FC<Props> = async ({ params }) => {
   const username = (await params).username;
-  const session = await auth();
   if (!username) {
     throw new Error("Username not found");
   }
 
-  const user = await getProfileByUsername(username);
-  const [gallery, writings, projects, education, workExperience] =
-    await Promise.all([
-      getGalleryItems(username),
-      getAllPages(username),
-      getAllProjects(username),
-      getAllEducation(username),
-      getAllExperience(username),
-    ]);
-
-  const isMine = user?.username === session?.user?.username;
-  return (
-    <UserProfileLayout isMine={isMine}>
-      <div className="w-full flex items-center justify-center">
-        <UserProfile
-          isMine={isMine}
-          data={user}
-          gallery={gallery}
-          writings={writings}
-          projects={projects}
-          education={education}
-          workExperience={workExperience}
-        />
-      </div>
-    </UserProfileLayout>
-  );
+  return <ProfilePage username={username} />;
 };
 
 export default Page;

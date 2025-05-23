@@ -64,7 +64,7 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
                 onClick={() => {
                   setActiveTab((prev) => ({
                     id: prev?.id === experience.id ? null : experience.id,
-                    tab: "work-experience",
+                    tab: "experience",
                   }));
                   if (!isDesktop) {
                     setOpen(true);

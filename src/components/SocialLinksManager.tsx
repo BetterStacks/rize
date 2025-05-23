@@ -4,7 +4,7 @@ import {
   removeSocialLink,
 } from "@/actions/social-links-actions";
 import { SocialPlatform } from "@/lib/types";
-import { Edit3, Loader, Plus, Trash2 } from "lucide-react";
+import { Edit2, Loader, Plus, Trash2 } from "lucide-react";
 import NextLink from "next/link";
 
 import { queryClient } from "@/lib/providers";
@@ -79,8 +79,8 @@ const SocialLinksManager = () => {
     setEditLinkDialogOpen(true);
   };
   return (
-    <div className="w-full px-4 flex flex-col items-center justify-center mb-6">
-      <Card className="bg-white w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
+    <div className="w-full  px-4 flex flex-col items-center justify-center mb-6">
+      <Card className="bg-white social-links-manager w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl font-medium dark:text-white">
             Social Link Manager
@@ -194,20 +194,20 @@ const SocialLink: React.FC<SocialLinkProps> = ({
           <NextLink
             href={url}
             target="_blank"
-            className="text-sm opacity-70 leading-tight hover:underline"
+            className="text-sm opacity-70 line-clamp-1 leading-tight hover:underline"
           >
             {cleanUrl(url)}
           </NextLink>
         </div>
       </div>
-      <div className="flex space-x-2">
+      <div className="flex ml-2 space-x-2">
         <Button
           size="icon"
           variant={"ghost"}
           className=""
           onClick={() => onEdit({ id, url, platform })}
         >
-          <Edit3 className="size-4 opacity-80" />
+          <Edit2 className="size-4 opacity-80" />
         </Button>
         <Button
           size="icon"

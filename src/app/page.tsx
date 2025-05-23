@@ -6,18 +6,31 @@ import FAQSection from "@/components/home/faq";
 import HeroSection from "@/components/home/hero";
 import TextReveal from "@/components/home/text-reveal";
 import UserReviews from "@/components/home/user-reviews";
+import { useEffect } from "react";
+import Lenis from "lenis";
+import Window from "@/components/window";
 
 export default function Home() {
+  useEffect(() => {
+    const lenis = new Lenis();
+
+    // Use requestAnimationFrame to continuously update the scroll
+    function raf(time: any) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+  }, []);
   return (
     <div className="w-full min-h-screen  flex flex-col items-center justify-center">
       <HeroSection />
+      {/* <Window /> */}
       <TextReveal />
       <BentoGrid />
       <UserReviews />
-      <div className="w-full h-full bg-gradient-to-b from-transparent to-indigo-500 dark:to-indigo-500/90">
-        <FAQSection />
-        <Footer />
-      </div>
+      <FAQSection />
+      <Footer />
     </div>
   );
 }

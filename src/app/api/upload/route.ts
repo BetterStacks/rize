@@ -1,3 +1,4 @@
+import { auth } from "@/lib/auth";
 import { v2 as cloudinary, UploadApiOptions } from "cloudinary";
 import { NextRequest } from "next/server";
 
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
     const data = await req.formData();
     const type = data.get("type") as string;
     const file = data.getAll("file") as string[]; // file
-
+    const session = await auth();
     let options: UploadApiOptions = {};
     const results: string[] = [];
 
@@ -24,6 +25,8 @@ export async function POST(req: NextRequest) {
       options = {
         folder: "fyp-stacks/avatar",
         transformation: [{ radius: "max" }],
+        overwrite: true,
+        public_id: `${session?.user?.profileId}.avatar`,
       };
       const upload = await cloudinary.uploader.upload(file[0], options);
       return Response.json(

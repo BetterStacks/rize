@@ -145,22 +145,6 @@ const sectionSchema = z.object({
   order: z.number(),
 });
 
-export const bulkInsertProfileSections = async (
-  data: z.infer<typeof sectionSchema>[]
-) => {
-  const session = await auth();
-  if (!session) {
-    throw new Error("Session not found");
-  }
-  const profileId = session.user.profileId;
-  const sections = data.map((section) => ({
-    ...section,
-    profileId: profileId,
-  }));
-  console.log(sections);
-  await db.insert(profileSections).values(sections);
-};
-
 export async function updateSectionsAction(
   sections: z.infer<typeof sectionSchema>[]
 ) {

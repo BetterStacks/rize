@@ -1,15 +1,15 @@
 "use client";
 import { createPage, getAllPages } from "@/actions/page-actions";
+import { GetAllWritings } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, PenLine, Plus } from "lucide-react";
+import { motion } from "framer-motion";
+import { FileText, Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
-import WritingCard from "./writing-card";
 import { Skeleton } from "../ui/skeleton";
-import { GetAllWritings } from "@/lib/types";
-import { Variants, motion } from "framer-motion";
-import { useState } from "react";
+import WritingCard from "./writing-card";
 
 type WritingsProps = {
   isMine: boolean;
@@ -24,8 +24,8 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
     queryKey: ["get-writings", username],
     initialData: writings,
     queryFn: () => getAllPages(username),
-    // refetchOnWindowFocus: false,
-    // refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const createNewPage = async () => {
@@ -42,8 +42,8 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
       id="writings"
       className="w-full my-12 px-2 md:px-4 flex flex-col items-center justify-start"
     >
-      <div className="max-w-2xl w-full flex items-center justify-between">
-        <h2 className="text-xl font-medium mb-2 md:mb-4">Writings</h2>
+      <div className="max-w-2xl w-full flex mb-2 md:mb-4 items-center justify-between">
+        <h2 className="text-xl font-medium ">Writings</h2>
         {isMine && (
           <Button
             className="  rounded-lg scale-90 text-sm"

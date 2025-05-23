@@ -1,4 +1,5 @@
 import { TPage } from "@/lib/types";
+import { Dot } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FC, useMemo } from "react";
@@ -18,12 +19,36 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
     return readingTime(stringifiedContent);
   }, [data?.content]);
   return (
-    <article className="group w-full ">
+    <article className="flex w-full  bg-white shadow-lg group relative dark:bg-neutral-800 transition-all  rounded-2xl border border-neutral-300/60 dark:border-dark-border overflow-hidden">
       <Link
         href={`/page/${data.id}`}
-        className="flex flex-col mt-2 md:mt-0 md:grid md:grid-cols-[60px,1fr,160px] gap-6 md:items-start"
+        className="mt-0 grid grid-cols-[120px,1fr] md:grid-cols-[160px,1fr] gap-6 md:items-start"
       >
-        <div className="text-neutral-400 md:flex hidden">
+        <div className="w-[120px] border-r border-neutral-300/60 dark:border-dark-border border md:w-[160px] h-full relative overflow-hidden">
+          <Image
+            src={data?.thumbnail!}
+            alt="Thumbnail"
+            fill
+            className="object-cover"
+          />
+        </div>
+        <div className="flex flex-col mt-2 py-4 px-2 md:gap-2 gap-1">
+          <h3 className="md:text-lg  mr-4 tracking-tight whitespace-pre-line line-clamp-2 ">
+            {data?.title}
+          </h3>
+          {/* <div className="flex items-center justify-start"> */}
+          {/* <div className="text-neutral-400 md:flex hidden">
+              {new Date(data?.createdAt!).toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                // year: "numeric",
+              })}
+            </div>
+            <Dot className="stroke-neutral-400 leading-none size-4" /> */}
+          <div className="text-neutral-400">{time?.text}</div>
+        </div>
+        {/* </div> */}
+        {/* <div className="text-neutral-400 md:flex hidden">
           {new Date(data?.createdAt!).toLocaleString("en-US", {
             month: "short",
             day: "numeric",
@@ -58,7 +83,7 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
           ) : (
             <></>
           )}
-        </div>
+        </div> */}
       </Link>
     </article>
   );

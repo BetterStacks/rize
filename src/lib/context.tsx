@@ -1,15 +1,21 @@
 "use client";
-import React, { createContext, ReactNode, useContext, useState } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { TSection } from "./types";
 import { useQueryState } from "nuqs";
+import { useParams } from "next/navigation";
+import { getSections } from "@/actions/general-actions";
 
 type TAppContext = {
-  sections: TSection[];
   activeSidebarTab: { id?: string | null; tab: string };
   setActiveSidebarTab: React.Dispatch<
     React.SetStateAction<{ id?: string | null; tab: string }>
   >;
-  setSections: React.Dispatch<React.SetStateAction<TSection[]>>;
   isRightSidebarOpen: boolean;
   setIsRightSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isPageSidebarOpen: boolean;
@@ -17,21 +23,14 @@ type TAppContext = {
 };
 
 const AppContext = createContext<TAppContext>({
-  sections: [],
   activeSidebarTab: { id: null, tab: "gallery" },
   setActiveSidebarTab: () => {},
-  setSections: () => {},
   isRightSidebarOpen: false,
   setIsRightSidebarOpen: () => {},
   isPageSidebarOpen: false,
   setIsPageSidebarOpen: () => {},
 });
 
-export const useSections = () => {
-  const ctx = useContext(AppContext);
-
-  return { sections: ctx.sections, setSections: ctx.setSections };
-};
 export const useRightSidebar = () => {
   const ctx = useContext(AppContext);
 
@@ -49,7 +48,6 @@ export const useActiveSidebarTab = () => {
 };
 
 const Context = ({ children }: { children: ReactNode }) => {
-  const [sections, setSections] = useState<TSection[]>([]);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [isPageSidebarOpen, setIsPageSidebarOpen] = useState(false);
   const [activeSidebarTab, setActiveSidebarTab] = useState<{
@@ -64,10 +62,8 @@ const Context = ({ children }: { children: ReactNode }) => {
     <div className="w-full ">
       <AppContext.Provider
         value={{
-          sections,
           activeSidebarTab,
           setActiveSidebarTab,
-          setSections,
           isRightSidebarOpen,
           setIsRightSidebarOpen,
           isPageSidebarOpen,

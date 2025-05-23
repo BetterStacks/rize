@@ -63,7 +63,7 @@ const ProfileStep = ({
   return (
     <div className="p-8 w-full ">
       <h2 className="text-xl tracking-tight mb-2 font-semibold ">
-        Profile Details
+        Add Profile Details
       </h2>
       <p className="leading-snug text-sm opacity-80 mb-4">
         Add profile details to help others recognize you. You can change these

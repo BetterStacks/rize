@@ -1,13 +1,16 @@
 import { cn, MAX_GALLERY_ITEMS } from "@/lib/utils";
 import { motion } from "framer-motion";
-import React, { FC } from "react";
+import React, { FC, useMemo } from "react";
 
 type GalleryLimitProps = {
   itemCount: number;
 };
 
 const GalleryLimit: FC<GalleryLimitProps> = ({ itemCount }) => {
-  const limit = Math.floor((itemCount / MAX_GALLERY_ITEMS) * 100);
+  const limit = useMemo(
+    () => Math.floor((itemCount / MAX_GALLERY_ITEMS) * 100),
+    [itemCount]
+  );
   return (
     <div
       className={cn(

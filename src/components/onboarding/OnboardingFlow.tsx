@@ -14,6 +14,7 @@ import { InterestsStep } from "./steps/Interests";
 import ProfileStep from "./steps/ProfileStep";
 import { UsernameStep } from "./steps/UsernameStep";
 import { WelcomeStep } from "./steps/WelcomeStep";
+import { bulkInsertSections } from "@/actions/general-actions";
 
 export default function OnboardingFlow() {
   const router = useRouter();
@@ -87,6 +88,7 @@ export default function OnboardingFlow() {
 
   const onComplete = async () => {
     try {
+      await bulkInsertSections();
       router.push(`/${formData?.username}`);
       localStorage.removeItem("onboarding-data");
     } catch (error) {
@@ -169,7 +171,7 @@ export default function OnboardingFlow() {
         {steps.map((_, index) => (
           <div
             key={index}
-            onClick={() => setCurrentStep(index)}
+            // onClick={() => setCurrentStep(index)}
             className={cn(
               "w-2 h-2 rounded-full transition-all duration-300",
               currentStep === index

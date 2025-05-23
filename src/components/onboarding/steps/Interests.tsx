@@ -36,7 +36,7 @@ export function InterestsStep({
           <Button
             key={interest.tag}
             variant={
-              selectedInterests.includes(interest.tag) ? "default" : "outline"
+              selectedInterests.includes(interest.tag) ? "secondary" : "outline"
             }
             onClick={() => {
               setSelectedInterests((prev) =>

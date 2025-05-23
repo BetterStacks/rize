@@ -2,7 +2,6 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   customType,
-  date,
   integer,
   pgTable,
   primaryKey,
@@ -12,7 +11,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
-import { title } from "process";
+import { Content } from "next/font/google";
 import { v4 as gen_uuid, v4 } from "uuid";
 
 export type TPronouns = "he/him" | "she/her" | "they/them" | "other";
@@ -68,6 +67,9 @@ export const profile = pgTable("profile", {
   pronouns: Pronouns("pronouns").notNull().default("he/him"),
   bio: text("bio"),
   location: text("location"),
+  hasCompletedWalkthrough: boolean("has_completed_walkthrough")
+    .notNull()
+    .default(false),
   website: text("website"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
@@ -75,18 +77,17 @@ export const profile = pgTable("profile", {
     .$onUpdate(() => new Date()),
 });
 
-// export const sections = pgTable("sections", {
-//   id: uuid("id")
-//     .primaryKey()
-//     .$defaultFn(() => v4()),
-//   profileId: uuid("profile_id")
-//     .notNull()
-//     .references(() => profile.id, { onDelete: "cascade" }),
-//   name: text("name").notNull(),
-//   enabled: boolean("enabled").notNull().default(true),
-//   order: integer("order").notNull().default(0),
-//   createdAt: timestamp("created_at").notNull().defaultNow(),
-// });
+export const sections = pgTable("sections", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => v4()),
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => profile.id, { onDelete: "cascade" }),
+  slug: varchar("slug", { length: 50 }).notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  order: integer("order").notNull(),
+});
 
 export const socialLinks = pgTable("social_links", {
   id: uuid("id")
@@ -138,6 +139,29 @@ export const galleryMedia = pgTable("gallery_media", {
   mediaId: uuid("media_id").references(() => media.id, { onDelete: "cascade" }),
 });
 
+export const posts = pgTable("posts", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => gen_uuid()),
+  content: text("content").notNull(),
+  profileId: uuid("profileId").references(() => profile.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const postMedia = pgTable("post_media", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => gen_uuid()),
+  postId: uuid("postId").references(() => posts.id, {
+    onDelete: "cascade",
+  }),
+  mediaId: uuid("mediaId").references(() => media.id, {
+    onDelete: "cascade",
+  }),
+});
 export const page = pgTable("page", {
   id: uuid("id")
     .primaryKey()
@@ -196,13 +220,6 @@ export const education = pgTable("education", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const educationRelations = relations(education, ({ one }) => ({
-  profile: one(profile, {
-    fields: [education.profileId],
-    references: [profile.id],
-  }),
-}));
-
 export const experience = pgTable("experience", {
   id: uuid("id")
     .primaryKey()
@@ -226,13 +243,6 @@ export const experience = pgTable("experience", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const experienceRelations = relations(experience, ({ one }) => ({
-  profile: one(profile, {
-    fields: [experience.profileId],
-    references: [profile.id],
-  }),
-}));
-
 export const profileSections = pgTable("profile_sections", {
   id: uuid("id")
     .primaryKey()
@@ -245,6 +255,76 @@ export const profileSections = pgTable("profile_sections", {
   order: integer("order").notNull(),
 });
 
+export const postMediaRelations = relations(postMedia, ({ one }) => ({
+  posts: one(posts, {
+    fields: [postMedia.postId],
+    references: [posts.id],
+  }),
+  media: one(media, {
+    fields: [postMedia.mediaId],
+    references: [media.id],
+  }),
+}));
+export const experienceRelations = relations(experience, ({ one }) => ({
+  profile: one(profile, {
+    fields: [experience.profileId],
+    references: [profile.id],
+  }),
+}));
+
+export const educationRelations = relations(education, ({ one }) => ({
+  profile: one(profile, {
+    fields: [education.profileId],
+    references: [profile.id],
+  }),
+}));
+const galleryRelations = relations(gallery, ({ one }) => ({
+  profile: one(profile, {
+    fields: [gallery.profileId],
+    references: [profile.id],
+  }),
+}));
+const mediaRelations = relations(media, ({ one }) => ({
+  profile: one(profile, {
+    fields: [media.profileId],
+    references: [profile.id],
+  }),
+  gallery: one(gallery, {
+    fields: [media.id],
+    references: [gallery.id],
+  }),
+}));
+const socialLinksRelations = relations(socialLinks, ({ one }) => ({
+  profile: one(profile, {
+    fields: [socialLinks.profileId],
+    references: [profile.id],
+  }),
+}));
+const profileRelations = relations(profile, ({ many, one }) => ({
+  user: one(users, {
+    fields: [profile.userId],
+    references: [users.id],
+  }),
+  socialLinks: many(socialLinks),
+  media: many(media),
+  gallery: many(gallery),
+  galleryMedia: many(galleryMedia),
+  experience: many(experience),
+  education: many(education),
+  projects: many(projects),
+  sections: many(profileSections),
+  page: many(page),
+}));
+const usersRelations = relations(users, ({ many }) => ({
+  profiles: many(profile),
+}));
+const postsRelations = relations(posts, ({ one, many }) => ({
+  profile: one(profile, {
+    fields: [posts.profileId],
+    references: [profile.id],
+  }),
+  media: many(postMedia),
+}));
 export const accounts = pgTable(
   "account",
   {

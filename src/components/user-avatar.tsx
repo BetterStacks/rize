@@ -37,7 +37,7 @@ const UserAvatar = ({
   const handleChange = (e: any) => {
     const file = e.target.files[0];
     if (!file) {
-      toast.error("Please select a file");
+      // toast.error("Please select a file");
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
@@ -56,7 +56,7 @@ const UserAvatar = ({
     <>
       <div
         className={cn(
-          "relative group  ring-4    ring-neutral-300 dark:ring-dark-border  rounded-full size-24 md:size-24 lg:size-28 xl:size-36  aspect-square ",
+          "relative group ring-2    ring-neutral-300 dark:ring-dark-border  rounded-full size-24 md:size-24 lg:size-28 xl:size-36  aspect-square ",
           className,
           isLoading &&
             "animate-pulse bg-neutral-300  dark:bg-dark-border rounded-full"

@@ -52,9 +52,9 @@ const GalleryContextProvider = ({ children }: { children: ReactNode }) => {
     GalleryItemProps[],
     GalleryItemProps[]
   >(items, (prev, next) => [...prev, ...next]);
-  useEffect(() => {
-    console.log({ optimisticGallery });
-  }, [optimisticGallery]);
+  // useEffect(() => {
+  //   console.log({ optimisticGallery });
+  // }, [optimisticGallery]);
   return (
     <GalleryItemsContext.Provider
       value={{
