@@ -6,8 +6,10 @@ import {
   Compass,
   LogOut,
   MenuIcon,
+  Moon,
   Search,
   Settings,
+  Sun,
   UserRound,
   X,
 } from "lucide-react";
@@ -16,6 +18,8 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useProfileDialog, useSearchDialog } from "./dialog-provider";
 import { Button } from "./ui/button";
+import { Separator } from "./ui/separator";
+import { useTheme } from "next-themes";
 
 const Menu = () => {
   const [open, setOpen] = useState(false);
@@ -27,6 +31,7 @@ const Menu = () => {
   const ref = useClickOutside(() => {
     setOpen(false);
   });
+  const { theme, setTheme } = useTheme();
   const loggedInOptions = [
     {
       id: 4,
@@ -65,7 +70,7 @@ const Menu = () => {
     {
       id: 1,
       name: "Explore",
-      href: "/",
+      href: "/explore",
       onClick: () => {},
       icon: <Compass className="opacity-80 size-5" strokeWidth={1.5} />,
     },
@@ -79,7 +84,18 @@ const Menu = () => {
       icon: <Search className="opacity-80 size-5" strokeWidth={1.5} />,
     },
   ];
-
+  const themeOptions = [
+    {
+      theme: "light",
+      name: "Light",
+      icon: <Sun className="opacity-80 size-5" strokeWidth={1.3} />,
+    },
+    {
+      theme: "dark",
+      name: "Dark",
+      icon: <Moon className="opacity-80 size-5" strokeWidth={1.3} />,
+    },
+  ];
   const menuVariants: Variants = {
     hide: {
       y: -20,
@@ -118,15 +134,39 @@ const Menu = () => {
             animate="show"
             exit={"exit"}
             className={cn(
-              "absolute top-14 bg-white shadow-2xl backdrop-blur-2xl dark:bg-dark-bg rounded-3xl border border-neutral-300/60 flex flex-col w-[210px] space-y-1.5 overflow-hidden py-4 dark:border-dark-border/80 z-50",
-              isMine ? "right-8" : "right-0"
+              "absolute top-14 bg-white  shadow-2xl backdrop-blur-2xl dark:bg-dark-bg rounded-3xl border border-neutral-300/60 flex flex-col w-[210px]  overflow-hidden  dark:border-dark-border/80 z-50",
+              isMine ? "right-4" : "right-4"
             )}
           >
+            <motion.div
+              layout
+              className="flex items-center p-2 justify-center pt-2"
+            >
+              {themeOptions.map((option, i) => (
+                <div
+                  key={i}
+                  onClick={() => setTheme(option?.theme)}
+                  className="w-full  cursor-pointer relative flex flex-col items-center justify-center p-2 pt-4 gap-2"
+                >
+                  {option.icon}
+                  <span className="tracking-tight text-sm font-medium opacity-80">
+                    {option.name}
+                  </span>
+                  {theme === option?.theme && (
+                    <motion.div
+                      layoutId="bubble"
+                      className="absolute inset-0 -z-10 bg-neutral-100 dark:bg-dark-border/80 rounded-2xl"
+                    />
+                  )}
+                </div>
+              ))}
+            </motion.div>
+            <Separator />
             {[...options, ...(session?.data ? loggedInOptions : [])].map(
               (option, i) => (
                 <motion.div
                   key={i}
-                  className="flex w-full items-center border-t first:border-none pt-1 border-neutral-300/60 dark:border-dark-border/80 justify-start gap-x-4 cursor-pointer px-4"
+                  className="flex w-full items-center border-none pt-1 border-neutral-300/60 dark:border-dark-border/80 justify-start gap-x-4 cursor-pointer mt-1 px-4 last:mb-4"
                   onClick={option.onClick}
                 >
                   {option.icon}

@@ -1,4 +1,6 @@
-import { useSections } from "@/lib/context";
+"use client";
+import { toggleSection, updateSections } from "@/actions/general-actions";
+import { useSections } from "@/lib/section-context";
 import { cn } from "@/lib/utils";
 import {
   closestCenter,
@@ -18,7 +20,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { AlignJustify } from "lucide-react";
+import { AlignJustify, Loader } from "lucide-react";
+import { useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -27,22 +30,10 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
-import { useEffect, useState } from "react";
-import { bulkInsertProfileSections } from "@/actions/profile-actions";
-import { TSection } from "@/lib/types";
+import { Skeleton } from "./ui/skeleton";
 
 const SectionManager = () => {
-  const { sections, setSections } = useSections();
-  const [initialSections, setInitialSections] = useState<TSection[] | null>(
-    null
-  );
-
-  useEffect(() => {
-    if (sections.length > 0 && initialSections === null) {
-      setInitialSections(sections);
-    }
-  }, [sections, initialSections]);
-
+  const { sections, setSections, isFetching } = useSections();
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -54,14 +45,33 @@ const SectionManager = () => {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-  const handleDragEnd = (event: DragEndEvent) => {
+
+  // const togglePayload = useMemo(() => {}, [sections]);
+
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (active.id !== over?.id) {
       const oldIndex = sections.findIndex((item) => item.id === active.id);
       const newIndex = sections.findIndex((item) => item.id === over?.id);
-
-      setSections((items) => arrayMove(items, oldIndex, newIndex));
+      const newSections = arrayMove(sections, oldIndex, newIndex);
+      setSections(newSections);
+      const slugs = newSections.map((section) => section.id);
+      const togglePayload = newSections.map((slug) => ({
+        slug: slug.id,
+        enabled: slug?.enabled,
+      }));
+      await updateSections(slugs);
     }
+  };
+
+  const handleCheck = async (id: string) => {
+    setSections((prevSections) => {
+      return prevSections.map((s) =>
+        s.id === id ? { ...s, enabled: !s.enabled } : s
+      );
+    });
+    const payload = [{ slug: id }];
+    await toggleSection(payload);
   };
 
   return (
@@ -78,35 +88,35 @@ const SectionManager = () => {
             </CardDescription>
           </CardHeader>
           <div className="mt-3">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                strategy={verticalListSortingStrategy}
-                items={sections?.map((item) => item.id)}
+            {isFetching ? (
+              <div className="w-full flex items-center justify-center my-10">
+                <Loader className="size-6 opacity-80 animate-spin  text-center " />
+              </div>
+            ) : (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
               >
-                {sections?.map((section) => (
-                  <SortableItem
-                    checked={
-                      sections.find((s) => s.id === section.id)
-                        ?.enabled as boolean
-                    }
-                    handleCheck={(id) => {
-                      setSections((prevSections) =>
-                        prevSections.map((s) =>
-                          s.id === id ? { ...s, enabled: !s.enabled } : s
-                        )
-                      );
-                    }}
-                    key={section.id}
-                    id={section.id}
-                    name={section.name}
-                  />
-                ))}
-              </SortableContext>
-            </DndContext>
+                <SortableContext
+                  strategy={verticalListSortingStrategy}
+                  items={sections?.map((item) => item.id)}
+                >
+                  {sections?.map((section) => (
+                    <SortableItem
+                      checked={
+                        sections.find((s) => s.id === section.id)
+                          ?.enabled as boolean
+                      }
+                      handleCheck={handleCheck}
+                      key={section.id}
+                      id={section.id}
+                      name={section.name}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            )}
           </div>
         </CardContent>
       </Card>

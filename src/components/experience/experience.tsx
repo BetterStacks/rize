@@ -59,7 +59,7 @@ const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
             className="  rounded-lg scale-90 text-sm"
             size={"sm"}
             onClick={() => {
-              setActiveTab({ id: null, tab: "work-experience" });
+              setActiveTab({ id: null, tab: "experience" });
               if (!isDesktop) {
                 setOpen(true);
               }
@@ -81,7 +81,7 @@ const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
         ) : data?.length === 0 ? (
           <EmptyWritingState
             onCreateNew={() => {
-              setActiveTab({ id: null, tab: "work-experience" });
+              setActiveTab({ id: null, tab: "experience" });
               if (!isDesktop) {
                 setOpen(true);
               }

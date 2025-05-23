@@ -136,9 +136,20 @@ const SignUp = () => {
             {...form.register("password")}
           />
         </div>
+        {form.formState.errors && (
+          <div className="text-red-500 text-sm mt-2">
+            {Object.values(form.formState.errors).map((error) => (
+              <span key={error?.message} className="block">
+                {error?.message}
+              </span>
+            ))}
+          </div>
+        )}
         <Button
           variant={"secondary"}
-          disabled={!!form.formState.errors || isPending}
+          disabled={
+            Object?.entries(form.formState.errors)?.length > 0 || isPending
+          }
           className="w-full mt-2"
         >
           {isPending ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : null}

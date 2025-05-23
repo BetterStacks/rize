@@ -1,14 +1,11 @@
-import {
-  availablePlatforms,
-  capitalizeFirstLetter,
-  cn,
-  getIcon,
-} from "@/lib/utils";
-import { AnimatePresence, motion, useAnimation, Variants } from "framer-motion";
-import React, { useEffect, useState } from "react";
-import { Button } from "../ui/button";
+import { cn } from "@/lib/utils";
+import { motion, useAnimation, Variants } from "framer-motion";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { initialValue } from "../editor/utils";
+import { SocialLinkButton } from "../profile/social-links";
 import { Skeleton } from "../ui/skeleton";
+import WritingCard from "../writings/writing-card";
 
 const BentoGrid = () => {
   return (
@@ -19,7 +16,7 @@ const BentoGrid = () => {
           <motion.div
             key={index}
             className={cn(
-              "bg-white dark:bg-dark-border h-[600px] shadow-lg border border-neutral-300/60 dark:border-none flex flex-col rounded-[2.3rem] w-full overflow-hidden relative ",
+              "bg-white dark:bg-dark-border h-[600px] shadow-lg border border-neutral-300/80 dark:border-none flex flex-col rounded-[2.3rem] w-full overflow-hidden relative ",
               index === 0 && "md:col-span-2",
               index === 1 && "md:col-span-3",
               index === 2 && "md:col-span-3",
@@ -40,56 +37,110 @@ const BentoGrid = () => {
 const ArticleCards = () => {
   const cards = [
     {
+      id: 1,
       title: "Everything about Framer Motion layout animations",
+      img: "https://i.pinimg.com/736x/da/7d/e5/da7de56b9adccfa20019ece6140d38b0.jpg",
     },
     {
+      id: 2,
       title: "Creative Block: Joy Harjo’s Tips to Overcoming Creative Block",
+      img: "https://i.pinimg.com/736x/93/a1/82/93a1829cb95d180e1c0821b7224b3117.jpg",
     },
     {
+      id: 3,
       title: "Building a simple shell in C - Part 1 - Dr. Ehoneah Obed",
+      img: "https://i.pinimg.com/736x/68/b4/fb/68b4fbf6972884ea7558f015becb1030.jpg",
     },
   ];
 
   const [hovered, setHovered] = useState(false);
-  const [index, setIndex] = useState(0);
-
+  const [cardsStack, setCardsStack] = useState(cards);
   useEffect(() => {
     const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % cards.length);
-    }, 4000);
+      setCardsStack((prev) => {
+        const newCards = [...prev];
+        const lastCard = newCards.pop();
+        newCards.unshift(lastCard!);
+        return newCards;
+      });
+    }, 2000); // change interval as needed
+
     return () => clearInterval(interval);
   }, []);
-
-  const card = cards[index];
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="relative w-full group p-4 h-full flex flex-col items-center justify-center"
+      className="relative w-full group h-full p-4 flex flex-col items-center justify-center"
     >
-      <div className="relative w-full h-full  flex items-center justify-center ">
-        <AnimatePresence mode="wait">
+      <div className="relative w-full h-full  flex flex-col items-center justify-center ">
+        <motion.div
+          layout
+          className=" relative w-full flex items-center justify-center h-1/2"
+        >
+          {cardsStack.map((card, i) => {
+            const isTop = i === 0;
+            const offset = i * 26; // staggered offset for edges
+            return (
+              <motion.div
+                key={i}
+                initial={{ y: 0, scale: 1, zIndex: cards.length - i }}
+                animate={{
+                  y: 0,
+                  zIndex: cards.length - i,
+                  scale: isTop ? 1 : i == 1 ? 0.95 : 0.85,
+                }}
+                className={cn(
+                  "pointer-events-none max-w-sm md:max-w-md absolute "
+                )}
+                style={{
+                  top: offset,
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
+                }}
+              >
+                <WritingCard
+                  data={{
+                    content: JSON.stringify(initialValue),
+                    thumbnail: card?.img,
+                    title: card?.title,
+                    createdAt: new Date(),
+                    id: "",
+                    profileId: "",
+                  }}
+                />
+              </motion.div>
+            );
+          })}
+        </motion.div>
+        {/* <AnimatePresence mode="wait">
           <motion.div
-            key={index}
+          key={index}
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -50, scale: 0.95 }}
             transition={{ duration: 0.8 }}
-            className="absolute max-w-[280px] md:max-w-md z-50 w-full bg-white dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border rounded-3xl min-h-[150px] shadow-md p-4 flex items-center flex-col-reverse md:flex-row justify-center  gap-x-2 md:pb-0 pb-6"
+            
+            className="absolute max-w-sm md:max-w-md z-50 w-full min-h-[150px] md:pb-0 pb-6"
           >
-            <div className="w-full flex flex-col justify-start items-start px-4">
-              <h2 className="md:text-lg font-medium  leading-tight tracking-tight">
-                {card.title}
-              </h2>
-              <span className="opacity-80 text-sm mt-2">
-                10 min read • 5 comments
-              </span>
-            </div>
-            <div className="relative w-full md:w-2/5 h-[200px] md:h-[120px] rounded-2xl mb-4  md:rounded-3xl bg-neutral-200 dark:bg-dark-border"></div>
+            <WritingCard
+              data={{
+                content: JSON.stringify(initialValue),
+                thumbnail: card?.img,
+                title: card?.title,
+                createdAt: new Date(),
+                id: "",
+                profileId: "",
+              }}
+            />
+    
           </motion.div>
-        </AnimatePresence>
+        </AnimatePresence> */}
       </div>
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {hovered && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -102,7 +153,7 @@ const ArticleCards = () => {
             className="absolute  w-full h-full bg-gradient-to-b from-transparent to-lime-400/60"
           />
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       <div className="w-full z-20 px-4 mb-10">
         <h3 className="text-xl font-medium tracking-tight ">
@@ -130,12 +181,12 @@ const AccountCards = () => {
 
   const card1Variants: Variants = {
     initial: {
-      zIndex: 50,
+      zIndex: 20,
       rotate: -2,
       x: -40,
     },
     animate: {
-      zIndex: 50,
+      zIndex: 20,
       rotate: -3,
       x: -120,
     },
@@ -160,7 +211,7 @@ const AccountCards = () => {
       id: 1,
       variants: card1Variants,
       style: {
-        zIndex: 50,
+        zIndex: 20,
       },
       username: "ashhhwwinnn",
       image:
@@ -213,7 +264,7 @@ const AccountCards = () => {
               duration: 0.5,
             }}
             // max-w-[190px] h-[220px]
-            className="py-3 px-2 w-1/2 h-[60%] scale-75  border border-neutral-300/60 dark:border-dark-border/60  shadow-xl dark:shadow-2xl  absolute  flex flex-col items-center justify-center bg-neutral-100 dark:bg-dark-bg  "
+            className="py-3 px-2 w-1/2 h-[60%] scale-75  border border-neutral-300/60 dark:border-dark-border/60  shadow-xl dark:shadow-2xl absolute  flex flex-col items-center justify-center bg-neutral-100 dark:bg-dark-bg  "
           >
             <div className="size-20 rounded-full border-[2px] border-neutral-300/60 dark:border-dark-border/80 bg-neutral-300/60 relative overflow-hidden dark:bg-dark-border">
               <Image src={card?.image} fill alt="" className="object-cover " />
@@ -303,7 +354,7 @@ function PolaroidStack() {
           );
         })}
       </div>
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {hovered && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -316,7 +367,7 @@ function PolaroidStack() {
             className="absolute  w-full h-full bg-gradient-to-b from-transparent to-indigo-500/70 dark:to-indigo-500/90"
           />
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
       <div className="w-full z-20 px-4 mb-8">
         <h3 className="text-xl font-medium tracking-tight ">
           Share your Moments & Memories
@@ -341,7 +392,63 @@ const SocialPresense = () => {
       controls.start("initial");
     }
   }, [hovered, controls]);
+  const dummyLinks = [
+    {
+      platform: "reddit",
+      url: "https://github.com/Ashpara10",
+    },
+    {
+      platform: "twitter",
+      url: "https://twitter.com/Ashpara10",
+    },
+    {
+      platform: "linkedin",
+      url: "https://linkedin.com/in/Ashpara10",
+    },
+    {
+      platform: "youtube",
+      url: "https://instagram.com/Ashpara10",
+    },
+    {
+      platform: "github",
+      url: "https://instagram.com/Ashpara10",
+    },
+    {
+      platform: "instagram",
+      url: "https://instagram.com/Ashpara10",
+    },
+    {
+      platform: "facebook",
+      url: "https://instagram.com/Ashpara10",
+    },
+    {
+      platform: "snapchat",
+      url: "https://instagram.com/Ashpara10",
+    },
+    {
+      platform: "discord",
+      url: "https://instagram.com/Ashpara10",
+    },
+    {
+      platform: "pinterest",
+      url: "https://instagram.com/Ashpara10",
+    },
+    {
+      platform: "spotify",
+      url: "https://instagram.com/Ashpara10",
+    },
+  ];
 
+  function shuffleArray<T>(array: T[]): T[] {
+    const result = [...array]; // avoid mutating the original array
+
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+
+    return result;
+  }
   return (
     <div
       onMouseEnter={() => setHovered(true)}
@@ -350,7 +457,7 @@ const SocialPresense = () => {
         "w-full group  flex-col h-full flex  items-center justify-center"
       )}
     >
-      <div className="w-full flex flex-col gap-y-6 items-center justify-center h-full pt-10 ">
+      <div className="w-full flex flex-col gap-y-8 items-center justify-center h-full pt-10 ">
         <motion.div
           animate={{ x: [0, -1000] }}
           transition={{
@@ -363,24 +470,24 @@ const SocialPresense = () => {
           className="w-full flex  "
         >
           {[
-            ...availablePlatforms,
-            ...availablePlatforms,
-            ...availablePlatforms.reverse(),
+            ...shuffleArray(dummyLinks),
+            ...shuffleArray(dummyLinks),
+            ...shuffleArray(dummyLinks).reverse(),
           ].map((card, i) => {
-            const icon = getIcon(card);
             return (
-              <Button key={i} size={"lg"} className="mx-4 px-6  scale-105 ">
-                <Image
-                  src={`/${icon}`}
-                  className="aspect-square size-6"
-                  alt={card}
-                  width={20}
-                  height={20}
-                />
-                <span className="ml-2 opacity-75  tracking-tight leading-snug mr-2 ">
-                  {capitalizeFirstLetter(card)}
-                </span>
-              </Button>
+              <SocialLinkButton className="mx-4 scale-110" key={i} {...card} />
+              // <Button key={i} size={"lg"} className="mx-4 px-6  scale-105 ">
+              //   <Image
+              //     src={`/${icon}`}
+              //     className="aspect-square size-6"
+              //     alt={card}
+              //     width={20}
+              //     height={20}
+              //   />
+              //   <span className="ml-2 opacity-75  tracking-tight leading-snug mr-2 ">
+              //     {capitalizeFirstLetter(card)}
+              //   </span>
+              // </Button>
               // </motion.div>
             );
           })}
@@ -397,25 +504,12 @@ const SocialPresense = () => {
           className="w-full flex  "
         >
           {[
-            ...availablePlatforms.reverse(),
-            ...availablePlatforms,
-            ...availablePlatforms.reverse(),
+            ...shuffleArray(dummyLinks).reverse(),
+            ...shuffleArray(dummyLinks),
+            ...shuffleArray(dummyLinks).reverse(),
           ].map((card, i) => {
-            const icon = getIcon(card);
             return (
-              <Button key={i} size={"lg"} className="mx-4 px-6  scale-105 ">
-                <Image
-                  src={`/${icon}`}
-                  className="aspect-square size-6"
-                  alt={card}
-                  width={20}
-                  height={20}
-                />
-                <span className="ml-2 opacity-75  tracking-tight leading-snug mr-2 ">
-                  {capitalizeFirstLetter(card)}
-                </span>
-              </Button>
-              // </motion.div>
+              <SocialLinkButton className="mx-4 scale-110" key={i} {...card} />
             );
           })}
         </motion.div>
@@ -431,25 +525,12 @@ const SocialPresense = () => {
           className="w-full flex  "
         >
           {[
-            ...availablePlatforms,
-            ...availablePlatforms.reverse(),
-            ...availablePlatforms,
+            ...shuffleArray(dummyLinks),
+            ...shuffleArray(dummyLinks).reverse(),
+            ...shuffleArray(dummyLinks),
           ].map((card, i) => {
-            const icon = getIcon(card);
             return (
-              <Button key={i} size={"lg"} className="mx-4 px-6  scale-105 ">
-                <Image
-                  src={`/${icon}`}
-                  className="aspect-square size-6"
-                  alt={card}
-                  width={20}
-                  height={20}
-                />
-                <span className="ml-2 opacity-75  tracking-tight leading-snug mr-2 ">
-                  {capitalizeFirstLetter(card)}
-                </span>
-              </Button>
-              // </motion.div>
+              <SocialLinkButton className="mx-4 scale-110" key={i} {...card} />
             );
           })}
         </motion.div>

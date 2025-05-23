@@ -1,50 +1,36 @@
-import { motion, useScroll, useTransform } from "framer-motion";
-import Image from "next/image";
-import React, { useRef } from "react";
+import {
+  AnimatePresence,
+  motion,
+  MotionValue,
+  useMotionValueEvent,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import { useRef, useState } from "react";
 
 const TextReveal = () => {
-  const imageContainerRef = useRef(null);
   const container = useRef(null);
   const para = `Rize is where authenticity meets aesthetic — craft a profile that feels real, looks premium, and signals credibility`;
   const words = para.split(" ");
 
-  const { scrollYProgress } = useScroll({
-    axis: "y",
-    target: imageContainerRef,
-    offset: ["start 0.9", "start 0.25"],
-  });
-  const opacity = useTransform(scrollYProgress, [1, 0.7, 0], [1, 0.5, 0]);
-  const y = useTransform(scrollYProgress, [1, 0.4, 0], [-100, -40, 0]);
-  const scale = useTransform(scrollYProgress, [1, 0.4, 0], [1, 0.8, 0]);
-
-  const MotionImage = motion.create(Image);
-
   const { scrollYProgress: scrollYTextProgress } = useScroll({
     target: container,
-    offset: ["start 0.9", "start 0.25"],
+    offset: ["start 0.7", "start 0.2"],
   });
   return (
-    <section
-      ref={imageContainerRef}
-      className="w-full px-4 flex  flex-col items-center relative justify-center "
-    >
-      <MotionImage
-        style={{ opacity, y, scale }}
-        transition={{
-          ease: [0.12, 0.146, -0.18, 1],
-          duration: 0.4,
-        }}
-        src={"/image.png"}
-        className="w-full aspect-video border border-neutral-300/60 dark:border-dark-border/80 md:max-w-6xl rounded-xl  ring-[9px] ring-black"
-        width={1920}
-        height={1080}
-        alt=""
-      />
+    <section className="w-full px-4  md:mt-0  md:h-screen pt-20 flex  flex-col items-center relative justify-center ">
       <motion.section
         ref={container}
-        className="w-full max-w-6xl flex mb-20  flex-col items-center justify-center gap-2 mt-4"
+        className="w-full max-w-6xl sticky top-10 md:top-[100px] flex mb-20 ml-6 md:ml-0 flex-col items-center justify-center gap-2 mt-4"
       >
-        <motion.p className=" w-full text-3xl md:text-4xl lg:text-5xl font-medium md:font-semibold flex flex-wrap">
+        <motion.p
+          layout
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+          }}
+          className=" w-full text-3xl md:gap-y-1.5 md:text-4xl lg:text-5xl font-semibold md:font-semibold "
+        >
           {words.map((line, index) => {
             const start = index / words.length;
 
@@ -54,14 +40,7 @@ const TextReveal = () => {
               [start, end],
               [0, 1]
             );
-            return (
-              <span key={index} className=" relative">
-                <span className="opacity-20 absolute">{line}</span>
-                <motion.span style={{ opacity }} className="mr-2">
-                  {line}
-                </motion.span>
-              </span>
-            );
+            return <Word key={index} opacity={opacity} text={line} />;
           })}
         </motion.p>
       </motion.section>
@@ -69,4 +48,58 @@ const TextReveal = () => {
   );
 };
 
+const Word = ({
+  opacity,
+  text,
+}: {
+  opacity: MotionValue<number>;
+  text: string;
+}) => {
+  const words = ["authenticity", "premium", "aesthetic", "credibility"];
+  const [visible, setVisible] = useState(false);
+  useMotionValueEvent(opacity, "change", (v) => {
+    if (words.includes(text)) {
+      if (v === 1) {
+        setVisible(true);
+      } else {
+        setVisible(false);
+      }
+    }
+  });
+  return (
+    <span className=" relative">
+      <span className="opacity-20 absolute">{text}</span>
+      <motion.span style={{ opacity }} className="mr-2">
+        {text}
+      </motion.span>
+    </span>
+  );
+};
+
 export default TextReveal;
+
+{
+  /* <AnimatePresence>
+  {visible && (
+    <motion.div
+      animate={{ opacity: 1, rotate: -6 }}
+      exit={{ opacity: 0, rotate: 0 }}
+      transition={{
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+      }}
+      className="size-14 relative  mr-2 bg-white shadow-xl border border-neutral-300/90 rounded-xl"
+    >
+      <div className="flex  absolute w-full px-4 py-3 items-center justify-start gap-x-2">
+        {[...Array(3)].map((_, index) => (
+          <div
+            key={index}
+            className="size-2 bg-neutral-200  dark:bg-dark-border rounded-full"
+          />
+        ))}
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence> */
+}

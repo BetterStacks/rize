@@ -45,7 +45,7 @@ const UserReviews = () => {
       ref={ref}
       className="w-full px-4 flex relative flex-col mb-10 items-center justify-center"
     >
-      <span className="text-3xl font-medium  mb-6 tracking-tight  leading-none text-center ">
+      <span className="text-3xl md:text-4xl font-semibold md:my-20  mb-6 tracking-tight  leading-none text-center ">
         We Help you own <br className="hidden md:flex" />
         your Story not just your Resume
       </span>

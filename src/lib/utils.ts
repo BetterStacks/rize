@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { Area } from "react-easy-crop";
 import { twMerge } from "tailwind-merge";
-import { SocialPlatform } from "./types";
+import { ClassifiedWord, SocialPlatform } from "./types";
 
 export const MAX_GALLERY_ITEMS = 8;
 
@@ -143,7 +143,7 @@ export const isVideoUrl = (url: string): boolean => {
 };
 
 export const capitalizeFirstLetter = (str: string) => {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+  return str?.charAt(0)?.toUpperCase() + str?.slice(1);
 };
 
 export const availablePlatforms: SocialPlatform[] = [
@@ -236,4 +236,30 @@ export function isEqual(a: any, b: any): boolean {
 
   // Fallback
   return false;
+}
+
+export function classifyText(input: string): ClassifiedWord[] {
+  const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
+  const urlRegex =
+    /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/i;
+
+  const tokens: ClassifiedWord[] = [];
+
+  const parts = input.split(/(\n|\s+)/);
+
+  for (const part of parts) {
+    if (part.includes("\n")) {
+      tokens.push({ type: "newline", value: part });
+    } else if (/^\s+$/.test(part)) {
+      // skip whitespace
+    } else if (emailRegex.test(part)) {
+      tokens.push({ type: "email", value: part });
+    } else if (urlRegex.test(part)) {
+      tokens.push({ type: "link", value: part });
+    } else if (part.length > 0) {
+      tokens.push({ type: "word", value: part });
+    }
+  }
+
+  return tokens;
 }

@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { FC } from "react";
 import { useProfileDialog } from "./dialog-provider";
 import { Button } from "./ui/button";
+import Menu from "./menu";
 
 type NavbarProps = {
   isMine: boolean;
@@ -17,11 +18,11 @@ const Navbar: FC<NavbarProps> = ({ isMine }) => {
   const setSidebarOpen = useRightSidebar()[1];
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   return (
-    <nav className="absolute bg-white dark:bg-dark-bg md:bg-transparent md:dark:bg-transparent top-0 w-full flex items-center justify-center z-50 py-3 px-2 md:px-0 ">
+    <nav className="absolute top-0 w-full flex items-center justify-center z-50 py-3 px-2 md:px-0 ">
       <div
         className={cn(
-          // !isMine && "max-w-2xl",
-          "w-full flex items-center relative justify-between md:justify-end px-2 md:px-4  "
+          "w-full flex items-center  relative justify-end px-2 md:px-4  ",
+          isMine && !isDesktop && "justify-between"
         )}
       >
         {isMine && !isDesktop && (
@@ -37,7 +38,7 @@ const Navbar: FC<NavbarProps> = ({ isMine }) => {
         {/* <Logo /> */}
 
         <div className="gap-x-2 flex items-center justify-center ">
-          <Button
+          {/* <Button
             variant={"outline"}
             size={"icon"}
             className={cn(
@@ -53,9 +54,8 @@ const Navbar: FC<NavbarProps> = ({ isMine }) => {
             ) : (
               <Moon strokeWidth={1.5} className="text-sm stroke-purple-100" />
             )}
-          </Button>
+          </Button> */}
 
-          {/* <Menu /> */}
           {isMine && (
             <>
               <Button
@@ -68,6 +68,7 @@ const Navbar: FC<NavbarProps> = ({ isMine }) => {
               </Button>
             </>
           )}
+          <Menu />
         </div>
       </div>
     </nav>

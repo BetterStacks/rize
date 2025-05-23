@@ -25,9 +25,9 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
     queryKey: ["get-projects", username],
     initialData: projects,
     queryFn: () => getAllProjects(username),
-    refetchOnWindowFocus: false,
+    // refetchOnWindowFocus: false,
     refetchOnMount: false,
-    staleTime: Infinity,
+    // staleTime: Infinity,
   });
 
   const setActiveTab = useActiveSidebarTab()[1];
@@ -111,17 +111,6 @@ export function EmptyWritingState({
                 className="size-6 text-violet-500 dark:text-violet-400"
                 strokeWidth={1.5}
               />
-              {/* <motion.div
-                initial={{ opacity: 0, x: 5, y: 5 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="absolute -right-1 -top-1"
-              >
-                <PenLine
-                  className="h-5 w-5 text-indigo-500 dark:text-indigo-400"
-                  strokeWidth={1.5}
-                />
-              </motion.div> */}
             </div>
           </motion.div>
         </div>

@@ -1,5 +1,4 @@
 "use client";
-import { uploadMedia } from "@/actions/client-actions";
 import { getEducationById, upsertEducation } from "@/actions/education-actions";
 import {
   getExperienceById,
@@ -57,6 +56,7 @@ import {
 } from "../ui/select";
 import { Skeleton } from "../ui/skeleton";
 import { Textarea } from "../ui/textarea";
+import { uploadMedia } from "@/actions/client-actions";
 
 const RightSidebar = () => {
   const [active, setActive] = useActiveSidebarTab();
@@ -78,7 +78,7 @@ const RightSidebar = () => {
         <EducationForm id={active?.id as string} />
       </>
     ),
-    "work-experience": (
+    experience: (
       <>
         <ExperienceForm id={active?.id as string} />
       </>
@@ -210,7 +210,7 @@ function EditGallery() {
     <div className="h-full overflow-hidden  w-full pt-6">
       {limit !== 100 && (
         <div className="px-4 ">
-          <Card className="bg-white w-full mb-6 mt-4 shadow-lg dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
+          <Card className="bg-white gallery-editor w-full mb-6 mt-4 shadow-lg dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
             <CardHeader className="pb-4">
               <CardTitle className="text-xl font-medium dark:text-white">
                 Add To Gallery
@@ -304,7 +304,7 @@ function EditGallery() {
           </Card>
         </div>
       )}
-      <div className="px-4">
+      <div className="px-4 ">
         <GalleryLimit itemCount={items?.length} />
       </div>
     </div>

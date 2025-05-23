@@ -16,6 +16,7 @@ type DialogContextType = {
   isAddExperienceDialogOpen?: boolean;
   isSearchDialogOpen?: boolean;
   isProjectsDialogOpen?: boolean;
+  isCreatePostDialogOpen?: boolean;
 };
 
 type setDialogContextType = [
@@ -28,6 +29,7 @@ type setDialogContextType = [
     setIsAddExperienceDialogOpen: UpdateStateFunctionType;
     setIsSearchDialogOpen: UpdateStateFunctionType;
     setIsProjectsDialogOpen: UpdateStateFunctionType;
+    setIsCreatePostDialogOpen: UpdateStateFunctionType;
   }
 ];
 
@@ -39,6 +41,7 @@ const defaultContextState: DialogContextType = {
   isAddExperienceDialogOpen: false,
   isSearchDialogOpen: false,
   isProjectsDialogOpen: false,
+  isCreatePostDialogOpen: false,
 };
 
 const DialogContext = createContext([
@@ -51,6 +54,7 @@ const DialogContext = createContext([
     setIsAddExperienceDialogOpen: () => {},
     setIsSearchDialogOpen: () => {},
     setIsProjectsDialogOpen: () => {},
+    setIsCreatePostDialogOpen: () => {},
   },
 ] as setDialogContextType);
 
@@ -137,6 +141,18 @@ export const useProjectsDialog = () => {
     context[1].setIsProjectsDialogOpen,
   ] as const;
 };
+export const usePostsDialog = () => {
+  const context = useContext(DialogContext);
+  if (!context) {
+    throw new Error(
+      "useProjectsDialog must be used within DialogContextProvider"
+    );
+  }
+  return [
+    context[0].isCreatePostDialogOpen,
+    context[1].setIsCreatePostDialogOpen,
+  ] as const;
+};
 
 const DialogContextProvider = ({ children }: { children: ReactNode }) => {
   const [openContext, setOpenContext] =
@@ -183,6 +199,12 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
     },
     [openContext, setOpenContext]
   );
+  const setIsCreatePostDialogOpen = useCallback(
+    (isOpen: boolean) => {
+      setOpenContext({ ...openContext, isCreatePostDialogOpen: isOpen });
+    },
+    [openContext, setOpenContext]
+  );
   return (
     <DialogContext.Provider
       value={[
@@ -195,6 +217,7 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
           setIsAddExperienceDialogOpen,
           setIsSearchDialogOpen,
           setIsProjectsDialogOpen,
+          setIsCreatePostDialogOpen,
         },
       ]}
     >

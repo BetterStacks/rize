@@ -19,7 +19,7 @@ body {
       column-count: 2;
     }
     .masonry-md {
-      column-gap: 1.5em;
+      column-gap: 1.2em;
       column-count: 3;
     }
     .break-inside {

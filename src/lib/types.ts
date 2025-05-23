@@ -29,16 +29,44 @@ export type TNewEducation = typeof education.$inferInsert;
 export type TExperience = typeof experience.$inferSelect;
 export type TNewExperience = typeof experience.$inferInsert;
 
+export type WordType = "email" | "link" | "word" | "newline";
+
+export interface ClassifiedWord {
+  type: WordType;
+  value: string;
+}
+
 export type TUploadFilesResponse = {
   width: number;
   height: number;
   url: string;
 };
 
+export type GetExplorePosts = {
+  username: string | null;
+  name: string | null;
+  avatar: string | null;
+
+  media: {
+    id: string;
+    url: string;
+    type: "image" | "video";
+    height: number;
+    width: number;
+  }[];
+
+  id: string;
+  content: string;
+  profileId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type TSection = {
   id: string;
   enabled: boolean;
   name: string;
+  order: number;
   component: ReactNode;
 };
 
@@ -237,6 +265,7 @@ export const profileSchema = z.object({
   // pronouns: PronounsEnum.optional(),
   profileImage: z.string().url().optional(),
   bio: z.string().optional(),
+  hasCompletedWalkthrough: z.boolean().optional(),
   // location: z.string().optional(),
   // website: z.string().url().optional(),
 });

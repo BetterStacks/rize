@@ -18,7 +18,8 @@ export const getSocialLinks = async (username: string) => {
     .where(eq(socialLinks.profileId, profileId?.id));
 
   if (links.length === 0) {
-    throw new Error("No social links found");
+    // throw new Error("No social links found");
+    return [];
   }
 
   return links;

@@ -21,6 +21,7 @@ declare module "next-auth/jwt" {
     profileId: string;
     isOnboarded: boolean;
     displayName: string;
+    hasCompletedWalkthrough: boolean;
   }
 }
 
@@ -33,6 +34,7 @@ declare module "next-auth" {
       profileId: string;
       profileImage: string;
       displayName: string;
+      hasCompletedWalkthrough: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -79,6 +81,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           profileId: profile.id,
           profileImage: profile.profileImage,
           displayName: profile.displayName,
+          hasCompletedWalkthrough: profile.hasCompletedWalkthrough,
         })
         .from(users)
         .leftJoin(profile, eq(profile.userId, users.id))

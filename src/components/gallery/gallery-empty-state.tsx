@@ -46,7 +46,7 @@ export function EmptyGalleryState({
         <div className="flex gap-3">
           <Button
             size="sm"
-            className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:from-violet-600 hover:to-indigo-600 dark:from-violet-600 dark:to-indigo-600 dark:hover:from-violet-700 dark:hover:to-indigo-700"
+            className="gap-2 scale-90 bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:from-violet-600 hover:to-indigo-600 dark:from-violet-600 dark:to-indigo-600 dark:hover:from-violet-700 dark:hover:to-indigo-700"
             onClick={onAddImages}
           >
             <Plus className="h-4 w-4" />

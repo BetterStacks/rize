@@ -180,6 +180,7 @@ const PageSidebar = () => {
                 type="button"
                 variant="outline"
                 className="w-full"
+                disabled={isPending || isDeleting}
                 onClick={() => setFile(null)}
               >
                 Remove Thumbnail

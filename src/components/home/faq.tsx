@@ -31,13 +31,18 @@ const faqItems = [
 
 export default function FAQSection() {
   return (
-    <section className="  flex flex-col h-screen items-center justify-center  w-full px-4 py-12">
-      <div className="max-w-3xl w-full ">
-        <h2 className="text-4xl font-bold text-center mb-8">
+    <section className=" flex flex-col relative  h-screen  items-center justify-center  w-full px-4 py-12">
+      <div className="size-[350px]  absolute blur-[120px] top-[30%] -z-10  bg-indigo-400 dark:bg-indigo-500"></div>
+      <div className="max-w-4xl w-full relative">
+        <h2 className="text-4xl font-semibold text-center mb-8">
           Frequently Asked <br />
           Questions
         </h2>
-        <Accordion type="single" collapsible className="w-full space-y-2">
+        <Accordion
+          type="single"
+          collapsible
+          className="w-full bg-neutral-200 dark:bg-neutral-500 px-2 py-2 rounded-3xl space-y-2"
+        >
           {faqItems.map((item, index) => (
             <AccordionItem
               className="w-full border-none bg-white dark:bg-dark-bg rounded-xl  px-2  overflow-hidden"
