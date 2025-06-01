@@ -1,4 +1,5 @@
 import PostForm from "@/components/explore/post-form";
+import RecentlyJoined from "@/components/recently-joined";
 import Sidebar from "@/components/sidebar/Sidebar";
 import { ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,7 +28,9 @@ const ExploreLayout: FC<Props> = ({ children }) => {
         </ScrollArea>
         {/* </div> */}
       </ResizablePanel>
-      <div className="border-l hidden z-40 bg-white dark:bg-dark-bg lg:flex border-neutral-300/60 dark:border-dark-border max-w-xs w-full h-screen"></div>
+      <div className="border-l hidden z-40  bg-white dark:bg-dark-bg lg:flex border-neutral-300/60 dark:border-dark-border max-w-[280px] lg:flex-col w-full h-screen">
+        <RecentlyJoined />
+      </div>
     </ResizablePanelGroup>
   );
 };

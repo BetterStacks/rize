@@ -13,6 +13,7 @@ import UserProfile from "./profile/user-profile";
 import SectionContextProvider from "@/lib/section-context";
 import UserProfileLayout from "@/components/layout/UserProfileLayout";
 import Walkthrough from "./walkthrough";
+import { cn } from "@/lib/utils";
 
 type Props = {
   username: string;
@@ -59,9 +60,9 @@ const ProfilePage: FC<Props> = async ({ username }) => {
       posts={posts}
       profileSections={sections}
     >
-      <UserProfileLayout isMine={isMine}>
+      <UserProfileLayout isMine={isMine} className={cn("overflow-hidden")}>
         <div className="w-full flex items-center justify-center">
-          {shouldStartWalkthrough && <Walkthrough isMine={isMine} />}
+          {shouldStartWalkthrough && <Walkthrough />}
           <UserProfile
             isMine={isMine}
             data={user}

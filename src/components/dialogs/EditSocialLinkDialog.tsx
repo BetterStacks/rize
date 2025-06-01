@@ -48,7 +48,7 @@ const EditSocialLink: React.FC<EditSocialLinkProps> = ({
     setEditedUrl(url);
   }, [url, open]);
 
-  const { mutate: editSocialLinkMutation } = useMutation({
+  const { mutate: editSocialLinkMutation, isPending } = useMutation({
     mutationFn: ({ id, url }: { id: string; url: string }) =>
       editSocialLink(id, url),
     onSuccess: () => {
@@ -85,7 +85,7 @@ const EditSocialLink: React.FC<EditSocialLinkProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md sm:rounded-3xl">
+      <DialogContent className="sm:max-w-md dark:bg-dark-bg bg-white sm:rounded-3xl">
         <DialogHeader>
           <DialogTitle>Edit {capitalizeFirstLetter(platform)} Link</DialogTitle>
           <DialogDescription>
@@ -104,18 +104,19 @@ const EditSocialLink: React.FC<EditSocialLinkProps> = ({
         </div>
         <DialogFooter>
           <Button
-            type="button"
-            variant="secondary"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button
             type="submit"
-            disabled={url.trim() === editedUrl.trim()}
+            variant="secondary"
+            disabled={url.trim() === editedUrl.trim() || isPending}
             onClick={handleSave}
           >
             Save Changes
+          </Button>
+          <Button
+            disabled={isPending}
+            type="button"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -17,6 +17,7 @@ type DialogContextType = {
   isSearchDialogOpen?: boolean;
   isProjectsDialogOpen?: boolean;
   isCreatePostDialogOpen?: boolean;
+  isPostDialogOpen: boolean;
 };
 
 type setDialogContextType = [
@@ -30,6 +31,7 @@ type setDialogContextType = [
     setIsSearchDialogOpen: UpdateStateFunctionType;
     setIsProjectsDialogOpen: UpdateStateFunctionType;
     setIsCreatePostDialogOpen: UpdateStateFunctionType;
+    setIsPostDialogOpen: UpdateStateFunctionType;
   }
 ];
 
@@ -42,6 +44,7 @@ const defaultContextState: DialogContextType = {
   isSearchDialogOpen: false,
   isProjectsDialogOpen: false,
   isCreatePostDialogOpen: false,
+  isPostDialogOpen: false,
 };
 
 const DialogContext = createContext([
@@ -55,6 +58,7 @@ const DialogContext = createContext([
     setIsSearchDialogOpen: () => {},
     setIsProjectsDialogOpen: () => {},
     setIsCreatePostDialogOpen: () => {},
+    setIsPostDialogOpen: () => {},
   },
 ] as setDialogContextType);
 
@@ -153,6 +157,15 @@ export const usePostsDialog = () => {
     context[1].setIsCreatePostDialogOpen,
   ] as const;
 };
+export const usePostDialog = () => {
+  const context = useContext(DialogContext);
+  if (!context) {
+    throw new Error(
+      "useProjectsDialog must be used within DialogContextProvider"
+    );
+  }
+  return [context[0].isPostDialogOpen, context[1].setIsPostDialogOpen] as const;
+};
 
 const DialogContextProvider = ({ children }: { children: ReactNode }) => {
   const [openContext, setOpenContext] =
@@ -205,6 +218,12 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
     },
     [openContext, setOpenContext]
   );
+  const setIsPostDialogOpen = useCallback(
+    (isOpen: boolean) => {
+      setOpenContext({ ...openContext, isPostDialogOpen: isOpen });
+    },
+    [openContext, setOpenContext]
+  );
   return (
     <DialogContext.Provider
       value={[
@@ -218,6 +237,7 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
           setIsSearchDialogOpen,
           setIsProjectsDialogOpen,
           setIsCreatePostDialogOpen,
+          setIsPostDialogOpen,
         },
       ]}
     >

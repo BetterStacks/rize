@@ -475,7 +475,11 @@ const SocialPresense = () => {
             ...shuffleArray(dummyLinks).reverse(),
           ].map((card, i) => {
             return (
-              <SocialLinkButton className="mx-4 scale-110" key={i} {...card} />
+              <SocialLinkButton
+                className="mx-4  pointer-events-none scale-110"
+                key={i}
+                {...card}
+              />
               // <Button key={i} size={"lg"} className="mx-4 px-6  scale-105 ">
               //   <Image
               //     src={`/${icon}`}
@@ -509,7 +513,11 @@ const SocialPresense = () => {
             ...shuffleArray(dummyLinks).reverse(),
           ].map((card, i) => {
             return (
-              <SocialLinkButton className="mx-4 scale-110" key={i} {...card} />
+              <SocialLinkButton
+                className="mx-4  pointer-events-none scale-110"
+                key={i}
+                {...card}
+              />
             );
           })}
         </motion.div>
@@ -530,7 +538,11 @@ const SocialPresense = () => {
             ...shuffleArray(dummyLinks),
           ].map((card, i) => {
             return (
-              <SocialLinkButton className="mx-4 scale-110" key={i} {...card} />
+              <SocialLinkButton
+                className="mx-4  pointer-events-none scale-110"
+                key={i}
+                {...card}
+              />
             );
           })}
         </motion.div>

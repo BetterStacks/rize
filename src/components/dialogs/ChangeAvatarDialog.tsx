@@ -9,7 +9,13 @@ import Cropper, { Area } from "react-easy-crop";
 import toast from "react-hot-toast";
 import { useAvatarDialog } from "../dialog-provider";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 
 type ChangeAvatarDialogProps = {
   file: File | null;
@@ -71,22 +77,27 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
     >
       <DialogContent className="sm:rounded-3xl p-0 max-w-md">
         <DialogHeader className="mt-6 px-5 mb-3">
-          <DialogTitle className="text-xl font-semibold">
-            Change your Profile Picture
+          <DialogTitle className="text-xl font-medium tracking-tight">
+            Edit Profile Picture
           </DialogTitle>
+          <DialogDescription>
+            Change your profile picture to a new one. You can crop and adjust
+            the image before saving.
+          </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col px-5 pb-2 ">
-          <div className="aspect-square border-[3px] border-dashed border-neutral-300 dark:border-dark-border/60 relative rounded-2xl w-full p-6">
+        <div className="flex flex-col px-4 ">
+          <div className="aspect-square  relative rounded-3xl overflow-hidden w-full ">
             <Cropper
               classes={{
-                containerClassName: "rounded-3xl ",
-                mediaClassName: "aspect-square w-full object-contain",
+                containerClassName: "overflow-hidden relative ",
+                mediaClassName: "aspect-square ",
               }}
               image={image as string}
               crop={crop}
               zoom={zoom}
               aspect={1}
               cropShape="round"
+              cropSize={{ width: 350, height: 350 }}
               showGrid={false}
               onCropChange={setCrop}
               onRotationChange={setRotation}
@@ -97,6 +108,7 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
         </div>
         <div className="border-t px-5 pb-5 pt-5 border-neutral-300 dark:border-dark-border/60 flex  gap-x-3 items-center justify-between">
           <Button
+            variant={"outline"}
             onClick={async () => {
               setIsUploading(true);
               const url = await getBase64Image(
@@ -134,7 +146,7 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
             }}
             className="rounded-lg w-full"
           >
-            {isUploading && <Loader className="w-4 h-4 animate-spin" />}
+            {isUploading && <Loader className="w-4 h-4 mr-2 animate-spin" />}
             Save Changes
           </Button>
         </div>

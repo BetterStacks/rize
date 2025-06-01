@@ -146,7 +146,9 @@ const Login = () => {
         </div>
         <Button
           variant={"secondary"}
-          disabled={!!form.formState.errors || isLoading}
+          disabled={
+            Object.entries(form.formState.errors)?.length > 0 || isLoading
+          }
           className="w-full mt-4"
         >
           {isLoading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : null}

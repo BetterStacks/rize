@@ -70,11 +70,13 @@ const isValidUrl = (url: string): boolean => {
 interface AddSocialLinkProps {
   onAdd: (platform: SocialPlatform, url: string) => void;
   existingPlatforms: SocialPlatform[];
+  isPending?: boolean;
 }
 
 const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
   existingPlatforms,
   onAdd,
+  isPending,
 }) => {
   const [open, setOpen] = useSocialLinksDialog();
   const [platform, setPlatform] = useState<SocialPlatform>("other");
@@ -155,7 +157,16 @@ const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
         </div>
         <DialogFooter className="gap-y-2">
           <Button
+            variant="secondary"
+            disabled={isPending}
+            type="submit"
+            onClick={handleAdd}
+          >
+            Add Link
+          </Button>
+          <Button
             type="button"
+            disabled={isPending}
             onClick={() => {
               setOpen(false);
               setPlatform("other");
@@ -163,9 +174,6 @@ const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
             }}
           >
             Cancel
-          </Button>
-          <Button variant="secondary" type="submit" onClick={handleAdd}>
-            Add Link
           </Button>
         </DialogFooter>
       </DialogContent>

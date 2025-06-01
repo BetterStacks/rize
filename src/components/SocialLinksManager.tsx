@@ -49,7 +49,7 @@ const SocialLinksManager = () => {
     (link) => link.platform
   ) as SocialPlatform[];
 
-  const { mutate: addSocialLinkMutation } = useMutation({
+  const { mutate: addSocialLinkMutation, isPending } = useMutation({
     mutationFn: ({
       url,
       platform,
@@ -79,7 +79,7 @@ const SocialLinksManager = () => {
     setEditLinkDialogOpen(true);
   };
   return (
-    <div className="w-full  px-4 flex flex-col items-center justify-center mb-6">
+    <div className="w-full max-w-sm px-2 flex flex-col items-center justify-center mb-6">
       <Card className="bg-white social-links-manager w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl font-medium dark:text-white">
@@ -89,7 +89,7 @@ const SocialLinksManager = () => {
             Add and manage your social media <br /> links in one place.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-3">
           {links.length > 0 ? (
             <div className="">
               {links.map((link) => (
@@ -114,7 +114,7 @@ const SocialLinksManager = () => {
               </p>
             </div>
           )}
-          <CardFooter>
+          <CardFooter className="px-3">
             <Button
               className="w-full"
               variant={"outline"}
@@ -187,16 +187,16 @@ const SocialLink: React.FC<SocialLinkProps> = ({
           height={20}
         />{" "}
         {/* </div> */}
-        <div className="flex flex-col">
+        <div className="flex flex-col w-full">
           <h3 className={cn("font-medium leading-none tracking-tight")}>
             {capitalizeFirstLetter(platform)}
           </h3>
           <NextLink
             href={url}
             target="_blank"
-            className="text-sm opacity-70 line-clamp-1 leading-tight hover:underline"
+            className="text-sm opacity-70 truncate w-full leading-tight hover:underline"
           >
-            {cleanUrl(url)}
+            {cleanUrl(url?.substring(0, 30))}
           </NextLink>
         </div>
       </div>

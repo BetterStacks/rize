@@ -1,15 +1,5 @@
 "use client";
-import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { TSection } from "./types";
-import { useQueryState } from "nuqs";
-import { useParams } from "next/navigation";
-import { getSections } from "@/actions/general-actions";
+import React, { createContext, ReactNode, useContext, useState } from "react";
 
 type TAppContext = {
   activeSidebarTab: { id?: string | null; tab: string };

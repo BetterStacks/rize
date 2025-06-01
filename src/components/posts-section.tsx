@@ -25,13 +25,14 @@ const PostSection: FC<Props> = ({ posts, isMine }) => {
     refetchOnMount: false,
     staleTime: Infinity,
   });
+  console.log(data?.map((post) => post.media));
   return (
     <div
       id="posts"
-      className="w-full my-12 max-w-2xl px-2 md:px-4 flex flex-col items-center justify-start"
+      className="w-full my-12  px-2  flex flex-col items-center justify-start"
     >
-      <div className="w-full mb-2 md:mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-medium ">Popular Posts</h2>
+      <div className="w-full max-w-2xl mb-4 flex items-center justify-between">
+        <h2 className="text-lg md:text-xl font-medium ">Popular Posts</h2>
         {isMine && (
           <Button
             variant={"outline"}
@@ -52,13 +53,14 @@ const PostSection: FC<Props> = ({ posts, isMine }) => {
         ) : data?.length === 0 ? (
           <EmptyWritingState onCreateNew={() => setOpen(true)} />
         ) : (
-          <div className="w-full columns-1 md:columns-2 gap-4 ">
+          <div className="w-full columns-1 md:columns-2 gap-y-8 md:gap-4 ">
             {data?.map((post, i) => (
               <PostCard
-                mediaContainerClassName="h-[250px]"
-                className="max-w-[360px]"
+                // mediaContainerClassName="h-[350px]"
+                // className="max-w-[360px]"
                 key={i}
                 post={post}
+                showHeader={false}
               />
             ))}
           </div>
@@ -115,8 +117,10 @@ export function EmptyWritingState({
             </div>
           </motion.div>
         </div>
-        <h3 className="mb-2 text-xl font-medium tracking-tight">{title}</h3>
-        <p className="mb-6 opacity-80 leading-tight px-6">{description}</p>
+        <h3 className="mb-2 md:text-xl font-medium tracking-tight">{title}</h3>
+        <p className="mb-6 text-sm md:text-base opacity-80 leading-tight px-6">
+          {description}
+        </p>
         <Button
           size="sm"
           className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:from-violet-600 hover:to-indigo-600 dark:from-violet-600 dark:to-indigo-600 dark:hover:from-violet-700 dark:hover:to-indigo-700 rounded-lg scale-90"

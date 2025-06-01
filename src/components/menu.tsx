@@ -14,12 +14,13 @@ import {
   X,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useProfileDialog, useSearchDialog } from "./dialog-provider";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 
 const Menu = () => {
   const [open, setOpen] = useState(false);
@@ -32,20 +33,14 @@ const Menu = () => {
     setOpen(false);
   });
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
   const loggedInOptions = [
-    {
-      id: 4,
-      name: "Notifications",
-      href: null,
-      onClick: () => {},
-      icon: <Bell className="opacity-80 size-5" strokeWidth={1.5} />,
-    },
     {
       id: 2,
       name: "Account",
       href: `/${session?.data?.user?.username}`,
       onClick: () => {},
-      icon: <UserRound className="opacity-80 size-5" strokeWidth={1.5} />,
+      icon: <UserRound className="opacity-80 size-5" strokeWidth={1.2} />,
     },
     {
       id: 5,
@@ -54,7 +49,7 @@ const Menu = () => {
       onClick: () => {
         setProfileDialogOpen(true);
       },
-      icon: <Settings className="opacity-80 size-5" strokeWidth={1.5} />,
+      icon: <Settings className="opacity-80 size-5" strokeWidth={1.2} />,
     },
     {
       id: 6,
@@ -63,7 +58,7 @@ const Menu = () => {
       onClick: () => {
         signOut();
       },
-      icon: <LogOut className="opacity-80 size-5" strokeWidth={1.5} />,
+      icon: <LogOut className="opacity-80 size-5" strokeWidth={1.2} />,
     },
   ];
   const options = [
@@ -71,8 +66,10 @@ const Menu = () => {
       id: 1,
       name: "Explore",
       href: "/explore",
-      onClick: () => {},
-      icon: <Compass className="opacity-80 size-5" strokeWidth={1.5} />,
+      onClick: () => {
+        router.push("/explore");
+      },
+      icon: <Compass className="opacity-80 size-5" strokeWidth={1.2} />,
     },
     {
       id: 3,
@@ -81,19 +78,19 @@ const Menu = () => {
       onClick: () => {
         setOpenSearch(true);
       },
-      icon: <Search className="opacity-80 size-5" strokeWidth={1.5} />,
+      icon: <Search className="opacity-80 size-5" strokeWidth={1.2} />,
     },
   ];
   const themeOptions = [
     {
       theme: "light",
       name: "Light",
-      icon: <Sun className="opacity-80 size-5" strokeWidth={1.3} />,
+      icon: <Sun className="opacity-80 size-5" strokeWidth={1.2} />,
     },
     {
       theme: "dark",
       name: "Dark",
-      icon: <Moon className="opacity-80 size-5" strokeWidth={1.3} />,
+      icon: <Moon className="opacity-80 size-5" strokeWidth={1.2} />,
     },
   ];
   const menuVariants: Variants = {
@@ -134,28 +131,57 @@ const Menu = () => {
             animate="show"
             exit={"exit"}
             className={cn(
-              "absolute top-14 bg-white  shadow-2xl backdrop-blur-2xl dark:bg-dark-bg rounded-3xl border border-neutral-300/60 flex flex-col w-[210px]  overflow-hidden  dark:border-dark-border/80 z-50",
+              "absolute top-14 bg-white  shadow-2xl backdrop-blur-2xl dark:bg-dark-bg rounded-3xl border border-neutral-300/60 flex flex-col max-w-[280px] w-full  overflow-hidden  dark:border-dark-border/80 z-50",
               isMine ? "right-4" : "right-4"
             )}
           >
+            {session?.data && (
+              <>
+                {" "}
+                <div className="flex p-4 mt-2 items-center justify-start">
+                  <Image
+                    src={
+                      session?.data?.user?.profileImage ||
+                      (session?.data?.user?.image as string)
+                    }
+                    alt="image"
+                    width={50}
+                    height={50}
+                    className="aspect-square size-10 rounded-full"
+                  />
+
+                  <div className="ml-2 flex flex-col items-start justify-start ">
+                    <h3 className="font-medium leading-tight truncate">
+                      {session?.data?.user?.displayName}
+                    </h3>
+                    <span className="opacity-70 text-sm leading-tight truncate">
+                      @{session?.data?.user?.username}
+                    </span>
+                  </div>
+                </div>
+                <Separator />
+              </>
+            )}
             <motion.div
               layout
-              className="flex items-center p-2 justify-center pt-2"
+              className="flex items-center  p-2 justify-center pt-2"
             >
               {themeOptions.map((option, i) => (
                 <div
                   key={i}
                   onClick={() => setTheme(option?.theme)}
-                  className="w-full  cursor-pointer relative flex flex-col items-center justify-center p-2 pt-4 gap-2"
+                  className="w-full  cursor-pointer relative  flex flex-col items-center justify-center p-2  gap-2"
                 >
-                  {option.icon}
-                  <span className="tracking-tight text-sm font-medium opacity-80">
-                    {option.name}
-                  </span>
+                  <div className="flex items-center justify-center ">
+                    {option.icon}
+                    <span className=" text-sm ml-2 font-medium opacity-80">
+                      {option.name}
+                    </span>
+                  </div>
                   {theme === option?.theme && (
                     <motion.div
                       layoutId="bubble"
-                      className="absolute inset-0 -z-10 bg-neutral-100 dark:bg-dark-border/80 rounded-2xl"
+                      className="absolute inset-0 border -z-10 border-neutral-200 dark:border-dark-border bg-neutral-100 dark:bg-dark-border/80 rounded-xl"
                     />
                   )}
                 </div>
@@ -166,7 +192,7 @@ const Menu = () => {
               (option, i) => (
                 <motion.div
                   key={i}
-                  className="flex w-full items-center border-none pt-1 border-neutral-300/60 dark:border-dark-border/80 justify-start gap-x-4 cursor-pointer mt-1 px-4 last:mb-4"
+                  className="flex w-full items-center  pt-1  justify-start gap-x-4 cursor-pointer mt-1 px-4 last:mb-4"
                   onClick={option.onClick}
                 >
                   {option.icon}

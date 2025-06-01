@@ -19,7 +19,7 @@ const Providers = ({ children }: { children: ReactNode }) => {
             <ThemeProvider attribute={"class"} defaultTheme="dark">
               <Context>
                 <DialogContextProvider>
-                  <Toaster position="bottom-center" />
+                  <Toaster position="top-right" />
                   {children}
                 </DialogContextProvider>
               </Context>

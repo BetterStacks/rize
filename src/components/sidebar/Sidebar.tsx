@@ -1,5 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import {
   Bell,
   Compass,
@@ -19,8 +20,6 @@ import {
   useSearchDialog,
 } from "../dialog-provider";
 import { Button } from "../ui/button";
-import { motion } from "framer-motion";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 const Sidebar = () => {
   const session = useSession();
@@ -77,6 +76,7 @@ const Sidebar = () => {
       icon: <Settings className="opacity-70" strokeWidth={1.5} />,
     },
   ];
+
   return (
     <div
       className={cn(
@@ -106,24 +106,24 @@ const Sidebar = () => {
 
       <div className="mb-8 flex flex-col gap-y-4">
         <Button
-          variant={"outline"}
+          variant={"ghost"}
           className="rounded-full size-10"
           size={"icon"}
           onClick={() => {
             setOpenSearch(true);
           }}
         >
-          <Search strokeWidth={1.6} className="size-5 opacity-80" />
+          <Search strokeWidth={1.4} className="size-5 opacity-80" />
         </Button>
         <Button
-          variant={"outline"}
+          variant={"ghost"}
           className="rounded-full size-10"
           size={"icon"}
           onClick={() => {
             setIsPostDialogOpen(true);
           }}
         >
-          <Plus strokeWidth={1.6} className="size-5 opacity-80" />
+          <Plus strokeWidth={1.4} className="size-5 opacity-80" />
         </Button>
         <Link href={`/${session?.data?.user?.username}`}>
           {/* <Popover>

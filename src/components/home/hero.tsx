@@ -240,11 +240,9 @@ const HeroSection = () => {
         </Link>
       )}
 
-      {/* <motion.div className="aspect-square size-[180px] bg-white absolute rounded-3xl z-50 top-40 -rotate-12 -left-2 dark:bg-dark-border shadow-2xl" />
-      <motion.div className="aspect-video w-[300px] h-[160px] bg-white absolute rounded-3xl z-50 top-20 -rotate-12 -left-2 dark:bg-dark-border shadow-2xl" />
-      <motion.div className="aspect-square size-[180px] bg-white absolute rounded-3xl z-50 bottom-40 -rotate-2 dark:bg-dark-border shadow-2xl left-10" /> */}
-
-      <motion.div className="flex flex-col items-center justify-center mt-24 gap-3">
+      <motion.div className="flex flex-col items-center justify-center mt-24 gap-3 relative">
+        <div className="absolute top-24 -left-14 blur-[100px] -z-10 size-[250px] rounded-full bg-gradient-to-b dark:from-purple-700/60 dark:to-purple-500/60 from-purple-500/80 to-purple-200 " />
+        <div className="absolute  top-48 -right-14 blur-[100px] -z-10 size-[250px] rounded-full bg-gradient-to-b dark:from-blue-700/60 dark:to-blue-500/60 from-blue-500/80 to-blue-200 " />
         <motion.div
           className="mb-3 md:mb-6 relative overflow-hidden size-12 md:size-14"
           variants={imageVariants}
@@ -297,14 +295,14 @@ const HeroSection = () => {
             // !isLoggedIn &&
             !isLoggedIn &&
               scrolledPastHalf &&
-              "absolute top-4 z-50 right-0  left-0"
+              "absolute top-2 z-50 right-0  left-0"
           )}
         >
           {" "}
           <div
             className={cn(
               !isLoggedIn && scrolledPastHalf && !isDesktop && "inset-x-4",
-              !isLoggedIn && scrolledPastHalf ? "fixed   z-50" : "sticky"
+              !isLoggedIn && scrolledPastHalf ? "fixed  top-2 z-50" : "sticky"
             )}
           >
             <ClaimUsernameForm
@@ -331,8 +329,8 @@ const HeroSection = () => {
         </motion.div>
       </motion.div>
 
-      <div className="absolute -z-20 left-0 -bottom-40  size-[600px]  hidden md:flex  bg-indigo-400 dark:bg-indigo-500/80 rounded-full blur-[100px] "></div>
-      <div className="absolute -z-20 right-0  -bottom-10 hidden md:flex md:-bottom-40  size-[600px]   bg-indigo-400 dark:bg-indigo-500/80 rounded-full blur-[100px] "></div>
+      {/* <div className="absolute -z-20 left-0 -bottom-40  size-[600px]  hidden md:flex  bg-indigo-400 dark:bg-indigo-500/80 rounded-full blur-[100px] "></div>
+      <div className="absolute -z-20 right-0  -bottom-10 hidden md:flex md:-bottom-40  size-[600px]   bg-indigo-400 dark:bg-indigo-500/80 rounded-full blur-[100px] "></div> */}
 
       <motion.div
         variants={windowVariants}

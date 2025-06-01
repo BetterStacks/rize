@@ -83,6 +83,9 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
     queryKey: ["get-gallery-items", username],
     initialData: items,
     queryFn: () => getGalleryItems(username!),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
   });
   const [activeItem, setActiveItem] = useState<GalleryItemProps | null>(null);
   const [sortedItems, setSortedItems] = useState(data || []);
@@ -92,11 +95,8 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
   }, [data]);
 
   return (
-    <div className="w-full my-12 hidden md:flex flex-col items-center justify-center">
-      {/* <div className="w-full max-w-2xl flex items-center justify-between">
-        <h2 className="text-xl font-medium mb-2 md:mb-6">Gallery</h2>
-      </div> */}
-      <motion.div className="w-full relative max-w-3xl flex flex-col  items-center justify-center mt-4">
+    <div className="w-full my-12 flex flex-col items-center justify-center">
+      <motion.div className="w-full relative max-w-3xl hidden md:flex flex-col  items-center justify-center mt-4">
         {isLoading ? (
           <GallerySkeleton />
         ) : sortedItems?.length === 0 ? (
@@ -106,7 +106,7 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
             variants={imagesContainerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-4"
+            className="grid grid-cols-5"
           >
             {sortedItems?.map((item, i) => {
               return (
@@ -116,6 +116,34 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
                   isMine={isMine}
                   item={item}
                 />
+              );
+            })}
+          </motion.div>
+        )}
+      </motion.div>
+      <motion.div className="w-full relative  flex md:hidden flex-col  items-center justify-center mt-4">
+        {isLoading ? (
+          <GallerySkeleton />
+        ) : sortedItems?.length === 0 ? (
+          <EmptyGalleryState />
+        ) : (
+          <motion.div
+            variants={imagesContainerVariants}
+            initial="hidden"
+            animate="visible"
+            className="columns-3 gap-0"
+          >
+            {sortedItems?.map((item, i) => {
+              return (
+                <motion.div
+                  key={i}
+                  style={{
+                    aspectRatio: item?.width / item?.height,
+                  }}
+                  className="relative  object-cover  overflow-hidden"
+                >
+                  <GalleryItem index={i} isMine={isMine} item={item} />
+                </motion.div>
               );
             })}
           </motion.div>
@@ -133,12 +161,12 @@ const GallerySkeleton = () => {
         ""
       )}
     >
-      {[...Array.from({ length: 4 })].map((_, i) => (
+      {[...Array.from({ length: 5 })].map((_, i) => (
         <Skeleton
           key={i}
           style={{ borderRadius: "12%" }}
           className={cn(
-            "group even:rotate-6 odd:-rotate-6  aspect-square w-full h-full  relative overflow-hidden hover:shadow-2xl  bg-neutral-100 dark:bg-dark-border animate-none shadow-2xl cursor-grab size-56 first:mt-0 active:cursor-grabbing "
+            "group even:rotate-6 odd:-rotate-6  aspect-square w-full h-full  relative overflow-hidden hover:shadow-2xl  bg-neutral-100 dark:bg-dark-border animate-none shadow-2xl cursor-grab size-48 first:mt-0 active:cursor-grabbing "
           )}
         />
       ))}
@@ -151,27 +179,9 @@ const SortableGalleryItem: FC<{
   index: number;
   isMine: boolean;
 }> = ({ item, index, isMine }) => {
-  // const {
-  //   attributes,
-  //   listeners,
-  //   setNodeRef,
-  //   transform,
-  //   transition,
-  //   isDragging,
-  // } = useSortable({ id: item.id });
-
-  // const style = {
-  //   transform: CSS.Transform.toString(transform),
-  //   transition,
-  //   zIndex: isDragging ? 50 : "auto",
-  // };
-
   return (
     <motion.div
       style={{ borderRadius: "12%" }}
-      // ref={setNodeRef}
-      //   {...attributes}
-      //   {...listeners}
       variants={itemVariants}
       custom={index}
       whileHover={{
@@ -181,7 +191,7 @@ const SortableGalleryItem: FC<{
         zIndex: 100,
       }}
       className={cn(
-        "group aspect-square w-full h-full -my-4 -mx-8 relative overflow-hidden bg-neutral-100 dark:bg-dark-border cursor-grab size-56 active:cursor-grabbing shadow-2xl "
+        "group aspect-square w-full h-full -my-4 -mx-8 relative overflow-hidden bg-neutral-100 dark:bg-dark-border cursor-grab size-48 active:cursor-grabbing shadow-2xl "
       )}
     >
       <GalleryItem index={index} isMine={isMine} item={item} />

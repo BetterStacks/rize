@@ -56,7 +56,7 @@ const UserAvatar = ({
     <>
       <div
         className={cn(
-          "relative group ring-2    ring-neutral-300 dark:ring-dark-border  rounded-full size-24 md:size-24 lg:size-28 xl:size-36  aspect-square ",
+          "relative group ring-2    ring-neutral-300 dark:ring-dark-border  rounded-full size-24 md:size-24 lg:size-28   aspect-square ",
           className,
           isLoading &&
             "animate-pulse bg-neutral-300  dark:bg-dark-border rounded-full"

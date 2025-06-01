@@ -2,11 +2,10 @@ import { getExploreFeed } from "@/actions/post-actions";
 import ExploreFeed from "@/components/explore/explore-feed";
 
 const Page = async () => {
-  const feed = await getExploreFeed();
-  console.log({ feed });
+  // const feed = await getExploreFeed();
   return (
     <div>
-      <ExploreFeed posts={feed} />
+      <ExploreFeed />
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { profile, profileSections, users } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { GetProfileByUsername, profileSchema } from "@/lib/types";
-import { and, eq, getTableColumns, ilike, or } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, ilike, not, or } from "drizzle-orm";
 import { cache } from "react";
 import { z } from "zod";
 
@@ -106,16 +106,21 @@ export const isUsernameAvailable = async (username: string) => {
   return { available: !user };
 };
 
-export const searchProfiles = cache(async (query: string) => {
-  const { ...rest } = getTableColumns(profile);
+export const searchProfiles = async (query: string) => {
   return await db
-    .select({ ...rest, image: users.image, name: users.name })
+    .select({
+      displayName: profile.displayName,
+      username: profile.username,
+      profileImage: profile.profileImage,
+      image: users.image,
+      name: users.name,
+    })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
     .where(
       or(ilike(profile.username, `%${query}%`), ilike(users.name, `%${query}%`))
     );
-});
+};
 
 export const getProfileIdByUsername = async (username: string) => {
   const profileId = await db
@@ -171,3 +176,40 @@ export async function updateSectionsAction(
     )
   );
 }
+
+export const getRecentlyJoinedProfiles = async (limit: number = 5) => {
+  return await db
+    .select({
+      displayName: profile.displayName,
+      username: profile.username,
+      profileImage: profile.profileImage,
+      image: users.image,
+      name: users.name,
+    })
+    .from(profile)
+    .innerJoin(users, eq(profile.userId, users.id))
+    .orderBy(desc(profile.createdAt))
+    .limit(limit);
+};
+
+export const getRecentlyJoinedProfilesCached = cache(
+  async (limit: number = 5) => {
+    const session = await auth();
+    if (!session) {
+      throw new Error("Session not found");
+    }
+    return await db
+      .select({
+        displayName: profile.displayName,
+        username: profile.username,
+        profileImage: profile.profileImage,
+        image: users.image,
+        name: users.name,
+      })
+      .from(profile)
+      .innerJoin(users, eq(profile.userId, users.id))
+      .where(not(eq(profile.username, session.user.username)))
+      .orderBy(desc(profile.createdAt))
+      .limit(limit);
+  }
+);

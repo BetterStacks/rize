@@ -2,6 +2,7 @@
 
 import PostForm from "../explore/post-form";
 import ExperienceDialog from "./ExperienceDialog";
+import PostDialog from "./PostDialog";
 import SearchDialog from "./SearchDialog";
 import { ProfileUpdateDialog } from "./UpdateProfileDialog";
 
@@ -12,6 +13,7 @@ const Dialogs = () => {
       <SearchDialog />
       <ExperienceDialog />
       <PostForm />
+      <PostDialog />
     </>
   );
 };
