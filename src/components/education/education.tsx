@@ -122,8 +122,10 @@ export function EmptyWritingState({
             </div>
           </motion.div>
         </div>
-        <h3 className="mb-2 text-xl font-medium tracking-tight">{title}</h3>
-        <p className="mb-6 opacity-80 leading-tight px-6">{description}</p>
+        <h3 className="mb-2 md:text-xl font-medium tracking-tight">{title}</h3>
+        <p className="mb-6 text-sm md:text-base opacity-80 leading-tight px-6">
+          {description}
+        </p>
         <Button
           size="sm"
           className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:from-violet-600 hover:to-indigo-600 dark:from-violet-600 dark:to-indigo-600 dark:hover:from-violet-700 dark:hover:to-indigo-700 rounded-lg scale-90"

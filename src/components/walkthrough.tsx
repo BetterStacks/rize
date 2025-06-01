@@ -2,55 +2,20 @@
 
 import { updateProfile } from "@/actions/profile-actions";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
 import Joyride, { EVENTS, STATUS, TooltipRenderProps } from "react-joyride";
 import { Button } from "./ui/button";
 
-const Walkthrough = ({ isMine }: { isMine: boolean }) => {
-  const [mounted, setMounted] = useState(false);
-  const { data: session, update } = useSession();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const steps = [
-    {
-      target: ".user-avatar",
-      content: "Edit your profile picture here",
-      // disableBeacon: true,
-    },
-    {
-      target: ".profile-displayName",
-      content: "Edit your display name here",
-    },
-    {
-      target: ".profile-Bio",
-      content: "Edit your profile bio here",
-    },
-    {
-      target: ".social-links",
-      content: "Add your social links here",
-      // placement: "bottom",
-    },
-    {
-      target: ".social-links-manager",
-      content: "Manage your social links in one place",
-    },
-    {
-      target: ".gallery-editor",
-      content: "This is my super awesome feature!",
-    },
-  ];
-
+const Walkthrough = () => {
+  const { update } = useSession();
   return (
     <Joyride
       run={true}
       steps={[
         {
           target: ".user-avatar",
-          title: "Personalise your Profile",
-          content: "Edit your profile picture here",
+          title: "Personalise your Avatar",
+          content:
+            "Upload a profile picture that best represents you. This will be visible across your Rize profile and helps others recognize you instantly.",
           placement: "right-start",
           styles: {
             spotlight: {
@@ -60,26 +25,30 @@ const Walkthrough = ({ isMine }: { isMine: boolean }) => {
         },
         {
           target: ".profile-displayName",
-          content: "Edit your display name here",
+          content:
+            "Choose a display name for your profile. This can be your real name, a stage name, or anything that defines your online identity.",
           placement: "right-start",
           title: "Change your Profile Details",
         },
         {
           target: ".profile-Bio",
-          title: "Edit your Bio",
-          content: "Edit your profile bio here",
+          title: "Write Your Bio",
+          content:
+            "Tell the world who you are in a few words. Share your passions, what you do, or what you're looking to connect about.",
         },
         {
           target: ".social-links",
-          title: "Social Links",
-          content: "Add your own social links here",
+          title: "Connect your Socials",
+          content:
+            "Add links to your social profiles like Twitter, LinkedIn, GitHub, and more. This helps others learn more about you and follow your work.",
           placement: "right-start",
         },
         {
           target: ".social-links-manager",
           placement: "left-start",
           title: "Manage your Social Links",
-          content: "Create, edit and delete all your social links in one place",
+          content:
+            "Reorder, edit, or remove any of your connected social profiles. You’re always in control of how your profile looks.",
           spotlightPadding: 2,
           styles: {
             spotlight: {
@@ -97,8 +66,9 @@ const Walkthrough = ({ isMine }: { isMine: boolean }) => {
               borderRadius: "1.4rem",
             },
           },
+
           content:
-            "Add images and videos to share your favourite moments and memories",
+            "Showcase your work, ideas, or favorite moments. Add text, links, or images to build a visual grid that reflects your personality and achievements.",
         },
       ]}
       continuous
@@ -112,6 +82,7 @@ const Walkthrough = ({ isMine }: { isMine: boolean }) => {
         offset: 10,
       }}
       callback={async (data) => {
+        console.log(data);
         if (
           data?.status === STATUS.FINISHED &&
           data?.type === EVENTS.TOUR_END
@@ -119,7 +90,6 @@ const Walkthrough = ({ isMine }: { isMine: boolean }) => {
           await updateProfile({ hasCompletedWalkthrough: true });
           await update();
         } else if (data?.type === EVENTS.STEP_AFTER) {
-          console.log(data);
         }
       }}
       tooltipComponent={CustomTooltip}
@@ -138,6 +108,7 @@ function CustomTooltip(props: TooltipRenderProps) {
     skipProps,
     step,
     tooltipProps,
+    isLastStep,
   } = props;
 
   return (

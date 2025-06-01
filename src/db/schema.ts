@@ -143,13 +143,77 @@ export const posts = pgTable("posts", {
   id: uuid("id")
     .primaryKey()
     .$defaultFn(() => gen_uuid()),
-  content: text("content").notNull(),
+  content: text("content"),
   profileId: uuid("profileId").references(() => profile.id, {
     onDelete: "cascade",
   }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+export const postLinks = pgTable("post_links", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => gen_uuid()),
+  postId: uuid("postId").references(() => posts.id, {
+    onDelete: "cascade",
+  }),
+  url: text("url").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const likes = pgTable(
+  "likes",
+  {
+    profileId: uuid("profile_id")
+      .references(() => profile.id, { onDelete: "cascade" })
+      .notNull(),
+    postId: uuid("post_id")
+      .references(() => posts.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.profileId, table.postId] }),
+    };
+  }
+);
+
+export const comments = pgTable("comments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  profileId: uuid("profile_id")
+    .references(() => profile.id)
+    .notNull(),
+  postId: uuid("post_id")
+    .references(() => posts.id)
+    .notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+export const bookmarks = pgTable(
+  "bookmarks",
+  {
+    profileId: uuid("profile_id")
+      .references(() => profile.id)
+      .notNull(),
+    postId: uuid("post_id")
+      .references(() => posts.id)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.profileId, table.postId] }),
+    };
+  }
+);
 
 export const postMedia = pgTable("post_media", {
   id: uuid("id")

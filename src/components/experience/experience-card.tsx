@@ -1,7 +1,7 @@
 import { TExperience } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { CalendarIcon, Dot, Edit2, Loader, Trash } from "lucide-react";
+import { CalendarIcon, Dot, Edit2, Loader, Trash, Trash2 } from "lucide-react";
 import { useQueryState } from "nuqs";
 import React, { FC } from "react";
 import { Button } from "../ui/button";
@@ -45,65 +45,59 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
   return (
     <motion.div
       className={cn(
-        "flex flex-col w-full bg-neutral-100 dark:bg-neutral-800 transition-all  rounded-2xl border border-neutral-300/60 dark:border-dark-border p-4 md:p-6 ",
-        activeTab?.id === experience?.id &&
-          "dark:bg-indigo-400/10 border-2 border-dashed bg-indigo-400/15 border-indigo-400/30 dark:border-indigo-400/20"
+        "flex relative items-start group ",
+        activeTab?.id === experience?.id && ""
       )}
     >
-      <div>
-        <div className="flex justify-between group relative items-center ">
-          <h3 className="md:text-lg font-medium tracking-tight">
-            {experience?.title}
-          </h3>
-          {isMine && (
-            <div className="space-x-2 group-hover:opacity-100 opacity-0 absolute right-0 flex items-center justify-center">
-              <Button
-                variant={"outline"}
-                className="rounded-lg  text-sm"
-                size={"smallIcon"}
-                onClick={() => {
-                  setActiveTab((prev) => ({
-                    id: prev?.id === experience.id ? null : experience.id,
-                    tab: "experience",
-                  }));
-                  if (!isDesktop) {
-                    setOpen(true);
-                  }
-                }}
-              >
-                <Edit2 className="size-4 opacity-80" />
-              </Button>
-              <Button
-                variant={"outline"}
-                className="rounded-lg  text-sm"
-                size={"smallIcon"}
-                onClick={() => handleDeleteExperience(experience.id)}
-                disabled={isPending}
-              >
-                {isPending ? (
-                  <Loader className="size-4 opacity-80 animate-spin" />
-                ) : (
-                  <Trash className="size-4 opacity-80" />
-                )}
-              </Button>
-            </div>
-          )}
+      {isMine && (
+        <div className="absolute group-hover:opacity-100 opacity-0 top-2 right-2 flex gap-x-2">
+          <Button
+            variant="outline"
+            size="smallIcon"
+            onClick={() => {
+              setActiveTab({
+                id: experience?.id,
+                tab: "experience",
+              });
+              setOpen(true);
+            }}
+          >
+            <Edit2 className="h-4 w-4 opacity-80" />
+          </Button>
+          <Button
+            variant="outline"
+            size="smallIcon"
+            onClick={() => {
+              handleDeleteExperience(experience?.id);
+            }}
+            disabled={isPending}
+          >
+            {isPending ? (
+              <Loader className="opacity-80 h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="opacity-80 h-4 w-4" />
+            )}
+          </Button>
         </div>
-        <div className="inline-flex mt-1 text-sm md:text-base font-medium -space-x-0.5 opacity-80  items-center ">
-          <div className=" ">
-            <span>
-              {" "}
-              {formatDate(experience?.startDate?.toString())} –{" "}
-              {experience?.currentlyWorking
-                ? "Present"
-                : formatDate(experience?.endDate?.toString())}
-            </span>
-          </div>
-          <Dot className="leading-none" />
-          <span className="">{experience?.company}</span>
-          <Dot className="leading-none" />
-          <span className="">{experience?.location}</span>
-          <Dot className="leading-none" />
+      )}
+      <div className="flex flex-col ">
+        <h3 className="md:text-lg font-medium tracking-tight">
+          {experience?.company}
+        </h3>
+        <span className=" leading-tight dark:text-neutral-400 text-neutral-600 font-medium text-sm">
+          {experience?.title}
+        </span>
+        <div className="inline-flex mt-3 text-sm gap-x-1 dark:text-neutral-400 text-neutral-600  items-center">
+          <span>
+            {" "}
+            {formatDate(experience?.startDate?.toString())} –{" "}
+            {experience?.currentlyWorking
+              ? "Present"
+              : formatDate(experience?.endDate?.toString())}
+          </span>
+          <span>•</span>
+          <span className="">{experience?.location?.split(",")[0]}</span>
+          <span>•</span>
           <span className="">{experience?.employmentType}</span>
         </div>
       </div>

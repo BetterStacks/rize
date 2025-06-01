@@ -1,4 +1,5 @@
 "use client";
+import { uploadMedia } from "@/actions/client-actions";
 import { getEducationById, upsertEducation } from "@/actions/education-actions";
 import {
   getExperienceById,
@@ -12,7 +13,6 @@ import {
 } from "@/actions/project-actions";
 import { useActiveSidebarTab } from "@/lib/context";
 import { queryClient } from "@/lib/providers";
-import { TExperience, TNewProject } from "@/lib/types";
 import { cn, isEqual, MAX_GALLERY_ITEMS } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -22,7 +22,6 @@ import { motion } from "framer-motion";
 import { CalendarIcon, ChevronLeft, Loader, Upload, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { useQueryState } from "nuqs";
 import { FC, useEffect, useMemo, useState, useTransition } from "react";
 import { useDropzone } from "react-dropzone";
 import { Controller, useForm } from "react-hook-form";
@@ -56,9 +55,8 @@ import {
 } from "../ui/select";
 import { Skeleton } from "../ui/skeleton";
 import { Textarea } from "../ui/textarea";
-import { uploadMedia } from "@/actions/client-actions";
 
-const RightSidebar = () => {
+const RightSidebar = ({ className }: { className?: string }) => {
   const [active, setActive] = useActiveSidebarTab();
 
   const sections = {
@@ -66,6 +64,7 @@ const RightSidebar = () => {
       <>
         <EditGallery />
         <SocialLinksManager />
+        <SectionManager />
       </>
     ),
     projects: (
@@ -86,8 +85,13 @@ const RightSidebar = () => {
   };
 
   return (
-    <div className="h-screen w-full  flex flex-col items-start justify-between ">
-      <ScrollArea className="relative h-full w-full overflow-y-auto flex flex-col ">
+    <div
+      className={cn(
+        className,
+        "h-screen w-full  flex flex-col items-center  justify-start"
+      )}
+    >
+      <ScrollArea className="relative  h-full w-full overflow-y-auto  flex flex-col items-center justify-start">
         {active?.tab !== "gallery" && (
           <Button
             onClick={() => {
@@ -100,19 +104,16 @@ const RightSidebar = () => {
             <ChevronLeft className="size-4 opacity-80" />
           </Button>
         )}
-        {/* <AnimatePresence> */}
         <motion.div
-          initial={{ opacity: 0, y: 100 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
           transition={{ duration: 0.9, ease: [0.075, 0.82, 0.165, 1] }}
           key={active.tab}
-          className="my-10  relative"
+          className="mt-6 mb-20 flex flex-col items-center justify-start  relative"
         >
           {sections[active?.tab as keyof typeof sections]}
-          <SectionManager />
         </motion.div>
-        {/* </AnimatePresence> */}
       </ScrollArea>
     </div>
   );
@@ -207,9 +208,9 @@ function EditGallery() {
   );
 
   return (
-    <div className="h-full overflow-hidden  w-full pt-6">
+    <div className="h-full overflow-hidden max-w-sm  w-full pt-6">
       {limit !== 100 && (
-        <div className="px-4 ">
+        <div className="px-2">
           <Card className="bg-white gallery-editor w-full mb-6 mt-4 shadow-lg dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
             <CardHeader className="pb-4">
               <CardTitle className="text-xl font-medium dark:text-white">
@@ -239,7 +240,7 @@ function EditGallery() {
                     <div className="mb-2">
                       <Upload
                         className="opacity-70 size-12"
-                        strokeWidth={1.6}
+                        strokeWidth={1.2}
                       />
                     </div>
                     <p className="text-neutral-600 dark:text-neutral-400 max-w-[200px] text-center text-sm">
@@ -304,7 +305,7 @@ function EditGallery() {
           </Card>
         </div>
       )}
-      <div className="px-4 ">
+      <div className="px-2 ">
         <GalleryLimit itemCount={items?.length} />
       </div>
     </div>

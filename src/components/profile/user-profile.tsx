@@ -16,7 +16,6 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useMemo } from "react";
-import BottomBanner from "../bottom-banner";
 import Education from "../education/education";
 import WorkExperience from "../experience/experience";
 import Gallery from "../gallery/gallery";
@@ -24,7 +23,7 @@ import PostSection from "../posts-section";
 import Projects from "../projects/projects";
 import { Separator } from "../ui/separator";
 import Writings from "../writings/writings";
-import Profile from "./profile";
+import Profile, { defaultBio } from "./profile";
 import SocialLinks from "./social-links";
 
 type UserProfileProps = {

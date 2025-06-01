@@ -31,6 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const Page: FC<Props> = async ({ params }) => {
   const username = (await params).username;
+
   if (!username) {
     throw new Error("Username not found");
   }

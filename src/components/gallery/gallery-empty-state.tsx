@@ -1,8 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Camera, ImageIcon, Plus, Upload } from "lucide-react";
-import { useState } from "react";
+import { Camera, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -40,8 +39,10 @@ export function EmptyGalleryState({
             />
           </motion.div>
         </div>
-        <h3 className="mb-2 text-xl font-medium tracking-tight">{title}</h3>
-        <p className="mb-6 opacity-80 leading-tight px-6">{description}</p>
+        <h3 className="mb-2 md:text-xl font-medium tracking-tight">{title}</h3>
+        <p className="mb-6 opacity-80 text-sm md:text-base leading-tight px-6">
+          {description}
+        </p>
 
         <div className="flex gap-3">
           <Button

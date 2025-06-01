@@ -56,10 +56,10 @@ const SectionManager = () => {
       const newSections = arrayMove(sections, oldIndex, newIndex);
       setSections(newSections);
       const slugs = newSections.map((section) => section.id);
-      const togglePayload = newSections.map((slug) => ({
-        slug: slug.id,
-        enabled: slug?.enabled,
-      }));
+      // const togglePayload = newSections.map((slug) => ({
+      //   slug: slug.id,
+      //   enabled: slug?.enabled,
+      // }));
       await updateSections(slugs);
     }
   };
@@ -75,7 +75,7 @@ const SectionManager = () => {
   };
 
   return (
-    <div className="w-full  px-4 flex flex-col items-center justify-center mb-6">
+    <div className="w-full  px-2 max-w-sm flex flex-col items-center justify-center mb-6">
       <Card className="bg-white w-full mt-4 shadow-xl overflow-hidden dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
         <CardContent>
           <CardHeader className="pb-4 px-0">

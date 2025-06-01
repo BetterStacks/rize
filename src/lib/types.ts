@@ -42,24 +42,29 @@ export type TUploadFilesResponse = {
   url: string;
 };
 
+export type TPostMedia = {
+  id: string;
+  url: string;
+  type: "image" | "video";
+  height: number;
+  width: number;
+};
+
 export type GetExplorePosts = {
   username: string | null;
   name: string | null;
   avatar: string | null;
 
-  media: {
-    id: string;
-    url: string;
-    type: "image" | "video";
-    height: number;
-    width: number;
-  }[];
-
+  media: TPostMedia[];
+  links?: { id: string; url: string; createdAt: Date }[];
   id: string;
   content: string;
   profileId: string | null;
   createdAt: Date;
   updatedAt: Date;
+  liked?: boolean; // 👈 add this
+  bookmarked?: boolean;
+  likeCount: number;
 };
 
 export type TSection = {
@@ -264,10 +269,10 @@ export const profileSchema = z.object({
   // age: z.number().int().min(18).max(120).optional(),
   // pronouns: PronounsEnum.optional(),
   profileImage: z.string().url().optional(),
-  bio: z.string().optional(),
+  bio: z.string().max(200, "Bio must be 200 characters or less").optional(),
   hasCompletedWalkthrough: z.boolean().optional(),
   // location: z.string().optional(),
-  // website: z.string().url().optional(),
+  website: z.string().url().optional(),
 });
 
 export type UsernameFormData = z.infer<typeof usernameSchema>;

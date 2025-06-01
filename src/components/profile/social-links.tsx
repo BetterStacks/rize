@@ -51,58 +51,8 @@ const SocialLinks = ({ isMine }: { isMine: boolean }) => {
   }
 
   return (
-    <div className="w-full mt-6 flex items-center justify-center ">
-      {/* <div className="max-w-2xl w-full border overflow-hidden border-neutral-300/60 dark:border-dark-border/80 rounded-xl  text-sm md:text-base flex flex-col  mt-4 items-center justify-start">
-        {isLoading ? (
-          <SocialLinkSkeleton />
-        ) : links?.length === 0 ? (
-          dummyLinks?.map((link, i) => (
-            <NextLink className="" href={link?.url} key={i} target="_blank">
-              <Button size={"sm"} variant={"outline"} className="w-full">
-                <Image
-                  src={`/${getIcon(link?.platform as any)}`}
-                  className="aspect-square size-6"
-                  alt={link?.platform}
-                  width={20}
-                  height={20}
-                />
-                <span className="ml-2 opacity-75  tracking-tight leading-snug mr-2 ">
-                  {capitalizeFirstLetter(link?.platform)}
-                </span>
-              </Button>
-            </NextLink>
-          ))
-        ) : (
-          links?.map((link, i) => (
-            <Button
-              size={"sm"}
-              variant={"ghost"}
-              className=" w-full border-t px-4 group relative rounded-none justify-start py-3 first:border-none border-neutral-300/60 dark:border-dark-border/80"
-
-              // className="w-full justify-start rounded-none"
-            >
-              <Image
-                src={`/${getIcon(link?.platform as any)}`}
-                className="aspect-square size-5"
-                alt={link?.platform}
-                width={20}
-                height={20}
-              />
-              <NextLink href={link?.url} key={i} target="_blank">
-                <span className="ml-2 opacity-75  tracking-tight leading-snug mr-2 ">
-                  {capitalizeFirstLetter(link?.platform)}
-                </span>
-              </NextLink>
-              <ArrowRight
-                className="size-4 opacity-0 absolute right-4 transition-all ease-in group-hover:opacity-80"
-                strokeWidth={1.6}
-              />
-            </Button>
-          ))
-        )}
-      </div> */}
-
-      <div className="max-w-2xl social-links w-full gap-x-1 gap-y-1.5  text-sm md:text-base flex flex-wrap  mt-4 items-center justify-start">
+    <div className="w-full  flex items-center justify-center ">
+      <div className="max-w-2xl social-links w-full gap-x-0.5 gap-y-1.5  text-sm md:text-base flex flex-wrap  mt-4 items-center justify-start">
         {isLoading ? (
           <SocialLinkSkeleton />
         ) : links?.length === 0 ? (
@@ -158,7 +108,7 @@ export const SocialLinkButton = ({
           width={20}
           height={20}
         />
-        <span className="ml-2 opacity-75  tracking-tight leading-snug mr-2 ">
+        <span className="ml-2 dark:text-neutral-300 text-neutral-800 font-medium  tracking-tight leading-snug mr-2 ">
           {capitalizeFirstLetter(platform)}
         </span>
       </Button>

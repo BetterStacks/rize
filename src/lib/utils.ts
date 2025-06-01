@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { Area } from "react-easy-crop";
 import { twMerge } from "tailwind-merge";
 import { ClassifiedWord, SocialPlatform } from "./types";
+import urlMetadata from "url-metadata";
 
 export const MAX_GALLERY_ITEMS = 8;
 
@@ -263,3 +264,73 @@ export function classifyText(input: string): ClassifiedWord[] {
 
   return tokens;
 }
+
+const options = {
+  // Customize the default request headers:
+  requestHeaders: {
+    "User-Agent": "url-metadata (+https://www.npmjs.com/package/url-metadata)",
+    From: "example@example.com",
+  },
+
+  // (Node.js v18+ only)
+  // To prevent SSRF attacks, the default option below blocks
+  // requests to private network & reserved IP addresses via:
+  // https://www.npmjs.com/package/request-filtering-agent
+  // Browser security policies prevent SSRF automatically.
+  requestFilteringAgentOptions: undefined,
+
+  // (Node.js v6+ only)
+  // Pass in your own custom `agent` to override the
+  // built-in request filtering agent above
+  // https://www.npmjs.com/package/node-fetch/v/2.7.0#custom-agent
+  agent: undefined,
+
+  // (Browser only) `fetch` API cache setting
+  cache: "no-cache",
+
+  // (Browser only) `fetch` API mode (ex: 'cors', 'same-origin', etc)
+  mode: "cors",
+
+  // Maximum redirects in request chain, defaults to 10
+  maxRedirects: 10,
+
+  // `fetch` timeout in milliseconds, default is 10 seconds
+  timeout: 10000,
+
+  // (Node.js v6+ only) max size of response in bytes (uncompressed)
+  // Default set to 0 to disable max size
+  size: 0,
+
+  // (Node.js v6+ only) compression defaults to true
+  // Support gzip/deflate content encoding, set `false` to disable
+  compress: true,
+
+  // Charset to decode response with (ex: 'auto', 'utf-8', 'EUC-JP')
+  // defaults to auto-detect in `Content-Type` header or meta tag
+  // if none found, default `auto` option falls back to `utf-8`
+  // override by passing in charset here (ex: 'windows-1251'):
+  decode: "auto",
+
+  // Number of characters to truncate description to
+  descriptionLength: 750,
+
+  // Force image urls in selected tags to use https,
+  // valid for images & favicons with full paths
+  ensureSecureImageRequest: true,
+
+  // Include raw response body as string
+  includeResponseBody: false,
+
+  // Alternate use-case: pass in `Response` object here to be parsed
+  // see example below
+  parseResponseObject: undefined,
+};
+
+export const getUrlMetadata = async (url: string) => {
+  try {
+    const metadata = await urlMetadata(url, options);
+    console.log(metadata);
+  } catch (err) {
+    console.log(err);
+  }
+};

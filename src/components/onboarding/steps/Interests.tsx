@@ -2,6 +2,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
+export const interests = [
+  { emoji: "🎵", tag: "Music" },
+  { emoji: "🎨", tag: "Art" },
+  { emoji: "🎮", tag: "Gaming" },
+  { emoji: "📱", tag: "Tech" },
+  { emoji: "🌱", tag: "Nature" },
+  { emoji: "✈️", tag: "Travel" },
+  { emoji: "📚", tag: "Books" },
+  { emoji: "🎬", tag: "Movies" },
+  { emoji: "🏃", tag: "Fitness" },
+  { emoji: "🍜", tag: "Food" },
+];
 export function InterestsStep({
   onNext,
   formData,
@@ -12,19 +24,6 @@ export function InterestsStep({
   const [selectedInterests, setSelectedInterests] = useState<string[]>(
     formData?.interests || []
   );
-
-  const interests = [
-    { emoji: "🎵", tag: "Music" },
-    { emoji: "🎨", tag: "Art" },
-    { emoji: "🎮", tag: "Gaming" },
-    { emoji: "📱", tag: "Tech" },
-    { emoji: "🌱", tag: "Nature" },
-    { emoji: "✈️", tag: "Travel" },
-    { emoji: "📚", tag: "Books" },
-    { emoji: "🎬", tag: "Movies" },
-    { emoji: "🏃", tag: "Fitness" },
-    { emoji: "🍜", tag: "Food" },
-  ];
 
   return (
     <div className="p-8">
