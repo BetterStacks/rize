@@ -6,7 +6,6 @@ import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { TEducation } from "@/lib/types";
 import { and, eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
 

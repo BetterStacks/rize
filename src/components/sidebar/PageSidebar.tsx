@@ -43,24 +43,23 @@ const PageSidebar = () => {
     setFile({ url: path, file });
   };
 
-  const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
-    useDropzone({
-      onDrop,
-      maxFiles: 1,
-      maxSize: 2 * 1024 * 1024,
-      accept: {
-        "image/*": [".png", ".jpg", ".jpeg", ".gif"],
-      },
-      onError(err) {
-        console.log({ err });
-        toast.error(err.message);
-      },
-    });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    maxFiles: 1,
+    maxSize: 2 * 1024 * 1024,
+    accept: {
+      "image/*": [".png", ".jpg", ".jpeg", ".gif"],
+    },
+    onError(err) {
+      console.log({ err });
+      toast.error(err.message);
+    },
+  });
 
   const { mutate: handleThumbnailUpload, isPending } = useMutation({
     mutationFn: () => {
       const formData = new FormData();
-      formData.append("files", file?.file!);
+      formData.append("files", file?.file as File);
       formData.append("folder", "fyp-stacks/pages");
       return axios.post("/api/upload/files", formData);
     },

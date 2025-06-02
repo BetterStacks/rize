@@ -7,13 +7,12 @@ import { getAllPages } from "@/actions/page-actions";
 import { getUserPosts } from "@/actions/post-actions";
 import { getProfileByUsername } from "@/actions/profile-actions";
 import { getAllProjects } from "@/actions/project-actions";
-import { auth } from "@/lib/auth";
-import React, { FC } from "react";
-import UserProfile from "./profile/user-profile";
-import SectionContextProvider from "@/lib/section-context";
 import UserProfileLayout from "@/components/layout/UserProfileLayout";
-import Walkthrough from "./walkthrough";
+import { auth } from "@/lib/auth";
+import SectionContextProvider from "@/lib/section-context";
 import { cn } from "@/lib/utils";
+import { FC } from "react";
+import UserProfile from "./profile/user-profile";
 
 type Props = {
   username: string;
@@ -46,8 +45,8 @@ const ProfilePage: FC<Props> = async ({ username }) => {
   ]);
 
   const isMine = user?.username === session?.user?.username;
-  const shouldStartWalkthrough =
-    isMine && !session?.user?.hasCompletedWalkthrough;
+  // const shouldStartWalkthrough =
+  //   isMine && !session?.user?.hasCompletedWalkthrough;
 
   return (
     <SectionContextProvider
@@ -62,7 +61,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
     >
       <UserProfileLayout isMine={isMine} className={cn("overflow-hidden")}>
         <div className="w-full flex items-center justify-center">
-          {shouldStartWalkthrough && <Walkthrough />}
+          {/* {shouldStartWalkthrough && <Walkthrough />} */}
           <UserProfile
             isMine={isMine}
             data={user}

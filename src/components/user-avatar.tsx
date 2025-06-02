@@ -3,9 +3,9 @@ import { cn, isImageUrl } from "@/lib/utils";
 import { Edit3 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { useAvatarDialog } from "./dialog-provider";
 import ChangeAvatarDialog from "./dialogs/ChangeAvatarDialog";
-import toast from "react-hot-toast";
 
 type UserAvatarProps = {
   data: {

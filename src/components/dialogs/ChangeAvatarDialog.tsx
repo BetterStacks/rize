@@ -135,7 +135,8 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
 
               if (!resp?.success && resp.error) {
                 setIsUploading(false);
-                toast.error(resp?.error);
+                toast.error(resp?.error as string);
+                return;
               }
               await update();
               await queryClient.invalidateQueries({

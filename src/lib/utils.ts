@@ -343,12 +343,3 @@ export function isValidUrl(str: string): boolean {
     return false;
   }
 }
-
-// export async function urlExists(url: string) {
-//   try {
-//     const response = await fetch(url, { method: "HEAD" });
-//     return response.ok; // true if status is 200-299
-//   } catch (error) {
-//     return false;
-//   }
-// }

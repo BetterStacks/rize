@@ -338,8 +338,8 @@ export const ProjectsTab: FC<ProjectTabProps> = ({ id }) => {
       getProjectByID(session?.data?.user?.username as string, id as string),
   });
   const [logoFile, setLogoFile] = useState<File | undefined>(undefined);
-  const [isFormPending, startTransition] = useTransition();
-  const [tab, setTab] = useActiveSidebarTab();
+  // const [isFormPending, startTransition] = useTransition();
+  const tab = useActiveSidebarTab()[0];
   const mode = id ? "edit" : "create";
   const form = useForm<z.infer<typeof ProjectSchema>>({
     resolver: zodResolver(ProjectSchema),
@@ -424,7 +424,7 @@ export const ProjectsTab: FC<ProjectTabProps> = ({ id }) => {
       queryClient.invalidateQueries({ queryKey: ["get-projects"] });
     },
     onError: (error) => {
-      // toast.error(error?.message);
+      toast.error(error?.message);
     },
   });
 

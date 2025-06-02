@@ -2,18 +2,18 @@
 import { register } from "@/actions/user-actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Eye, EyeClosed, Loader } from "lucide-react";
+import { Loader } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
+import Logo from "../logo";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import Logo from "../logo";
-import Link from "next/link";
 
 const RegisterSchema = z.object({
   name: z.string().min(3, { message: "Name must be at least 3 characters." }),

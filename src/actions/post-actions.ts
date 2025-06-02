@@ -13,12 +13,11 @@ import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { GetExplorePosts } from "@/lib/types";
 import { isImageUrl } from "@/lib/utils";
+import axios from "axios";
 import { and, desc, eq, getTableColumns, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { Result } from "url-metadata";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
-import { Result } from "url-metadata";
-import axios from "axios";
 
 const PAGE_SIZE = 4;
 
@@ -27,7 +26,7 @@ export const getExploreFeed = async (pageParam: number = 0) => {
   const session = await auth();
 
   const offset = pageParam * PAGE_SIZE;
-  let query = db
+  const query = db
     .select({
       ...rest,
       username: profile.username,
@@ -180,7 +179,7 @@ export const getPostById = async (id: string) => {
   if (!session) {
     throw new Error("Unauthorized");
   }
-  let query = await db
+  const query = await db
     .select({
       ...rest,
       username: profile.username,

@@ -1,13 +1,13 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import { isUsernameAvailable } from "@/actions/profile-actions";
+import { Button } from "@/components/ui/button";
 import { usernameSchema } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useDebouncedCallback } from "@mantine/hooks";
+import { getCookie } from "cookies-next";
 import { Check, Loader, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { getCookie } from "cookies-next";
 
 export function UsernameStep({
   onNext,
@@ -33,7 +33,9 @@ export function UsernameStep({
     const result = usernameSchema.safeParse({ username });
     if (!result.success) {
       toast.dismiss();
-      toast.error(result.error?.flatten()?.fieldErrors?.username?.[0]);
+      toast.error(
+        result.error?.flatten()?.fieldErrors?.username?.[0] as string
+      );
       setIsAvailable(false);
       return;
     }

@@ -12,8 +12,6 @@ import {
 } from "@/lib/types";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useMemo } from "react";
 import Education from "../education/education";
@@ -23,7 +21,7 @@ import PostSection from "../posts-section";
 import Projects from "../projects/projects";
 import { Separator } from "../ui/separator";
 import Writings from "../writings/writings";
-import Profile, { defaultBio } from "./profile";
+import Profile from "./profile";
 import SocialLinks from "./social-links";
 
 type UserProfileProps = {
@@ -47,7 +45,6 @@ const UserProfile = ({
   workExperience,
   posts,
 }: UserProfileProps) => {
-  const session = useSession();
   const params = useParams<{ username: string }>();
   const { data: profileData, isLoading } = useQuery({
     queryKey: ["get-profile-by-username", params.username],
@@ -91,7 +88,7 @@ const UserProfile = ({
     );
     return updated;
   }, [sections]);
-  console.log({ updatedSections: filteredSections });
+
   const areAllSectionsDisabled = filteredSections.every(
     (section) => !section.enabled
   );

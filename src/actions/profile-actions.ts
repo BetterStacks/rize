@@ -144,7 +144,6 @@ export const getProfileByUserId = async (userId: string) => {
 };
 
 const sectionSchema = z.object({
-  // id: z.string().optional(),
   slug: z.string(),
   enabled: z.boolean(),
   order: z.number(),

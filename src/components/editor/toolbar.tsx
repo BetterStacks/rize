@@ -16,8 +16,7 @@ import {
   Underline,
   Video,
 } from "lucide-react";
-import React from "react";
-import { Editor, Element, Transforms } from "slate";
+import { Transforms } from "slate";
 import { useSlate } from "slate-react";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";

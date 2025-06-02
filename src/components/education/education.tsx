@@ -2,16 +2,15 @@
 import { getAllEducation } from "@/actions/education-actions";
 import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
 import { TEducation } from "@/lib/types";
+import { useMediaQuery } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { BookOpenText, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useQueryState } from "nuqs";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import EducationCard from "./education-card";
-import { useMediaQuery } from "@mantine/hooks";
 
 type EducationProps = {
   isMine: boolean;

@@ -1,30 +1,16 @@
 "use client";
-import {
-  deleteExperience,
-  getAllExperience,
-} from "@/actions/experience-actions";
+import { getAllExperience } from "@/actions/experience-actions";
 import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
-import { queryClient } from "@/lib/providers";
 import { TExperience } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMediaQuery } from "@mantine/hooks";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import {
-  BriefcaseBusiness,
-  CalendarIcon,
-  Edit2,
-  Loader,
-  Plus,
-  Trash,
-} from "lucide-react";
+import { BriefcaseBusiness, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useQueryState } from "nuqs";
 import { useState } from "react";
-import toast from "react-hot-toast";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import ExperienceCard from "./experience-card";
-import { useMediaQuery } from "@mantine/hooks";
 
 type WorkExperienceProps = {
   isMine: boolean;

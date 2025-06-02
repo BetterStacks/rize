@@ -3,14 +3,14 @@ import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
 import { queryClient } from "@/lib/providers";
 import { TEducation } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@mantine/hooks";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Dot, Edit2, Loader, Trash, Trash2 } from "lucide-react";
+import { Edit2, Loader, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { FC } from "react";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
-import { useMediaQuery } from "@mantine/hooks";
 
 type EducationCardProps = {
   education: TEducation;
