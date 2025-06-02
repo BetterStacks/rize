@@ -15,7 +15,7 @@ export function FinishStep({
           <AvatarFallback>{formData.username[0]}</AvatarFallback>
         </Avatar> */}
         <h2 className="text-5xl flex flex-col font-instrument font-semibold mb-4">
-          You're all set,
+          You&apos;re all set,
           <span className="italic ml-1">{formData.username}! 🎉</span>
         </h2>
       </div>
@@ -24,7 +24,7 @@ export function FinishStep({
           Your profile is looking amazing! Ready to start connecting?
         </p>
         <Button variant={"secondary"} onClick={onComplete} className="w-full">
-          Let's Go! 🚀
+          Let&apos;s Go! 🚀
         </Button>
       </div>
     </div>

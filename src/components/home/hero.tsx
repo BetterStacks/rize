@@ -12,10 +12,9 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ReactNode, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import ClaimUsernameForm from "../claim-username";
 import Logo from "../logo";
-import Window from "../window";
 
 const heading = "Own Your Story \n Not Just Your Resume";
 const description =

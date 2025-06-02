@@ -37,7 +37,9 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({
     const result = usernameSchema.safeParse({ username });
     if (!result.success) {
       toast.dismiss();
-      toast.error(result.error?.flatten()?.fieldErrors?.username?.[0]);
+      toast.error(
+        result.error?.flatten()?.fieldErrors?.username?.[0] as string
+      );
       setError(result.error?.flatten()?.fieldErrors?.username?.[0] as string);
       setIsSearching(false);
       setIsAvailable(false);

@@ -1,10 +1,11 @@
 import { toggleLike } from "@/actions/post-actions";
 import { GetExplorePosts } from "@/lib/types";
-import { cn, getUrlMetadata } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 import { FC, useState } from "react";
 import { usePostDialog } from "../dialog-provider";
 import PostInteractions, {
@@ -13,8 +14,6 @@ import PostInteractions, {
   PostCardOptions,
   PostLinkCard,
 } from "./post-interactions";
-import Link from "next/link";
-import { Globe } from "lucide-react";
 
 type PostCardProps = {
   post: GetExplorePosts;

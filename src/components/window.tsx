@@ -3,23 +3,11 @@ import {
   useAnimation,
   useMotionValueEvent,
   useScroll,
-  useTransform,
   Variants,
 } from "framer-motion";
-import { ReactNode } from "react";
-import Gallery from "./gallery/gallery";
-import { profile } from "console";
-import GalleryItem from "./gallery/gallery-item";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 const Window = () => {
-  const items = [
-    "https://i.pinimg.com/736x/52/41/de/5241de9a3090d14f86ceb2ef8bcfc7ad.jpg",
-    "https://i.pinimg.com/736x/25/eb/47/25eb47fe8752b3ba19867de49eb2c801.jpg",
-    "https://i.pinimg.com/736x/01/89/dd/0189dddc13e3e77478fb4d07480d2f9c.jpg",
-    "https://i.pinimg.com/736x/d1/1b/98/d11b982a5a2904b3e0bb952240b4149f.jpg",
-  ];
   const { scrollYProgress } = useScroll({ axis: "y" });
   const control = useAnimation();
   useMotionValueEvent(scrollYProgress, "change", (v) => {

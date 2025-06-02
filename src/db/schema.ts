@@ -12,7 +12,6 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
-import { Content } from "next/font/google";
 import { Result } from "url-metadata";
 import { v4 as gen_uuid, v4 } from "uuid";
 

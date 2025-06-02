@@ -6,9 +6,8 @@ import FAQSection from "@/components/home/faq";
 import HeroSection from "@/components/home/hero";
 import TextReveal from "@/components/home/text-reveal";
 import UserReviews from "@/components/home/user-reviews";
-import { useEffect } from "react";
 import Lenis from "lenis";
-import Window from "@/components/window";
+import { useEffect } from "react";
 
 export default function Home() {
   useEffect(() => {

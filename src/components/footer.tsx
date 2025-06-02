@@ -1,14 +1,14 @@
 "use client";
-import { Copyright, Moon, Sun } from "lucide-react";
-import Logo from "./logo";
-import BottomBanner from "./bottom-banner";
-import { Separator } from "./ui/separator";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import BottomBanner from "./bottom-banner";
+import Logo from "./logo";
+import { Separator } from "./ui/separator";
 
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
+  // const currentYear = new Date().getFullYear();
   const themeOptions = [
     {
       theme: "light",

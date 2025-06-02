@@ -36,7 +36,7 @@ export default function OnboardingFlow() {
         username: data?.username as string,
       });
       if (res.error) {
-        toast.error(res.error);
+        toast.error(res.error as string);
         return;
       }
       const usernameCookie = hasCookie("username");
@@ -77,7 +77,7 @@ export default function OnboardingFlow() {
           isOnboarded: true,
         });
         if (!resp?.success && resp.error) {
-          toast.error(resp?.error);
+          toast.error(resp?.error as string);
           return;
         }
         toast.success("Profile picture updated successfully");

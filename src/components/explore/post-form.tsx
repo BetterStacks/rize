@@ -5,7 +5,7 @@ import { TUploadFilesResponse } from "@/lib/types";
 import { capitalizeFirstLetter, cn, isValidUrl } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { Globe, Link2, Loader, X } from "lucide-react";
+import { Link2, Loader, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
@@ -23,7 +23,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import Link from "next/link";
 import { PostLinkCard } from "./post-interactions";
 
 type MediaFile = {

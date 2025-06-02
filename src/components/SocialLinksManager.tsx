@@ -49,7 +49,7 @@ const SocialLinksManager = () => {
     (link) => link.platform
   ) as SocialPlatform[];
 
-  const { mutate: addSocialLinkMutation, isPending } = useMutation({
+  const { mutate: addSocialLinkMutation } = useMutation({
     mutationFn: ({
       url,
       platform,
@@ -57,7 +57,7 @@ const SocialLinksManager = () => {
       url: string;
       platform: SocialPlatform;
     }) => addSocialLink(url, platform),
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success("Social link added");
       queryClient.invalidateQueries({ queryKey: ["get-social-links"] });
       setSocialLinksDialogOpen(false);

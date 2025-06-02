@@ -1,15 +1,6 @@
 import { getGalleryItems } from "@/actions/gallery-actions";
 import { GalleryItemProps } from "@/lib/types";
-import { cn, MAX_GALLERY_ITEMS } from "@/lib/utils";
-import {
-  DragEndEvent,
-  DragStartEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { motion, Variants } from "framer-motion";
 import { useParams } from "next/navigation";
@@ -21,10 +12,8 @@ import {
   messyGridItemVariants,
   messyGridVariants,
 } from "./gallery-config";
-import GalleryItem from "./gallery-item";
-import { Camera, ImageIcon, Plus, Upload } from "lucide-react";
-import { Button } from "../ui/button";
 import { EmptyGalleryState } from "./gallery-empty-state";
+import GalleryItem from "./gallery-item";
 
 export const galleryLayouts = {
   "messy-grid": {
@@ -87,7 +76,6 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
     refetchOnReconnect: false,
     refetchOnMount: false,
   });
-  const [activeItem, setActiveItem] = useState<GalleryItemProps | null>(null);
   const [sortedItems, setSortedItems] = useState(data || []);
 
   useEffect(() => {

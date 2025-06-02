@@ -1,17 +1,16 @@
+import { deleteExperience } from "@/actions/experience-actions";
+import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
+import { queryClient } from "@/lib/providers";
 import { TExperience } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-import { CalendarIcon, Dot, Edit2, Loader, Trash, Trash2 } from "lucide-react";
-import { useQueryState } from "nuqs";
-import React, { FC } from "react";
-import { Button } from "../ui/button";
-import { deleteExperience } from "@/actions/experience-actions";
-import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/providers";
-import toast from "react-hot-toast";
-import { useSession } from "next-auth/react";
-import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
 import { useMediaQuery } from "@mantine/hooks";
+import { useMutation } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { Edit2, Loader, Trash2 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { FC } from "react";
+import toast from "react-hot-toast";
+import { Button } from "../ui/button";
 
 type ExperienceCardProps = {
   experience: TExperience;

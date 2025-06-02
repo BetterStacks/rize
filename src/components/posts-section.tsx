@@ -16,7 +16,7 @@ type Props = {
 
 const PostSection: FC<Props> = ({ posts, isMine }) => {
   const { username } = useParams<{ username: string }>();
-  const [open, setOpen] = usePostsDialog();
+  const setOpen = usePostsDialog()[1];
   const { data, isFetching } = useQuery({
     queryKey: ["get-user-posts", username],
     initialData: posts,

@@ -1,9 +1,5 @@
 import { GetProfileByUsername } from "@/lib/types";
-import { classifyText, cleanUrl, cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-import { Link2 } from "lucide-react";
 import UserAvatar from "../user-avatar";
-import Link from "next/link";
 
 type ProfileProps = {
   data: GetProfileByUsername;
@@ -15,7 +11,6 @@ export const defaultBio = `I’m still setting up, but this is where it all star
 A place to share what I do, what I love, and where I’m headed.It’s quiet for now, but trust me—it won’t stay that way for long.`;
 
 const Profile = ({ data, isMine, isLoading }: ProfileProps) => {
-  const bio = classifyText(data?.bio || defaultBio);
   return (
     <div className=" w-full flex flex-col items-center justify-start   mb-2">
       <div className=" max-w-2xl w-full flex flex-col items-start justify-start">

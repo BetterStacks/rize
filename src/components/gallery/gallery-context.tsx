@@ -7,21 +7,18 @@ import {
   ReactNode,
   useContext,
   useEffect,
-  useOptimistic,
   useState,
 } from "react";
 
 type TGallerItemsContext = {
   items: GalleryItemProps[];
   setItems: (items: GalleryItemProps[]) => void;
-  addItem: (item: GalleryItemProps[]) => void;
   isLoading?: boolean;
 };
 
 export const GalleryItemsContext = createContext<TGallerItemsContext>({
   items: [],
   setItems: () => {},
-  addItem: () => {},
   isLoading: false,
 });
 
@@ -48,19 +45,11 @@ const GalleryContextProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [data]);
 
-  const [optimisticGallery, addOptimisticGalleryItem] = useOptimistic<
-    GalleryItemProps[],
-    GalleryItemProps[]
-  >(items, (prev, next) => [...prev, ...next]);
-  // useEffect(() => {
-  //   console.log({ optimisticGallery });
-  // }, [optimisticGallery]);
   return (
     <GalleryItemsContext.Provider
       value={{
-        items: optimisticGallery,
+        items,
         setItems,
-        addItem: addOptimisticGalleryItem,
         isLoading: isLoading,
       }}
     >

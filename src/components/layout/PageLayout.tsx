@@ -1,18 +1,14 @@
 "use client";
-import React, { ReactNode } from "react";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "../ui/resizable";
-import { ScrollArea } from "../ui/scroll-area";
-import PageSidebar from "../sidebar/PageSidebar";
-import Toolbar from "../editor/toolbar";
-import { useMediaQuery } from "@mantine/hooks";
 import { usePageSidebar } from "@/lib/context";
-import { Sheet, SheetContent } from "../ui/sheet";
-import { Button } from "../ui/button";
+import { useMediaQuery } from "@mantine/hooks";
 import { Sidebar } from "lucide-react";
+import { ReactNode } from "react";
+import Toolbar from "../editor/toolbar";
+import PageSidebar from "../sidebar/PageSidebar";
+import { Button } from "../ui/button";
+import { ResizablePanel, ResizablePanelGroup } from "../ui/resizable";
+import { ScrollArea } from "../ui/scroll-area";
+import { Sheet, SheetContent } from "../ui/sheet";
 
 const PageLayout = ({
   children,

@@ -16,12 +16,6 @@ import {
 const LIST_TYPES = ["numbered-list", "bulleted-list"];
 const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
 
-// const HOTKEYS = {
-//   "mod+b": "bold",
-//   "mod+i": "italic",
-//   "mod+u": "underline",
-//   "mod+`": "code",
-// };
 export function extractTextFromEditor(editor: Editor): string {
   return editor.children.map((node) => Node.string(node)).join("\n");
 }

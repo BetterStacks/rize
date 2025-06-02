@@ -1,9 +1,8 @@
 import { getRecentlyJoinedProfiles } from "@/actions/profile-actions";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
+import Link from "next/link";
 import { use } from "react";
 import { Separator } from "./ui/separator";
-import Link from "next/link";
 
 const RecentlyJoined = () => {
   const profiles = use(getRecentlyJoinedProfiles());

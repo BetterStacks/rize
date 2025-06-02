@@ -18,11 +18,7 @@ import { FC, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import PostCard from "./post-card";
 
-type ExploreFeedProps = {
-  // data: { posts: GetExplorePosts[]; nextCursor?: number };
-};
-
-const ExploreFeed: FC<ExploreFeedProps> = ({}) => {
+const ExploreFeed = () => {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeOption, setActiveOption] =

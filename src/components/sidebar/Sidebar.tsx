@@ -1,83 +1,73 @@
 "use client";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import {
-  Bell,
-  Compass,
-  Edit3,
-  Plus,
-  Search,
-  Settings,
-  UserRound,
-} from "lucide-react";
+import { Edit3, Plus, Search, Settings, UserRound } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import {
   useAuthDialog,
   usePostsDialog,
-  useProfileDialog,
   useSearchDialog,
 } from "../dialog-provider";
 import { Button } from "../ui/button";
 
 const Sidebar = () => {
   const session = useSession();
-  const setOpen = useProfileDialog()[1];
+  // const setOpen = useProfileDialog()[1];
   const setOpenSearch = useSearchDialog()[1];
   const setIsPostDialogOpen = usePostsDialog()[1];
   const setIsAuthDialogOpen = useAuthDialog()[1];
-  const { theme } = useTheme();
-  const options = [
-    {
-      id: 1,
-      name: "Explore",
-      href: "/",
-      onClick: () => {
-        // router.push("/");
-      },
-      icon: <Compass className="opacity-70" strokeWidth={1.5} />,
-    },
-    {
-      id: 3,
-      name: "Search",
-      href: null,
-      onClick: () => {
-        setOpenSearch(true);
-        // router.push("/");
-      },
-      icon: <Search className="opacity-70" strokeWidth={1.5} />,
-    },
-    {
-      id: 4,
-      name: "Notifications",
-      href: null,
-      onClick: () => {
-        // router.push("/");
-      },
-      icon: <Bell className="opacity-70" strokeWidth={1.5} />,
-    },
-    {
-      id: 2,
-      name: "Account",
-      href: `/${session?.data?.user?.username}`,
-      onClick: () => {
-        // router.push("/");
-      },
-      icon: <UserRound className="opacity-70" strokeWidth={1.5} />,
-    },
-    {
-      id: 5,
-      name: "Settings",
-      href: `/${session?.data?.user?.username}?tab=settings`,
-      onClick: () => {
-        // router.push("/");
-        setOpen(true);
-      },
-      icon: <Settings className="opacity-70" strokeWidth={1.5} />,
-    },
-  ];
+  // const { theme } = useTheme();
+  // const options = [
+  //   {
+  //     id: 1,
+  //     name: "Explore",
+  //     href: "/",
+  //     onClick: () => {
+  //       // router.push("/");
+  //     },
+  //     icon: <Compass className="opacity-70" strokeWidth={1.5} />,
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Search",
+  //     href: null,
+  //     onClick: () => {
+  //       setOpenSearch(true);
+  //       // router.push("/");
+  //     },
+  //     icon: <Search className="opacity-70" strokeWidth={1.5} />,
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Notifications",
+  //     href: null,
+  //     onClick: () => {
+  //       // router.push("/");
+  //     },
+  //     icon: <Bell className="opacity-70" strokeWidth={1.5} />,
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Account",
+  //     href: `/${session?.data?.user?.username}`,
+  //     onClick: () => {
+  //       // router.push("/");
+  //     },
+  //     icon: <UserRound className="opacity-70" strokeWidth={1.5} />,
+  //   },
+  //   {
+  //     id: 5,
+  //     name: "Settings",
+  //     href: `/${session?.data?.user?.username}?tab=settings`,
+  //     onClick: () => {
+  //       // router.push("/");
+  //       setOpen(true);
+  //     },
+  //     icon: <Settings className="opacity-70" strokeWidth={1.5} />,
+  //   },
+  // ];
 
   return (
     <div

@@ -16,8 +16,11 @@ import {
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 import { FC, useState } from "react";
 import toast from "react-hot-toast";
+import { Result } from "url-metadata";
+import { useAlertDialog, useAuthDialog } from "../dialog-provider";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -25,10 +28,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { useAlertDialog, useAuthDialog } from "../dialog-provider";
-import AuthGuardDialog from "../dialogs/AuthGuardDialog";
-import { Result } from "url-metadata";
-import Link from "next/link";
 
 type PostInteractionsProps = {
   likeCount: number;
@@ -111,56 +110,6 @@ const variants = {
     x: direction < 0 ? 300 : -300,
     opacity: 0,
   }),
-};
-
-export const PostMediaContainer: FC<PostMediaContainerProps> = ({
-  media,
-  mediaContainerClassName,
-  hasContentAndMedia,
-  onlyMedia,
-}) => {
-  const [[page, direction], setPage] = useState([0, 0]);
-  const paginate = (newDirection: number) => {
-    setPage([
-      (page + newDirection + media.length) % media.length,
-      newDirection,
-    ]);
-  };
-  return (
-    <div
-      style={{ aspectRatio: media[page]?.width / media[page]?.height }}
-      className="relative "
-    >
-      {onlyMedia && (
-        <div className="bg-gradient-to-b w-full from-black via-black/60 to-transparent h-36 absolute z-[6] inset-0" />
-      )}
-
-      {media[page]?.type === "image" ? (
-        <>
-          <Image
-            fill
-            src={media[page].url}
-            alt="Post media"
-            draggable={false}
-            className="object-cover select-none "
-          />
-        </>
-      ) : (
-        <>
-          <video
-            style={{ objectFit: "cover" }}
-            className="w-full h-full select-none  "
-            src={media[page]?.url}
-            autoPlay
-            draggable={false}
-            loop
-            muted
-            controls={false}
-          />
-        </>
-      )}
-    </div>
-  );
 };
 
 type PostaAvatarProps = {

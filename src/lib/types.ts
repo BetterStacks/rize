@@ -259,7 +259,6 @@ export const usernameSchema = z.object({
       "Username can only contain letters, numbers, underscores, and hyphens"
     ),
 });
-const PronounsEnum = z.enum(["he/him", "she/her", "they/them", "other"]);
 
 export const profileSchema = z.object({
   email: z.string().email().optional(),

@@ -1,19 +1,19 @@
 import { useRightSidebar } from "@/lib/context";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@mantine/hooks";
-import { Edit3, Moon, Sidebar, Sun } from "lucide-react";
+import { Edit3, Sidebar } from "lucide-react";
 import { useTheme } from "next-themes";
 import { FC } from "react";
 import { useProfileDialog } from "./dialog-provider";
-import { Button } from "./ui/button";
 import Menu from "./menu";
+import { Button } from "./ui/button";
 
 type NavbarProps = {
   isMine: boolean;
 };
 
 const Navbar: FC<NavbarProps> = ({ isMine }) => {
-  const { theme, setTheme } = useTheme();
+  // const { theme, setTheme } = useTheme();
   const setOpen = useProfileDialog()[1];
   const setSidebarOpen = useRightSidebar()[1];
   const isDesktop = useMediaQuery("(min-width: 1024px)");
