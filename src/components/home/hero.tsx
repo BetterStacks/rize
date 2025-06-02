@@ -329,16 +329,13 @@ const HeroSection = () => {
         </motion.div>
       </motion.div>
 
-      {/* <div className="absolute -z-20 left-0 -bottom-40  size-[600px]  hidden md:flex  bg-indigo-400 dark:bg-indigo-500/80 rounded-full blur-[100px] "></div>
-      <div className="absolute -z-20 right-0  -bottom-10 hidden md:flex md:-bottom-40  size-[600px]   bg-indigo-400 dark:bg-indigo-500/80 rounded-full blur-[100px] "></div> */}
-
       <motion.div
         variants={windowVariants}
         animate="animate"
         initial="initial"
         className=" p-4 w-full h-screen -z-10 flex  absolute -bottom-[35%] md:-bottom-[80%] items-center justify-center"
       >
-        <motion.div className=" rounded-2xl   bg-white  border border-neutral-200 dark:border-dark-border md:max-w-6xl aspect-video   w-full ">
+        <motion.div className=" rounded-2xl shadow-2xl   bg-white  border  border-neutral-200 dark:border-dark-border md:max-w-5xl aspect-video   w-full ">
           <div className="flex w-full px-4 py-3 items-center justify-start gap-x-2">
             {[...Array(3)].map((_, index) => (
               <div
@@ -352,7 +349,7 @@ const HeroSection = () => {
               alt=""
               fill
               className="object-cover scale-110"
-              src="/minimal.png"
+              src="/minimal3.png"
             />
           </div>
         </motion.div>
