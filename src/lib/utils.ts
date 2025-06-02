@@ -334,3 +334,21 @@ export const getUrlMetadata = async (url: string) => {
     console.log(err);
   }
 };
+
+export function isValidUrl(str: string): boolean {
+  try {
+    new URL(str);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// export async function urlExists(url: string) {
+//   try {
+//     const response = await fetch(url, { method: "HEAD" });
+//     return response.ok; // true if status is 200-299
+//   } catch (error) {
+//     return false;
+//   }
+// }

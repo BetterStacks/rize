@@ -28,57 +28,7 @@ export function extractTextFromEditor(editor: Editor): string {
 const initialValue: Descendant[] = [
   {
     type: "paragraph",
-    children: [
-      { text: "This is editable " },
-      { text: "rich", bold: true },
-      { text: " text, " },
-      { text: "much", italic: true },
-      { text: " better than a " },
-      { text: "<textarea>", code: true },
-      { text: "!" },
-    ],
-  },
-  {
-    type: "paragraph",
-    children: [
-      {
-        text: "Since it's rich text, you can do things like turn a selection of text ",
-      },
-      { text: "bold", bold: true },
-      {
-        text: ", or add a semantically rendered block quote in the middle of the page, like this:",
-      },
-    ],
-  },
-  {
-    type: "block-quote",
-    children: [{ text: "A wise quote." }],
-  },
-
-  {
-    type: "paragraph",
-    align: "center",
-    children: [{ text: "" }],
-  },
-  {
-    type: "video",
-    url: "https://v1.pinimg.com/videos/mc/expMp4/ec/43/34/ec43341f9c485ceefa9ff2748c3fcf2d_t1.mp4",
-    children: [{ text: "" }],
-  },
-  {
-    type: "paragraph",
-    align: "center",
-    children: [{ text: "" }],
-  },
-  {
-    type: "paragraph",
-    align: "center",
-    children: [{ text: "Try it out for yourself!" }],
-  },
-  {
-    type: "heading",
-    align: "left",
-    children: [{ text: "Try it out for yourself!" }],
+    children: [{ text: "Content goes here!!" }],
   },
 ];
 

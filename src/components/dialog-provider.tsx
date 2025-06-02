@@ -18,6 +18,8 @@ type DialogContextType = {
   isProjectsDialogOpen?: boolean;
   isCreatePostDialogOpen?: boolean;
   isPostDialogOpen: boolean;
+  isAuthDialogOpen: boolean;
+  isAlertDialogOpen: boolean;
 };
 
 type setDialogContextType = [
@@ -32,6 +34,8 @@ type setDialogContextType = [
     setIsProjectsDialogOpen: UpdateStateFunctionType;
     setIsCreatePostDialogOpen: UpdateStateFunctionType;
     setIsPostDialogOpen: UpdateStateFunctionType;
+    setIsAuthDialogOpen: UpdateStateFunctionType;
+    setIsAlertDialogOpen: UpdateStateFunctionType;
   }
 ];
 
@@ -45,6 +49,8 @@ const defaultContextState: DialogContextType = {
   isProjectsDialogOpen: false,
   isCreatePostDialogOpen: false,
   isPostDialogOpen: false,
+  isAuthDialogOpen: false,
+  isAlertDialogOpen: false,
 };
 
 const DialogContext = createContext([
@@ -59,6 +65,8 @@ const DialogContext = createContext([
     setIsProjectsDialogOpen: () => {},
     setIsCreatePostDialogOpen: () => {},
     setIsPostDialogOpen: () => {},
+    setIsAuthDialogOpen: () => {},
+    setIsAlertDialogOpen: () => {},
   },
 ] as setDialogContextType);
 
@@ -145,6 +153,7 @@ export const useProjectsDialog = () => {
     context[1].setIsProjectsDialogOpen,
   ] as const;
 };
+
 export const usePostsDialog = () => {
   const context = useContext(DialogContext);
   if (!context) {
@@ -165,6 +174,24 @@ export const usePostDialog = () => {
     );
   }
   return [context[0].isPostDialogOpen, context[1].setIsPostDialogOpen] as const;
+};
+
+export const useAuthDialog = () => {
+  const context = useContext(DialogContext);
+  if (!context) {
+    throw new Error("useAuthDialog must be used within DialogContextProvider");
+  }
+  return [context[0].isAuthDialogOpen, context[1].setIsAuthDialogOpen] as const;
+};
+export const useAlertDialog = () => {
+  const context = useContext(DialogContext);
+  if (!context) {
+    throw new Error("useAlertDialog must be used within DialogContextProvider");
+  }
+  return [
+    context[0].isAlertDialogOpen,
+    context[1].setIsAlertDialogOpen,
+  ] as const;
 };
 
 const DialogContextProvider = ({ children }: { children: ReactNode }) => {
@@ -224,6 +251,19 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
     },
     [openContext, setOpenContext]
   );
+  const setIsAuthDialogOpen = useCallback(
+    (isOpen: boolean) => {
+      setOpenContext({ ...openContext, isAuthDialogOpen: isOpen });
+    },
+    [openContext, setOpenContext]
+  );
+
+  const setIsAlertDialogOpen = useCallback(
+    (isOpen: boolean) => {
+      setOpenContext({ ...openContext, isAlertDialogOpen: isOpen });
+    },
+    [openContext, setOpenContext]
+  );
   return (
     <DialogContext.Provider
       value={[
@@ -238,6 +278,8 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
           setIsProjectsDialogOpen,
           setIsCreatePostDialogOpen,
           setIsPostDialogOpen,
+          setIsAuthDialogOpen,
+          setIsAlertDialogOpen,
         },
       ]}
     >

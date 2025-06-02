@@ -2,16 +2,17 @@
 import { createPost } from "@/actions/post-actions";
 import { queryClient } from "@/lib/providers";
 import { TUploadFilesResponse } from "@/lib/types";
-import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import { capitalizeFirstLetter, cn, isValidUrl } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { Link2, Loader, Trash2 } from "lucide-react";
+import { Globe, Link2, Loader, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 import TextArea from "react-textarea-autosize";
+import { Result } from "url-metadata";
 import { v4 } from "uuid";
 import { usePostsDialog } from "../dialog-provider";
 import { Button } from "../ui/button";
@@ -22,7 +23,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { motion } from "framer-motion";
+import Link from "next/link";
+import { PostLinkCard } from "./post-interactions";
 
 type MediaFile = {
   id: string;
@@ -33,13 +35,14 @@ type MediaFile = {
 const MAX_WORD_COUNT = 500;
 
 const PostForm = () => {
-  const [files, setFiles] = useState<MediaFile[]>([]);
+  const [file, setFile] = useState<MediaFile | undefined>();
   const [content, setContent] = React.useState<string>("");
   const session = useSession();
-  const [focus, setFocus] = useState(false);
   const [open, setOpen] = usePostsDialog();
-  const [links, setLinks] = useState<string[]>([]);
+  const [link, setLink] = useState<string | null>();
+  const [metadata, setMetadata] = useState<Result | undefined>(undefined);
   const data = session?.data?.user;
+
   const onDrop = (acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map((file) => ({
       id: v4(),
@@ -47,7 +50,7 @@ const PostForm = () => {
       type: file.type.startsWith("image") ? "image" : "video",
       file: file,
     }));
-    setFiles((prev) => [...prev, ...(newFiles as MediaFile[])]);
+    setFile(newFiles[0] as MediaFile);
   };
 
   const {
@@ -57,11 +60,9 @@ const PostForm = () => {
     open: openDropZone,
   } = useDropzone({
     onDrop,
-    multiple: true,
-    // disabled: isDisabled,
+    multiple: false,
     noClick: true,
     noKeyboard: true,
-
     accept: {
       "image/*": [".png", ".jpg", ".jpeg"],
       "video/*": [".mp4", ".webm", ".mov"],
@@ -69,26 +70,26 @@ const PostForm = () => {
   });
 
   const handlePost = async () => {
-    let media = [] as TUploadFilesResponse[];
-    if (files?.length > 0) {
+    let media: TUploadFilesResponse | undefined = undefined;
+
+    if (file) {
       const formData = new FormData();
-      files.forEach((file) => formData.append("files", file?.file as File));
+      formData.append("files", file?.file as File);
       formData.append("folder", "fyp-stacks/posts");
 
       const res = await axios.post("/api/upload/files", formData);
       if (res.status !== 200) throw new Error("Upload failed");
-      const resp = res.data?.data as TUploadFilesResponse[];
-
-      media = resp.map((file) => ({
-        url: file?.url,
-        height: file?.height,
-        width: file?.width,
-      }));
+      const [resp] = res.data?.data as TUploadFilesResponse[];
+      media = {
+        url: resp?.url,
+        height: resp?.height,
+        width: resp?.width,
+      };
     }
     await createPost({
       content: content || undefined,
-      files: media || [],
-      links: links || [],
+      file: media || undefined,
+      link: link || undefined,
     });
   };
   const { isPending, mutate } = useMutation({
@@ -98,8 +99,10 @@ const PostForm = () => {
       queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
       toast.success("Post created successfully");
       setContent("");
-      setFiles([]);
+      setFile(undefined);
+      setLink(undefined);
       setOpen(false);
+      setMetadata(undefined);
     },
     onError: (error) => {
       toast.error("Error creating post");
@@ -111,46 +114,43 @@ const PostForm = () => {
   useEffect(() => {
     if (open) {
       setContent("");
-      setFiles([]);
+      setFile(undefined);
+      setLink(undefined);
+      setMetadata(undefined);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!link) return;
+    (async () => {
+      const data = await axios("http://localhost:3000/api/url", {
+        params: {
+          url: link,
+        },
+      });
+      if (data?.status !== 200)
+        throw new Error("Failed to fetch link metadata");
+      const metadata = data?.data?.metadata as Result;
+      setMetadata(metadata);
+    })();
+  }, [link]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         {...getRootProps()}
-        onMouseEnter={() => setFocus(true)}
-        onMouseLeave={() => setFocus(false)}
         className={cn(
-          "flex flex-col dark:bg-dark-bg max-w-xs rounded-3xl sm:max-w-lg bg-white drop-shadow-2xl sm:rounded-3xl  w-full border border-neutral-300/60 dark:border-dark-border px-2 py-3  "
+          "flex flex-col overflow-hidden dark:bg-dark-bg max-w-xs rounded-3xl sm:max-w-lg bg-white drop-shadow-2xl sm:rounded-3xl  w-full border border-neutral-300/60 dark:border-dark-border px-2 py-3  ",
+          isDragActive && "border-dashed border-indigo-600/60 bg-indigo-500/40"
           //   focus && "h-fit"
         )}
       >
-        <input {...getInputProps()} />
         <DialogHeader className="px-2">
           <DialogTitle className="hidden" aria-hidden="true">
             Create Post
           </DialogTitle>
-          <div
-            className={cn(
-              "size-10 bg-neutral-200 dark:bg-dark-border rounded-full aspect-square flex relative overflow-hidden",
-              session?.status === "loading" && "animate-pulse"
-            )}
-          >
-            {data?.profileImage && (
-              <Image
-                src={data?.profileImage as string}
-                fill
-                style={{
-                  objectFit: "cover",
-                }}
-                quality={100}
-                priority
-                alt={`${data?.name}`}
-              />
-            )}
-          </div>
         </DialogHeader>
+        <input {...getInputProps()} />
         <div className="w-full h-full px-4 mt-2 flex flex-1 flex-col">
           <TextArea
             disabled={isPending}
@@ -164,27 +164,38 @@ const PostForm = () => {
               data?.name?.split(" ")[0] as string
             )}?`}
           />
+          {link && metadata && (
+            <PostLinkCard
+              data={metadata}
+              hasRemove
+              onRemove={() => {
+                setLink(null);
+                setMetadata(undefined);
+              }}
+            />
+          )}
 
           <div className="w-full flex overflow-x-auto gap-2 mt-4">
-            {files.map((file) => (
+            {file && (
               <div
                 key={file.id}
                 className="w-fit flex items-center justify-center gap-x-2 border border-neutral-300/60 dark:border-dark-border rounded-xl relative group p-1 "
               >
                 <div
-                  className="absolute -top-2 -right-2 opacity-0 z-30 group-hover:opacity-100 transition-all duration-200"
+                  className="absolute top-2 right-2 opacity-0 z-30 group-hover:opacity-100 transition-all duration-200"
                   onClick={() => {
-                    setFiles((prev) => prev.filter((f) => f.id !== file.id));
+                    setFile(undefined);
                   }}
                 >
-                  <Button
-                    variant={"outline"}
-                    size={"smallIcon"}
-                    className="size-6"
-                    // className="absolute top-2 z-10 right-2"
+                  <button
+                    onClick={() => {
+                      setLink(null);
+                      setMetadata(undefined);
+                    }}
+                    className="border border-neutral-200 dark:bg-dark-bg bg-white dark:border-dark-border rounded-full p-2"
                   >
-                    <Trash2 className="size-3" />
-                  </Button>
+                    <X className="size-4 opacity-80  " />
+                  </button>
                 </div>
                 <div className="size-40 relative rounded-lg overflow-hidden">
                   {file.type === "image" ? (
@@ -202,42 +213,78 @@ const PostForm = () => {
                   )}
                 </div>
               </div>
-            ))}
+            )}
           </div>
         </div>
         <DialogFooter className="px-4 pb-2">
           <div className="w-full mt-4 gap-x-2 flex items-center justify-between">
-            <div className="space-x-4">
-              <button disabled={isPending} onClick={openDropZone}>
+            <div className="flex items-center justify-center gap-x-2">
+              <div
+                className={cn(
+                  "size-7 bg-neutral-200 dark:bg-dark-border mr-2 rounded-full aspect-square flex relative overflow-hidden",
+                  session?.status === "loading" && "animate-pulse"
+                )}
+              >
+                {data?.profileImage && (
+                  <Image
+                    src={data?.profileImage as string}
+                    fill
+                    style={{
+                      objectFit: "cover",
+                    }}
+                    quality={100}
+                    priority
+                    alt={`${data?.name}`}
+                  />
+                )}
+              </div>
+              <Button
+                size={"icon"}
+                className="rounded-full"
+                variant={"ghost"}
+                disabled={!!link || isPending}
+                onClick={openDropZone}
+              >
                 <GalleryIcon
                   strokeWidth={1.2}
-                  className="opacity-80 size-6 stroke-black dark:stroke-neutral-100"
+                  className="opacity-80 size-6  stroke-black dark:stroke-neutral-100"
                 />
-              </button>
-              <button
-                disabled={isPending}
-                onClick={() => {
-                  // const url = prompt("Enter a link:");
-                  // if (url) {
-                  //   setLinks((prev) => [...prev, url]);
-                  // }
+              </Button>
+
+              <Button
+                size={"icon"}
+                className="rounded-full"
+                variant={"ghost"}
+                disabled={!!link || !!file || isPending}
+                onClick={async () => {
+                  const url = prompt("Enter a link:");
+                  if (!url) return;
+                  if (!isValidUrl(url)) {
+                    toast.error("Invalid URL");
+                    return;
+                  }
+                  console.log(url);
+
+                  setLink(url);
                 }}
               >
                 <Link2 strokeWidth={1.4} className="-rotate-45 opacity-80" />
-              </button>
+              </Button>
             </div>
             <div>
               <Button
                 size={"sm"}
                 variant={"ghost"}
+                className=" px-4 rounded-full"
                 onClick={() => setOpen(false)}
               >
                 Cancel
               </Button>
               <Button
                 size={"sm"}
-                className="ml-2"
+                className="ml-2 px-4 rounded-full"
                 disabled={isPending}
+                variant={"outline"}
                 onClick={() => mutate()}
               >
                 {isPending && (
@@ -253,68 +300,6 @@ const PostForm = () => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-};
-
-interface ProgressCircleProps {
-  percentage: number;
-  size?: number;
-  strokeWidth?: number;
-  bgColor?: string;
-  progressColor?: string;
-}
-
-const ProgressCircle: React.FC<ProgressCircleProps> = ({
-  percentage,
-  size = 25,
-  strokeWidth = 4,
-}) => {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - percentage / 100);
-
-  return (
-    <svg
-      width={size}
-      className="relative"
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-    >
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        strokeWidth={strokeWidth - 1}
-        fill="none"
-        className="absolute -z-10 stroke-neutral-300 dark:stroke-neutral-600"
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        strokeWidth={strokeWidth}
-        fill="none"
-        // pathLength={offset}
-        strokeDashoffset={offset}
-        strokeDasharray={circumference}
-        strokeLinecap="round"
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        className="absolute z-10 stroke-indigo-600"
-      />
-      {/* <circle
-        className="absolute  "
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        stroke={"gray"}
-        strokeWidth={strokeWidth}
-        fill="none"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        strokeLinecap="round"
-      /> */}
-    </svg>
   );
 };
 
@@ -355,3 +340,110 @@ export const GalleryIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export default PostForm;
+
+{
+  /* <div className={cn("relative", "")}>
+  <AnimatePresence initial={false} mode="popLayout" custom={direction}>
+  <motion.div
+      variants={{
+        enter: (direction) => ({
+          x: direction > 0 ? 364 : -364,
+          opacity: 0,
+          height: bounds.height > 0 ? bounds.height : "auto",
+          position: "initial",
+          }),
+          center: {
+            zIndex: 1,
+          x: 0,
+          opacity: 1,
+          height: bounds.height > 0 ? bounds.height : "auto",
+        },
+        exit: (direction) => ({
+          zIndex: 0,
+          x: direction < 0 ? 364 : -364,
+          opacity: 0,
+          position: "absolute",
+          top: 0,
+          width: "100%",
+        }),
+      }}
+      transition={{
+        x: { type: "spring", stiffness: 300, damping: 30 },
+        opacity: { duration: 0.2 },
+      }}
+      initial="enter"
+      animate="center"
+      exit="exit"
+    >
+      <input {...getInputProps()} />
+      <div ref={ref} className="px-4 py-4">
+        {tabs[activeIndex]}
+        </div>
+    </motion.div>
+  </AnimatePresence>
+</div> */
+}
+
+// const tabs = [
+//   <div>
+//     <TextArea
+//       disabled={isPending}
+//       className="appearance-none  bg-transparent text-neutral-600 dark:text-neutral-400 tracking-tight font-medium w-full  focus-visible:outline-none resize-none"
+//       value={content.substring(0, MAX_WORD_COUNT)}
+//       minRows={4}
+//       maxRows={10}
+//       onChange={(e) => {
+//         setContent(e.target.value);
+//       }}
+//       placeholder={`What's on your mind, ${capitalizeFirstLetter(
+//         data?.name?.split(" ")[0] as string
+//       )}?`}
+//     />
+//   </div>,
+//   <div className="h-[180px]">Links</div>,
+//   <div className="h-[300px]">
+//     <div className="w-full flex overflow-x-auto gap-2 mt-4">
+//       {files.map((file) => (
+//         <div
+//           key={file.id}
+//           className="w-fit flex items-center justify-center gap-x-2 border border-neutral-300/60 dark:border-dark-border rounded-xl relative group p-1 "
+//         >
+//           <div
+//             className="absolute top-2 right-2 opacity-0 z-30 group-hover:opacity-100 transition-all duration-200"
+//             onClick={() => {
+//               setFiles((prev) => prev.filter((f) => f.id !== file.id));
+//             }}
+//           >
+//             <button className="p-2 rounded-full bg-white">
+//               <X className="size-4" />
+//             </button>
+//           </div>
+//           <div className="size-56 relative rounded-lg overflow-hidden">
+//             {file.type === "image" ? (
+//               <Image
+//                 fill
+//                 src={file.url}
+//                 alt="Preview"
+//                 className="w-full aspect-square object-cover "
+//               />
+//             ) : (
+//               <video
+//                 src={file.url}
+//                 className="w-full aspect-square object-cover"
+//               />
+//             )}
+//           </div>
+//         </div>
+//       ))}
+//     </div>
+//   </div>,
+// ];
+
+// const [activeIndex, setActiveIndex] = useState(0);
+// const [direction, setDirection] = useState(1);
+// const [ref, bounds] = useMeasure();
+
+// const handleSetActiveIndex = (newIndex: number) => {
+//   setDirection(newIndex > activeIndex ? 1 : -1);
+//   setActiveIndex(newIndex);
+// };

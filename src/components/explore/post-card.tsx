@@ -11,7 +11,10 @@ import PostInteractions, {
   PostAvatar,
   PostCardContainer,
   PostCardOptions,
+  PostLinkCard,
 } from "./post-interactions";
+import Link from "next/link";
+import { Globe } from "lucide-react";
 
 type PostCardProps = {
   post: GetExplorePosts;
@@ -28,8 +31,8 @@ moment.updateLocale("en", {
     ss: "%dsec",
     m: "%d min",
     mm: "%d min",
-    h: "%dhrs ago",
-    hh: "%d hrs ago",
+    h: "%d hr ago",
+    hh: "%d hr ago",
     d: "%dd",
     dd: "%dd",
     w: "%d week",
@@ -41,30 +44,22 @@ moment.updateLocale("en", {
   },
 });
 
-const PostCard: FC<PostCardProps> = ({
-  post,
-  className,
-  addDarkStyles = true,
-  mediaContainerClassName,
-  showHeader = true,
-}) => {
-  const hasMedia = post?.media?.length > 0;
+const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
+  const hasMedia = post?.media;
   const onlyMedia = hasMedia && !post?.content;
   const onlyContent = !hasMedia && post?.content?.length > 0;
-  const hasBoth = hasMedia && post?.content?.length > 0;
+  const session = useSession();
   const setOpen = usePostDialog()[1];
+  const isMine = post?.profileId === session?.data?.user?.profileId;
   const [liked, setLiked] = useState(post.liked);
   const [likeCount, setLikeCount] = useState<number>(Number(post.likeCount));
-  const session = useSession();
-  const isMine = post?.profileId === session?.data?.user?.profileId;
 
   const mutation = useMutation({
     mutationFn: ({ like, postId }: { postId: string; like: boolean }) =>
       toggleLike(postId, like),
-    onMutate: async ({ like, postId }) => {
+    onMutate: async ({ like }) => {
       setLiked((prev) => !prev);
       setLikeCount((prev) => (liked ? Number(prev) - 1 : Number(prev) + 1));
-      console.log({ like, likeCount });
     },
     onError: () => {
       setLiked((prev) => !prev);
@@ -77,9 +72,6 @@ const PostCard: FC<PostCardProps> = ({
     mutation.mutate({ postId: post.id, like: next });
   };
 
-  if (post?.links?.[0]) {
-    getUrlMetadata(post?.links[0].url);
-  }
   if (onlyContent) {
     return (
       <OnlyContentCard
@@ -103,16 +95,16 @@ const PostCard: FC<PostCardProps> = ({
     <PostCardContainer className="group">
       <div>
         <div className="">
-          {post.media?.slice(0, 1).map((media) => (
+          {post.media && (
             <div
-              key={media.id}
+              key={post?.media?.id}
               className={cn(
                 "relative border-b border-neutral-300/80  w-full rounded-t-3xl overflow-hidden ",
-                addDarkStyles && "dark:border-dark-border",
+                "dark:border-dark-border",
                 mediaContainerClassName
               )}
               style={{
-                aspectRatio: media.width / media.height,
+                aspectRatio: post?.media.width / post?.media.height,
                 objectFit: "cover",
               }}
             >
@@ -126,11 +118,11 @@ const PostCard: FC<PostCardProps> = ({
                   profileId={post?.profileId as string}
                 />
               </div>
-              {media?.type === "image" ? (
+              {post?.media?.type === "image" ? (
                 <>
                   <Image
                     fill
-                    src={media.url}
+                    src={post?.media.url}
                     alt="Post media"
                     loading="lazy"
                     style={{ objectFit: "cover" }}
@@ -143,7 +135,7 @@ const PostCard: FC<PostCardProps> = ({
                   <video
                     style={{ objectFit: "cover" }}
                     className="w-full h-full select-none  "
-                    src={media?.url}
+                    src={post?.media?.url}
                     autoPlay
                     draggable={false}
                     loop
@@ -153,7 +145,7 @@ const PostCard: FC<PostCardProps> = ({
                 </>
               )}
             </div>
-          ))}
+          )}
         </div>
       </div>
       <div className={cn("flex  gap-y-2 px-4 py-2 mt-4", !hasMedia && "mt-4")}>
@@ -178,14 +170,11 @@ const PostCard: FC<PostCardProps> = ({
           </div>
         )}
         <div className={cn(" flex flex-col items-start", !hasMedia && "ml-4")}>
-          <h2
-            className={cn(
-              " text-sm text-black  ",
-              addDarkStyles && "dark:text-white"
-            )}
-          >
-            {post.name}
-          </h2>
+          <Link href={`/${post?.username}`}>
+            <h2 className={cn(" text-sm text-black  ", "dark:text-white")}>
+              {post.name}
+            </h2>
+          </Link>
           <div
             className={cn(
               "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 "
@@ -198,20 +187,24 @@ const PostCard: FC<PostCardProps> = ({
         </div>
       </div>
 
-      <p
-        className={cn(
-          "text-neutral-600 leading-snug line-clamp-[10] mb-4 font-medium  text-sm p-4  ",
-          addDarkStyles && "dark:text-neutral-400 "
-        )}
-      >
-        {post?.content?.split("\n").map((line, i) => {
-          return (
-            <span className={cn("")} key={i}>
-              {line} <br className="" />
-            </span>
-          );
-        })}
-      </p>
+      {post?.content && (
+        <p
+          className={cn(
+            "text-neutral-600 leading-snug line-clamp-[10] mb-4 font-medium  text-sm p-4  ",
+            "dark:text-neutral-400 "
+          )}
+        >
+          {post?.content?.split("\n").map((line, i) => {
+            return (
+              <span className={cn("")} key={i}>
+                {line} <br className="" />
+              </span>
+            );
+          })}
+        </p>
+      )}
+      {post?.link && <PostLinkCard {...post?.link} />}
+
       <PostInteractions
         likeCount={likeCount}
         isLiked={liked as boolean}
@@ -246,9 +239,11 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
             name={post?.name as string}
           />
           <div className={cn(" flex flex-col items-start", "ml-3")}>
-            <h2 className={cn(" text-sm text-black  ", "dark:text-white")}>
-              {post.name}
-            </h2>
+            <Link href={`/${post?.username}`}>
+              <h2 className={cn(" text-sm text-black  ", "dark:text-white")}>
+                {post.name}
+              </h2>
+            </Link>
             <div
               className={cn(
                 "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 "
@@ -279,6 +274,7 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
           );
         })}
       </p>
+      {post?.link && <PostLinkCard {...post?.link} />}
       <PostInteractions
         likeCount={likeCount}
         isLiked={liked as boolean}
@@ -293,7 +289,7 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
   liked,
   handleLike,
 }) => {
-  const media = post?.media[0];
+  const media = post?.media;
   return (
     <PostCardContainer className=" relative group">
       <div className="bg-gradient-to-b w-full from-black via-black/60 to-transparent h-40 absolute z-[6] inset-0" />
@@ -308,7 +304,9 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
             name={post?.name as string}
           />
           <div className={cn(" flex flex-col items-start", "ml-3")}>
-            <h2 className={cn(" text-sm   ", "text-white")}>{post.name}</h2>
+            <Link href={`/${post?.username}`}>
+              <h2 className={cn(" text-sm   ", "text-white")}>{post.name}</h2>
+            </Link>
             <div
               className={cn(
                 "flex items-center justify-start text-neutral-400 text-sm font-light leading-snug  "

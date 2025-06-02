@@ -138,7 +138,6 @@ const RichTextExample = ({ author }: EditorProps) => {
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
-            console.log("called");
             if (editor.children.length === 0) return;
             Transforms.select(editor, {
               anchor: { path: [0, 0], offset: 0 },
