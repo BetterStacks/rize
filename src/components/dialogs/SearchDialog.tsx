@@ -82,8 +82,6 @@ const SearchDialog = () => {
       />
       <ScrollArea className="overflow-y-auto max-h-[300px]  h-fit">
         <CommandList className="">
-          {/* {query?.trim() !== "" && ( */}
-          {/* <> */}
           {loading ? (
             <div className="flex items-center justify-center py-4">
               <Loader className="animate-spin h-4 w-4" />
@@ -100,7 +98,6 @@ const SearchDialog = () => {
                   value={`${profile?.username} ${profile?.displayName} `}
                   key={`${profile?.username} ${profile?.displayName} `}
                 >
-                  {/* {profile?.displayName} */}
                   <ProfileItem payload={{ ...profile } as any} />
                 </CommandItem>
               ))}
@@ -108,20 +105,19 @@ const SearchDialog = () => {
           ) : (
             hasSearched && <CommandEmpty>No results found.</CommandEmpty>
           )}
-          {/* </>
-          )} */}
-          {/* {query?.trim() === "" && (
-            <> */}
-          <CommandGroup heading="View Profile">
-            <CommandItem
-              onSelect={() => {
-                router.push(`/${session?.data?.user?.username}`);
-                setOpen(false);
-              }}
-            >
-              <ProfileItem payload={{ ...(viewProfilePayload as any) }} />
-            </CommandItem>
-          </CommandGroup>
+
+          {session?.data && (
+            <CommandGroup heading="View Profile">
+              <CommandItem
+                onSelect={() => {
+                  router.push(`/${session?.data?.user?.username}`);
+                  setOpen(false);
+                }}
+              >
+                <ProfileItem payload={{ ...(viewProfilePayload as any) }} />
+              </CommandItem>
+            </CommandGroup>
+          )}
           <CommandSeparator className="mt-1" />
           <CommandGroup heading="Actions">
             <CommandItem
@@ -145,15 +141,17 @@ const SearchDialog = () => {
                   : "Switch to light mode"}
               </span>
             </CommandItem>
-            <CommandItem
-              value="Logout"
-              onSelect={() => {
-                signOut();
-              }}
-            >
-              <LogOut strokeWidth={1.2} className="opacity-80 size-4" />
-              <span className="">Logout</span>
-            </CommandItem>
+            {session?.status === "authenticated" && (
+              <CommandItem
+                value="Logout"
+                onSelect={() => {
+                  signOut();
+                }}
+              >
+                <LogOut strokeWidth={1.2} className="opacity-80 size-4" />
+                <span className="">Logout</span>
+              </CommandItem>
+            )}
           </CommandGroup>
           <CommandSeparator className="mt-1" />
 
