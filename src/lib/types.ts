@@ -13,6 +13,7 @@ import { ReactNode } from "react";
 import { BaseEditor, BaseRange, Descendant, Element, Range } from "slate";
 import { HistoryEditor } from "slate-history";
 import { ReactEditor } from "slate-react";
+import { Result } from "url-metadata";
 import { z } from "zod";
 
 export const TUser = users.$inferSelect;
@@ -55,8 +56,8 @@ export type GetExplorePosts = {
   name: string | null;
   avatar: string | null;
 
-  media: TPostMedia[];
-  links?: { id: string; url: string; createdAt: Date }[];
+  media: TPostMedia;
+  link: { id: string; url: string; createdAt: Date; data: Result };
   id: string;
   content: string;
   profileId: string | null;

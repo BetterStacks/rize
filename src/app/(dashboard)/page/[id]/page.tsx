@@ -8,12 +8,12 @@ import { FC } from "react";
 import { getPageById } from "@/actions/page-actions";
 
 type PageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const data = await getPageById(params.id);
+  const data = await getPageById((await params).id);
 
   if (!data) {
     return {
@@ -34,7 +34,7 @@ export async function generateMetadata({
 }
 
 const Page: FC<PageProps> = async ({ params }) => {
-  const data = await getPageById(params.id as string);
+  const data = await getPageById((await params)?.id as string);
   const author = await getProfileById(data?.profileId as string);
   const session = await auth();
   const isMyPage = data?.profileId === session?.user?.profileId;

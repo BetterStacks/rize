@@ -104,23 +104,15 @@ const UserProfile = ({
       <Separator className="w-full mt-6 max-w-2xl" />
       {areAllSectionsDisabled && !isLoading && (
         <>
-          <div className="w-full max-w-2xl p-4 flex flex-col md:flex-row items-center md:items-start justify-center mt-4">
-            <p className="text-sm w-1/2 text-neutral-500 dark:text-neutral-400">
+          <div className="w-full border-2 py-6 px-4 border-dashed border-neutral-300/60 dark:border-dark-border rounded-2xl max-w-2xl p-4 flex flex-col md:flex-row items-center md:items-start justify-center mt-4">
+            <p className=" md:w-1/2 text-neutral-600 dark:text-neutral-400">
               Oops ! It seems like{" "}
               {capitalizeFirstLetter(
                 profileData?.displayName?.split(" ")[0] as string
               )}{" "}
-              hasn't added any content yet.
+              hasn't added any content yet. 🍃
             </p>
-            <Image
-              src={"/empty-cat.gif"}
-              className="p-4"
-              alt="empty"
-              width={300}
-              height={300}
-            />
           </div>
-          <Separator className="w-full max-w-2xl" />
         </>
       )}
       {filteredSections

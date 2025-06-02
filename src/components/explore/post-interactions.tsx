@@ -4,12 +4,14 @@ import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Bookmark,
+  Globe,
   Heart,
   Link2,
   Loader,
   MessageCircle,
   MoreHorizontalIcon,
   Trash2,
+  X,
 } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
@@ -23,6 +25,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { useAlertDialog, useAuthDialog } from "../dialog-provider";
+import AuthGuardDialog from "../dialogs/AuthGuardDialog";
+import { Result } from "url-metadata";
+import Link from "next/link";
 
 type PostInteractionsProps = {
   likeCount: number;
@@ -35,10 +41,16 @@ const PostInteractions: FC<PostInteractionsProps> = ({
   likeCount,
   handleLikeClick,
 }) => {
+  const [open, setOpen] = useAuthDialog();
+  const session = useSession();
   return (
     <div className=" mb-4 flex justify-start w-full gap-x-2 p-4">
       <div
         onClick={() => {
+          if (!session?.data) {
+            setOpen(true);
+            return;
+          }
           handleLikeClick();
         }}
         className="flex border dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 py-1.5 px-3 rounded-3xl items-center justify-center gap-x-2"
@@ -265,49 +277,60 @@ export const PostCardOptions: FC<PostCardOptionsProps> = ({
       console.error("Error deleting post:", error);
     },
   });
+  const [open, setOpen] = useAlertDialog();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        asChild
-        className="group-hover:opacity-100 opacity-0 transition-all duration-200 ease-in"
-      >
-        <Button
-          size={"smallIcon"}
-          className="rounded-full "
-          variant={"outline"}
+    <>
+      {/* <AuthGuardDialog
+        title="Are you sure about Deleting this post?"
+        onClose={() => {}}
+        onContinue={() => {
+          mutate(postId);
+          setOpen(false);
+        }}
+      /> */}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          asChild
+          className="group-hover:opacity-100 opacity-0 transition-all duration-200 ease-in"
         >
-          <MoreHorizontalIcon
-            className={cn(
-              "text-neutral-500 size-4 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
-            )}
-          />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="shadow-2xl shadow-black/40 dark:shadow-black rounded-xl dark:bg-dark-bg border dark:border-dark-border border-neutral-300/60 bg-white p-0">
-        <DropdownMenuItem className="px-4 py-1.5 ">
-          <Link2 className="opacity-80 -rotate-45 size-4" />
-          <span>Copy Link</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border">
-          <Bookmark className="opacity-80  size-4" />
-          <span>Save</span>
-        </DropdownMenuItem>
-        {isMine && (
-          <DropdownMenuItem
-            onClick={() => mutate(postId)}
-            className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border"
+          <Button
+            size={"smallIcon"}
+            className="rounded-full "
+            variant={"outline"}
           >
-            {isPending ? (
-              <Loader className="opacity-80 size-4 animate-spin" />
-            ) : (
-              <Trash2 className="opacity-80 size-4" />
-            )}
-            <span>Delete</span>
+            <MoreHorizontalIcon
+              className={cn(
+                "text-neutral-500 size-4 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
+              )}
+            />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="shadow-2xl shadow-black/40 dark:shadow-black rounded-xl dark:bg-dark-bg border dark:border-dark-border border-neutral-300/60 bg-white p-0">
+          <DropdownMenuItem className="px-4 py-1.5 ">
+            <Link2 className="opacity-80 -rotate-45 size-4" />
+            <span>Copy Link</span>
           </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuItem className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border">
+            <Bookmark className="opacity-80  size-4" />
+            <span>Save</span>
+          </DropdownMenuItem>
+          {isMine && (
+            <DropdownMenuItem
+              onClick={() => mutate(postId)}
+              className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border"
+            >
+              {isPending ? (
+                <Loader className="opacity-80 size-4 animate-spin" />
+              ) : (
+                <Trash2 className="opacity-80 size-4" />
+              )}
+              <span>Delete</span>
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 };
 
@@ -331,6 +354,61 @@ export const PostCardContainer: FC<PostCardContainerProps> = ({
       )}
     >
       {children}
+    </div>
+  );
+};
+
+type PostLinkCardProps = {
+  data: Result;
+  onRemove?: () => void;
+  hasRemove?: boolean;
+  className?: string;
+};
+
+export const PostLinkCard: FC<PostLinkCardProps> = ({
+  data,
+  onRemove,
+  hasRemove,
+}) => {
+  return (
+    <div
+      className={cn(
+        !hasRemove && "mx-4",
+        hasRemove && "max-w-xs",
+        " mt-4 rounded-2xl relative overflow-hidden  border border-neutral-300/80 dark:border-dark-border"
+      )}
+    >
+      <div className="relative overflow-hidden w-full h-fit aspect-video">
+        {hasRemove && (
+          <button
+            onClick={onRemove}
+            className="border border-neutral-200 dark:bg-dark-bg bg-white dark:border-dark-border rounded-full  absolute top-2 right-2 p-2"
+          >
+            <X className="size-4 opacity-80  " />
+          </button>
+        )}
+        {data["og:image"] ? (
+          <Image
+            alt={data?.title}
+            fill
+            style={{ objectFit: "cover" }}
+            src={data["og:image"]}
+            draggable={false}
+            loading="lazy"
+          />
+        ) : (
+          <div className="h-[180px]  w-full flex items-center justify-center">
+            <Globe strokeWidth={1.2} className="opacity-80 size-10" />
+          </div>
+        )}
+      </div>
+      <div className="px-4 pt-4 mb-6  border-t border-neutral-300/80 dark:border-dark-border">
+        <Link href={data?.url} target="_blank" className="w-full ">
+          <h4 className="font-medium dark:text-neutral-300 text-neutral-600 leading-tight tracking-tight">
+            {data?.title}
+          </h4>
+        </Link>
+      </div>
     </div>
   );
 };

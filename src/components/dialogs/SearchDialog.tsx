@@ -5,7 +5,7 @@ import {
 import { TProfile } from "@/lib/types";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSearchDialog } from "../dialog-provider";
@@ -20,7 +20,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "../ui/command";
-import { Loader, Moon, Sun } from "lucide-react";
+import { Loader, LogOut, Moon, Sun } from "lucide-react";
 import axios from "axios";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
@@ -82,94 +82,99 @@ const SearchDialog = () => {
       />
       <ScrollArea className="overflow-y-auto max-h-[300px]  h-fit">
         <CommandList className="">
-          {query?.trim() !== "" && (
-            <>
-              {loading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader className="animate-spin h-4 w-4" />
-                </div>
-              ) : results?.length > 0 ? (
-                <CommandGroup heading="Search Results" className="">
-                  {results?.map((profile) => (
-                    <CommandItem
-                      className=""
-                      onSelect={() => {
-                        router.push(profile?.username as string);
-                        setOpen(false);
-                      }}
-                      value={`${profile?.username} ${profile?.displayName} `}
-                      key={`${profile?.username} ${profile?.displayName} `}
-                    >
-                      {/* {profile?.displayName} */}
-                      <ProfileItem payload={{ ...profile } as any} />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              ) : (
-                hasSearched && <CommandEmpty>No results found.</CommandEmpty>
-              )}
-            </>
-          )}
-          {query?.trim() === "" && (
-            <>
-              <CommandGroup heading="View Profile">
+          {/* {query?.trim() !== "" && ( */}
+          {/* <> */}
+          {loading ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader className="animate-spin h-4 w-4" />
+            </div>
+          ) : results?.length > 0 ? (
+            <CommandGroup heading="Search Results" className="">
+              {results?.map((profile) => (
                 <CommandItem
+                  className=""
                   onSelect={() => {
-                    router.push(`/${session?.data?.user?.username}`);
+                    router.push(profile?.username as string);
                     setOpen(false);
                   }}
+                  value={`${profile?.username} ${profile?.displayName} `}
+                  key={`${profile?.username} ${profile?.displayName} `}
                 >
-                  <ProfileItem payload={{ ...(viewProfilePayload as any) }} />
+                  {/* {profile?.displayName} */}
+                  <ProfileItem payload={{ ...profile } as any} />
                 </CommandItem>
-              </CommandGroup>
-              <CommandSeparator className="mt-1" />
-              <CommandGroup heading="Actions">
-                <CommandItem
-                  value={
-                    theme === "light"
-                      ? "Switch to dark mode"
-                      : "Switch to light mode"
-                  }
-                  onSelect={() => {
-                    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-                  }}
-                >
-                  {theme === "light" ? (
-                    <Moon strokeWidth={1.2} className="opacity-80 size-4" />
-                  ) : (
-                    <Sun strokeWidth={1.2} className="opacity-80 size-4" />
-                  )}
-                  <span className="">
-                    {theme === "light"
-                      ? "Switch to dark mode"
-                      : "Switch to light mode"}
-                  </span>
-                </CommandItem>
-              </CommandGroup>
-              <CommandSeparator className="mt-1" />
-
-              <CommandGroup heading="Recently Joined" className="">
-                {data!?.length > 0 &&
-                  data!
-                    ?.filter(
-                      (p) => p?.username !== session?.data?.user?.username
-                    )
-                    ?.map((profile) => {
-                      return (
-                        <CommandItem
-                          className="last:mb-20"
-                          onSelect={() =>
-                            router.push(profile?.username as string)
-                          }
-                          key={profile?.username}
-                        >
-                          <ProfileItem payload={{ ...profile } as any} />
-                        </CommandItem>
-                      );
-                    })}
-              </CommandGroup>
-            </>
+              ))}
+            </CommandGroup>
+          ) : (
+            hasSearched && <CommandEmpty>No results found.</CommandEmpty>
           )}
+          {/* </>
+          )} */}
+          {/* {query?.trim() === "" && (
+            <> */}
+          <CommandGroup heading="View Profile">
+            <CommandItem
+              onSelect={() => {
+                router.push(`/${session?.data?.user?.username}`);
+                setOpen(false);
+              }}
+            >
+              <ProfileItem payload={{ ...(viewProfilePayload as any) }} />
+            </CommandItem>
+          </CommandGroup>
+          <CommandSeparator className="mt-1" />
+          <CommandGroup heading="Actions">
+            <CommandItem
+              value={
+                theme === "light"
+                  ? "Switch to dark mode"
+                  : "Switch to light mode"
+              }
+              onSelect={() => {
+                setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+              }}
+            >
+              {theme === "light" ? (
+                <Moon strokeWidth={1.2} className="opacity-80 size-4" />
+              ) : (
+                <Sun strokeWidth={1.2} className="opacity-80 size-4" />
+              )}
+              <span className="">
+                {theme === "light"
+                  ? "Switch to dark mode"
+                  : "Switch to light mode"}
+              </span>
+            </CommandItem>
+            <CommandItem
+              value="Logout"
+              onSelect={() => {
+                signOut();
+              }}
+            >
+              <LogOut strokeWidth={1.2} className="opacity-80 size-4" />
+              <span className="">Logout</span>
+            </CommandItem>
+          </CommandGroup>
+          <CommandSeparator className="mt-1" />
+
+          <CommandGroup heading="Recently Joined" className="">
+            {data!?.length > 0 &&
+              data!
+                ?.filter((p) => p?.username !== session?.data?.user?.username)
+                ?.map((profile) => {
+                  return (
+                    <CommandItem
+                      className="last:mb-20"
+                      onSelect={() => router.push(profile?.username as string)}
+                      key={profile?.username}
+                    >
+                      <ProfileItem payload={{ ...profile } as any} />
+                    </CommandItem>
+                  );
+                })}
+          </CommandGroup>
+          {/* </>
+          )} */}
           <div className="mb-10" />
         </CommandList>
       </ScrollArea>

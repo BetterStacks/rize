@@ -3,6 +3,7 @@ import {
   boolean,
   customType,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -12,6 +13,7 @@ import {
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 import { Content } from "next/font/google";
+import { Result } from "url-metadata";
 import { v4 as gen_uuid, v4 } from "uuid";
 
 export type TPronouns = "he/him" | "she/her" | "they/them" | "other";
@@ -159,6 +161,7 @@ export const postLinks = pgTable("post_links", {
     onDelete: "cascade",
   }),
   url: text("url").notNull(),
+  data: jsonb("data").$type<Result | null>().notNull().default(null),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
