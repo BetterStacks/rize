@@ -54,7 +54,7 @@ const UserReviews = () => {
         className={cn(
           "w-full",
           matches
-            ? "max-w-6xl mt-6 flex space-x-4"
+            ? "max-w-5xl mt-6 flex space-x-4"
             : "grid grid-cols-1 space-y-4"
         )}
       >

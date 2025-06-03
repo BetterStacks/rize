@@ -33,7 +33,7 @@ export default function FAQSection() {
   return (
     <section className=" flex flex-col relative  h-screen  items-center justify-center  w-full px-4 py-12">
       <div className="size-[350px]  absolute blur-[120px] top-[30%] -z-10  bg-indigo-400 dark:bg-indigo-500"></div>
-      <div className="max-w-4xl w-full relative">
+      <div className="max-w-5xl w-full relative">
         <h2 className="text-4xl font-semibold text-center mb-8">
           Frequently Asked <br />
           Questions
@@ -41,7 +41,7 @@ export default function FAQSection() {
         <Accordion
           type="single"
           collapsible
-          className="w-full bg-neutral-200 dark:bg-neutral-500 px-2 py-2 rounded-3xl space-y-2"
+          className="w-full  bg-neutral-200 dark:bg-neutral-500 px-2 py-2 rounded-3xl space-y-2"
         >
           {faqItems.map((item, index) => (
             <AccordionItem
