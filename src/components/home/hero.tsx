@@ -100,92 +100,39 @@ const windowVariants: Variants = {
     y: -50,
   },
 };
-const socialLinksVariants: Record<number, Variants> = {
-  0: {
-    initial: {
-      position: "absolute",
-      y: -680,
-      x: 700,
-      rotate: -16,
-    },
-    animate: {
-      position: "relative",
-      rotate: 0,
-      y: 0,
-      x: 0,
-    },
-  },
-  1: {
-    initial: {
-      y: -680,
-      x: -200,
-      rotate: 16,
-      position: "absolute",
-    },
-    animate: {
-      position: "relative",
-      y: 0,
-      x: 0,
-      rotate: 0,
-    },
-  },
-  2: {
-    initial: {
-      y: -800,
-      rotate: 12,
-      x: 600,
-      position: "absolute",
-    },
-    animate: {
-      position: "relative",
-      y: 0,
-      x: 0,
-      rotate: 0,
-    },
-  },
-  3: {
-    initial: {
-      y: -800,
-      x: -100,
-      rotate: -12,
-      position: "absolute",
-    },
-    animate: {
-      position: "relative",
-      rotate: 0,
-      y: 0,
-      x: 0,
-    },
-  },
-  4: {
-    initial: {
-      y: -500,
-      x: 600,
-      rotate: -12,
-      position: "absolute",
-    },
-    animate: {
-      rotate: 0,
-      position: "relative",
-      y: 0,
-      x: 0,
-    },
-  },
-  5: {
-    initial: {
-      y: -500,
-      x: -100,
-      rotate: 12,
-      position: "absolute",
-    },
-    animate: {
-      rotate: 0,
-      position: "relative",
-      y: 0,
-      x: 0,
+
+const avatarContainerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.1,
     },
   },
 };
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, x: 50, rotate: 0 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.25,
+      type: "spring",
+      stiffness: 260,
+      damping: 20,
+    },
+  },
+};
+
+export const avatars = [
+  "https://i.pinimg.com/736x/6e/81/48/6e8148281a25fb25230a983b09371ae5.jpg",
+  "https://i.pinimg.com/736x/59/59/52/5959526847cf6be79778c37505604411.jpg",
+  "https://i.pinimg.com/736x/cf/6e/c4/cf6ec445df41899479978aa16f05c996.jpg",
+  "https://i.pinimg.com/736x/0d/00/fa/0d00faf7e0a04fe724ecd886df774e4c.jpg",
+  "https://i.pinimg.com/736x/af/6c/76/af6c761bac0ef8d3e5f775fe1200b1a9.jpg",
+  "https://i.pinimg.com/736x/70/5a/2c/705a2c53fa0b166937c6847410ccb3d5.jpg",
+  "https://lh3.googleusercontent.com/a/AEdFTp6zJR7vEcGJmGFt0Gxk2Ech8ic0LGCVTPDTB95lVpg=s256-c",
+];
 const HeroSection = () => {
   const session = useSession();
   const router = useRouter();
@@ -214,20 +161,10 @@ const HeroSection = () => {
     router.push(`/signup`);
   };
 
-  const avatars = [
-    "https://i.pinimg.com/736x/6e/81/48/6e8148281a25fb25230a983b09371ae5.jpg",
-    "https://i.pinimg.com/736x/59/59/52/5959526847cf6be79778c37505604411.jpg",
-    "https://i.pinimg.com/736x/cf/6e/c4/cf6ec445df41899479978aa16f05c996.jpg",
-    "https://i.pinimg.com/736x/0d/00/fa/0d00faf7e0a04fe724ecd886df774e4c.jpg",
-    "https://i.pinimg.com/736x/af/6c/76/af6c761bac0ef8d3e5f775fe1200b1a9.jpg",
-    "https://i.pinimg.com/736x/70/5a/2c/705a2c53fa0b166937c6847410ccb3d5.jpg",
-    "https://lh3.googleusercontent.com/a/AEdFTp6zJR7vEcGJmGFt0Gxk2Ech8ic0LGCVTPDTB95lVpg=s256-c",
-  ];
-
   return (
     <div
       ref={imageContainerRef}
-      className=" w-full h-screen md:min-h-[170vh]   flex flex-col items-center justify-start overflow-hidden"
+      className="w-full md:min-h-[170vh]   flex flex-col items-center justify-start overflow-hidden"
     >
       {session?.data?.user && (
         <Link
@@ -335,11 +272,17 @@ const HeroSection = () => {
           </div>
         </motion.div>
       </motion.div>
-      <div className="mt-8 flex -space-x-4">
+      <motion.div
+        variants={avatarContainerVariants}
+        initial="hidden"
+        animate="visible"
+        className="mt-8 flex -space-x-4"
+      >
         {[...avatars]?.map((url, index) => {
           return (
             <motion.div
               key={index}
+              variants={itemVariants}
               whileHover={{ scale: 1.1, zIndex: 20 }}
               style={{ zIndex: 8 - index }}
               className="size-10 md:size-12 saturate-[75%]  dark:border-dark-border bg-white aspect-square rounded-full shadow-xl dark:bg-dark-bg relative overflow-hidden"
@@ -348,7 +291,7 @@ const HeroSection = () => {
             </motion.div>
           );
         })}
-      </div>
+      </motion.div>
       <Window />
       <motion.div
         variants={windowVariants}

@@ -1,4 +1,10 @@
-import React, { useState } from "react";
+import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import AuthProviderButton from "../auth-provider-button";
+import { useAuthDialog } from "../dialog-provider";
+import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -6,13 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { Button } from "../ui/button";
-import AuthProviderButton from "../auth-provider-button";
-import { useAuthDialog } from "../dialog-provider";
-import { signIn } from "next-auth/react";
-import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 const AuthDialog = () => {
   const [open, setOpen] = useAuthDialog();

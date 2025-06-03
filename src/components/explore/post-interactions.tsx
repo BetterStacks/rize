@@ -17,7 +17,7 @@ import moment from "moment";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { FC, useState } from "react";
+import { FC } from "react";
 import toast from "react-hot-toast";
 import { Result } from "url-metadata";
 import { useAlertDialog, useAuthDialog } from "../dialog-provider";
@@ -95,21 +95,6 @@ type PostMediaContainerProps = {
   mediaContainerClassName?: string;
   hasContentAndMedia?: boolean;
   onlyMedia?: boolean;
-};
-
-const variants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 300 : -300,
-    opacity: 0,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-  },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 300 : -300,
-    opacity: 0,
-  }),
 };
 
 type PostaAvatarProps = {

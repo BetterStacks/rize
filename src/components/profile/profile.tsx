@@ -1,16 +1,23 @@
 import { GetProfileByUsername } from "@/lib/types";
 import UserAvatar from "../user-avatar";
+import { cn } from "@/lib/utils";
 
 type ProfileProps = {
   data: GetProfileByUsername;
   isLoading: boolean;
   isMine: boolean;
+  bioContainerClassName?: string;
 };
 
 export const defaultBio = `I’m still setting up, but this is where it all starts 🌱.\n
 A place to share what I do, what I love, and where I’m headed.It’s quiet for now, but trust me—it won’t stay that way for long.`;
 
-const Profile = ({ data, isMine, isLoading }: ProfileProps) => {
+const Profile = ({
+  data,
+  isMine,
+  isLoading,
+  bioContainerClassName,
+}: ProfileProps) => {
   return (
     <div className=" w-full flex flex-col items-center justify-start   mb-2">
       <div className=" max-w-2xl w-full flex flex-col items-start justify-start">
@@ -35,7 +42,12 @@ const Profile = ({ data, isMine, isLoading }: ProfileProps) => {
             <span>{cleanUrl(data?.website)}</span>
           </div>
         )} */}
-        <div className="w-full  flex flex-col items-start justify-center mt-4 mb-4">
+        <div
+          className={cn(
+            "w-full  flex flex-col items-start justify-center mt-4 mb-4",
+            bioContainerClassName
+          )}
+        >
           <div className="profile-Bio flex flex-col items-start text-sm md:text-base  gap-y-0.5 text-neutral-800 dark:text-neutral-300  leading-tight   ">
             {(data?.bio || defaultBio)?.split("\n").map((line, i) => (
               <span key={i}>
