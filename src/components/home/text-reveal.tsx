@@ -18,10 +18,10 @@ const TextReveal = () => {
     offset: ["start 0.7", "start 0.2"],
   });
   return (
-    <section className="w-full px-4  md:mt-0  md:h-screen pt-20 flex  flex-col items-center relative justify-center ">
+    <section className="w-full  px-4 md:h-[80vh] sm:h-[60vh] h-fit  md:mt-0   md:pt-20 flex  flex-col items-center relative justify-start ">
       <motion.section
         ref={container}
-        className="w-full max-w-6xl sticky top-10 md:top-[100px] flex mb-20 ml-6 md:ml-0 flex-col items-center justify-center gap-2 mt-4"
+        className="w-full max-w-5xl sticky top-10 md:top-[100px] flex mb-20 ml-6 md:ml-0 flex-col items-center justify-center gap-2 mt-4"
       >
         <motion.p
           layout

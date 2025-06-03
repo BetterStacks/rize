@@ -28,60 +28,18 @@ const Footer = () => {
   ];
   const { theme, setTheme } = useTheme();
   return (
-    // export default function Footer() {
-    // return (
     <footer className="w-full  flex flex-col items-center justify-center py-10 px-6 md:px-8">
-      <div className="max-w-4xl w-full flex flex-col md:flex-row justify-between  ">
-        {/* Column 1: Logo + Brand */}
+      <div className="max-w-5xl w-full flex flex-col md:flex-row justify-between  ">
         <div className="flex flex-col items-start space-y-4">
           <Logo className="size-8 md:size-10" />
-          {/* </div> */}
+
           <span className="text-xl leading-snug mt-4 font-semibold ">
             Showcase your Authentic <br /> Self with Rize.
           </span>
         </div>
-
-        {/* <div>
-          <div className="flex mt-6 space-x-4">
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-neutral-200"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 4.56c-0.89 0.39-1.85 0.65-2.86 0.77a5.03 5.03 0 002.21-2.77 10.14 10.14 0 01-3.2 1.22 5 5 0 00-8.54 4.56A14.18 14.18 0 013 3.16a5 5 0 001.55 6.67A5 5 0 012 9.1v0.06a5 5 0 004.01 4.9 5.05 5.05 0 01-2.24.08 5 5 0 004.67 3.47A10.06 10.06 0 012 19.54 14.19 14.19 0 009.29 21c8.84 0 13.68-7.33 13.68-13.68 0-0.21 0-0.42-0.01-0.63A9.8 9.8 0 0024 4.56z" />
-              </svg>
-            </a>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-neutral-200"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M12 0C5.373 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387 0.6 0.11 0.793-0.26 0.793-0.577v-2.165c-3.338 0.726-4.033-1.415-4.033-1.415-0.546-1.387-1.333-1.756-1.333-1.756-1.09-0.745 0.082-0.729 0.082-0.729 1.205 0.084 1.84 1.237 1.84 1.237 1.07 1.834 2.809 1.304 3.495 0.997 0.108-0.776 0.418-1.304 0.76-1.604-2.665-0.3-5.467-1.332-5.467-5.931 0-1.31 0.469-2.381 1.236-3.221-0.123-0.303-0.536-1.523 0.118-3.176 0 0 1.008-0.322 3.301 1.23a11.5 11.5 0 013.003-0.403c1.02 0.005 2.048 0.138 3.003 0.403 2.291-1.553 3.297-1.23 3.297-1.23 0.656 1.653 0.243 2.873 0.12 3.176 0.77 0.84 1.235 1.911 1.235 3.221 0 4.61-2.807 5.628-5.48 5.921 0.43 0.372 0.815 1.103 0.815 2.222v3.293c0 0.32 0.192 0.694 0.8 0.576C20.565 21.796 24 17.298 24 12c0-6.627-5.373-12-12-12z"
-                />
-              </svg>
-            </a>
-            <a
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-neutral-200"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20.452 20.452h-3.554v-5.569c0-1.327-0.027-3.038-1.852-3.038-1.854 0-2.138 1.447-2.138 2.942v5.665H9.354V9h3.414v1.561h0.049c0.476-0.899 1.637-1.848 3.368-1.848 3.6 0 4.266 2.368 4.266 5.448v6.291zM5.337 7.433c-1.144 0-2.07-0.928-2.07-2.07s0.926-2.07 2.07-2.07c1.142 0 2.07 0.928 2.07 2.07s-0.928 2.07-2.07 2.07zM6.96 20.452H3.713V9h3.247v11.452zM22.225 0H1.771C0.792 0 0 0.771 0 1.729v20.542C0 23.229 0.792 24 1.771 24h20.451C23.208 24 24 23.229 24 22.271V1.729C24 0.771 23.208 0 22.225 0z" />
-              </svg>
-            </a>
-          </div>
-        </div> */}
       </div>
-      <BottomBanner className="w-full max-w-4xl mx-auto mt-10" />
-      <div className="max-w-4xl w-full flex flex-row  justify-between items-center mt-6">
+      <BottomBanner className="w-full max-w-5xl mx-auto mt-10" />
+      <div className="max-w-5xl w-full flex flex-row  justify-between items-center mt-6">
         <motion.div
           layout
           className="w-fit max-w-xs  p-1 border border-neutral-300/60 bg-neutral-100 dark:bg-dark-bg dark:dark:border-dark-border rounded-3xl flex items-center justify-center "
@@ -98,9 +56,7 @@ const Footer = () => {
               }}
             >
               <div className="z-20">{value?.icon}</div>
-              {/* <span className="text-sm ml-2 z-20 font-medium opacity-80">
-                {value?.name}
-              </span> */}
+
               {value?.theme === theme && (
                 <motion.div
                   layoutId="footer-theme-option"

@@ -9,7 +9,7 @@ import WritingCard from "../writings/writing-card";
 
 const BentoGrid = () => {
   return (
-    <section className="max-w-6xl px-4 md:px-2 mb-20 w-full  grid md:grid-cols-5 md:gap-x-6 gap-y-8">
+    <section className="max-w-5xl px-4 md:px-2 mb-20 w-full  grid md:grid-cols-5 md:gap-x-6 gap-y-8">
       {" "}
       {[...Array.from({ length: 4 })].map((_, index) => {
         return (
@@ -39,7 +39,7 @@ const ArticleCards = () => {
     {
       id: 1,
       title: "Everything about Framer Motion layout animations",
-      img: "https://i.pinimg.com/736x/da/7d/e5/da7de56b9adccfa20019ece6140d38b0.jpg",
+      img: "https://i.pinimg.com/736x/6b/ac/8d/6bac8d6b911aff989b875d1de7a5f582.jpg",
     },
     {
       id: 2,
@@ -91,7 +91,7 @@ const ArticleCards = () => {
                   scale: isTop ? 1 : i == 1 ? 0.95 : 0.85,
                 }}
                 className={cn(
-                  "pointer-events-none max-w-sm md:max-w-md absolute "
+                  "pointer-events-none max-w-xs md:max-w-sm lg:max-w-md absolute "
                 )}
                 style={{
                   top: offset,
@@ -116,44 +116,7 @@ const ArticleCards = () => {
             );
           })}
         </motion.div>
-        {/* <AnimatePresence mode="wait">
-          <motion.div
-          key={index}
-            initial={{ opacity: 0, y: 30, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -50, scale: 0.95 }}
-            transition={{ duration: 0.8 }}
-            
-            className="absolute max-w-sm md:max-w-md z-50 w-full min-h-[150px] md:pb-0 pb-6"
-          >
-            <WritingCard
-              data={{
-                content: JSON.stringify(initialValue),
-                thumbnail: card?.img,
-                title: card?.title,
-                createdAt: new Date(),
-                id: "",
-                profileId: "",
-              }}
-            />
-    
-          </motion.div>
-        </AnimatePresence> */}
       </div>
-      {/* <AnimatePresence>
-        {hovered && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              duration: 0.3,
-              ease: "easeInOut",
-            }}
-            className="absolute  w-full h-full bg-gradient-to-b from-transparent to-lime-400/60"
-          />
-        )}
-      </AnimatePresence> */}
 
       <div className="w-full z-20 px-4 mb-10">
         <h3 className="text-xl font-medium tracking-tight ">
@@ -251,7 +214,7 @@ const AccountCards = () => {
           />
         )}
       </AnimatePresence> */}
-      <div className="w-full  pl-16 h-full flex items-center justify-center relative ">
+      <div className="w-full  ml-20 h-full flex items-center justify-center relative ">
         {cards.map((card, i) => (
           <motion.div
             key={i}
@@ -263,14 +226,13 @@ const AccountCards = () => {
               ease: [0.6, 0.05, -0.01, 0.9],
               duration: 0.5,
             }}
-            // max-w-[190px] h-[220px]
-            className="py-3 px-2 w-1/2 h-[60%] scale-75  border border-neutral-300/60 dark:border-dark-border/60  shadow-xl dark:shadow-2xl absolute  flex flex-col items-center justify-center bg-neutral-100 dark:bg-dark-bg  "
+            className="py-3 px-2 w-[160px] h-[220px] md:w-[180px] md:h-[240px] scale-75  border border-neutral-300/60 dark:border-dark-border/60  shadow-xl dark:shadow-2xl absolute  flex flex-col items-center justify-center bg-neutral-100 dark:bg-dark-bg  "
           >
-            <div className="size-20 rounded-full border-[2px] border-neutral-300/60 dark:border-dark-border/80 bg-neutral-300/60 relative overflow-hidden dark:bg-dark-border">
+            <div className="size-16 lg:size-20 rounded-full border-[2px] border-neutral-300/60 dark:border-dark-border/80 bg-neutral-300/60 relative overflow-hidden dark:bg-dark-border">
               <Image src={card?.image} fill alt="" className="object-cover " />
             </div>
             <div className="flex flex-col items-center justify-center my-4">
-              <span className="text-lg font-medium opacity-70 tracking-tight ">
+              <span className="lg:text-lg font-medium opacity-70 tracking-tight ">
                 @{card.username}
               </span>
               <Skeleton className="h-4 mt-2 rounded-3xl w-3/5 animate-none" />

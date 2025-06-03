@@ -71,13 +71,13 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({
     >
       <div
         className={cn(
-          "w-full border mt-2 border-neutral-400/60 overflow-hidden dark:border-none rounded-3xl text-lg md:text-xl  p-1 flex items-center justify-center bg-neutral-50 dark:bg-dark-border",
+          "w-full border mt-2 border-neutral-400/60 overflow-hidden dark:border-none rounded-3xl text-lg md:text-xl  p-1 flex items-center justify-center bg-neutral-50 dark:bg-dark-bg",
           className
         )}
       >
         <div
           className={cn(
-            "px-4 ml-0.5 border border-neutral-300/80 dark:border-none py-1 bg-white dark:bg-neutral-700 rounded-3xl shadow-lg ",
+            "px-4 ml-0.5 border border-neutral-300/80 dark:border-none py-1 bg-white dark:bg-dark-border rounded-3xl shadow-lg ",
             badgeClassName
           )}
         >

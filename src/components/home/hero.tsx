@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import ClaimUsernameForm from "../claim-username";
 import Logo from "../logo";
+import Window from "../window";
 
 const heading = "Own Your Story \n Not Just Your Resume";
 const description =
@@ -213,10 +214,20 @@ const HeroSection = () => {
     router.push(`/signup`);
   };
 
+  const avatars = [
+    "https://i.pinimg.com/736x/6e/81/48/6e8148281a25fb25230a983b09371ae5.jpg",
+    "https://i.pinimg.com/736x/59/59/52/5959526847cf6be79778c37505604411.jpg",
+    "https://i.pinimg.com/736x/cf/6e/c4/cf6ec445df41899479978aa16f05c996.jpg",
+    "https://i.pinimg.com/736x/0d/00/fa/0d00faf7e0a04fe724ecd886df774e4c.jpg",
+    "https://i.pinimg.com/736x/af/6c/76/af6c761bac0ef8d3e5f775fe1200b1a9.jpg",
+    "https://i.pinimg.com/736x/70/5a/2c/705a2c53fa0b166937c6847410ccb3d5.jpg",
+    "https://lh3.googleusercontent.com/a/AEdFTp6zJR7vEcGJmGFt0Gxk2Ech8ic0LGCVTPDTB95lVpg=s256-c",
+  ];
+
   return (
     <div
       ref={imageContainerRef}
-      className=" w-full h-screen md:min-h-[160vh]   flex flex-col items-center justify-start overflow-hidden"
+      className=" w-full h-screen md:min-h-[170vh]   flex flex-col items-center justify-start overflow-hidden"
     >
       {session?.data?.user && (
         <Link
@@ -224,7 +235,7 @@ const HeroSection = () => {
           prefetch
           href={`/${session?.data?.user?.username}`}
         >
-          <div className="relative rounded-full overflow-hidden aspect-square size-10 md:size-12  z-50 flex items-center gap-2">
+          <div className="relative rounded-full overflow-hidden aspect-square size-10  z-50 flex items-center gap-2">
             <Image
               src={
                 (session?.data?.user?.profileImage ||
@@ -272,7 +283,7 @@ const HeroSection = () => {
           variants={headingVariants}
           initial="initial"
           animate="animate"
-          className="text-center mt-2 font-medium px-5 text-neutral-600 dark:text-neutral-300 text-sm md:text-lg"
+          className="text-center mt-2 font-medium px-5 text-neutral-600 dark:text-neutral-200 text-sm md:text-lg"
         >
           {description.split("\n").map((line, index) => (
             <motion.span
@@ -291,16 +302,13 @@ const HeroSection = () => {
           animate="animate"
           className={cn(
             "px-3 sm:px-0 w-full flex flex-col items-center justify-center",
-            // !isLoggedIn &&
-            !isLoggedIn &&
-              scrolledPastHalf &&
-              "absolute top-2 z-50 right-0  left-0"
+            !isLoggedIn && scrolledPastHalf && "absolute top-2 z-50 "
           )}
         >
           {" "}
           <div
             className={cn(
-              !isLoggedIn && scrolledPastHalf && !isDesktop && "inset-x-4",
+              // !isLoggedIn && scrolledPastHalf && !isDesktop && " bg-red-500",
               !isLoggedIn && scrolledPastHalf ? "fixed  top-2 z-50" : "sticky"
             )}
           >
@@ -315,7 +323,7 @@ const HeroSection = () => {
             />
           </div>
           <div className="w-full flex items-center justify-center mt-4  ">
-            <span className="w-full text-center text-neutral-500 font-medium text-sm md:text-base dark:text-neutral-300 ">
+            <span className="w-full text-center text-neutral-500 font-medium text-sm md:text-base dark:text-neutral-300/80 ">
               Already have an account?
               <Link
                 className="text-indigo-500  ml-1 hover:underline"
@@ -327,12 +335,26 @@ const HeroSection = () => {
           </div>
         </motion.div>
       </motion.div>
-
+      <div className="mt-8 flex -space-x-4">
+        {[...avatars]?.map((url, index) => {
+          return (
+            <motion.div
+              key={index}
+              whileHover={{ scale: 1.1, zIndex: 20 }}
+              style={{ zIndex: 8 - index }}
+              className="size-10 md:size-12 saturate-[75%]  dark:border-dark-border bg-white aspect-square rounded-full shadow-xl dark:bg-dark-bg relative overflow-hidden"
+            >
+              <Image src={url} fill style={{ objectFit: "cover" }} alt="" />
+            </motion.div>
+          );
+        })}
+      </div>
+      <Window />
       <motion.div
         variants={windowVariants}
         animate="animate"
         initial="initial"
-        className=" p-4 w-full h-screen -z-10 flex  absolute -bottom-[35%] md:-bottom-[80%] items-center justify-center"
+        className=" p-4 w-full h-screen  flex md:hidden  absolute -bottom-[45%] md:-bottom-[80%] items-center justify-center"
       >
         <motion.div className=" rounded-2xl shadow-2xl   bg-white  border  border-neutral-200 dark:border-dark-border md:max-w-5xl aspect-video   w-full ">
           <div className="flex w-full px-4 py-3 items-center justify-start gap-x-2">
@@ -347,7 +369,8 @@ const HeroSection = () => {
             <Image
               alt=""
               fill
-              className="object-cover scale-110"
+              draggable={false}
+              className="object-cover scale-125"
               src="/minimal3.png"
             />
           </div>
