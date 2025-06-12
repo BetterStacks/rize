@@ -10,7 +10,6 @@ export async function GET(req: NextRequest) {
     }
 
     const metadata = await urlMetadata(url);
-    console.log({ metadata });
     return NextResponse.json({ metadata }, { status: 200 });
   } catch (error) {
     return NextResponse.json(

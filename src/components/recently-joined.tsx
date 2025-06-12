@@ -1,11 +1,16 @@
-import { getRecentlyJoinedProfiles } from "@/actions/profile-actions";
+"use client";
+import { getRecentlyJoinedProfilesCached } from "@/actions/profile-actions";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { use } from "react";
 import { Separator } from "./ui/separator";
 
 const RecentlyJoined = () => {
-  const profiles = use(getRecentlyJoinedProfiles());
+  const { data: profiles, isLoading } = useQuery({
+    queryKey: ["recently-joined"],
+    queryFn: () => getRecentlyJoinedProfilesCached(),
+    refetchOnWindowFocus: false,
+  });
   return (
     <>
       <div className="w-full flex flex-col mt-10 pb-8 px-6">
@@ -14,27 +19,34 @@ const RecentlyJoined = () => {
           <span className="dark:text-neutral-500 text-neutral-600">Joined</span>
         </h3>
         <div className="flex flex-col items-start gap-y-1">
-          {profiles?.map((profile) => (
-            <Link
-              key={profile.username}
-              href={`/${profile.username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full"
-            >
-              <div className="flex items-center  w-full  ">
-                <div className={cn(" flex flex-col items-start ", "")}>
-                  <h2
-                    className={cn(
-                      " tracking-tight  dark:text-neutral-400 text-neutral-600 "
-                    )}
-                  >
-                    {profile?.displayName}
-                  </h2>
-                </div>
-              </div>
-            </Link>
-          ))}
+          {isLoading
+            ? [...Array(5)].map((_, index) => (
+                <div
+                  key={index}
+                  className="w-full h-5 bg-neutral-200 dark:bg-neutral-700 animate-pulse rounded-md my-1"
+                />
+              ))
+            : profiles?.map((profile) => (
+                <Link
+                  key={profile.username}
+                  href={`/${profile.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full"
+                >
+                  <div className="flex items-center  w-full  ">
+                    <div className={cn(" flex flex-col items-start ", "")}>
+                      <h2
+                        className={cn(
+                          " tracking-tight  dark:text-neutral-400 text-neutral-600 "
+                        )}
+                      >
+                        {profile?.displayName}
+                      </h2>
+                    </div>
+                  </div>
+                </Link>
+              ))}
         </div>
       </div>
       <Separator className="w-full h-[0.5px] " />

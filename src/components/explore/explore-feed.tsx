@@ -1,7 +1,12 @@
 "use client";
 import { getExploreFeed } from "@/actions/post-actions";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
-import { useClickOutside, useInViewport, useMediaQuery } from "@mantine/hooks";
+import {
+  useClickOutside,
+  useInViewport,
+  useMediaQuery,
+  useMounted,
+} from "@mantine/hooks";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -17,10 +22,13 @@ import Link from "next/link";
 import { FC, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import PostCard from "./post-card";
+import { useSession } from "next-auth/react";
 
 const ExploreFeed = () => {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const mounted = useMounted();
+  const session = useSession();
   const [activeOption, setActiveOption] =
     useState<keyof typeof options>("latest");
   const { ref, inViewport: inView } = useInViewport();
@@ -72,7 +80,7 @@ const ExploreFeed = () => {
     {
       icon: <Compass className="size-5 opacity-80 " strokeWidth={1.4} />,
       name: "Explore",
-      href: "/",
+      href: "/explore",
       onClick: () => {},
     },
     {
@@ -90,7 +98,7 @@ const ExploreFeed = () => {
     {
       icon: <User2 className="size-5 opacity-80 " strokeWidth={1.4} />,
       name: "Account",
-      href: "/",
+      href: `/${session?.data?.user?.username}`,
       onClick: () => {},
     },
   ];
@@ -99,10 +107,10 @@ const ExploreFeed = () => {
     <div className="flex items-center flex-col w-full ">
       <div className="w-full h-20 bg-gradient-to-t from-neutral-50/60 via-neutral-50/40  dark:from-dark-bg dark:via-dark-bg/60 to-transparent fixed bottom-0 z-10" />
 
-      {!isDesktop && (
+      {mounted && !isDesktop && (
         <Button
           size={"icon"}
-          className="fixed dark:bg-dark-border drop-shadow-2xl shadow-2xl shadow-black bottom-6 size-14 z-40 rounded-full  left-4"
+          className="fixed dark:bg-dark-bg drop-shadow-2xl shadow-2xl shadow-black bottom-6 size-14 z-40 rounded-full  left-4"
           variant={"outline"}
           onClick={() => setIsDrawerOpen(true)}
         >
@@ -119,13 +127,13 @@ const ExploreFeed = () => {
             transition={{ duration: 0.6, type: "spring", damping: 20 }}
             className="max-w-[60%] sm:max-w-xs md:max-w-md w-full   dark:bg-dark-bg bg-white shadow-2xl shadow-black border-r border-neutral-300 dark:border-dark-border/90 h-screen fixed top-0 bottom-0 flex flex-col pt-10 left-0 z-50"
           >
-            <div className=" flex-col px-6 justify-self-end">
+            <div className=" flex-col px-6 justify-self-end ">
               {" "}
               {menuOptions.map((option, i) => (
                 <Link key={i} href={option.href}>
                   <div
                     onClick={option.onClick}
-                    className="w-full cursor-pointer mt-3 relative flex items-center justify-start  gap-2"
+                    className="w-full cursor-pointer text-xl mt-3 relative flex items-center justify-start  gap-2"
                   >
                     {option.icon}
                     <span className="tracking-tight z-20  opacity-80">

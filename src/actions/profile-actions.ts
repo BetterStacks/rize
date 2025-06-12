@@ -1,10 +1,26 @@
 "use server";
 
-import { profile, profileSections, users } from "@/db/schema";
+import {
+  gallery,
+  galleryMedia,
+  media,
+  profile,
+  profileSections,
+  users,
+} from "@/db/schema";
 import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { GetProfileByUsername, profileSchema } from "@/lib/types";
-import { and, desc, eq, getTableColumns, ilike, not, or } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  ilike,
+  not,
+  or,
+  sql,
+} from "drizzle-orm";
 import { cache } from "react";
 import { z } from "zod";
 
@@ -107,6 +123,20 @@ export const isUsernameAvailable = async (username: string) => {
 };
 
 export const searchProfiles = async (query: string) => {
+  // return await db
+  //   .select({
+  //     displayName: profile.displayName,
+  //     username: profile.username,
+  //     profileImage: profile.profileImage,
+  //     image: users.image,
+  //     name: users.name,
+  //   })
+  //   .from(profile)
+  //   .innerJoin(users, eq(profile.userId, users.id))
+  //   .where(
+  //     or(ilike(profile.username, `%${query}%`), ilike(users.name, `%${query}%`))
+  //   );
+
   return await db
     .select({
       displayName: profile.displayName,
@@ -117,8 +147,15 @@ export const searchProfiles = async (query: string) => {
     })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
+
     .where(
-      or(ilike(profile.username, `%${query}%`), ilike(users.name, `%${query}%`))
+      sql`
+      to_tsvector('english', 
+        coalesce(${profile.username}, '') || ' ' || 
+        coalesce(${profile.displayName}, '') || ' ' || 
+        coalesce(${profile.bio}, '')
+      ) @@ websearch_to_tsquery('english', ${query})
+    `
     );
 };
 

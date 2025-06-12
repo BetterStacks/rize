@@ -2,11 +2,11 @@ import { cn } from "@/lib/utils";
 import { useClickOutside } from "@mantine/hooks";
 import { AnimatePresence, motion, Variants } from "framer-motion";
 import {
-  Bell,
   Compass,
   LogOut,
   MenuIcon,
   Moon,
+  Palette,
   Search,
   Settings,
   Sun,
@@ -14,13 +14,13 @@ import {
   X,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import { useProfileDialog, useSearchDialog } from "./dialog-provider";
-import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
 import { useTheme } from "next-themes";
 import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { useProfileDialog } from "./dialog-provider";
+import { Button } from "./ui/button";
+import { Separator } from "./ui/separator";
 
 const Menu = () => {
   const [open, setOpen] = useState(false);
@@ -28,7 +28,6 @@ const Menu = () => {
   const params = useParams();
   const isMine = session?.data?.user?.username === params?.username;
   const setProfileDialogOpen = useProfileDialog()[1];
-  const setOpenSearch = useSearchDialog()[1];
   const ref = useClickOutside(() => {
     setOpen(false);
   });
@@ -51,15 +50,6 @@ const Menu = () => {
       },
       icon: <Settings className="opacity-80 size-5" strokeWidth={1.2} />,
     },
-    {
-      id: 6,
-      name: "Logout",
-      href: null,
-      onClick: () => {
-        signOut();
-      },
-      icon: <LogOut className="opacity-80 size-5" strokeWidth={1.2} />,
-    },
   ];
   const options = [
     {
@@ -76,7 +66,7 @@ const Menu = () => {
       name: "Search",
       href: null,
       onClick: () => {
-        setOpenSearch(true);
+        // setOpenSearch(true);
       },
       icon: <Search className="opacity-80 size-5" strokeWidth={1.2} />,
     },
@@ -85,13 +75,18 @@ const Menu = () => {
     {
       theme: "light",
       name: "Light",
-      icon: <Sun className="opacity-80 size-5" strokeWidth={1.2} />,
+      icon: <Sun className="opacity-80 size-5" strokeWidth={1.4} />,
     },
     {
       theme: "dark",
       name: "Dark",
-      icon: <Moon className="opacity-80 size-5" strokeWidth={1.2} />,
+      icon: <Moon className="opacity-80 size-5" strokeWidth={1.4} />,
     },
+    // {
+    //   theme: "system",
+    //   name: "System",
+    //   icon: <Monitor className="opacity-80 size-5" strokeWidth={1.4} />,
+    // },
   ];
   const menuVariants: Variants = {
     hide: {
@@ -159,35 +154,9 @@ const Menu = () => {
                     </span>
                   </div>
                 </div>
-                <Separator />
+                <Separator className="h-[0.5px]" />
               </>
             )}
-            <motion.div
-              layout
-              className="flex items-center  p-2 justify-center pt-2"
-            >
-              {themeOptions.map((option, i) => (
-                <div
-                  key={i}
-                  onClick={() => setTheme(option?.theme)}
-                  className="w-full  cursor-pointer relative  flex flex-col items-center justify-center p-2  gap-2"
-                >
-                  <div className="flex items-center justify-center ">
-                    {option.icon}
-                    <span className=" text-sm ml-2 font-medium opacity-80">
-                      {option.name}
-                    </span>
-                  </div>
-                  {theme === option?.theme && (
-                    <motion.div
-                      layoutId="bubble"
-                      className="absolute inset-0 border -z-10 border-neutral-200 dark:border-dark-border bg-neutral-100 dark:bg-dark-border/80 rounded-xl"
-                    />
-                  )}
-                </div>
-              ))}
-            </motion.div>
-            <Separator />
             {[...options, ...(session?.data ? loggedInOptions : [])].map(
               (option, i) => (
                 <motion.div
@@ -196,11 +165,62 @@ const Menu = () => {
                   onClick={option.onClick}
                 >
                   {option.icon}
-                  <span className="tracking-tight opacity-80">
+                  <span className="tracking-tight dark:text-neutral-300 text-neutral-700">
                     {option.name}
                   </span>
                 </motion.div>
               )
+            )}
+            <Separator className="h-[0.5px] mt-2" />
+            <div className="py-2 px-4 w-full flex items-center justify-between">
+              <div className="flex w-full items-center justify-start ">
+                <Palette className="opacity-80 size-5" strokeWidth={1.2} />
+                <span className="tracking-tight dark:text-neutral-300 ml-4 text-neutral-700">
+                  Theme
+                </span>
+              </div>
+              <motion.div
+                layout
+                className="flex items-center bg-neutral-200 dark:bg-neutral-900 rounded-full p-0.5  w-fit  justify-center"
+              >
+                {themeOptions.map((option, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setTheme(option?.theme)}
+                    className=" cursor-pointer relative   flex flex-col items-center justify-center p-1.5  gap-2"
+                  >
+                    <div
+                      className={cn(
+                        "z-[2] opacity-50",
+                        theme === option?.theme && "opacity-80"
+                      )}
+                    >
+                      {option.icon}
+                    </div>
+                    {theme === option?.theme && (
+                      <motion.div
+                        layoutId="bubble"
+                        className="absolute inset-0  rounded-full z-[1] bg-white dark:bg-dark-border "
+                      />
+                    )}
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+            {session?.status === "authenticated" && (
+              <>
+                {" "}
+                <Separator className="h-[0.5px] " />
+                <motion.div
+                  className="flex w-full items-center  pt-1  justify-start gap-x-4 cursor-pointer mt-1 px-4 last:mb-4"
+                  onClick={() => signOut()}
+                >
+                  <LogOut className="opacity-80 size-5" strokeWidth={1.2} />
+                  <span className="tracking-tight dark:text-neutral-300 text-neutral-700">
+                    Logout
+                  </span>
+                </motion.div>
+              </>
             )}
           </motion.div>
         )}

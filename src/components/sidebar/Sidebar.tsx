@@ -12,12 +12,12 @@ import {
 } from "../dialog-provider";
 import { Button } from "../ui/button";
 
-const Sidebar = () => {
+const Sidebar = ({ className }: { className?: string }) => {
   const session = useSession();
-  // const setOpen = useProfileDialog()[1];
-  const setOpenSearch = useSearchDialog()[1];
+
   const setIsPostDialogOpen = usePostsDialog()[1];
   const setIsAuthDialogOpen = useAuthDialog()[1];
+  const setIsSearchDialogOpen = useSearchDialog()[1];
   // const { theme } = useTheme();
   // const options = [
   //   {
@@ -72,6 +72,7 @@ const Sidebar = () => {
   return (
     <div
       className={cn(
+        className,
         "h-screen w-[90px] bg-light-bg dark:bg-dark-bg border-r border-neutral-300/60  dark:border-dark-border/60  hidden md:flex flex-col items-center justify-between px-2 z-40 py-4"
       )}
     >
@@ -102,7 +103,7 @@ const Sidebar = () => {
           className="rounded-full size-10"
           size={"icon"}
           onClick={() => {
-            setOpenSearch(true);
+            setIsSearchDialogOpen(true);
           }}
         >
           <Search strokeWidth={1.4} className="size-5 opacity-80" />
@@ -121,37 +122,37 @@ const Sidebar = () => {
         >
           <Plus strokeWidth={1.4} className="size-5 opacity-80" />
         </Button>
-        {session?.status === "authenticated" && (
-          <Link href={`/${session?.data?.user?.username}`}>
-            {/* <Popover>
+        {/* {session?.status === "authenticated" && ( */}
+        <Link href={`/${session?.data?.user?.username}`}>
+          {/* <Popover>
           <PopoverTrigger asChild> */}
-            <div
-              className={cn(
-                "size-10 bg-neutral-200 dark:bg-dark-border rounded-full aspect-square flex relative overflow-hidden"
-                // session?.status === "loading" && "animate-pulse"
-              )}
-            >
-              {session?.data?.user?.profileImage && (
-                <Image
-                  className=" "
-                  src={session?.data?.user?.profileImage as string}
-                  fill
-                  style={{
-                    objectFit: "cover",
-                  }}
-                  quality={100}
-                  priority
-                  alt={`${session?.data?.user?.name}`}
-                />
-              )}
-            </div>
-            {/* </PopoverTrigger>
+          <div
+            className={cn(
+              "size-10 bg-neutral-200 dark:bg-dark-border rounded-full aspect-square flex relative overflow-hidden",
+              session?.status === "loading" && "animate-pulse"
+            )}
+          >
+            {session?.data?.user?.profileImage && (
+              <Image
+                className=" "
+                src={session?.data?.user?.profileImage as string}
+                fill
+                style={{
+                  objectFit: "cover",
+                }}
+                quality={100}
+                priority
+                alt={`${session?.data?.user?.name}`}
+              />
+            )}
+          </div>
+          {/* </PopoverTrigger>
           <PopoverContent className="w-48 rounded-2xl dark:bg-dark-bg bg-white border border-neutral-300/60 dark:border-dark-border/60 drop-shadow-2xl ml-4 mb-2 p-4">
             <OptionsMenu />
           </PopoverContent>
         </Popover> */}
-          </Link>
-        )}
+        </Link>
+        {/* )} */}
       </div>
     </div>
   );

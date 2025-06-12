@@ -14,12 +14,13 @@ type DialogContextType = {
   isUpdateProfileDialogOpen?: boolean;
   isSocialLinksDialogOpen?: boolean;
   isAddExperienceDialogOpen?: boolean;
-  isSearchDialogOpen?: boolean;
+  isCommandMenuOpen?: boolean;
   isProjectsDialogOpen?: boolean;
   isCreatePostDialogOpen?: boolean;
   isPostDialogOpen: boolean;
   isAuthDialogOpen: boolean;
   isAlertDialogOpen: boolean;
+  isCommentDialogOpen?: boolean; // Placeholder for future use
 };
 
 type setDialogContextType = [
@@ -30,12 +31,13 @@ type setDialogContextType = [
     setIsCreatePageDialogOpen: UpdateStateFunctionType;
     setIsSocialLinksDialogOpen: UpdateStateFunctionType;
     setIsAddExperienceDialogOpen: UpdateStateFunctionType;
-    setIsSearchDialogOpen: UpdateStateFunctionType;
+    setIsCommandMenuOpen: UpdateStateFunctionType;
     setIsProjectsDialogOpen: UpdateStateFunctionType;
     setIsCreatePostDialogOpen: UpdateStateFunctionType;
     setIsPostDialogOpen: UpdateStateFunctionType;
     setIsAuthDialogOpen: UpdateStateFunctionType;
     setIsAlertDialogOpen: UpdateStateFunctionType;
+    setIsCommentDialogOpen: UpdateStateFunctionType; // Placeholder for future use
   }
 ];
 
@@ -45,12 +47,13 @@ const defaultContextState: DialogContextType = {
   isCreatePageDialogOpen: false,
   isSocialLinksDialogOpen: false,
   isAddExperienceDialogOpen: false,
-  isSearchDialogOpen: false,
+  isCommandMenuOpen: false,
   isProjectsDialogOpen: false,
   isCreatePostDialogOpen: false,
   isPostDialogOpen: false,
   isAuthDialogOpen: false,
   isAlertDialogOpen: false,
+  isCommentDialogOpen: false, // Assuming you might want to add this later
 };
 
 const DialogContext = createContext([
@@ -61,12 +64,13 @@ const DialogContext = createContext([
     setIsCreatePageDialogOpen: () => {},
     setIsSocialLinksDialogOpen: () => {},
     setIsAddExperienceDialogOpen: () => {},
-    setIsSearchDialogOpen: () => {},
+    setIsCommandMenuOpen: () => {},
     setIsProjectsDialogOpen: () => {},
     setIsCreatePostDialogOpen: () => {},
     setIsPostDialogOpen: () => {},
     setIsAuthDialogOpen: () => {},
     setIsAlertDialogOpen: () => {},
+    setIsCommentDialogOpen: () => {}, // Placeholder for future use
   },
 ] as setDialogContextType);
 
@@ -129,16 +133,16 @@ export const useExperienceDialog = () => {
     context[1].setIsAddExperienceDialogOpen,
   ] as const;
 };
-export const useSearchDialog = () => {
+export const useCommandMenuDialog = () => {
   const context = useContext(DialogContext);
   if (!context) {
     throw new Error(
-      "useSearchDialog must be used within DialogContextProvider"
+      "useCommandMenuDialog must be used within DialogContextProvider"
     );
   }
   return [
-    context[0].isSearchDialogOpen,
-    context[1].setIsSearchDialogOpen,
+    context[0].isCommandMenuOpen,
+    context[1].setIsCommandMenuOpen,
   ] as const;
 };
 export const useProjectsDialog = () => {
@@ -193,6 +197,18 @@ export const useAlertDialog = () => {
     context[1].setIsAlertDialogOpen,
   ] as const;
 };
+export const useSearchDialog = () => {
+  const context = useContext(DialogContext);
+  if (!context) {
+    throw new Error(
+      "useSearchDialog must be used within DialogContextProvider"
+    );
+  }
+  return [
+    context[0].isCommentDialogOpen,
+    context[1].setIsCommentDialogOpen,
+  ] as const;
+};
 
 const DialogContextProvider = ({ children }: { children: ReactNode }) => {
   const [openContext, setOpenContext] =
@@ -227,9 +243,9 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
     },
     [openContext, setOpenContext]
   );
-  const setIsSearchDialogOpen = useCallback(
+  const setIsCommandMenuOpen = useCallback(
     (isOpen: boolean) => {
-      setOpenContext({ ...openContext, isSearchDialogOpen: isOpen });
+      setOpenContext({ ...openContext, isCommandMenuOpen: isOpen });
     },
     [openContext, setOpenContext]
   );
@@ -264,6 +280,12 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
     },
     [openContext, setOpenContext]
   );
+  const setIsCommentDialogOpen = useCallback(
+    (isOpen: boolean) => {
+      setOpenContext({ ...openContext, isCommentDialogOpen: isOpen });
+    },
+    [openContext, setOpenContext]
+  );
   return (
     <DialogContext.Provider
       value={[
@@ -274,12 +296,13 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
           setIsCreatePageDialogOpen,
           setIsSocialLinksDialogOpen,
           setIsAddExperienceDialogOpen,
-          setIsSearchDialogOpen,
+          setIsCommandMenuOpen,
           setIsProjectsDialogOpen,
           setIsCreatePostDialogOpen,
           setIsPostDialogOpen,
           setIsAuthDialogOpen,
           setIsAlertDialogOpen,
+          setIsCommentDialogOpen,
         },
       ]}
     >

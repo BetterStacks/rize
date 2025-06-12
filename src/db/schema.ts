@@ -72,6 +72,7 @@ export const profile = pgTable("profile", {
     .notNull()
     .default(false),
   website: text("website"),
+  isLive: boolean("is_live").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
@@ -185,7 +186,9 @@ export const likes = pgTable(
 );
 
 export const comments = pgTable("comments", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => gen_uuid()),
   profileId: uuid("profile_id")
     .references(() => profile.id)
     .notNull(),
@@ -193,6 +196,12 @@ export const comments = pgTable("comments", {
     .references(() => posts.id)
     .notNull(),
   content: text("content").notNull(),
+  url: text("url"),
+  mediaId: uuid("media_id").references(() => media.id, {
+    onDelete: "set null",
+  }),
+  data: jsonb("data").$type<Result | null>().notNull().default(null),
+
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

@@ -106,7 +106,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      <Separator className="w-full max-w-4xl mb-6 h-0.5 mt-8" />
+      <Separator className="w-full max-w-5xl mb-6 h-[0.5px] mt-8" />
       <span className="dark:text-neutral-600 text-sm font-medium text-neutral-400">
         &copy; {new Date().getFullYear()} Rize. All rights reserved.
       </span>

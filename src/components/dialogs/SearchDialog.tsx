@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useSearchDialog } from "../dialog-provider";
+import { useCommandMenuDialog } from "../dialog-provider";
 
 import { useEffect, useState } from "react";
 import {
@@ -32,7 +32,7 @@ type ProfileItemProps = Pick<
 > & { image?: string; name?: string };
 
 const SearchDialog = () => {
-  const [open, setOpen] = useSearchDialog();
+  const [open, setOpen] = useCommandMenuDialog();
   const session = useSession();
   const router = useRouter();
   const [query, setQuery] = useState("");
