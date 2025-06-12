@@ -55,6 +55,7 @@ import {
 } from "../ui/select";
 import { Skeleton } from "../ui/skeleton";
 import { Textarea } from "../ui/textarea";
+import { Switch } from "../ui/switch";
 
 const RightSidebar = ({ className }: { className?: string }) => {
   const [active, setActive] = useActiveSidebarTab();
@@ -62,6 +63,7 @@ const RightSidebar = ({ className }: { className?: string }) => {
   const sections = {
     gallery: (
       <>
+        {/* <VisibiltyControl /> */}
         <EditGallery />
         <SocialLinksManager />
         <SectionManager />
@@ -1166,5 +1168,35 @@ export function ExperienceForm({ id }: { id: string | null }) {
     </motion.div>
   );
 }
+
+export const VisibiltyControl = () => {
+  const [isLive, setIsLive] = useState(false);
+  return (
+    <div className="w-full max-w-sm px-2 flex flex-col items-center justify-center ">
+      <Card className="bg-white social-links-manager w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-medium dark:text-white">
+            Profile Visibility
+          </CardTitle>
+          <CardDescription className="text-left leading-snug">
+            Toggle whether your profile is visible to others.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 px-3">
+          <div>
+            <Switch checked={isLive} onCheckedChange={setIsLive} />
+          </div>
+          <p
+            className={`text-sm ${isLive ? "text-green-600" : "text-red-500"}`}
+          >
+            {isLive
+              ? "Your profile is live and visible to others."
+              : "Your profile is not live and hidden from explore."}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 export default RightSidebar;

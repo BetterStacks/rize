@@ -154,6 +154,7 @@ const Window = () => {
             isLoading={false}
             isMine={false}
             data={{
+              isLive: true,
               id: "ef13432c-fd23-4179-a3a5-7275d6691ec9",
               name: "ashwin parande",
               email: "ashwinparande1156610c@gmail.com",

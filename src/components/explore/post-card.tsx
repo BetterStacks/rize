@@ -1,5 +1,5 @@
 import { toggleLike } from "@/actions/post-actions";
-import { GetExplorePosts } from "@/lib/types";
+import { GetExplorePosts, TPostMedia } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import moment from "moment";
@@ -14,6 +14,8 @@ import PostInteractions, {
   PostCardOptions,
   PostLinkCard,
 } from "./post-interactions";
+import { useRouter } from "next/navigation";
+import { useToggleLikePost } from "@/hooks/useToggleLike";
 
 type PostCardProps = {
   post: GetExplorePosts;
@@ -47,112 +49,108 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
   const hasMedia = post?.media;
   const onlyMedia = hasMedia && !post?.content;
   const onlyContent = !hasMedia && post?.content?.length > 0;
-  const session = useSession();
-  const setOpen = usePostDialog()[1];
-  const isMine = post?.profileId === session?.data?.user?.profileId;
-  const [liked, setLiked] = useState(post.liked);
-  const [likeCount, setLikeCount] = useState<number>(Number(post.likeCount));
+  const onlyLink = !post?.content && post?.link;
 
-  const mutation = useMutation({
-    mutationFn: ({ like, postId }: { postId: string; like: boolean }) =>
-      toggleLike(postId, like),
-    onMutate: async ({ like }) => {
-      setLiked((prev) => !prev);
-      setLikeCount((prev) => (liked ? Number(prev) - 1 : Number(prev) + 1));
-    },
-    onError: () => {
-      setLiked((prev) => !prev);
-      setLikeCount((prev) => (liked ? prev + 1 : prev - 1));
-    },
+  const router = useRouter();
+
+  const mutation = useToggleLikePost({
+    liked: Boolean(post.liked),
+    postId: post.id,
   });
 
   const handleLikeClick = () => {
-    const next = !post.liked;
-    mutation.mutate({ postId: post.id, like: next });
+    mutation.mutate();
   };
-
+  const handleViewPost = () => {
+    router.push(`/post/${post?.id}`);
+  };
   if (onlyContent) {
     return (
       <OnlyContentCard
-        likeCount={likeCount}
-        liked={liked as boolean}
+        handleViewPost={handleViewPost}
+        likeCount={Number(post.likeCount)}
+        liked={Boolean(post?.liked)}
         post={post}
         handleLike={handleLikeClick}
+        commentCount={Number(post?.commentCount)}
+        commented={Boolean(post?.commented)}
       />
     );
   } else if (onlyMedia) {
     return (
       <OnlyMediaCard
-        likeCount={likeCount}
-        liked={liked as boolean}
+        handleViewPost={handleViewPost}
+        likeCount={Number(post.likeCount)}
+        liked={Boolean(post?.liked)}
         post={post}
         handleLike={handleLikeClick}
+        commentCount={Number(post?.commentCount)}
+        commented={Boolean(post?.commented)}
       />
     );
   }
   return (
-    <PostCardContainer className="group">
-      <div>
-        <div className="">
-          {post.media && (
-            <div
-              key={post?.media?.id}
-              className={cn(
-                "relative border-b border-neutral-300/80  w-full rounded-t-3xl overflow-hidden ",
-                "dark:border-dark-border",
-                mediaContainerClassName
-              )}
-              style={{
-                aspectRatio: post?.media.width / post?.media.height,
-                objectFit: "cover",
-              }}
-            >
-              <div className="absolute top-2 z-[2] px-4 pt-2 w-full gap-x-2 flex items-center justify-between">
-                <PostAvatar
-                  avatar={post?.avatar as string}
-                  name={post?.name as string}
-                />
-                <PostCardOptions
-                  postId={post?.id}
-                  profileId={post?.profileId as string}
-                />
-              </div>
-              {post?.media?.type === "image" ? (
-                <>
-                  <Image
-                    fill
-                    src={post?.media.url}
-                    alt="Post media"
-                    loading="lazy"
-                    style={{ objectFit: "cover" }}
-                    draggable={false}
-                    className=" select-none "
-                  />
-                </>
-              ) : (
-                <>
-                  <video
-                    style={{ objectFit: "cover" }}
-                    className="w-full h-full select-none  "
-                    src={post?.media?.url}
-                    autoPlay
-                    draggable={false}
-                    loop
-                    muted
-                    controls={false}
-                  />
-                </>
-              )}
+    <PostCardContainer handlePostClick={handleViewPost} className="group">
+      <div className="">
+        {(post.media as TPostMedia) && (
+          <div
+            key={(post?.media as TPostMedia)?.id}
+            className={cn(
+              "relative border-b border-neutral-300/80  w-full rounded-t-3xl overflow-hidden ",
+              "dark:border-dark-border",
+              mediaContainerClassName
+            )}
+            style={{
+              aspectRatio:
+                (post?.media as TPostMedia).width /
+                (post?.media as TPostMedia).height,
+              objectFit: "cover",
+            }}
+          >
+            <div className="absolute top-2 z-[2] px-4 pt-2 w-full gap-x-2 flex items-center justify-between">
+              <PostAvatar
+                avatar={post?.avatar as string}
+                name={post?.name as string}
+              />
+              <PostCardOptions
+                postId={post?.id}
+                profileId={post?.profileId as string}
+              />
             </div>
-          )}
-        </div>
+            {(post?.media as TPostMedia)?.type === "image" ? (
+              <>
+                <Image
+                  fill
+                  src={(post?.media as TPostMedia).url}
+                  alt="Post media"
+                  loading="lazy"
+                  style={{ objectFit: "cover" }}
+                  draggable={false}
+                  className=" select-none "
+                />
+              </>
+            ) : (
+              <>
+                <video
+                  style={{ objectFit: "cover" }}
+                  className="w-full h-full select-none  "
+                  src={(post?.media as TPostMedia).url}
+                  autoPlay
+                  draggable={false}
+                  loop
+                  muted
+                  controls={false}
+                />
+              </>
+            )}
+          </div>
+        )}
       </div>
       <div className={cn("flex  gap-y-2 px-4 py-2 mt-4", !hasMedia && "mt-4")}>
         {!hasMedia && (
           <div
             className={cn(
               "size-10 aspect-square  rounded-full  flex relative overflow-hidden"
-              // addDarkStyles && "dark:border-dark-border"
             )}
           >
             <Image
@@ -168,7 +166,12 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
             />
           </div>
         )}
-        <div className={cn(" flex flex-col items-start", !hasMedia && "ml-4")}>
+        <div
+          className={cn(
+            " flex flex-1 flex-col items-start",
+            !hasMedia && "ml-3"
+          )}
+        >
           <Link href={`/${post?.username}`}>
             <h2 className={cn(" text-sm text-black  ", "dark:text-white")}>
               {post.name}
@@ -184,12 +187,18 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
             <span className="ml-1">{moment(post?.createdAt).fromNow()}</span>
           </div>
         </div>
+        {onlyLink && (
+          <PostCardOptions
+            postId={post?.id}
+            profileId={post?.profileId as string}
+          />
+        )}
       </div>
 
       {post?.content && (
         <p
           className={cn(
-            "text-neutral-600 leading-snug line-clamp-[10] mb-4 font-medium  text-sm p-4  ",
+            "text-neutral-600 leading-snug line-clamp-[10]  font-medium  text-sm p-4  ",
             "dark:text-neutral-400 "
           )}
         >
@@ -202,12 +211,19 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
           })}
         </p>
       )}
-      {post?.link && <PostLinkCard {...post?.link} />}
+      {post?.link && (
+        <div className="mt-4">
+          <PostLinkCard {...post?.link} />
+        </div>
+      )}
 
       <PostInteractions
-        likeCount={likeCount}
-        isLiked={liked as boolean}
+        likeCount={Number(post.likeCount)}
+        isLiked={Boolean(post?.liked)}
         handleLikeClick={handleLikeClick}
+        commentCount={Number(post?.commentCount)}
+        hasCommented={Boolean(post?.commented)}
+        handleCommentClick={() => {}}
       />
     </PostCardContainer>
   );
@@ -217,6 +233,10 @@ type GeneralPostProps = {
   post: GetExplorePosts;
   likeCount: number;
   liked: boolean;
+  commentCount: number;
+  commented: boolean;
+  handleComment?: () => void;
+  handleViewPost: () => void;
 };
 
 const OnlyContentCard: FC<GeneralPostProps> = ({
@@ -224,9 +244,13 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
   likeCount,
   liked,
   handleLike,
+  commentCount,
+  commented,
+  handleComment,
+  handleViewPost,
 }) => {
   return (
-    <PostCardContainer className="group">
+    <PostCardContainer handlePostClick={handleViewPost} className="group">
       <div
         className={cn(
           "flex w-full items-center justify-between   px-4 py-2 mt-4"
@@ -278,6 +302,9 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
         likeCount={likeCount}
         isLiked={liked as boolean}
         handleLikeClick={handleLike!}
+        commentCount={commentCount}
+        hasCommented={post?.commented}
+        handleCommentClick={handleComment!}
       />
     </PostCardContainer>
   );
@@ -287,10 +314,14 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
   likeCount,
   liked,
   handleLike,
+  handleViewPost,
 }) => {
   const media = post?.media;
   return (
-    <PostCardContainer className=" relative group">
+    <PostCardContainer
+      handlePostClick={handleViewPost}
+      className=" relative group"
+    >
       <div className="bg-gradient-to-b w-full from-black via-black/60 to-transparent h-40 absolute z-[6] inset-0" />
       <div
         className={cn(
@@ -323,14 +354,18 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
         />
       </div>
       <div
-        style={{ aspectRatio: media.width / media.height }}
+        style={{
+          aspectRatio:
+            (post?.media as TPostMedia).width /
+            (post?.media as TPostMedia).height,
+        }}
         className={cn("relative  overflow-hidden ")}
       >
-        {media?.type === "image" ? (
+        {(post?.media as TPostMedia)?.type === "image" ? (
           <>
             <Image
               fill
-              src={media.url}
+              src={(post?.media as TPostMedia).url}
               alt="Post media"
               draggable={false}
               loading="lazy"
@@ -343,7 +378,7 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
             <video
               style={{ objectFit: "cover" }}
               className="w-full h-full select-none  "
-              src={media?.url}
+              src={(post?.media as TPostMedia)?.url}
               autoPlay
               draggable={false}
               loop

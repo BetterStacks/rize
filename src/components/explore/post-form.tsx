@@ -3,7 +3,7 @@ import { createPost } from "@/actions/post-actions";
 import { queryClient } from "@/lib/providers";
 import { TUploadFilesResponse } from "@/lib/types";
 import { capitalizeFirstLetter, cn, isValidUrl } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Link2, Loader, X } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { PostLinkCard } from "./post-interactions";
+import { Skeleton } from "../ui/skeleton";
 
 type MediaFile = {
   id: string;
@@ -39,7 +40,6 @@ const PostForm = () => {
   const session = useSession();
   const [open, setOpen] = usePostsDialog();
   const [link, setLink] = useState<string | null>();
-  const [metadata, setMetadata] = useState<Result | undefined>(undefined);
   const data = session?.data?.user;
 
   const onDrop = (acceptedFiles: File[]) => {
@@ -101,7 +101,7 @@ const PostForm = () => {
       setFile(undefined);
       setLink(undefined);
       setOpen(false);
-      setMetadata(undefined);
+      queryClient.setQueryData(["get-link-metadata"], null);
     },
     onError: (error) => {
       toast.error("Error creating post");
@@ -110,29 +110,27 @@ const PostForm = () => {
     mutationKey: ["create-post"],
   });
 
+  const { data: linkMetadata } = useQuery({
+    queryKey: ["get-link-metadata"],
+    enabled: !!link,
+    queryFn: async () => {
+      const data = await axios("/api/url", {
+        params: {
+          url: link,
+        },
+      });
+      return data;
+    },
+  });
+
   useEffect(() => {
     if (open) {
       setContent("");
       setFile(undefined);
       setLink(undefined);
-      setMetadata(undefined);
+      queryClient.setQueryData(["get-link-metadata"], null);
     }
   }, [open]);
-
-  useEffect(() => {
-    if (!link) return;
-    (async () => {
-      const data = await axios("http://localhost:3000/api/url", {
-        params: {
-          url: link,
-        },
-      });
-      if (data?.status !== 200)
-        throw new Error("Failed to fetch link metadata");
-      const metadata = data?.data?.metadata as Result;
-      setMetadata(metadata);
-    })();
-  }, [link]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -163,13 +161,21 @@ const PostForm = () => {
               data?.name?.split(" ")[0] as string
             )}?`}
           />
-          {link && metadata && (
+          {link && !linkMetadata?.data?.metadata && (
+            <div className="max-w-xs w-full mt-4 rounded-2xl relative overflow-hidden  border border-neutral-300/80 dark:border-dark-border">
+              <Skeleton className="h-[180px] bg-neutral-200/80 rounded-b-none dark:bg-dark-border " />
+              <div className="h-[40px] pb-6 mt-4 flex flex-col items-start justify-center px-4">
+                <Skeleton className="bg-neutral-200 dark:bg-dark-border h-4 w-1/2 rounded-lg" />
+              </div>
+            </div>
+          )}
+          {linkMetadata?.data?.metadata && (
             <PostLinkCard
-              data={metadata}
+              data={linkMetadata?.data?.metadata}
               hasRemove
               onRemove={() => {
                 setLink(null);
-                setMetadata(undefined);
+                queryClient.setQueryData(["get-link-metadata"], null);
               }}
             />
           )}
@@ -189,7 +195,7 @@ const PostForm = () => {
                   <button
                     onClick={() => {
                       setLink(null);
-                      setMetadata(undefined);
+                      queryClient.setQueryData(["get-link-metadata"], null);
                     }}
                     className="border border-neutral-200 dark:bg-dark-bg bg-white dark:border-dark-border rounded-full p-2"
                   >

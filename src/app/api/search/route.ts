@@ -6,6 +6,7 @@ export async function GET(request: Request) {
 
   try {
     const results = await searchProfiles(query);
+    console.log({ results });
     return Response.json(results, { status: 200 });
   } catch (error) {
     console.error("Error searching profiles:", error);

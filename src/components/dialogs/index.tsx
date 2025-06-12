@@ -1,6 +1,7 @@
 "use client";
 
 import PostForm from "../explore/post-form";
+import CommentDialog from "./CommentDialog";
 import ExperienceDialog from "./ExperienceDialog";
 import PostDialog from "./PostDialog";
 import SearchDialog from "./SearchDialog";
@@ -16,6 +17,7 @@ const Dialogs = () => {
       <PostForm />
       <PostDialog />
       <AuthDialog />
+      <CommentDialog />
     </>
   );
 };

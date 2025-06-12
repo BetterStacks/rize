@@ -2,6 +2,7 @@
 
 import {
   bookmarks,
+  comments,
   likes,
   media,
   postLinks,
@@ -11,15 +12,21 @@ import {
 } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import db from "@/lib/db";
-import { GetExplorePosts } from "@/lib/types";
+import {
+  AddCommentPayload,
+  GetCommentWithProfile,
+  GetExplorePosts,
+  TAddNewComment,
+  TNewComment,
+} from "@/lib/types";
 import { isImageUrl } from "@/lib/utils";
 import axios from "axios";
-import { and, desc, eq, getTableColumns, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, SQL, sql } from "drizzle-orm";
 import { Result } from "url-metadata";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 6;
 
 export const getExploreFeed = async (pageParam: number = 0) => {
   const { ...rest } = getTableColumns(posts);
@@ -32,14 +39,19 @@ export const getExploreFeed = async (pageParam: number = 0) => {
       username: profile.username,
       name: profile.displayName,
       avatar: profile.profileImage,
-      likeCount: sql<number>`count(likes.profile_id)`.as("likesCount"),
-      ...(session && {
-        liked:
-          sql<boolean>`BOOL_OR(${likes.profileId} = ${session?.user?.profileId})`.as(
+      likeCount: sql<number>`COUNT(DISTINCT likes.profile_id)`.as("likesCount"),
+      commentCount: sql<number>`COUNT(DISTINCT comments.id)`.as("commentCount"),
+      liked: session
+        ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${session.user.profileId}), false)`.as(
             "liked"
-          ),
-      }),
+          )
+        : sql<boolean>`false`.as("liked"),
 
+      commented: session
+        ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${session.user.profileId}), false)`.as(
+            "commented"
+          )
+        : sql<boolean>`false`.as("commented"),
       media: sql`
       CASE 
         WHEN media.id IS NOT NULL THEN json_build_object(
@@ -69,6 +81,7 @@ export const getExploreFeed = async (pageParam: number = 0) => {
     .innerJoin(profile, eq(posts.profileId, profile.id))
     .leftJoin(postMedia, eq(posts.id, postMedia.postId))
     .leftJoin(likes, eq(posts.id, likes.postId))
+    .leftJoin(comments, eq(posts.id, comments.postId))
     .leftJoin(media, eq(postMedia.mediaId, media.id))
     .leftJoin(postLinks, eq(posts.id, postLinks.postId))
     .groupBy(
@@ -101,6 +114,7 @@ export const getUserPosts = async (username: string) => {
   if (!profileId) {
     throw new Error("Profile not found");
   }
+  const session = await auth();
   const { ...rest } = getTableColumns(posts);
   const postsData = await db
     .select({
@@ -108,10 +122,19 @@ export const getUserPosts = async (username: string) => {
       username: profile.username,
       name: profile.displayName,
       avatar: profile.profileImage,
-      likeCount: sql<number>`count(likes.profile_id)`.as("likesCount"),
-      liked: sql<boolean>`BOOL_OR(${likes.profileId} = ${profileId?.id})`.as(
-        "liked"
-      ),
+      likeCount: sql<number>`COUNT(DISTINCT likes.profile_id)`.as("likesCount"),
+      commentCount: sql<number>`COUNT(DISTINCT comments.id)`.as("commentCount"),
+      liked: session
+        ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${session.user.profileId}), false)`.as(
+            "liked"
+          )
+        : sql<boolean>`false`.as("liked"),
+
+      commented: session
+        ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${session.user.profileId}), false)`.as(
+            "commented"
+          )
+        : sql<boolean>`false`.as("commented"),
       media: sql`
       CASE 
         WHEN media.id IS NOT NULL THEN json_build_object(
@@ -141,6 +164,7 @@ export const getUserPosts = async (username: string) => {
     .innerJoin(profile, eq(posts.profileId, profile.id))
     .leftJoin(postMedia, eq(posts.id, postMedia.postId))
     .leftJoin(likes, eq(posts.id, likes.postId))
+    .leftJoin(comments, eq(posts.id, comments.postId))
     .leftJoin(media, eq(postMedia.mediaId, media.id))
     .leftJoin(postLinks, eq(posts.id, postLinks.postId))
     .where(eq(posts.profileId, profileId?.id))
@@ -152,7 +176,9 @@ export const getUserPosts = async (username: string) => {
       media.id,
       postLinks.id
     )
-    .orderBy(desc(posts.createdAt))
+    .orderBy(
+      sql`COUNT(DISTINCT comments.id) + COUNT(DISTINCT likes.profile_id) DESC`
+    )
     .limit(4);
 
   if (postsData.length === 0) {
@@ -185,34 +211,54 @@ export const getPostById = async (id: string) => {
       username: profile.username,
       name: profile.displayName,
       avatar: profile.profileImage,
-      likeCount: sql<number>`count(likes.profile_id)`.as("likesCount"),
+      likeCount: sql<number>`COUNT(DISTINCT likes.profile_id)`.as("likesCount"),
+      commentCount: sql<number>`COUNT(DISTINCT comments.id)`.as("commentCount"),
       liked:
         sql<boolean>`BOOL_OR(${likes.profileId} = ${session?.user?.profileId})`.as(
           "liked"
         ),
-
-      media: sql`json_agg(
-        json_build_object(
-          'id', media.id,
-          'url', media.url,
-          'type', media.type,
-          'width', media.width,
-          'height', media.height
-        )
-        
-      )  FILTER (WHERE media.id IS NOT NULL)`,
+      commented: sql<boolean>`BOOL_OR(comments.profile_id = ${
+        session?.user?.profileId || sql.raw("NULL")
+      })`.as("commented"),
+      media: sql`
+        CASE 
+          WHEN media.id IS NOT NULL THEN json_build_object(
+            'id', media.id,
+            'url', media.url,
+            'type', media.type,
+            'width', media.width,
+            'height', media.height
+          )
+          ELSE NULL
+        END
+      `.as("media"),
+      link: sql`
+       CASE 
+         WHEN post_links.id IS NOT NULL THEN json_build_object(
+           'id', post_links.id,
+           'url', post_links.url,
+           'data', post_links.data,
+           'createdAt', post_links.created_at
+         )
+         ELSE NULL
+       END
+     `.as("link"),
     })
     .from(posts)
     .innerJoin(profile, eq(posts.profileId, profile.id))
     .leftJoin(postMedia, eq(posts.id, postMedia.postId))
     .leftJoin(likes, eq(posts.id, likes.postId))
+    .leftJoin(comments, eq(posts.id, comments.postId))
     .leftJoin(media, eq(postMedia.mediaId, media.id))
+    .leftJoin(postLinks, eq(posts.id, postLinks.postId))
     .where(eq(posts.id, id))
     .groupBy(
       posts.id,
       profile.username,
       profile.displayName,
-      profile.profileImage
+      profile.profileImage,
+      media.id,
+      postLinks.id
     );
 
   if (query?.length === 0) {
@@ -334,3 +380,87 @@ export async function toggleBookmark(postId: string, bookmark: boolean) {
       );
   }
 }
+
+export const getPostComments = async (id: string, sortBy: string) => {
+  const { ...rest } = getTableColumns(comments);
+  let filters: SQL[] = [];
+
+  if (sortBy === "newest") {
+    filters.push(desc(comments.createdAt));
+  } else if (sortBy === "oldest") {
+    filters.push(asc(comments.createdAt));
+  } else if (sortBy === "popular") {
+    filters.push(asc(comments.createdAt));
+  }
+
+  const postComments = await db
+    .select({
+      ...rest,
+      username: profile.username,
+      displayName: profile.displayName,
+      profileImage: profile.profileImage,
+      media: sql`
+        CASE 
+          WHEN media.id IS NOT NULL THEN json_build_object(
+            'id', media.id,
+            'url', media.url,
+            'type', media.type,
+            'width', media.width,
+            'height', media.height
+          )
+          ELSE NULL
+        END
+      `.as("media"),
+    })
+    .from(comments)
+    .leftJoin(profile, eq(comments.profileId, profile.id))
+    .leftJoin(media, eq(comments.mediaId, media.id))
+    .where(eq(comments.postId, id))
+    .orderBy(...filters);
+
+  return postComments as GetCommentWithProfile[];
+};
+
+export const addComment = async (payload: TAddNewComment) => {
+  const parsed = AddCommentPayload.safeParse(payload);
+
+  if (!parsed.success) {
+    throw new Error("Invalid comment payload");
+  }
+  let mediaId: string | undefined = undefined;
+
+  if (parsed?.data?.media) {
+    const mediaItem = await db
+      .insert(media)
+      .values({
+        url: parsed.data.media.url,
+        type: isImageUrl(parsed.data.media.url) ? "image" : "video",
+        profileId: parsed.data.profileId,
+        height: parsed.data.media.height,
+        width: parsed.data.media.width,
+      })
+      .returning({ id: media.id });
+
+    if (mediaItem.length === 0) {
+      throw new Error("Error adding media item");
+    }
+
+    mediaId = mediaItem[0].id;
+  }
+
+  await db
+    .insert(comments)
+    .values({ ...parsed.data, ...(mediaId ? { mediaId } : {}) });
+};
+
+export const deleteComment = async (id: string) => {
+  const session = await auth();
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+  await db
+    .delete(comments)
+    .where(
+      and(eq(comments.id, id), eq(comments.profileId, session.user.profileId))
+    );
+};

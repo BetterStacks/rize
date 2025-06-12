@@ -19,7 +19,7 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
     return readingTime(stringifiedContent);
   }, [data?.content]);
   return (
-    <article className="flex w-full  bg-white shadow-lg group relative dark:bg-neutral-800 transition-all  rounded-2xl border border-neutral-300/60 dark:border-dark-border overflow-hidden">
+    <article className="flex w-full group  bg-white shadow-lg group relative dark:bg-neutral-800 transition-all  rounded-2xl border border-neutral-300/60 dark:border-dark-border overflow-hidden">
       <Link
         href={`/page/${data.id}`}
         className="mt-0 grid grid-cols-[120px,1fr] md:grid-cols-[160px,1fr] gap-6 md:items-start"
@@ -33,18 +33,10 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
           />
         </div>
         <div className="flex flex-col mt-2 py-4 px-2 md:gap-2 gap-1">
-          <h3 className="md:text-lg  mr-4 tracking-tight whitespace-pre-line line-clamp-2 ">
+          <h3 className="md:text-lg mr-4 text-neutral-800 dark:text-neutral-300  dark:group-hover:text-neutral-100 transition-colors group-hover:text-neutral-950 tracking-tight whitespace-pre-line line-clamp-2 ">
             {data?.title}
           </h3>
-          {/* <div className="flex items-center justify-start"> */}
-          {/* <div className="text-neutral-400 md:flex hidden">
-              {new Date(data?.createdAt!).toLocaleString("en-US", {
-                month: "short",
-                day: "numeric",
-                // year: "numeric",
-              })}
-            </div>
-            <Dot className="stroke-neutral-400 leading-none size-4" /> */}
+
           <div className="text-neutral-400">{time?.text}</div>
         </div>
         {/* </div> */}

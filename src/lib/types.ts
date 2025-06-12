@@ -1,7 +1,9 @@
 import {
+  comments,
   education,
   experience,
   galleryMedia,
+  Media,
   media,
   page,
   profile,
@@ -22,6 +24,8 @@ export type TProfile = typeof profile.$inferSelect;
 export const TGalleryItem = galleryMedia.$inferSelect;
 export const NewProfile = profile.$inferInsert;
 export const TMedia = media.$inferSelect;
+export type TComment = typeof comments.$inferSelect;
+export type TNewComment = typeof comments.$inferInsert;
 export type TSocialLink = typeof socialLinks.$inferSelect;
 export type TProject = typeof projects.$inferSelect;
 export type TNewProject = typeof projects.$inferInsert;
@@ -60,10 +64,12 @@ export type GetExplorePosts = {
   link: { id: string; url: string; createdAt: Date; data: Result };
   id: string;
   content: string;
+  commentCount: number;
+  commented?: boolean;
   profileId: string | null;
   createdAt: Date;
   updatedAt: Date;
-  liked?: boolean; // 👈 add this
+  liked?: boolean;
   bookmarked?: boolean;
   likeCount: number;
 };
@@ -74,6 +80,13 @@ export type TSection = {
   name: string;
   order: number;
   component: ReactNode;
+};
+
+export type GetCommentWithProfile = TComment & {
+  username: string;
+  displayName: string;
+  profileImage: string;
+  media: TPostMedia | null;
 };
 
 export type GetProfileByUsername =
@@ -266,14 +279,30 @@ export const profileSchema = z.object({
   displayName: z.string().min(5).max(25).optional(),
   isOnboarded: z.boolean().optional(),
   username: z.string().min(5).max(20).optional(),
-  // age: z.number().int().min(18).max(120).optional(),
-  // pronouns: PronounsEnum.optional(),
+
   profileImage: z.string().url().optional(),
   bio: z.string().max(200, "Bio must be 200 characters or less").optional(),
   hasCompletedWalkthrough: z.boolean().optional(),
-  // location: z.string().optional(),
+  isLive: z.boolean().optional(),
   website: z.string().url().optional(),
 });
+
+export const AddCommentPayload = z.object({
+  content: z.string().min(2).max(1200),
+  profileId: z.string().uuid(),
+  url: z.string().optional(),
+  data: z.any().optional(),
+  media: z
+    .object({
+      width: z.number(),
+      height: z.number(),
+      url: z.string().url(),
+    })
+    .optional(),
+  postId: z.string().uuid(),
+});
+
+export type TAddNewComment = z.infer<typeof AddCommentPayload>;
 
 export type UsernameFormData = z.infer<typeof usernameSchema>;
 

@@ -42,6 +42,7 @@ import toast from "react-hot-toast";
 import Textarea from "react-textarea-autosize";
 import { z } from "zod";
 import { useProfileDialog } from "../dialog-provider";
+import { Separator } from "../ui/separator";
 
 // import { updateProfile } from "@/app/actions/updateProfile";
 
@@ -212,7 +213,6 @@ const EditProfile = () => {
   const setOpen = useProfileDialog()[1];
 
   const onSubmit = async (data: z.infer<typeof profileSchema>) => {
-    // console.log({ data: data });
     setIsUpdating(true);
     const res = await updateProfile(data);
     console.log({ res });
@@ -272,14 +272,6 @@ const EditProfile = () => {
       onSubmit={handleSubmit(onSubmit)}
       className="space-y-4 flex flex-col w-full mb-4"
     >
-      {/* <div className="flex items-center justify-center w-full gap-3"> */}
-      {/* <div className="flex flex-col   ">
-        <h1 className="text-xl font-medium">Edit Profile</h1>
-        <p className="text-sm opacity-80 mt-2">
-          Update your profile information. This will be visible to other users.
-        </p>
-        <Separator className="bg-neutral-300 mt-4 h-[1px] w-full dark:bg-dark-border/80" />
-      </div> */}
       {profile?.image && (
         <div className="size-24 ring-4 mb-2 ring-neutral-300 dark:ring-dark-border overflow-hidden rounded-full ">
           <Image
@@ -337,7 +329,7 @@ const EditProfile = () => {
       <div className="space-y-2 w-full">
         <Label htmlFor="website">Website</Label>
         <Input
-          className="text-opacity-80"
+          className="dark:text-neutral-200 text-neutral-800"
           id="website"
           {...register("website")}
         />
@@ -364,7 +356,7 @@ const EditProfile = () => {
       </div>
       <Button
         disabled={isUpdating || Object.keys(errors).length > 0}
-        variant={"secondary"}
+        variant={"outline"}
         type="submit"
       >
         {isUpdating && <Loader className="animate-spin size-4 mr-2" />}

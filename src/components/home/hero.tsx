@@ -164,7 +164,7 @@ const HeroSection = () => {
   return (
     <div
       ref={imageContainerRef}
-      className="w-full md:min-h-[170vh]   flex flex-col items-center justify-start overflow-hidden"
+      className="w-full min-h-[100vh] md:min-h-[170vh]   flex flex-col items-center justify-start overflow-hidden"
     >
       {session?.data?.user && (
         <Link
@@ -246,7 +246,9 @@ const HeroSection = () => {
           <div
             className={cn(
               // !isLoggedIn && scrolledPastHalf && !isDesktop && " bg-red-500",
-              !isLoggedIn && scrolledPastHalf ? "fixed  top-2 z-50" : "sticky"
+              !isLoggedIn && scrolledPastHalf
+                ? "fixed  top-2 z-50"
+                : "sticky z-10"
             )}
           >
             <ClaimUsernameForm
@@ -259,7 +261,7 @@ const HeroSection = () => {
               )}
             />
           </div>
-          <div className="w-full flex items-center justify-center mt-4  ">
+          <div className="w-full flex items-center z-10 justify-center mt-4  ">
             <span className="w-full text-center text-neutral-500 font-medium text-sm md:text-base dark:text-neutral-300/80 ">
               Already have an account?
               <Link
