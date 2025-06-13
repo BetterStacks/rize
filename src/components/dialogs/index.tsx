@@ -13,11 +13,11 @@ const Dialogs = () => {
     <>
       <ProfileUpdateDialog />
       <SearchDialog />
-      <ExperienceDialog />
       <PostForm />
-      <PostDialog />
       <AuthDialog />
       <CommentDialog />
+      {/* <ExperienceDialog /> */}
+      {/* <PostDialog /> */}
     </>
   );
 };

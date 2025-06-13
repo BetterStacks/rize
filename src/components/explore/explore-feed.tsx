@@ -59,7 +59,6 @@ const ExploreFeed = () => {
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const posts = data?.pages.flatMap((page) => page.posts) ?? [];
-  console.log({ posts });
   const options = {
     latest: {},
     trending: {},

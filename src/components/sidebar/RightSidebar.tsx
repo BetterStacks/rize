@@ -13,7 +13,7 @@ import {
 } from "@/actions/project-actions";
 import { useActiveSidebarTab } from "@/lib/context";
 import { queryClient } from "@/lib/providers";
-import { cn, isEqual, MAX_GALLERY_ITEMS } from "@/lib/utils";
+import { bytesToMB, cn, isEqual, MAX_GALLERY_ITEMS } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -164,6 +164,27 @@ function EditGallery() {
     onDrop,
     multiple: true,
     disabled: isDisabled,
+    maxSize: 8 * 1024 * 1024, // 10MB,
+    onDropRejected(fileRejections, event) {
+      console.log(fileRejections, event);
+      fileRejections.forEach(({ file, errors }) => {
+        errors.forEach((error) => {
+          if (error.code === "file-too-large") {
+            toast.error(
+              `File is too large (${bytesToMB(
+                file?.size
+              )}MB). Maximum size is 8MB.`
+            );
+          } else if (error.code === "file-invalid-type") {
+            toast.error(
+              `File  has an invalid type. Only images and videos are allowed.`
+            );
+          } else {
+            toast.error(`Error uploading file ${file.name}: ${error.message}`);
+          }
+        });
+      });
+    },
     accept: {
       "image/*": [".png", ".jpg", ".jpeg"],
       "video/*": [".mp4", ".webm", ".mov"],
@@ -505,7 +526,7 @@ export const ProjectsTab: FC<ProjectTabProps> = ({ id }) => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="px-4 mt-20"
+      className="px-4 mt-6"
     >
       <Card className="bg-white w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
         <CardHeader className="pb-4">
@@ -794,7 +815,7 @@ export function EducationForm({ id }: EducationFormProps) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="px-4 mt-20"
+      className="px-4 mt-6"
     >
       <Card className="bg-white w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
         <CardHeader className="pb-4">
@@ -1048,7 +1069,7 @@ export function ExperienceForm({ id }: { id: string | null }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="px-4 mt-20"
+      className="px-4 mt-6"
     >
       <Card className="bg-white w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
         <CardHeader className="pb-4">

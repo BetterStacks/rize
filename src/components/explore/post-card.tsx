@@ -1,21 +1,17 @@
-import { toggleLike } from "@/actions/post-actions";
+import { useToggleLikePost } from "@/hooks/useToggleLike";
 import { GetExplorePosts, TPostMedia } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
 import moment from "moment";
-import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { FC, useState } from "react";
-import { usePostDialog } from "../dialog-provider";
+import { useRouter } from "next/navigation";
+import { FC } from "react";
 import PostInteractions, {
   PostAvatar,
   PostCardContainer,
   PostCardOptions,
   PostLinkCard,
 } from "./post-interactions";
-import { useRouter } from "next/navigation";
-import { useToggleLikePost } from "@/hooks/useToggleLike";
 
 type PostCardProps = {
   post: GetExplorePosts;
@@ -322,10 +318,10 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
       handlePostClick={handleViewPost}
       className=" relative group"
     >
-      <div className="bg-gradient-to-b w-full from-black via-black/60 to-transparent h-40 absolute z-[6] inset-0" />
+      <div className="bg-gradient-to-b transition-all duration-75 ease-in group-hover:opacity-100 opacity-0 w-full from-black via-black/60 to-transparent h-40 absolute z-[6] inset-0" />
       <div
         className={cn(
-          "flex w-full absolute top-5 z-[8]   items-center justify-between   px-4 "
+          "flex w-full group-hover:opacity-100 transition-all duration-75 ease-in opacity-0 absolute top-5 z-[8]   items-center justify-between   px-4 "
         )}
       >
         <div className="flex items-center justify-start">

@@ -11,6 +11,7 @@ import {
   useSearchDialog,
 } from "../dialog-provider";
 import { Button } from "../ui/button";
+import { PostAvatar } from "../explore/post-interactions";
 
 const Sidebar = ({ className }: { className?: string }) => {
   const session = useSession();
@@ -122,37 +123,14 @@ const Sidebar = ({ className }: { className?: string }) => {
         >
           <Plus strokeWidth={1.4} className="size-5 opacity-80" />
         </Button>
-        {/* {session?.status === "authenticated" && ( */}
-        <Link href={`/${session?.data?.user?.username}`}>
-          {/* <Popover>
-          <PopoverTrigger asChild> */}
-          <div
-            className={cn(
-              "size-10 bg-neutral-200 dark:bg-dark-border rounded-full aspect-square flex relative overflow-hidden",
-              session?.status === "loading" && "animate-pulse"
-            )}
-          >
-            {session?.data?.user?.profileImage && (
-              <Image
-                className=" "
-                src={session?.data?.user?.profileImage as string}
-                fill
-                style={{
-                  objectFit: "cover",
-                }}
-                quality={100}
-                priority
-                alt={`${session?.data?.user?.name}`}
-              />
-            )}
-          </div>
-          {/* </PopoverTrigger>
-          <PopoverContent className="w-48 rounded-2xl dark:bg-dark-bg bg-white border border-neutral-300/60 dark:border-dark-border/60 drop-shadow-2xl ml-4 mb-2 p-4">
-            <OptionsMenu />
-          </PopoverContent>
-        </Popover> */}
-        </Link>
-        {/* )} */}
+        {session?.status === "authenticated" && (
+          <Link href={`/${session?.data?.user?.username}`}>
+            <PostAvatar
+              avatar={session?.data?.user?.profileImage as string}
+              name={session?.data?.user?.displayName as string}
+            />
+          </Link>
+        )}
       </div>
     </div>
   );

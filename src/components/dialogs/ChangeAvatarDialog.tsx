@@ -44,8 +44,8 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
   }, [file]);
 
   useEffect(() => {
-    if (!file || !image) {
-      console.log("file or image not selecterd");
+    if (isOpen && (!file || !image)) {
+      toast.error("File not selected");
       return;
     }
     const showCroppedImage = async () => {
@@ -55,7 +55,6 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
           croppedAreaPixels as Area,
           rotation
         );
-        console.log("donee", { croppedImage });
         setCroppedImage(croppedImage as string);
       } catch (e) {
         console.error(e);
@@ -157,16 +156,3 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
 };
 
 export default ChangeAvatarDialog;
-// const showCroppedImage = async () => {
-//   try {
-//     const croppedImage = await getCroppedImg(
-//       image as string,
-//       croppedAreaPixels as Area,
-//       rotation
-//     );
-//     console.log("donee", { croppedImage });
-//     setCroppedImage(croppedImage as any);
-//   } catch (e) {
-//     console.error(e);
-//   }
-// };

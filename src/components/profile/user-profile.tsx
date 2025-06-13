@@ -23,6 +23,8 @@ import { Separator } from "../ui/separator";
 import Writings from "../writings/writings";
 import Profile from "./profile";
 import SocialLinks from "./social-links";
+import BottomBanner from "../bottom-banner";
+import { useSession } from "next-auth/react";
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -46,6 +48,7 @@ const UserProfile = ({
   posts,
 }: UserProfileProps) => {
   const params = useParams<{ username: string }>();
+  const session = useSession();
   const { data: profileData, isLoading } = useQuery({
     queryKey: ["get-profile-by-username", params.username],
     initialData: data,
@@ -121,7 +124,7 @@ const UserProfile = ({
           </React.Fragment>
         ))}
 
-      {/* {session?.status === "unauthenticated" && <BottomBanner />} */}
+      {session?.status === "unauthenticated" && <BottomBanner />}
     </div>
   );
 };

@@ -82,7 +82,6 @@ const RichTextExample = ({ author }: EditorProps) => {
   useWindowEvent("keydown", (event) => {
     if (event?.ctrlKey && event.key === "s") {
       event.preventDefault();
-      console.log("saving...");
       onSave();
     }
   });
@@ -334,9 +333,7 @@ const SlateImage = (props: any) => {
         (n as ImageElement).type === "image",
     });
 
-    console.log("outside", Array.from(match));
     if (match) {
-      console.log("inside", Array.from(match));
       Transforms.removeNodes(editor, { at: path });
     }
   };
@@ -384,9 +381,7 @@ const SlateVideo = (props: any) => {
         (n as VideoElement).type === "video",
     });
 
-    console.log("outside", Array.from(match));
     if (match) {
-      console.log("inside", Array.from(match));
       Transforms.removeNodes(editor, { at: path });
     }
   };

@@ -13,7 +13,6 @@ export default function Home() {
   useEffect(() => {
     const lenis = new Lenis();
 
-    // Use requestAnimationFrame to continuously update the scroll
     function raf(time: any) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -21,6 +20,7 @@ export default function Home() {
 
     requestAnimationFrame(raf);
   }, []);
+
   return (
     <div className="w-full min-h-screen  flex flex-col items-center justify-center">
       <HeroSection />

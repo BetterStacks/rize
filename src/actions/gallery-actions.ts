@@ -97,7 +97,6 @@ export const removeGalleryItem = async (id: string) => {
     throw new Error("Provide an ID");
   }
   const item = await db.delete(media).where(eq(media.id, id)).returning();
-  console.log({ item });
   if (item.length === 0) {
     throw new Error("Error deleting gallery item");
   }
@@ -109,8 +108,6 @@ export async function getGalleryItem(id: string) {
     throw new Error("Provide an valid ID ");
   }
   const items = await db.select().from(media).where(eq(media.id, id)).limit(1);
-
-  console.log({ items });
 
   if (items.length === 0) {
     throw new Error("No gallery item found");

@@ -44,8 +44,6 @@ export const getProjectByID = async (username: string, id: string) => {
     .where(eq(projects.id, id as string))
     .limit(1);
 
-  console.log(allProjects);
-
   return allProjects[0] as GetAllProjects;
 };
 
@@ -67,7 +65,6 @@ export const createProject = async (data: z.infer<typeof newProjectSchema>) => {
   }
 
   const parsed = newProjectSchema.parse(data);
-  console.log({ parsed });
   const logoMedia = await db
     .insert(media)
     .values({

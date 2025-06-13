@@ -1,3 +1,4 @@
+"use client";
 import { SocialPlatform } from "@/lib/types";
 import { Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 import { FC, ReactNode, useState } from "react";

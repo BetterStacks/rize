@@ -140,7 +140,6 @@ const Toolbar = () => {
               url,
               children: [text],
             };
-            console.log(image);
             Transforms.insertNodes(editor, image);
             Transforms.insertNodes(editor, {
               type: "paragraph",

@@ -33,7 +33,6 @@ const Window = () => {
   const [isWindowHovered, setIsWindowHovered] = useState(false);
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    console.log("Scroll Progress:", latest);
     if (latest > 0.1 && latest < 0.13) {
       setStart(true);
       setIsWindowHovered(false);

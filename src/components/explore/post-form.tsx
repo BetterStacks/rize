@@ -12,7 +12,6 @@ import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 import TextArea from "react-textarea-autosize";
-import { Result } from "url-metadata";
 import { v4 } from "uuid";
 import { usePostsDialog } from "../dialog-provider";
 import { Button } from "../ui/button";
@@ -23,8 +22,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { PostLinkCard } from "./post-interactions";
 import { Skeleton } from "../ui/skeleton";
+import { PostLinkCard } from "./post-interactions";
 
 type MediaFile = {
   id: string;
@@ -105,7 +104,6 @@ const PostForm = () => {
     },
     onError: (error) => {
       toast.error("Error creating post");
-      console.log(error);
     },
     mutationKey: ["create-post"],
   });
@@ -268,7 +266,6 @@ const PostForm = () => {
                     toast.error("Invalid URL");
                     return;
                   }
-                  console.log(url);
 
                   setLink(url);
                 }}

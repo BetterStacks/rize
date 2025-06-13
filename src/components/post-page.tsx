@@ -200,7 +200,7 @@ const PostPage: FC<PostPageProps> = ({
                 className={cn(
                   "size-6 ",
                   post.commented
-                    ? "stroke-blue-600"
+                    ? "stroke-blue-600 fill-blue-600"
                     : "stroke-neutral-500 dark:stroke-neutral-400"
                 )}
               />

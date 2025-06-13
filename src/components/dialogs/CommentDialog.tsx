@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { Dialog, DialogContent, DialogHeader } from "../ui/dialog";
 import { useSearchDialog } from "../dialog-provider";
@@ -11,6 +12,7 @@ type ProfileItemProps = Pick<
   TProfile,
   "username" | "displayName" | "profileImage"
 > & { image?: string; name?: string };
+
 const CommentDialog = () => {
   const [open, setOpen] = useSearchDialog();
   const [query, setQuery] = React.useState("");
@@ -29,7 +31,6 @@ const CommentDialog = () => {
     const res = await axios.get("/api/search", {
       params: { query },
     });
-    console.log({ res: res?.data });
     setLoading(false);
     setResults([...(res?.data as ProfileItemProps[])]);
   }, 300);

@@ -42,7 +42,6 @@ import toast from "react-hot-toast";
 import Textarea from "react-textarea-autosize";
 import { z } from "zod";
 import { useProfileDialog } from "../dialog-provider";
-import { Separator } from "../ui/separator";
 
 // import { updateProfile } from "@/app/actions/updateProfile";
 
@@ -215,7 +214,6 @@ const EditProfile = () => {
   const onSubmit = async (data: z.infer<typeof profileSchema>) => {
     setIsUpdating(true);
     const res = await updateProfile(data);
-    console.log({ res });
     if (!res.success) {
       setIsUpdating(false);
       toast.error("Failed to update profile");

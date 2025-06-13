@@ -81,10 +81,10 @@ const SocialLinks = ({ isMine }: { isMine: boolean }) => {
 export default SocialLinks;
 
 const SocialLinkSkeleton = () => {
-  return [...Array.from({ length: 8 })].map((_, i) => (
+  return [...Array.from({ length: 12 })].map((_, i) => (
     <Skeleton
       key={i}
-      className="h-9 rounded-md px-3 w-[100px] bg-neutral-200/60 dark:bg-dark-border animate-none"
+      className="h-9 rounded-md px-3 w-[100px] m-1 bg-neutral-200/60 dark:bg-dark-border animate-none"
     />
   ));
 };
@@ -107,6 +107,8 @@ export const SocialLinkButton = ({
           alt={platform}
           width={20}
           height={20}
+          loading="eager"
+          quality={100}
         />
         <span className="ml-2 dark:text-neutral-300 text-neutral-800 font-medium  tracking-tight leading-snug mr-2 ">
           {capitalizeFirstLetter(platform)}

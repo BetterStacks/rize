@@ -50,7 +50,7 @@ const Comments: FC<CommentsProps> = ({
   const [orderBy, setOrderBy] = useState<"newest" | "oldest" | "popular">(
     "newest"
   );
-
+  const session = useSession();
   const { data: comments, isLoading } = useQuery({
     initialData: initialData,
     queryKey: ["get-post-comments", id, orderBy],
@@ -61,7 +61,7 @@ const Comments: FC<CommentsProps> = ({
 
   return (
     <div className=" mb-10">
-      <CommentForm id={id} />
+      {session?.data && <CommentForm id={id} />}
       <div className="space-y-4 ">
         {isLoading ? (
           <div className="mt-6 flex flex-col items-center justify-center">
@@ -180,21 +180,22 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
       )}
     >
       <input {...getInputProps()} className="hidden" />
-      {isDesktop && (
+      {isDesktop && session?.data && (
         <div className="mr-4 self-start flex-shrink-0">
-          {session?.data ? (
-            <PostAvatar
-              className="size-8"
-              avatar={session?.data?.user?.profileImage as string}
-              name={session?.data?.user?.displayName as string}
-            />
-          ) : (
+          {/* {session?.status === "loading" ? ( */}
+          <PostAvatar
+            className="size-8"
+            avatar={session?.data?.user?.profileImage as string}
+            name={session?.data?.user?.displayName as string}
+          />
+          {/* ) : (
             <Skeleton className="size-8 rounded-full aspect-square dark:bg-dark-border bg-neutral-200 " />
-          )}
+          )} */}
         </div>
       )}
       <div className="flex-1  ">
         <Textarea
+          autoFocus
           className={cn(
             "appearance-none  px-2 text-sm md:text-base w-full bg-transparent text-neutral-600 dark:text-neutral-200 tracking-tight font-medium focus-visible:outline-none shadow-none resize-none border-none",
             (content?.length > 0 || file) && "mb-4"
@@ -298,7 +299,6 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
                   toast.error("Invalid URL");
                   return;
                 }
-                console.log(url);
 
                 setLink(url);
               }}
