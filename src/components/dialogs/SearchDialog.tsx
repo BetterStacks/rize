@@ -1,7 +1,5 @@
-import {
-  getRecentlyJoinedProfiles,
-  searchProfiles,
-} from "@/actions/profile-actions";
+"use client";
+import { getRecentlyJoinedProfiles } from "@/actions/profile-actions";
 import { TProfile } from "@/lib/types";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +8,10 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCommandMenuDialog } from "../dialog-provider";
 
-import { useEffect, useState } from "react";
+import axios from "axios";
+import { Loader, LogOut, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useState } from "react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -20,11 +21,8 @@ import {
   CommandList,
   CommandSeparator,
 } from "../ui/command";
-import { Loader, LogOut, Moon, Sun } from "lucide-react";
-import axios from "axios";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
-import { useTheme } from "next-themes";
 
 type ProfileItemProps = Pick<
   TProfile,
@@ -65,7 +63,6 @@ const SearchDialog = () => {
     const res = await axios.get("/api/search", {
       params: { query },
     });
-    console.log({ res: res?.data });
     setLoading(false);
     setResults([...(res?.data as ProfileItemProps[])]);
   }, 300);

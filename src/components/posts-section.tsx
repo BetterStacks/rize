@@ -25,7 +25,6 @@ const PostSection: FC<Props> = ({ posts, isMine }) => {
     refetchOnMount: false,
     staleTime: Infinity,
   });
-  console.log(data?.map((post) => post.media));
   return (
     <div
       id="posts"

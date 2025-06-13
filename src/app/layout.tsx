@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import { Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -36,7 +37,9 @@ export default function RootLayout({
         )}
       >
         <Providers>
-          <Dialogs />
+          <Suspense fallback={null}>
+            <Dialogs />
+          </Suspense>
           {children}
         </Providers>
       </body>

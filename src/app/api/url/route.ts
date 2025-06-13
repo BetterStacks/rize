@@ -4,7 +4,6 @@ import urlMetadata from "url-metadata";
 export async function GET(req: NextRequest) {
   try {
     const url = req.nextUrl.searchParams.get("url");
-    console.log({ url });
     if (url == null) {
       return NextResponse.json({ error: "No URL found" }, { status: 404 });
     }

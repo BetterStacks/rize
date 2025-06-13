@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
     let options: UploadApiOptions = {};
     const results: string[] = [];
 
-    console.log({ data });
     if (!file || file.length === 0) {
       throw new Error("No file found");
     }
@@ -54,7 +53,6 @@ export async function POST(req: NextRequest) {
         console.log({ err: result.reason });
       }
     });
-    console.log(results);
     return Response.json(
       {
         message: "File uploaded successfully",

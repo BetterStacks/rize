@@ -87,7 +87,6 @@ export const getPageById = async (id: string) => {
 export async function updatePageThumbnail(
   payload: TUploadFilesResponse & { pageId: string }
 ) {
-  console.log({ payload });
   const session = await auth();
   if (!session || !session?.user?.profileId) {
     throw new Error("Session not found");

@@ -82,7 +82,6 @@ const Walkthrough = () => {
         offset: 10,
       }}
       callback={async (data) => {
-        console.log(data);
         if (
           data?.status === STATUS.FINISHED &&
           data?.type === EVENTS.TOUR_END

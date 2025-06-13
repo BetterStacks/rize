@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -30,7 +31,6 @@ const isValidUrl = (url: string): boolean => {
     new URL(url);
     return true;
   } catch (e) {
-    console.log("error", e);
     return false;
   }
 };

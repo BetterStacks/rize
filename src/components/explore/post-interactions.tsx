@@ -57,7 +57,10 @@ const PostInteractions: FC<PostInteractionsProps> = ({
           }
           handleLikeClick();
         }}
-        className=" flex border dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 py-1.5 px-3 rounded-3xl items-center justify-center gap-x-2"
+        className={cn(
+          " flex border dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 py-1.5 px-3 rounded-3xl items-center justify-center gap-x-2",
+          isLiked && "bg-red-400/10"
+        )}
       >
         <HeartIcon
           strokeWidth={1.2}
@@ -78,7 +81,10 @@ const PostInteractions: FC<PostInteractionsProps> = ({
           e.stopPropagation();
           handleCommentClick!();
         }}
-        className="flex border  dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 py-1 px-3 rounded-3xl items-center justify-center gap-x-2"
+        className={cn(
+          "flex border  dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 py-1 px-3 rounded-3xl items-center justify-center gap-x-2",
+          hasCommented && "bg-blue-400/10"
+        )}
       >
         <MessageIcon
           strokeWidth={1.2}
@@ -316,7 +322,7 @@ export const PostCardContainer: FC<PostCardContainerProps> = ({
     <div
       onClick={handlePostClick}
       className={cn(
-        " first:mt-0 mt-4 bg-white w-full border   overflow-hidden break-inside-avoid  border-neutral-300/60   rounded-3xl ",
+        " first:mt-0 mt-4 shadow-xl bg-white w-full border cursor-pointer overflow-hidden break-inside-avoid  border-neutral-200   rounded-3xl ",
         "dark:bg-neutral-800 dark:border-dark-border",
         className
       )}

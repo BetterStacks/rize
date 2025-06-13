@@ -40,7 +40,6 @@ export async function updateProfile(data: z.infer<typeof profileSchema>) {
 
   const userUpdates = { email, isOnboarded };
   const profileUpdates = profileData;
-  console.log({ userUpdates, profileUpdates });
   if (userUpdates?.email || userUpdates?.isOnboarded) {
     await db
       .update(users)
@@ -85,9 +84,9 @@ export const getProfileByUsername = async (username: string) => {
     .where(eq(profile.username, username))
     .limit(1);
 
-  if (!p || p.length === 0) {
-    throw new Error("Profile not found");
-  }
+  // if (!p || p.length === 0) {
+  //   throw new Error("Profile not found");
+  // }
 
   return p[0] as GetProfileByUsername;
 };

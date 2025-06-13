@@ -82,7 +82,6 @@ const withLayout = (editor: Editor) => {
 };
 
 const insertImage = (editor: any, url: string) => {
-  console.log({ url });
   const image: ImageElement = { type: "image", url, children: [{ text: "" }] };
   Transforms.insertNodes(editor, image);
 };
@@ -93,7 +92,6 @@ const insertVideo = (editor: any, url: any) => {
 
 export const withImages = (editor: Editor) => {
   const { insertData, isVoid } = editor;
-  console.log("here");
   editor.isVoid = (element: any) => {
     return element.type === "image" ? true : isVoid(element);
   };
@@ -104,7 +102,6 @@ export const withImages = (editor: Editor) => {
   editor.insertData = (data: DataTransfer) => {
     const text = data.getData("text/plain");
     const { files } = data;
-    console.log({ files });
 
     if (files && files.length > 0) {
       for (const file of files) {

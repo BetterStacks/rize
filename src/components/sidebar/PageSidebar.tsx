@@ -51,7 +51,6 @@ const PageSidebar = () => {
       "image/*": [".png", ".jpg", ".jpeg", ".gif"],
     },
     onError(err) {
-      console.log({ err });
       toast.error(err.message);
     },
   });

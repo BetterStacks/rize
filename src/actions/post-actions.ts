@@ -202,9 +202,7 @@ export const deletePost = async (postId: string) => {
 export const getPostById = async (id: string) => {
   const { ...rest } = getTableColumns(posts);
   const session = await auth();
-  if (!session) {
-    throw new Error("Unauthorized");
-  }
+
   const query = await db
     .select({
       ...rest,
@@ -213,13 +211,17 @@ export const getPostById = async (id: string) => {
       avatar: profile.profileImage,
       likeCount: sql<number>`COUNT(DISTINCT likes.profile_id)`.as("likesCount"),
       commentCount: sql<number>`COUNT(DISTINCT comments.id)`.as("commentCount"),
-      liked:
-        sql<boolean>`BOOL_OR(${likes.profileId} = ${session?.user?.profileId})`.as(
-          "liked"
-        ),
-      commented: sql<boolean>`BOOL_OR(comments.profile_id = ${
-        session?.user?.profileId || sql.raw("NULL")
-      })`.as("commented"),
+      liked: session
+        ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${session.user.profileId}), false)`.as(
+            "liked"
+          )
+        : sql<boolean>`false`.as("liked"),
+
+      commented: session
+        ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${session.user.profileId}), false)`.as(
+            "commented"
+          )
+        : sql<boolean>`false`.as("commented"),
       media: sql`
         CASE 
           WHEN media.id IS NOT NULL THEN json_build_object(

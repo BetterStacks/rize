@@ -326,15 +326,6 @@ const options = {
   parseResponseObject: undefined,
 };
 
-export const getUrlMetadata = async (url: string) => {
-  try {
-    const metadata = await urlMetadata(url, options);
-    console.log(metadata);
-  } catch (err) {
-    console.log(err);
-  }
-};
-
 export function isValidUrl(str: string): boolean {
   try {
     new URL(str);
@@ -342,4 +333,9 @@ export function isValidUrl(str: string): boolean {
   } catch {
     return false;
   }
+}
+export function bytesToMB(bytes: number, decimals = 2): number {
+  if (bytes === 0) return 0;
+  const mb = bytes / (1024 * 1024);
+  return parseFloat(mb.toFixed(decimals));
 }

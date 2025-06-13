@@ -13,6 +13,7 @@ import SectionContextProvider from "@/lib/section-context";
 import { cn } from "@/lib/utils";
 import { FC } from "react";
 import UserProfile from "./profile/user-profile";
+import Walkthrough from "./walkthrough";
 
 type Props = {
   username: string;
@@ -45,8 +46,8 @@ const ProfilePage: FC<Props> = async ({ username }) => {
   ]);
 
   const isMine = user?.username === session?.user?.username;
-  // const shouldStartWalkthrough =
-  //   isMine && !session?.user?.hasCompletedWalkthrough;
+  const shouldStartWalkthrough =
+    isMine && !session?.user?.hasCompletedWalkthrough;
 
   return (
     <SectionContextProvider
