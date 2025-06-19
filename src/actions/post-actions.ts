@@ -25,6 +25,7 @@ import { and, asc, desc, eq, getTableColumns, SQL, sql } from "drizzle-orm";
 import { Result } from "url-metadata";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
+import instance from "@/lib/axios-instance";
 
 const PAGE_SIZE = 6;
 
@@ -301,7 +302,7 @@ export const createPost = async (payload: z.infer<typeof newPostSchema>) => {
       .returning({ id: posts.id });
 
     if (data?.link) {
-      const res = await axios("http://localhost:3000/api/url", {
+      const res = await instance.get("/url", {
         params: {
           url: data?.link,
         },
