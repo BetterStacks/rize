@@ -18,7 +18,7 @@ const TextReveal = () => {
     offset: ["start 0.7", "start 0.2"],
   });
   return (
-    <section className="w-full  px-4 md:h-[80vh] sm:h-[60vh] h-fit  md:mt-0   md:pt-20 flex  flex-col items-center relative justify-start ">
+    <section className="w-full  px-4 md:h-screen sm:h-[60vh] h-fit  md:mt-0   md:pt-20 flex  flex-col items-center relative justify-start ">
       <motion.section
         ref={container}
         className="w-full max-w-5xl sticky top-10 md:top-[100px] flex mb-20 ml-6 md:ml-0 flex-col items-center justify-center gap-2 mt-4"
@@ -29,7 +29,7 @@ const TextReveal = () => {
             display: "flex",
             flexWrap: "wrap",
           }}
-          className=" w-full text-3xl md:gap-y-1.5 md:text-4xl lg:text-5xl font-semibold md:font-semibold "
+          className=" w-full text-3xl md:gap-y-1.5 md:text-4xl lg:text-5xl font-medium "
         >
           {words.map((line, index) => {
             const start = index / words.length;

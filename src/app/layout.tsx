@@ -9,6 +9,7 @@ import { Suspense } from "react";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900", "100", "200", "300"],
 });
 
 const instrument = Instrument_Serif({
@@ -31,8 +32,8 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "bg-light-bg dark:bg-dark-bg antialiased",
-          inter?.className,
+          "bg-light-bg dark:bg-dark-bg antialiased font-inter",
+          inter?.variable,
           instrument?.variable
         )}
       >
