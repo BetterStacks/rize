@@ -1,13 +1,12 @@
 "use server";
 
-import db from "@/lib/db";
-import { getProfileIdByUsername } from "./profile-actions";
-import { GetAllProjects, TNewProject, TProject } from "@/lib/types";
-import { eq, getTableColumns } from "drizzle-orm";
 import { media, projects } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import db from "@/lib/db";
+import { GetAllProjects, TProject } from "@/lib/types";
+import { eq, getTableColumns } from "drizzle-orm";
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { getProfileIdByUsername } from "./profile-actions";
 
 export const getAllProjects = async (username: string) => {
   const profileId = await getProfileIdByUsername(username);

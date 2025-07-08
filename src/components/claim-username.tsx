@@ -67,21 +67,21 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({
         e.preventDefault();
         onSubmit(username);
       }}
-      className={cn("w-full ")}
+      className={cn("w-full font-inter")}
     >
       <div
         className={cn(
-          "w-full border mt-2 border-neutral-400/60 overflow-hidden dark:border-none rounded-3xl text-lg md:text-xl  p-1 flex items-center justify-center bg-neutral-50 dark:bg-dark-bg",
+          "w-full border mt-2 border-neutral-400/60 overflow-hidden dark:border-none rounded-3xl text-lg md:text-xl  p-1 flex items-center justify-center bg-white dark:bg-neutral-900",
           className
         )}
       >
         <div
           className={cn(
-            "px-4 ml-0.5 border border-neutral-300/80 dark:border-none py-1 bg-white dark:bg-dark-border rounded-3xl shadow-lg ",
+            "px-3  ml-0.5 border border-neutral-300 dark:border-none py-1 bg-white dark:bg-dark-border rounded-3xl shadow-lg ",
             badgeClassName
           )}
         >
-          <span className="tracking-tight opacity-80 dark:opacity-60">
+          <span className="tracking-tight text-neutral-700 dark:text-neutral-300 ">
             rize.so
           </span>
         </div>

@@ -27,7 +27,7 @@ const UserReviewCard: FC<UserReviewCardProps> = ({
   return (
     <div
       className={cn(
-        " relative  overflow-hidden w-full text-white group rounded-3xl  h-[600px]  "
+        " relative  overflow-hidden w-full text-white group rounded-[2.5rem]  h-[600px]  "
       )}
     >
       <Image
@@ -48,10 +48,15 @@ const UserReviewCard: FC<UserReviewCardProps> = ({
         }}
       />
       <AnimatePresence>
+        <div
+          style={{ zIndex: 10 }}
+          className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent "
+        />
         <motion.div
+          style={{ zIndex: 20 }}
           transition={{ duration: 0.6, ease: [0.075, 0.82, 0.165, 1] }}
           className={cn(
-            "z-20  flex flex-col w-full items-start px-6 pb-6 justify-center space-y-3 absolute bottom-0 left-0 right-0 ",
+            "  flex flex-col w-full items-start px-6 pb-6 justify-center space-y-3 absolute bottom-0 left-0 right-0 ",
             matches && hovered !== null && hovered !== index && "brightness-50"
           )}
         >
