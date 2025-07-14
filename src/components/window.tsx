@@ -193,7 +193,7 @@ const Window = () => {
             <motion.div
               key={index}
               className={cn(
-                "max-w-4xl shrink-0 border border-neutral-200 dark:border-neutral-800 rounded-3xl h-[640px] aspect-video  flex items-start shadow-xl flex-col w-full snap-mandatory snap-center relative ",
+                "max-w-4xl shrink-0 border border-neutral-200 dark:bg-neutral-900 dark:border-dark-border rounded-3xl h-[640px] aspect-video  flex items-start shadow-xl flex-col w-full snap-mandatory snap-center relative ",
                 insideProfileContainer && "overflow-hidden"
               )}
             >
@@ -237,7 +237,7 @@ const ProfileContainer: FC<ProfileContainerProps> = ({
   scrollYProgress,
 }) => {
   return (
-    <div className="w-full h-full px-6 py-10 max-w-2xl mx-auto">
+    <div className="w-full h-full  px-6 py-10 max-w-2xl mx-auto">
       <div className="flex flex-col items-start justify-start">
         <Image
           src={avatar}
@@ -247,7 +247,7 @@ const ProfileContainer: FC<ProfileContainerProps> = ({
           className="object-cover border-2 border-neutral-200 dark:border-neutral-800 aspect-square rounded-full"
         />
         <h3 className="text-2xl font-semibold tracking-tighter mt-4">{name}</h3>
-        <span className="text-neutral-600 bg-neutral-200/80 px-3 rounded-full text-sm  py-1 dark:text-neutral-400 font-medium mt-2">
+        <span className="text-neutral-600 dark:bg-dark-border bg-neutral-200/80 px-3 rounded-full text-sm  py-1 dark:text-neutral-400 font-medium mt-2">
           @{username}
         </span>
         <p className="text-neutral-600  dark:text-neutral-400 font-medium mt-2">
@@ -389,7 +389,7 @@ const GalleryItem: FC<GalleryItemProps> = ({
         duration: 0.9,
         ease: [0.6, 0.05, -0.01, 0.9],
       }}
-      className="p-2 bg-white border border-neutral-200  aspect-square flex items-center justify-center size-48 dark:border-neutral-800 rounded-3xl  shadow-2xl even:rotate-6 odd:-rotate-6 "
+      className="p-2 bg-white border border-neutral-200  aspect-square flex items-center justify-center size-48 dark:bg-neutral-800 rounded-3xl  shadow-2xl even:rotate-6 odd:-rotate-6 dark:border-dark-border"
     >
       <motion.div
         // key={currentProfile}

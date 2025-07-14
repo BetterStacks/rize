@@ -736,25 +736,25 @@ const SocialPresense = () => {
 
   // Vibrant and fun gradient theme arrays
   const themes1 = [
-    "bg-gradient-to-b from-pink-400 via-pink-300 to-yellow-200", // pink to yellow
-    "bg-gradient-to-b from-fuchsia-500 via-red-400 to-orange-300", // fuchsia to orange
-    "bg-gradient-to-b from-cyan-400 via-blue-400 to-indigo-400", // cyan to indigo
-    "bg-gradient-to-b from-green-400 via-lime-300 to-yellow-200", // green to yellow
-    "bg-gradient-to-b from-purple-400 via-pink-400 to-red-300", // purple to red
+    "bg-gradient-to-b from-pink-400 via-pink-300 to-yellow-200",
+    "bg-gradient-to-b from-fuchsia-500 via-red-400 to-orange-300",
+    "bg-gradient-to-b from-cyan-400 via-blue-400 to-indigo-400",
+    "bg-gradient-to-b from-green-400 via-lime-300 to-yellow-200",
+    "bg-gradient-to-b from-purple-400 via-pink-400 to-red-300",
   ];
   const themes2 = [
-    "bg-gradient-to-b from-orange-400 via-yellow-300 to-lime-200", // orange to lime
-    "bg-gradient-to-b from-blue-400 via-cyan-300 to-teal-200", // blue to teal
-    "bg-gradient-to-b from-rose-400 via-pink-300 to-fuchsia-300", // rose to fuchsia
-    "bg-gradient-to-b from-violet-400 via-indigo-300 to-blue-200", // violet to blue
-    "bg-gradient-to-b from-emerald-400 via-green-300 to-lime-200", // emerald to lime
+    "bg-gradient-to-b from-orange-400 via-yellow-300 to-lime-200",
+    "bg-gradient-to-b from-blue-400 via-cyan-300 to-teal-200",
+    "bg-gradient-to-b from-rose-400 via-pink-300 to-fuchsia-300",
+    "bg-gradient-to-b from-violet-400 via-indigo-300 to-blue-200",
+    "bg-gradient-to-b from-emerald-400 via-green-300 to-lime-200",
   ];
   const themes3 = [
-    "bg-gradient-to-b from-yellow-400 via-orange-300 to-pink-300", // yellow to pink
-    "bg-gradient-to-b from-teal-400 via-cyan-300 to-blue-200", // teal to blue
-    "bg-gradient-to-b from-red-400 via-orange-300 to-yellow-200", // red to yellow
-    "bg-gradient-to-b from-indigo-400 via-purple-300 to-pink-200", // indigo to pink
-    "bg-gradient-to-b from-lime-400 via-green-300 to-emerald-200", // lime to emerald
+    "bg-gradient-to-b from-yellow-400 via-orange-300 to-pink-300",
+    "bg-gradient-to-b from-teal-400 via-cyan-300 to-blue-200",
+    "bg-gradient-to-b from-red-400 via-orange-300 to-yellow-200",
+    "bg-gradient-to-b from-indigo-400 via-purple-300 to-pink-200",
+    "bg-gradient-to-b from-lime-400 via-green-300 to-emerald-200",
   ];
 
   const ProfileSkeleton = () => {

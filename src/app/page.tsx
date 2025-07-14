@@ -12,9 +12,11 @@ import { Separator } from "@/components/ui/separator";
 import Window from "@/components/window";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@mantine/hooks";
+import { setCookie } from "cookies-next";
 import { motion, useInView } from "framer-motion";
 import Lenis from "lenis";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
@@ -50,7 +52,7 @@ export default function Home() {
       <HeroSection />
       <Window />
 
-      <div className="w-full p-4 max-w-5xl mt-16  flex flex-col md:flex-row items-center md:items-start  mx-auto md:h-[80vh]">
+      <div className="w-full p-4 max-w-5xl mt-16 min-h-screen md:min-h-[80vh]  flex flex-col md:flex-row items-center md:items-start  mx-auto ">
         <div className="px-4 max-w-2xl flex items-start flex-col">
           <h3 className="text-2xl md:text-3xl font-medium  tracking-tight">
             Join the movement. <br />
@@ -116,7 +118,7 @@ export default function Home() {
                 x: isDesktop ? 100 : 0,
                 rotate: -6,
               }}
-              className="flex flex-col items-center justify-center w-[200px] h-[240px] bg-purple-50 border border-purple-200 rounded-[2rem] absolute"
+              className="flex flex-col items-center justify-center w-[200px] h-[240px] bg-purple-100/80 dark:bg-purple-950/80 backdrop-blur-md border border-purple-200 dark:border-purple-800 rounded-[2rem] absolute"
             >
               <img
                 src="https://i.pinimg.com/736x/eb/da/ed/ebdaed1c261c9cb22e86481fbb08fa1e.jpg"
@@ -148,155 +150,16 @@ export default function Home() {
 
 const ClaimUsernameSection = () => {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref);
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const router = useRouter();
+  const handleSubmit = (data: string) => {
+    setCookie("username", data);
+    router.push(`/signup`);
+  };
   return (
     <section
       ref={ref}
-      className="relative flex flex-col items-center overflow-hidden justify-center w-full h-[120vh]"
+      className="relative flex flex-col items-center overflow-hidden justify-center w-full h-[80vh]"
     >
-      {/* {isDesktop && (
-        <>
-          <motion.div
-            style={{
-              rotate: 10,
-            }}
-            animate={
-              !inView
-                ? {
-                    y: 10,
-                    x: 800,
-                  }
-                : {
-                    y: -100,
-                    x: 700,
-                  }
-            }
-            transition={{
-              duration: 1,
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              mass: 0.5,
-            }}
-            className="absolute size-56 bg-white p-2 rounded-xl"
-          >
-            <img
-              className="rounded-xl"
-              src="https://i.pinimg.com/736x/a9/44/e5/a944e5a03bb1db053832d1ca216d8430.jpg"
-              alt=""
-            />
-          </motion.div>
-          <motion.div
-            animate={
-              !inView
-                ? {
-                    y: 300,
-                    x: 200,
-                    rotate: 4,
-                  }
-                : {
-                    y: 0,
-                    x: 0,
-                    rotate: -6,
-                  }
-            }
-            transition={{
-              duration: 1,
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              mass: 0.5,
-            }}
-            className="max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-10 -right-24"
-          >
-            <img src="/window.png" alt="" />
-          </motion.div>
-          <motion.div
-            style={{
-              zIndex: 20,
-            }}
-            animate={
-              !inView
-                ? {
-                    y: 300,
-                    x: 200,
-                    rotate: 2,
-                  }
-                : {
-                    y: 0,
-                    x: 0,
-                    rotate: -8,
-                  }
-            }
-            transition={{
-              duration: 1,
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              mass: 0.5,
-            }}
-            className="max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-60 -right-6"
-          >
-            <img src="/window1.png" alt="" />
-          </motion.div>
-          <motion.div
-            style={{
-              rotate: -10,
-            }}
-            animate={
-              !inView
-                ? {
-                    y: 10,
-                    x: -800,
-                  }
-                : {
-                    y: -40,
-                    x: -700,
-                  }
-            }
-            transition={{
-              duration: 1,
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              mass: 0.5,
-            }}
-            className="absolute size-56 bg-white p-2 rounded-xl"
-          >
-            <img
-              className="rounded-xl"
-              src="https://i.pinimg.com/736x/a9/44/e5/a944e5a03bb1db053832d1ca216d8430.jpg"
-              alt=""
-            />
-          </motion.div>
-          <motion.div
-            animate={
-              !inView
-                ? {
-                    y: 300,
-                    x: -200,
-                    rotate: 4,
-                  }
-                : {
-                    y: 100,
-                    x: 0,
-                    rotate: 6,
-                  }
-            }
-            transition={{
-              duration: 1,
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              mass: 0.5,
-            }}
-            className="max-w-xs w-full h-[400px] rounded-3xl absolute -bottom-10 -left-24"
-          >
-            <img src="/preview.png" alt="" />
-          </motion.div>
-        </>
-      )} */}
       <svg
         width="100%"
         height="120vh"
@@ -314,7 +177,7 @@ const ClaimUsernameSection = () => {
       </svg>
       <div
         style={{ zIndex: 1 }}
-        className="z-[1] px-6 flex flex-col items-center justify-center w-full h-screen"
+        className="z-[1] px-6 mt-16 flex flex-col items-center justify-center w-full h-screen"
       >
         <motion.h2
           initial={{ opacity: 0, y: 40 }}
@@ -345,11 +208,7 @@ const ClaimUsernameSection = () => {
           transition={{ duration: 0.5 }}
           className="flex flex-row mt-6 items-center justify-center"
         >
-          <ClaimUsernameForm
-            onSubmit={(username) => {
-              console.log(username);
-            }}
-          />
+          <ClaimUsernameForm onSubmit={handleSubmit} />
         </motion.div>
       </div>
       <Footer />

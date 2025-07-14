@@ -202,7 +202,7 @@ const HeroSection = () => {
           variants={headingVariants}
           initial="initial"
           animate="animate"
-          className="text-4xl font-inter text-black md:text-5xl space-x-2  text-center font-semibold md:font-bold tracking-tighter leading-none relative "
+          className="text-4xl font-inter text-black dark:text-white md:text-5xl space-x-2  text-center font-semibold md:font-bold tracking-tighter leading-none relative "
         >
           {heading.split(" ").map((line, index) => {
             const isLast = index === heading.split(" ").length - 1;
