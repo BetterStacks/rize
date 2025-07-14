@@ -3,6 +3,9 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import Logo from "./logo";
 import { Separator } from "./ui/separator";
+import { useMediaQuery } from "@mantine/hooks";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
 
 const Footer = () => {
   // const currentYear = new Date().getFullYear();
@@ -60,58 +63,172 @@ const Footer = () => {
       </svg>
     </a>,
   ];
-
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref);
   return (
-    <footer className="w-full  flex flex-col items-center justify-center py-10 px-6 md:px-8">
-      <div className="max-w-5xl w-full flex flex-row  justify-between items-center mt-6">
-        <div className="flex flex-col items-start justify-center">
-          <Logo className="size-12 rounded-md mb-4" />
-          <span className="text-lg tracking-tight text-neutral-100  leading-tight font-medium">
-            Get Started with Rize and <br /> Build something amazing today
-          </span>
-          {/* <motion.div
-            layout
-            className="w-fit max-w-xs mt-4  p-1 border border-neutral-300/60 bg-neutral-100 dark:bg-dark-bg dark:dark:border-dark-border rounded-3xl flex items-center justify-center "
+    <footer
+      ref={ref}
+      className="w-full  flex flex-col items-center justify-center "
+    >
+      {isDesktop && (
+        <>
+          <motion.div
+            style={{
+              rotate: 10,
+            }}
+            animate={
+              !inView
+                ? {
+                    y: 10,
+                    x: 800,
+                  }
+                : {
+                    y: -300,
+                    x: 700,
+                  }
+            }
+            transition={{
+              duration: 1,
+              type: "spring",
+              stiffness: 100,
+              damping: 20,
+              mass: 0.5,
+            }}
+            className="absolute size-56 bg-white p-2 rounded-xl"
           >
-            {themeOptions.map((value, i) => (
+            <img
+              className="rounded-xl"
+              src="https://i.pinimg.com/736x/a9/44/e5/a944e5a03bb1db053832d1ca216d8430.jpg"
+              alt=""
+            />
+          </motion.div>
+          <motion.div
+            animate={
+              !inView
+                ? {
+                    y: 300,
+                    x: 200,
+                    rotate: 4,
+                  }
+                : {
+                    y: 0,
+                    x: 100,
+                    rotate: -6,
+                  }
+            }
+            transition={{
+              duration: 1,
+              type: "spring",
+              stiffness: 100,
+              damping: 20,
+              mass: 0.5,
+            }}
+            className="max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-10 -right-24"
+          >
+            <img src="/window.png" alt="" />
+          </motion.div>
+          <motion.div
+            style={{
+              zIndex: 20,
+            }}
+            animate={
+              !inView
+                ? {
+                    y: 300,
+                    x: 200,
+                    rotate: 2,
+                  }
+                : {
+                    y: -60,
+                    x: 100,
+                    rotate: -8,
+                  }
+            }
+            transition={{
+              duration: 1,
+              type: "spring",
+              stiffness: 100,
+              damping: 20,
+              mass: 0.5,
+            }}
+            className="max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-60 -right-6"
+          >
+            <img src="/window1.png" alt="" />
+          </motion.div>
+          <motion.div
+            style={{
+              rotate: -10,
+            }}
+            animate={
+              !inView
+                ? {
+                    y: 10,
+                    x: -800,
+                  }
+                : {
+                    y: -260,
+                    x: -700,
+                  }
+            }
+            transition={{
+              duration: 1,
+              type: "spring",
+              stiffness: 100,
+              damping: 20,
+              mass: 0.5,
+            }}
+            className="absolute size-56 bg-white p-2 rounded-xl"
+          >
+            <img
+              className="rounded-xl"
+              src="https://i.pinimg.com/736x/a9/44/e5/a944e5a03bb1db053832d1ca216d8430.jpg"
+              alt=""
+            />
+          </motion.div>
+          <motion.div
+            animate={
+              !inView
+                ? {
+                    y: 300,
+                    x: -200,
+                    rotate: 4,
+                  }
+                : {
+                    y: 100,
+                    x: 0,
+                    rotate: 6,
+                  }
+            }
+            transition={{
+              duration: 1,
+              type: "spring",
+              stiffness: 100,
+              damping: 20,
+              mass: 0.5,
+            }}
+            className="max-w-xs w-full h-[400px] rounded-3xl absolute -bottom-10 -left-24"
+          >
+            <img src="/preview.png" alt="" />
+          </motion.div>
+        </>
+      )}
+      {/* <Separator className="w-full h-2 bg-transparent dark:bg-transparent mb-6 border-b border-neutral-600 mt-8" /> */}
+      <div className="w-full border-t border-neutral-400/80 z-50 flex items-center justify-center bg-[#3A0CA3] py-6">
+        <div className="max-w-7xl w-full flex   flex-col md:flex-row items-center justify-center md:justify-between  rounded-3xl px-6">
+          <span className="text-neutral-300  text-sm md:text-base text-left font-medium ">
+            &copy; {new Date().getFullYear()} Rize. All rights reserved.
+          </span>
+          <div className="flex space-x-4 mt-4 md:mt-0">
+            {logos.map((logo, i) => (
               <div
-                className={cn(
-                  "flex items-center cursor-pointer opacity-60 relative px-2 py-1.5 justify-between w-full",
-                  value?.theme === theme && "opacity-100 shadow-2xl"
-                )}
                 key={i}
-                onClick={() => {
-                  setTheme(value?.theme);
-                }}
+                className="flex items-center justify-center border border-neutral-300 dark:bg-neutral-950 rounded-full p-3 bg-white dark:border-dark-border"
               >
-                <div className="z-20">{value?.icon}</div>
-
-                {value?.theme === theme && (
-                  <motion.div
-                    layoutId="footer-theme-option"
-                    transition={{ duration: 0.2, type: "tween" }}
-                    className="absolute bg-white border border-neutral-300/60 dark:border-neutral-700 dark:bg-dark-border rounded-3xl inset-0  z-10 "
-                  />
-                )}
+                {logo}
               </div>
             ))}
-          </motion.div> */}
-        </div>
-      </div>
-      <Separator className="w-full h-2 dark:border-dark-border bg-transparent max-w-5xl dark:bg-transparent mb-6 border-b-2 border-dashed border-neutral-100 mt-8" />
-      <div className="max-w-5xl w-full flex flex-col md:flex-row items-start md:items-center justify-between">
-        <span className="text-neutral-300 text-sm md:text-base text-left font-medium ">
-          &copy; {new Date().getFullYear()} Rize. All rights reserved.
-        </span>
-        <div className="flex space-x-4 mt-4 md:mt-0">
-          {logos.map((logo, i) => (
-            <div
-              key={i}
-              className="flex items-center justify-center border border-neutral-300 dark:border-dark-border  rounded-full p-3 bg-white"
-            >
-              {logo}
-            </div>
-          ))}
+          </div>
         </div>
       </div>
     </footer>
