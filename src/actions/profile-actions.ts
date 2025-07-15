@@ -84,9 +84,9 @@ export const getProfileByUsername = async (username: string) => {
     .where(eq(profile.username, username))
     .limit(1);
 
-  // if (!p || p.length === 0) {
-  //   throw new Error("Profile not found");
-  // }
+  if (!p || p.length === 0) {
+    throw new Error("Profile not found");
+  }
 
   return p[0] as GetProfileByUsername;
 };
@@ -230,9 +230,7 @@ export const getRecentlyJoinedProfiles = async (limit: number = 5) => {
 export const getRecentlyJoinedProfilesCached = cache(
   async (limit: number = 5) => {
     const session = await auth();
-    if (!session) {
-      throw new Error("Session not found");
-    }
+
     return await db
       .select({
         displayName: profile.displayName,
@@ -243,7 +241,9 @@ export const getRecentlyJoinedProfilesCached = cache(
       })
       .from(profile)
       .innerJoin(users, eq(profile.userId, users.id))
-      .where(not(eq(profile.username, session.user.username)))
+      .where(
+        session ? not(eq(profile.username, session.user.username)) : undefined
+      )
       .orderBy(desc(profile.createdAt))
       .limit(limit);
   }

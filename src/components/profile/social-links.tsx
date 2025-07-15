@@ -93,14 +93,19 @@ export const SocialLinkButton = ({
   platform,
   url,
   className,
+  buttonClassName,
 }: {
   platform: string;
   url: string;
   className?: string;
+  buttonClassName?: string;
 }) => {
   return (
     <NextLink className={cn("scale-95", className)} href={url} target="_blank">
-      <Button variant={"outline"} className="bg-white shadow-lg">
+      <Button
+        variant={"outline"}
+        className={cn("bg-white shadow-lg", buttonClassName)}
+      >
         <Image
           src={`/${getIcon(platform as any)}`}
           className="aspect-square size-5"

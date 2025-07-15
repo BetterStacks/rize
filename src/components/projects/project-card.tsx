@@ -5,7 +5,7 @@ import { GetAllProjects } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Edit2, Loader, Trash } from "lucide-react";
+import { Edit2, Globe, Loader, Trash } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -44,13 +44,19 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, isMine }) => {
       )}
     >
       <div className="w-full inline-flex">
-        <Image
-          width={50}
-          height={50}
-          className="aspect-square border border-neutral-300/60 dark:border-dark-border  rounded-full size-10 bg-white dark:bg-dark-border"
-          src={project.logo!}
-          alt={project.name}
-        />
+        {project.logo ? (
+          <Image
+            width={50}
+            height={50}
+            className="aspect-square border border-neutral-300/60 dark:border-dark-border  rounded-full size-10 bg-white dark:bg-dark-border"
+            src={project.logo!}
+            alt={project.name}
+          />
+        ) : (
+          <div className="flex items-center justify-center size-10 bg-neutral-200 dark:bg-dark-border rounded-full">
+            <Globe strokeWidth={1.5} className="size-4 opacity-80" />
+          </div>
+        )}
         <div className="flex ml-4 flex-col">
           <div className="flex items-center justify-start ">
             <Link href={project.url!} target="_blank">

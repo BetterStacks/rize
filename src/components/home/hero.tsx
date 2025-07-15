@@ -6,16 +6,18 @@ import {
   useAnimation,
   useMotionValueEvent,
   useScroll,
+  useTransform,
   Variants,
 } from "framer-motion";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ClaimUsernameForm from "../claim-username";
 import Logo from "../logo";
 import Window from "../window";
+import { Star } from "lucide-react";
 
 const heading = "Own Your Story \n Not Just Your Resume";
 const description =
@@ -148,12 +150,9 @@ const HeroSection = () => {
 
   const control = useAnimation();
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    if (latest > 0.8) {
-      control.start("animate");
-    } else {
-      control.start("initial");
-    }
-    setScrolledPastHalf(isDesktop ? latest > 0.22 : latest > 0.14);
+    setScrolledPastHalf(
+      isDesktop ? latest > 0.22 && latest < 0.94 : latest > 0.14
+    );
   });
 
   const handleSubmit = (data: string) => {
@@ -164,7 +163,7 @@ const HeroSection = () => {
   return (
     <div
       ref={imageContainerRef}
-      className="w-full min-h-[100vh] md:min-h-[170vh]   flex flex-col items-center justify-start overflow-hidden"
+      className="w-full min-h-[90vh] md:h-screen relative    flex flex-col items-center justify-start overflow-hidden"
     >
       {session?.data?.user && (
         <Link
@@ -195,6 +194,7 @@ const HeroSection = () => {
           variants={imageVariants}
           initial="initial"
           animate="animate"
+          // animate={logoControls}
         >
           <Logo className="size-12 md:size-14" />
         </motion.div>
@@ -202,25 +202,24 @@ const HeroSection = () => {
           variants={headingVariants}
           initial="initial"
           animate="animate"
-          className="text-3xl md:text-5xl  text-center font-medium md:font-semibold tracking-tighter leading-tight"
+          className="text-4xl font-inter text-black dark:text-white md:text-5xl space-x-2  text-center font-semibold md:font-bold tracking-tighter leading-none relative "
         >
-          {heading.split(" ").map((line, index) => (
-            <motion.span
-              className={cn("leading-none mx-1 md:mx-1.5")}
-              key={index}
-              variants={headingVariants}
-            >
-              {line}
+          {heading.split(" ").map((line, index) => {
+            const isLast = index === heading.split(" ").length - 1;
+            return (
+              <motion.span key={index} variants={headingVariants}>
+                {line}
 
-              {line === "\n" && <br />}
-            </motion.span>
-          ))}
+                {line === "\n" && <br />}
+              </motion.span>
+            );
+          })}
         </motion.h1>
         <motion.p
           variants={headingVariants}
           initial="initial"
           animate="animate"
-          className="text-center mt-2 font-medium px-5 text-neutral-600 dark:text-neutral-200 text-sm md:text-lg"
+          className="text-center mt-2 font-medium tracking-tight font-inter px-5 text-neutral-800 dark:text-neutral-400 leading-tight text-sm md:text-lg "
         >
           {description.split("\n").map((line, index) => (
             <motion.span
@@ -254,15 +253,50 @@ const HeroSection = () => {
             <ClaimUsernameForm
               onSubmit={handleSubmit}
               className={cn(
-                // !isLoggedIn &&
+                // "shadow-black shadow-2xl",
                 !isLoggedIn &&
                   scrolledPastHalf &&
                   "shadow-2xl w-fit shadow-black/80 border border-neutral-300/60 dark:border-dark-border/80"
               )}
             />
           </div>
-          <div className="w-full flex items-center z-10 justify-center mt-4  ">
-            <span className="w-full text-center text-neutral-500 font-medium text-sm md:text-base dark:text-neutral-300/80 ">
+          <div className="w-full flex items-center z-10 justify-center mt-8  ">
+            <motion.div
+              variants={avatarContainerVariants}
+              initial="hidden"
+              animate="visible"
+              className=" flex -space-x-4"
+            >
+              {[...avatars]?.slice(0, 3)?.map((url, index) => {
+                return (
+                  <motion.div
+                    key={index}
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.1, zIndex: 20 }}
+                    style={{ zIndex: index }}
+                    className="size-10 md:size-12 outline outline-2 outline-white saturate-[75%]  dark:border-dark-border bg-white aspect-square rounded-full shadow-xl dark:bg-dark-bg relative overflow-hidden"
+                  >
+                    <img src={url} style={{ objectFit: "cover" }} alt="" />
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+            <div className="flex flex-col items-start ml-2 gap-x-1">
+              <span className="text-neutral-500 font-medium text-sm md:text-base dark:text-neutral-600 ">
+                Trusted by 1000+ users
+              </span>
+              <div className="flex items-center gap-x-1">
+                {[...Array(5)].map((_, index) => (
+                  <Star
+                    key={index}
+                    fill="yellow"
+                    className="size-4 stroke-yellow-500"
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* <span className="w-full text-center text-neutral-500 font-medium text-sm md:text-base dark:text-neutral-300/80 ">
               Already have an account?
               <Link
                 className="text-indigo-500  ml-1 hover:underline"
@@ -270,36 +304,16 @@ const HeroSection = () => {
               >
                 Login
               </Link>
-            </span>
+            </span> */}
           </div>
         </motion.div>
       </motion.div>
-      <motion.div
-        variants={avatarContainerVariants}
-        initial="hidden"
-        animate="visible"
-        className="mt-8 flex -space-x-4"
-      >
-        {[...avatars]?.map((url, index) => {
-          return (
-            <motion.div
-              key={index}
-              variants={itemVariants}
-              whileHover={{ scale: 1.1, zIndex: 20 }}
-              style={{ zIndex: 8 - index }}
-              className="size-10 md:size-12 saturate-[75%]  dark:border-dark-border bg-white aspect-square rounded-full shadow-xl dark:bg-dark-bg relative overflow-hidden"
-            >
-              <Image src={url} fill style={{ objectFit: "cover" }} alt="" />
-            </motion.div>
-          );
-        })}
-      </motion.div>
-      <Window />
+      {/* <Window /> */}
       <motion.div
         variants={windowVariants}
         animate="animate"
         initial="initial"
-        className=" p-4 w-full h-screen  flex md:hidden  absolute -bottom-[45%] md:-bottom-[80%] items-center justify-center"
+        className=" p-4 w-full h-screen  flex md:hidden  absolute -bottom-[45%]  items-center justify-center"
       >
         <motion.div className=" rounded-2xl shadow-2xl   bg-white  border  border-neutral-200 dark:border-dark-border md:max-w-5xl aspect-video   w-full ">
           <div className="flex w-full px-4 py-3 items-center justify-start gap-x-2">

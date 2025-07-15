@@ -18,11 +18,11 @@ import {
   Menu,
   User2,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { FC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import PostCard from "./post-card";
-import { useSession } from "next-auth/react";
 
 const ExploreFeed = () => {
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -101,6 +101,7 @@ const ExploreFeed = () => {
       onClick: () => {},
     },
   ];
+  console.log(posts);
 
   return (
     <div className="flex items-center flex-col w-full ">

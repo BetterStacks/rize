@@ -3,12 +3,17 @@
 @tailwind utilities;
 
 body {
-  font-family: var(--font-inter);
-  /* background-color: #181818;
-  color: white; */
+  @apply bg-light-bg font-inter dark:bg-dark-bg;
 }
 
 @layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
   @variants responsive {
     .masonry {
       column-gap: 1.5em;
