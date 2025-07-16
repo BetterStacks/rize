@@ -18,8 +18,8 @@ const Providers = ({ children }: { children: ReactNode }) => {
           <QueryClientProvider client={queryClient}>
             <ThemeProvider
               attribute={"class"}
-              defaultTheme="light"
-              forcedTheme="light"
+              defaultTheme="dark"
+              // forcedTheme="light"
             >
               <Context>
                 <DialogContextProvider>

@@ -101,16 +101,19 @@ const UserReviews = () => {
         </p>
         <Separator className="bg-transparent dark:bg-transparent dark:border-dark-border h-4 border-b-2 border-neutral-300 border-dashed" />
       </div>
-      <div className="relative w-full flex items-center justify-start">
+      <div className="relative w-full max-w-5xl px-4 mx-auto flex items-center justify-start">
+        <div className="w-10 h-full bg-gradient-to-l dark:from-dark-bg dark:via-dark-bg/60 from-white via-white/60 to-transparent absolute z-20 top-0 bottom-0 right-4 md:flex hidden " />
+        <div className="w-10 h-full bg-gradient-to-r dark:from-dark-bg dark:via-dark-bg/60 from-white via-white/60 to-transparent absolute z-20 top-0 bottom-0 left-4 md:flex hidden " />
+
         <div
           ref={rowRef}
-          className={`flex gap-4 overflow-x-hidden pl-4 md:pl-[260px] scroll-smooth py-2 snap-x snap-mandatory will-change-transform transition-all touch-auto duration-700 hide-scrollbar`}
+          className={`flex gap-4 overflow-x-hidden  scroll-smooth py-2 snap-x snap-mandatory will-change-transform transition-all touch-auto duration-700 hide-scrollbar`}
           style={{ scrollBehavior: "smooth" }}
         >
           {testimonials.map((t, i) => (
             <div
               key={i}
-              className="flex group flex-col  justify-end items-center rounded-3xl shadow-md border border-neutral-200 dark:border-neutral-800 min-w-[240px] max-w-[340px] md:max-w-[280px] px-2 w-full h-[340px] overflow-hidden relative snap-center"
+              className="flex group flex-col  justify-end items-center rounded-3xl shadow-md border border-neutral-200 dark:border-neutral-800 min-w-[240px] max-w-[340px] md:max-w-[280px] px-2 w-full h-[340px] overflow-hidden relative snap-center last:mr-10"
               style={{ flex: "0 0 320px" }}
             >
               {/* Placeholder for image */}
