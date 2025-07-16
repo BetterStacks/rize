@@ -1,12 +1,9 @@
 "use client";
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-import Logo from "./logo";
-import { Separator } from "./ui/separator";
+import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@mantine/hooks";
 import { motion, useInView } from "framer-motion";
+import { Moon, Sun } from "lucide-react";
 import { useRef } from "react";
-import { cn } from "@/lib/utils";
 
 const Footer = () => {
   // const currentYear = new Date().getFullYear();

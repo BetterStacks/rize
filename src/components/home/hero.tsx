@@ -4,8 +4,6 @@ import { setCookie } from "cookies-next";
 import {
   motion,
   MotionValue,
-  useAnimation,
-  useInView,
   useMotionValueEvent,
   useScroll,
   useTransform,
@@ -19,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { FC, useRef, useState } from "react";
 import ClaimUsernameForm from "../claim-username";
 import Logo from "../logo";
-import Window, { ProfileContainer } from "../window";
+import { ProfileContainer } from "../window";
 
 const heading = "Own Your Story \n Not Just Your Resume";
 const description =

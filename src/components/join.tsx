@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Button } from "./ui/button";
-import { motion } from "framer-motion";
 import { useMediaQuery } from "@mantine/hooks";
+import { motion } from "framer-motion";
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "./ui/button";
 
 const Join = () => {
   const isDesktop = useMediaQuery("(min-width: 768px)");

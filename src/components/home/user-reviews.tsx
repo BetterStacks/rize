@@ -1,8 +1,8 @@
-import { useRef } from "react";
-import { Separator } from "../ui/separator";
-import { Button } from "../ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Image from "next/image";
+import { useRef } from "react";
+import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
 
 const testimonials = [
   {
@@ -67,10 +67,7 @@ const testimonials = [
   },
 ];
 
-const CARD_WIDTH = 320; // px, should match your max-w-[320px]
-
-// Custom utility for hiding scrollbar if not available in Tailwind
-const hideScrollbar = "scrollbar-none"; // If not available, use 'hide-scrollbar' and add custom CSS
+const CARD_WIDTH = 320;
 
 const UserReviews = () => {
   const rowRef = useRef<HTMLDivElement>(null);
