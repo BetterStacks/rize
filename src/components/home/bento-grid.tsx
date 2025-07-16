@@ -15,12 +15,11 @@ import {
 import { Link2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { Separator } from "../ui/separator";
 import { Skeleton } from "../ui/skeleton";
 
 const BentoGrid = () => {
   return (
-    <section className="max-w-5xl px-4 md:px-2 my-20 w-full ">
+    <section className="max-w-5xl mx-auto px-4 md:px-2 my-20 w-full ">
       {" "}
       <div className="px-4 flex flex-col items-start justify-center">
         <h3 className="text-2xl md:text-3xl leading-tight  md:font-medium font-medium tracking-tighter">
@@ -33,7 +32,6 @@ const BentoGrid = () => {
           Whether you’re showcasing work, sharing insights, or building your
           presence — Rize adapts to you, not the other way around.
         </p>
-        {/* <Separator className="bg-transparent dark:bg-transparent dark:border-dark-border h-4 border-b-2 border-neutral-300 border-dashed" /> */}
       </div>
       <div className=" grid md:grid-cols-5 mt-12 md:gap-x-6 gap-y-8 w-full">
         {[...Array.from({ length: 5 })].map((_, index) => {
@@ -281,13 +279,19 @@ const Analytics = () => {
       </motion.div>
     );
   };
+  const isDesktop = useMediaQuery("(min-width: 768px");
+  const isScreen4k = useMediaQuery("(min-width: 2560px)");
 
   const { scrollYProgress } = useScroll({ axis: "y" });
-
-  const cursorOneX = useTransform(scrollYProgress, [0.6, 0.73], [200, 100]);
-  const cursorOneY = useTransform(scrollYProgress, [0.6, 0.73], [-300, -40]);
-  const cursorTwoX = useTransform(scrollYProgress, [0.6, 0.73], [-600, -140]);
-  const cursorTwoY = useTransform(scrollYProgress, [0.6, 0.73], [300, -10]);
+  const inputRange = isDesktop
+    ? isScreen4k
+      ? [0.76, 0.84]
+      : [0.63, 0.72]
+    : [0.58, 0.62];
+  const cursorOneX = useTransform(scrollYProgress, inputRange, [200, 100]);
+  const cursorOneY = useTransform(scrollYProgress, inputRange, [-300, -40]);
+  const cursorTwoX = useTransform(scrollYProgress, inputRange, [-600, -140]);
+  const cursorTwoY = useTransform(scrollYProgress, inputRange, [300, -10]);
 
   return (
     <div className="w-full h-full text-white flex p-4  flex-col items-center justify-center">
@@ -722,17 +726,20 @@ export function PolaroidStack() {
 
 const SocialPresense = () => {
   const target = useRef(null);
+  const isScreen4k = useMediaQuery("(min-width: 2560px)");
   const { scrollYProgress } = useScroll({
     axis: "y",
   });
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
     console.log(latest);
   });
-  const left = useTransform(scrollYProgress, [0.74, 0.84], [0, -600]);
-  const middle = useTransform(scrollYProgress, [0.74, 0.84], [0, 600]);
-  const right = useTransform(scrollYProgress, [0.74, 0.84], [0, -600]);
+
+  const inputRange = isScreen4k ? [0.82, 0.96] : [0.74, 0.84];
+  const left = useTransform(scrollYProgress, inputRange, [0, -600]);
+  const middle = useTransform(scrollYProgress, inputRange, [0, 600]);
+  const right = useTransform(scrollYProgress, inputRange, [0, -600]);
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const smallX = useTransform(scrollYProgress, [0.6, 0.79], [-100, -600]);
+  const smallX = useTransform(scrollYProgress, inputRange, [-100, -600]);
 
   // Vibrant and fun gradient theme arrays
   const themes1 = [

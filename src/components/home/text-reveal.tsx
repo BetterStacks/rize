@@ -1,5 +1,4 @@
 import {
-  AnimatePresence,
   motion,
   MotionValue,
   useMotionValueEvent,
@@ -10,26 +9,26 @@ import { useRef, useState } from "react";
 
 const TextReveal = () => {
   const container = useRef(null);
-  const para = `Rize is where authenticity meets aesthetic — craft a profile that feels real, looks premium, and signals credibility`;
+  const para = `Rize is where authenticity meets aesthetic, craft a profile that feels real, looks premium, and signals credibility`;
   const words = para.split(" ");
 
   const { scrollYProgress: scrollYTextProgress } = useScroll({
     target: container,
-    offset: ["start 0.7", "start 0.2"],
+    // offset: ["start start", "end 0.9"],
   });
   return (
-    <section className="w-full  px-4 md:h-screen sm:h-[60vh] h-fit  md:mt-0   md:pt-20 flex  flex-col items-center relative justify-start ">
-      <motion.section
-        ref={container}
-        className="w-full max-w-5xl sticky top-10 md:top-[100px] flex mb-20 ml-6 md:ml-0 flex-col items-center justify-center gap-2 mt-4"
-      >
+    <motion.section
+      ref={container}
+      className="w-full  px-4 md:h-[54rem] h-screen  4k:h-[200vh] mb-20  md:mt-10   "
+    >
+      <motion.section className="w-full md:px-6 px-4 max-w-5xl sticky mb-10 top-1/3 flex md:mx-auto  flex-col items-center justify-center gap-2">
         <motion.p
           layout
           style={{
             display: "flex",
             flexWrap: "wrap",
           }}
-          className=" w-full text-3xl md:gap-y-1.5 md:text-4xl lg:text-5xl font-medium "
+          className=" w-full text-3xl md:gap-y-1.5 md:text-4xl lg:text-5xl xl:text-6xl font-medium lg:font-semibold xl:font-bold "
         >
           {words.map((line, index) => {
             const start = index / words.length;
@@ -44,7 +43,7 @@ const TextReveal = () => {
           })}
         </motion.p>
       </motion.section>
-    </section>
+    </motion.section>
   );
 };
 
