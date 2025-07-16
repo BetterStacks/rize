@@ -14,6 +14,9 @@ export default {
         "dark-bg": "#222222",
         "light-bg": "#ffffff",
       },
+      screens: {
+        "4k": "2560px", // or '3840px' for true 4K
+      },
       fontFamily: {
         inter: ["var(--font-inter)", "sans-serif"],
         instrument: ["var(--font-instrument)", "serif"],

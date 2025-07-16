@@ -6,6 +6,7 @@ import { Separator } from "./ui/separator";
 import { useMediaQuery } from "@mantine/hooks";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { cn } from "@/lib/utils";
 
 const Footer = () => {
   // const currentYear = new Date().getFullYear();
@@ -66,155 +67,116 @@ const Footer = () => {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref);
+
+  const assets = [
+    {
+      src: "https://i.pinimg.com/736x/a9/44/e5/a944e5a03bb1db053832d1ca216d8430.jpg", //image left
+      className: "absolute size-56 bg-white p-2 right-0 rounded-xl",
+      style: { rotate: 10 },
+      animate: (inView: boolean) =>
+        !inView ? { y: 10, x: 0 } : { y: -300, x: 50 },
+      transition: {
+        duration: 1,
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+        mass: 0.5,
+      },
+      imgClassName: "rounded-xl",
+    },
+    {
+      src: "/window.png", //my preview
+      className:
+        "max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-10 -right-24",
+      animate: (inView: boolean) =>
+        !inView ? { y: 300, x: 200, rotate: 4 } : { y: 0, x: 100, rotate: -6 },
+      transition: {
+        duration: 1,
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+        mass: 0.5,
+      },
+    },
+    {
+      src: "/window1.png", //second preview
+      className:
+        "max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-60 -right-6",
+      style: { zIndex: 20 },
+      animate: (inView: boolean) =>
+        !inView
+          ? { y: 300, x: 200, rotate: 2 }
+          : { y: -60, x: 100, rotate: -8 },
+      transition: {
+        duration: 1,
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+        mass: 0.5,
+      },
+    },
+    {
+      src: "https://i.pinimg.com/1200x/0e/a1/49/0ea14948a5b50349506e94aeb7261769.jpg", // image right
+      className: "absolute size-56 bg-white p-2 rounded-xl left-0",
+      style: { rotate: -10 },
+      animate: (inView: boolean) =>
+        !inView ? { y: 10, x: -400 } : { y: -300, x: -10 },
+      transition: {
+        duration: 1,
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+        mass: 0.5,
+      },
+      imgClassName: "rounded-xl",
+    },
+    {
+      src: "/preview.png", //purple avatar
+      className: "max-w-xs w-full rounded-3xl absolute -left-10",
+      animate: (inView: boolean) =>
+        !inView
+          ? { y: 100, x: -100, rotate: 4 }
+          : { y: -60, x: -40, rotate: 6 },
+      transition: {
+        duration: 1,
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+        mass: 0.5,
+      },
+    },
+  ];
   return (
     <footer
       ref={ref}
-      className="w-full  flex flex-col items-center justify-center "
+      className="w-full 4k:max-w-screen-lg flex flex-col items-center justify-center "
     >
       {isDesktop && (
         <>
-          <motion.div
-            style={{
-              rotate: 10,
-            }}
-            animate={
-              !inView
-                ? {
-                    y: 10,
-                    x: 800,
-                  }
-                : {
-                    y: -300,
-                    x: 700,
-                  }
-            }
-            transition={{
-              duration: 1,
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              mass: 0.5,
-            }}
-            className="absolute size-56 bg-white p-2 rounded-xl"
-          >
-            <img
-              className="rounded-xl"
-              src="https://i.pinimg.com/736x/a9/44/e5/a944e5a03bb1db053832d1ca216d8430.jpg"
-              alt=""
-            />
-          </motion.div>
-          <motion.div
-            animate={
-              !inView
-                ? {
-                    y: 300,
-                    x: 200,
-                    rotate: 4,
-                  }
-                : {
-                    y: 0,
-                    x: 100,
-                    rotate: -6,
-                  }
-            }
-            transition={{
-              duration: 1,
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              mass: 0.5,
-            }}
-            className="max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-10 -right-24"
-          >
-            <img src="/window.png" alt="" />
-          </motion.div>
-          <motion.div
-            style={{
-              zIndex: 20,
-            }}
-            animate={
-              !inView
-                ? {
-                    y: 300,
-                    x: 200,
-                    rotate: 2,
-                  }
-                : {
-                    y: -60,
-                    x: 100,
-                    rotate: -8,
-                  }
-            }
-            transition={{
-              duration: 1,
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              mass: 0.5,
-            }}
-            className="max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-60 -right-6"
-          >
-            <img src="/window1.png" alt="" />
-          </motion.div>
-          <motion.div
-            style={{
-              rotate: -10,
-            }}
-            animate={
-              !inView
-                ? {
-                    y: 10,
-                    x: -800,
-                  }
-                : {
-                    y: -260,
-                    x: -700,
-                  }
-            }
-            transition={{
-              duration: 1,
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              mass: 0.5,
-            }}
-            className="absolute size-56 bg-white p-2 rounded-xl"
-          >
-            <img
-              className="rounded-xl"
-              src="https://i.pinimg.com/736x/a9/44/e5/a944e5a03bb1db053832d1ca216d8430.jpg"
-              alt=""
-            />
-          </motion.div>
-          <motion.div
-            animate={
-              !inView
-                ? {
-                    y: 300,
-                    x: -200,
-                    rotate: 4,
-                  }
-                : {
-                    y: 100,
-                    x: 0,
-                    rotate: 6,
-                  }
-            }
-            transition={{
-              duration: 1,
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              mass: 0.5,
-            }}
-            className="max-w-xs w-full h-[400px] rounded-3xl absolute -bottom-10 -left-24"
-          >
-            <img src="/preview.png" alt="" />
-          </motion.div>
+          {assets.map((asset, idx) => (
+            <motion.div
+              key={idx}
+              style={asset.style}
+              animate={
+                typeof asset.animate === "function"
+                  ? asset.animate(inView)
+                  : asset.animate
+              }
+              transition={asset.transition}
+              className={cn(asset.className, "")}
+            >
+              <img
+                src={asset.src}
+                alt=""
+                style={{ objectFit: "cover" }}
+                className={asset.imgClassName}
+              />
+            </motion.div>
+          ))}
         </>
       )}
       {/* <Separator className="w-full h-2 bg-transparent dark:bg-transparent mb-6 border-b border-neutral-600 mt-8" /> */}
-      <div className="w-full border-t border-neutral-400/80 z-50 flex items-center justify-center bg-[#3A0CA3] py-6">
+      <div className="w-full border-t border-white/10 z-50 flex items-center justify-center bg-[#3A0CA3] py-6">
         <div className="max-w-7xl w-full flex   flex-col md:flex-row items-center justify-center md:justify-between  rounded-3xl px-6">
           <span className="text-neutral-300  text-sm md:text-base text-left font-medium ">
             &copy; {new Date().getFullYear()} Rize. All rights reserved.
