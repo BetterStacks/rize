@@ -98,7 +98,7 @@ const Login = () => {
               className="size-6 mr-2"
             />
           )}
-          Sign in with Google
+          Sign in with LinkedIn
         </Button>
         {/* <Button
           disabled={!!isSocialLoading}
