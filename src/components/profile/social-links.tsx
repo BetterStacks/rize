@@ -10,27 +10,27 @@ import { Skeleton } from "../ui/skeleton";
 export const dummyLinks = [
   {
     platform: "reddit",
-    url: "https://github.com/Ashpara10",
+    url: "https://github.com/",
   },
   {
     platform: "twitter",
-    url: "https://twitter.com/Ashpara10",
+    url: "https://twitter.com/",
   },
   {
     platform: "linkedin",
-    url: "https://linkedin.com/in/Ashpara10",
+    url: "https://linkedin.com/in/",
   },
   {
     platform: "youtube",
-    url: "https://instagram.com/Ashpara10",
+    url: "https://instagram.com/",
   },
   {
     platform: "github",
-    url: "https://instagram.com/Ashpara10",
+    url: "https://instagram.com/",
   },
   {
     platform: "instagram",
-    url: "https://instagram.com/Ashpara10",
+    url: "https://instagram.com/",
   },
 ];
 
