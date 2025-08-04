@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Loader } from "lucide-react";
 
 type AuthProviderButtonProps = {
-  provider: "github" | "google";
+  provider: "github" | "google" | "linkedin";
   icon: string | React.ReactNode;
   className?: string;
   handleClick: () => void;

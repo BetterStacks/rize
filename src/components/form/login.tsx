@@ -25,7 +25,7 @@ type TLoginValues = z.infer<typeof LoginSchema>;
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSocialLoading, setIsSocialLoading] = useState<
-    "google" | "github" | null
+    "google" | "github" | "linkedin" | null
   >(null);
 
   const form = useForm<TLoginValues>({
@@ -36,7 +36,7 @@ const Login = () => {
     },
   });
 
-  const handleSocialSignIn = async (provider: "google" | "github") => {
+  const handleSocialSignIn = async (provider: "google" | "github" | "linkedin") => {
     try {
       setIsSocialLoading(provider);
       const data = await signIn(provider);
@@ -76,6 +76,25 @@ const Login = () => {
               height={25}
               src="/google.svg"
               alt="Google Logo"
+              className="size-6 mr-2"
+            />
+          )}
+          Sign in with Google
+        </Button>
+        <Button
+          variant={"outline"}
+          disabled={!!isSocialLoading}
+          onClick={() => handleSocialSignIn("linkedin")}
+          className="rounded-lg px-6"
+        >
+          {isSocialLoading === "linkedin" ? (
+            <Loader className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Image
+              width={25}
+              height={25}
+              src="/linkedin.svg"
+              alt="LinkedIn Logo"
               className="size-6 mr-2"
             />
           )}

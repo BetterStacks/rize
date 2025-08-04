@@ -26,7 +26,7 @@ const RegisterSchema = z.object({
 type TLoginValues = z.infer<typeof RegisterSchema>;
 const SignUp = () => {
   const [isSocialLoading, setIsSocialLoading] = useState<
-    "google" | "github" | null
+    "google" | "github" |  "linkedin" | null
   >(null);
   const form = useForm<TLoginValues>({
     resolver: zodResolver(RegisterSchema),
@@ -54,7 +54,7 @@ const SignUp = () => {
       toast.error(error?.message as string);
     },
   });
-  const handleSocialSignIn = async (provider: "google" | "github") => {
+  const handleSocialSignIn = async (provider: "google" | "github" | "linkedin") => {
     try {
       setIsSocialLoading(provider);
       await signIn(provider, {
@@ -96,6 +96,25 @@ const SignUp = () => {
             />
           )}
           Sign in with Google
+        </Button>
+        <Button
+          variant={"outline"}
+          disabled={!!isSocialLoading}
+          onClick={() => handleSocialSignIn("linkedin")}
+          className="rounded-lg px-6"
+        >
+          {isSocialLoading === "linkedin" ? (
+            <Loader className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Image
+              width={25}
+              height={25}
+              src="/linkedin.svg"
+              alt="LinkedIn Logo"
+              className="size-6 mr-2"
+            />
+          )}
+          Sign in with LinkedIn
         </Button>
       </div>
 

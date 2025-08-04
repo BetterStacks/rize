@@ -7,6 +7,7 @@ import NextAuth, { DefaultSession } from "next-auth";
 import { encode as defaultEncode } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import Github from "next-auth/providers/github";
+import LinkedInProvider from "next-auth/providers/linkedin";
 import Google from "next-auth/providers/google";
 import { v4 } from "uuid";
 import db from "./db";
@@ -166,6 +167,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         return exists;
       },
+    }),
+    LinkedInProvider({
+      clientId: process.env.LINKEDIN_CLIENT_ID,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET
     }),
   ],
   trustHost: true,
