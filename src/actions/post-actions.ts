@@ -386,7 +386,7 @@ export async function toggleBookmark(postId: string, bookmark: boolean) {
 
 export const getPostComments = async (id: string, sortBy: string) => {
   const { ...rest } = getTableColumns(comments);
-  let filters: SQL[] = [];
+  const filters: SQL[] = [];
 
   if (sortBy === "newest") {
     filters.push(desc(comments.createdAt));

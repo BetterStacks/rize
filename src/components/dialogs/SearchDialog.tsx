@@ -153,8 +153,8 @@ const SearchDialog = () => {
           <CommandSeparator className="mt-1" />
 
           <CommandGroup heading="Recently Joined" className="">
-            {data!?.length > 0 &&
-              data!
+            {data?.length > 0 &&
+              data
                 ?.filter((p) => p?.username !== session?.data?.user?.username)
                 ?.map((profile) => {
                   return (

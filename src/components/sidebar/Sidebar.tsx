@@ -79,7 +79,7 @@ const Sidebar = ({ className }: { className?: string }) => {
     >
       <div className="flex w-full flex-col mt-4 items-center justify-center gap-y-2 ">
         <div className="mb-6">
-          <Link href="/">
+          <Link href={session?.data?.user?.username ? `/${session.data.user.username}` : "/"}>
             <Image
               width={42}
               height={42}

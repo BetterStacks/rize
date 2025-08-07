@@ -12,9 +12,11 @@ import toast from "react-hot-toast";
 import { FinishStep } from "./steps/FinishStep";
 import { InterestsStep } from "./steps/Interests";
 import ProfileStep from "./steps/ProfileStep";
+import { ResumeStep } from "./steps/ResumeStep";
 import { UsernameStep } from "./steps/UsernameStep";
 import { WelcomeStep } from "./steps/WelcomeStep";
 import { bulkInsertSections } from "@/actions/general-actions";
+import { processResumeData } from "@/actions/resume-actions";
 
 export default function OnboardingFlow() {
   const router = useRouter();
@@ -26,6 +28,7 @@ export default function OnboardingFlow() {
       displayName: session?.data?.user?.name || "",
       profileImage: session?.data?.user?.image || "",
       interests: [],
+      resumeData: null,
     },
   });
 
@@ -74,7 +77,6 @@ export default function OnboardingFlow() {
         const resp = await updateProfile({
           profileImage: data.url,
           displayName: params?.displayName,
-          isOnboarded: true,
         });
         if (!resp?.success && resp.error) {
           toast.error(resp?.error as string);
@@ -89,10 +91,28 @@ export default function OnboardingFlow() {
   const onComplete = async () => {
     try {
       await bulkInsertSections();
+      
+      // Process resume data if available
+      if (formData?.resumeData) {
+        const result = await processResumeData(formData.resumeData);
+        if (result.success) {
+          toast.success(`Resume data imported: ${result.stats?.experience || 0} experiences, ${result.stats?.education || 0} education entries`);
+        } else {
+          toast.error("Failed to import resume data, but profile was created successfully");
+        }
+      }
+      
+      // Mark onboarding as completed
+      await updateProfile({
+        isOnboarded: true,
+      });
+      await session?.update();
+      
       router.push(`/${formData?.username}`);
       localStorage.removeItem("onboarding-data");
     } catch (error) {
       console.error("Failed to save profile:", error);
+      toast.error("Failed to complete onboarding");
     }
   };
 
@@ -138,6 +158,20 @@ export default function OnboardingFlow() {
           onNext={(interests: string[]) => {
             setFormData((prev) => ({ ...(prev as any), interests }));
             setCurrentStep(4);
+          }}
+        />
+      ),
+    },
+    {
+      id: "resume",
+      component: (
+        <ResumeStep
+          formData={formData}
+          onNext={(resumeData?: any) => {
+            if (resumeData) {
+              setFormData((prev) => ({ ...(prev as any), resumeData }));
+            }
+            setCurrentStep(5);
           }}
         />
       ),

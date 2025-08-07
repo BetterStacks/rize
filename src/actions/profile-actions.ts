@@ -40,16 +40,22 @@ export async function updateProfile(data: z.infer<typeof profileSchema>) {
 
   const userUpdates = { email, isOnboarded };
   const profileUpdates = profileData;
+  
+  // Update users table if there are user-related updates
   if (userUpdates?.email || userUpdates?.isOnboarded) {
     await db
       .update(users)
       .set(userUpdates)
       .where(eq(users.id, session?.user?.id));
   }
-  await db
-    .update(profile)
-    .set(profileUpdates)
-    .where(eq(profile.id, session?.user?.profileId));
+  
+  // Only update profile table if there are profile-related updates
+  if (Object.keys(profileUpdates).length > 0) {
+    await db
+      .update(profile)
+      .set(profileUpdates)
+      .where(eq(profile.id, session?.user?.profileId));
+  }
 
   return { success: true, error: null };
 }
@@ -96,6 +102,30 @@ export const createProfile = async (username: string) => {
   if (!session) {
     throw new Error("Session not found");
   }
+
+  // Check if user already has a profile
+  const existingProfile = await db
+    .select()
+    .from(profile)
+    .where(eq(profile.userId, session.user.id))
+    .limit(1);
+
+  if (existingProfile.length > 0) {
+    // User already has a profile, update the username instead of creating new
+    const updatedProfile = await db
+      .update(profile)
+      .set({ username })
+      .where(eq(profile.userId, session.user.id))
+      .returning();
+    
+    if (updatedProfile.length === 0) {
+      throw new Error("Error updating profile");
+    }
+    
+    return updatedProfile[0];
+  }
+
+  // Create new profile if none exists
   const p = await db
     .insert(profile)
     .values({
@@ -111,14 +141,26 @@ export const createProfile = async (username: string) => {
 };
 
 export const isUsernameAvailable = async (username: string) => {
-  // try {
+  const session = await auth();
+  
   const [user] = await db
     .select()
     .from(profile)
     .where(eq(profile.username, username))
     .limit(1);
 
-  return { available: !user };
+  // If no user found with this username, it's available
+  if (!user) {
+    return { available: true };
+  }
+
+  // If current user owns this username, it's available for them to keep
+  if (session?.user?.profileId && user.id === session.user.profileId) {
+    return { available: true };
+  }
+
+  // Username is taken by someone else
+  return { available: false };
 };
 
 export const searchProfiles = async (query: string) => {
