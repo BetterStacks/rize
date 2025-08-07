@@ -221,5 +221,3 @@ export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
     </div>
   );
 }
-
-export { ResumeStep };
