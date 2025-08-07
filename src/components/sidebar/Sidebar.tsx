@@ -101,13 +101,14 @@ const Sidebar = ({ className }: { className?: string }) => {
       <div className="mb-8 flex flex-col gap-y-4">
         <Button
           variant={"ghost"}
-          className="rounded-full size-10"
+          className="rounded-full size-10 group relative"
           size={"icon"}
           onClick={() => {
             setIsSearchDialogOpen(true);
           }}
+          title="Search (⌘K)"
         >
-          <Search strokeWidth={1.4} className="size-5 opacity-80" />
+          <Search strokeWidth={1.4} className="size-5 opacity-80 group-hover:opacity-100 transition-opacity" />
         </Button>
         <Button
           variant={"ghost"}
