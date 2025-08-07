@@ -1,7 +1,7 @@
 import { searchProfiles } from "@/actions/profile-actions";
 import db from "@/lib/db";
 import { posts, projects, profile } from "@/db/schema";
-import { ilike, or, and, eq } from "drizzle-orm";
+import { ilike, or, and, eq, isNotNull, desc } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -37,11 +37,11 @@ export async function GET(request: Request) {
         .where(
           and(
             ilike(posts.content, `%${query}%`),
-            posts.content // Only posts with content
+            isNotNull(posts.content)
           )
         )
         .limit(10)
-        .orderBy(posts.createdAt);
+        .orderBy(desc(posts.createdAt));
 
       results.posts = postResults;
     }
