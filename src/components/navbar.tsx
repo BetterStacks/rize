@@ -6,12 +6,29 @@ import { FC } from "react";
 import { useProfileDialog } from "./dialog-provider";
 import Menu from "./menu";
 import { Button } from "./ui/button";
+import { ShareCard } from "./profile/ShareCard";
 
 type NavbarProps = {
   isMine: boolean;
+  profile?: {
+    displayName: string;
+    username: string;
+    bio: string;
+    profileImage: string;
+    location?: string;
+    experience?: Array<{
+      title: string;
+      company: string;
+      currentlyWorking: boolean;
+    }>;
+    projects?: Array<{
+      name: string;
+      description: string;
+    }>;
+  };
 };
 
-const Navbar: FC<NavbarProps> = ({ isMine }) => {
+const Navbar: FC<NavbarProps> = ({ isMine, profile }) => {
   const setOpen = useProfileDialog()[1];
   const setSidebarOpen = useRightSidebar()[1];
   const isDesktop = useMediaQuery("(min-width: 1024px)");
@@ -54,6 +71,8 @@ const Navbar: FC<NavbarProps> = ({ isMine }) => {
             )}
           </Button> */}
 
+          {profile && <ShareCard profile={profile} />}
+          
           {isMine && (
             <>
               <Button

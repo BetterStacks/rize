@@ -101,17 +101,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       return session;
     },
-    // signIn: async (payload) => {
-    //   const { user, account } = payload;
-    //   const provider = account?.provider;
-    //   console.log(payload);
-    //   // if (provider === "google" && user?.id) {
-    //   //   // const userProfile = await getProfileByUserId(user.id);
-    //   //   // console.log({ userProfile });
-    //   // }
+    signIn: async (payload) => {
+      const { user, account } = payload;
+      const provider = account?.provider;
+      
+      // Auto-import profile data on first sign-in from GitHub/LinkedIn
+      if ((provider === "github" || provider === "linkedin") && account?.access_token && user?.id) {
+        try {
+          // Check if user already has a profile
+          const existingProfile = await db
+            .select()
+            .from(profile)
+            .where(eq(profile.userId, user.id))
+            .limit(1);
 
-    //   return true;
-    // },
+          // Only import if no profile exists (first time sign-in)
+          if (existingProfile.length === 0) {
+            // Import will be handled by a background job or client-side after sign-in
+            console.log(`New user signed up with ${provider}, profile import available`);
+          }
+        } catch (error) {
+          console.error("Error checking profile during sign-in:", error);
+        }
+      }
+
+      return true;
+    },
   },
   jwt: {
     encode: async function (params) {
@@ -170,7 +185,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
     LinkedInProvider({
       clientId: process.env.LINKEDIN_CLIENT_ID,
-      clientSecret: process.env.LINKEDIN_CLIENT_SECRET
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+      authorization: {
+        params: {
+          scope: "openid profile email"
+        }
+      }
     }),
   ],
   trustHost: true,

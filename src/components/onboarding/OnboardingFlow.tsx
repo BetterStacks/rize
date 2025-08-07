@@ -11,6 +11,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { FinishStep } from "./steps/FinishStep";
 import { InterestsStep } from "./steps/Interests";
+import { ImportStep } from "./steps/ImportStep";
 import ProfileStep from "./steps/ProfileStep";
 import { ResumeStep } from "./steps/ResumeStep";
 import { UsernameStep } from "./steps/UsernameStep";
@@ -151,13 +152,26 @@ export default function OnboardingFlow() {
     },
 
     {
+      id: "import",
+      component: (
+        <ImportStep
+          onNext={(importedData?: any) => {
+            if (importedData) {
+              setFormData((prev) => ({ ...(prev as any), importedData }));
+            }
+            setCurrentStep(4);
+          }}
+        />
+      ),
+    },
+    {
       id: "interests",
       component: (
         <InterestsStep
           formData={formData}
           onNext={(interests: string[]) => {
             setFormData((prev) => ({ ...(prev as any), interests }));
-            setCurrentStep(4);
+            setCurrentStep(6);
           }}
         />
       ),
@@ -171,7 +185,7 @@ export default function OnboardingFlow() {
             if (resumeData) {
               setFormData((prev) => ({ ...(prev as any), resumeData }));
             }
-            setCurrentStep(5);
+            setCurrentStep(7);
           }}
         />
       ),
