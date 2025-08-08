@@ -94,7 +94,7 @@ export async function parseResumeContent(file: File): Promise<ExtractedData> {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch('https://f6ce77c4aa04.ngrok-free.app/api/resume/parse?format=generic', {
+    const response = await fetch('https://letraz.app/api/resume/parse?format=generic', {
       method: 'POST',
       headers: {
         'x-authentication': 'dcNI1g9QUK1jCkK5Mag6QMEVnvi3l1xc',
