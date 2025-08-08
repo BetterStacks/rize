@@ -1,7 +1,7 @@
-import { Resend } from 'resend';
+import { Resend } from 'resend'
 
 // Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export interface EmailJobData {
   to: string;
@@ -26,15 +26,15 @@ export interface EmailJobOptions {
 }
 
 export class EmailService {
-  private static instance: EmailService;
+  private static instance: EmailService
   
   private constructor() {}
   
   public static getInstance(): EmailService {
     if (!EmailService.instance) {
-      EmailService.instance = new EmailService();
+      EmailService.instance = new EmailService()
     }
-    return EmailService.instance;
+    return EmailService.instance
   }
 
   /**
@@ -42,8 +42,8 @@ export class EmailService {
    */
   async sendWelcomeEmail(userData: EmailJobData['userData']): Promise<boolean> {
     try {
-      const { generateWelcomeEmail } = await import('./email-templates');
-      const emailContent = generateWelcomeEmail(userData);
+      const { generateWelcomeEmail } = await import('./email-templates')
+      const emailContent = generateWelcomeEmail(userData)
 
       const { error } = await resend.emails.send({
         from: 'Rize Team <onboarding@rize.co>',
@@ -55,23 +55,23 @@ export class EmailService {
           { name: 'category', value: 'onboarding' },
           { name: 'template', value: 'welcome' }
         ]
-      });
+      })
 
       if (error) {
-        console.error('Failed to send welcome email:', error);
-        return false;
+        console.error('Failed to send welcome email:', error)
+        return false
       }
 
       // Track email sent
-      await this.trackEmailSent(userData.email, 'welcome');
+      await this.trackEmailSent(userData.email, 'welcome')
       
       // Schedule follow-up email for 3 days later
-      await this.scheduleFollowUpEmail(userData, 3 * 24 * 60 * 60 * 1000); // 3 days in ms
+      await this.scheduleFollowUpEmail(userData, 3 * 24 * 60 * 60 * 1000) // 3 days in ms
       
-      return true;
+      return true
     } catch (error) {
-      console.error('Error sending welcome email:', error);
-      return false;
+      console.error('Error sending welcome email:', error)
+      return false
     }
   }
 
@@ -81,8 +81,8 @@ export class EmailService {
   async scheduleFollowUpEmail(userData: EmailJobData['userData'], delayMs: number): Promise<void> {
     // Using a simple setTimeout for now - in production, use a proper job queue like Bull/BullMQ
     setTimeout(async () => {
-      await this.sendFollowUpEmail(userData);
-    }, delayMs);
+      await this.sendFollowUpEmail(userData)
+    }, delayMs)
     
     // For production, you'd add to a job queue:
     // await emailQueue.add('sendFollowUpEmail', { userData }, { delay: delayMs });
@@ -94,13 +94,13 @@ export class EmailService {
   async sendFollowUpEmail(userData: EmailJobData['userData']): Promise<boolean> {
     try {
       // Calculate profile completion percentage
-      const completionPercentage = await this.calculateProfileCompletion(userData.username);
+      const completionPercentage = await this.calculateProfileCompletion(userData.username)
       
-      const { generateFollowUpEmail } = await import('./email-templates');
+      const { generateFollowUpEmail } = await import('./email-templates')
       const emailContent = generateFollowUpEmail({
         ...userData,
         completionPercentage
-      });
+      })
 
       const { error } = await resend.emails.send({
         from: 'Rize Team <team@rize.co>',
@@ -112,20 +112,20 @@ export class EmailService {
           { name: 'category', value: 'onboarding' },
           { name: 'template', value: 'followUp' }
         ]
-      });
+      })
 
       if (error) {
-        console.error('Failed to send follow-up email:', error);
-        return false;
+        console.error('Failed to send follow-up email:', error)
+        return false
       }
 
       // Track email sent
-      await this.trackEmailSent(userData.email, 'followUp');
+      await this.trackEmailSent(userData.email, 'followUp')
       
-      return true;
+      return true
     } catch (error) {
-      console.error('Error sending follow-up email:', error);
-      return false;
+      console.error('Error sending follow-up email:', error)
+      return false
     }
   }
 
@@ -133,37 +133,37 @@ export class EmailService {
    * Calculate profile completion percentage based on filled sections
    */
   private async calculateProfileCompletion(username?: string): Promise<number> {
-    if (!username) return 0;
+    if (!username) return 0
 
     try {
       // Import profile action to get user data
-      const { getProfileByUsername } = await import('@/actions/profile-actions');
-      const { getGalleryItems } = await import('@/actions/gallery-actions');
-      const { getAllProjects } = await import('@/actions/project-actions');
+      const { getProfileByUsername } = await import('@/actions/profile-actions')
+      const { getGalleryItems } = await import('@/actions/gallery-actions')
+      const { getAllProjects } = await import('@/actions/project-actions')
       
-      const profile = await getProfileByUsername(username);
-      if (!profile) return 0;
+      const profile = await getProfileByUsername(username)
+      if (!profile) return 0
 
       const [gallery, projects] = await Promise.all([
         getGalleryItems(username),
         getAllProjects(username)
-      ]);
+      ])
 
-      let completedSections = 0;
-      const totalSections = 6; // profileImage, bio, gallery, projects, socialLinks, displayName
+      let completedSections = 0
+      const totalSections = 6 // profileImage, bio, gallery, projects, socialLinks, displayName
 
       // Check each section
-      if (profile.profileImage) completedSections++;
-      if (profile.bio && profile.bio.length > 20) completedSections++;
-      if (profile.displayName) completedSections++;
-      if (gallery && gallery.length > 0) completedSections++;
-      if (projects && projects.length > 0) completedSections++;
-      if (profile.socialLinks && profile.socialLinks.length > 0) completedSections++;
+      if (profile.profileImage) completedSections++
+      if (profile.bio && profile.bio.length > 20) completedSections++
+      if (profile.displayName) completedSections++
+      if (gallery && gallery.length > 0) completedSections++
+      if (projects && projects.length > 0) completedSections++
+      if (profile.socialLinks && profile.socialLinks.length > 0) completedSections++
 
-      return Math.round((completedSections / totalSections) * 100);
+      return Math.round((completedSections / totalSections) * 100)
     } catch (error) {
-      console.error('Error calculating profile completion:', error);
-      return 0;
+      console.error('Error calculating profile completion:', error)
+      return 0
     }
   }
 
@@ -174,7 +174,7 @@ export class EmailService {
     try {
       // This would insert into an email_tracking table
       // For now, just log it
-      console.log(`Email tracked: ${template} sent to ${email}`);
+      console.log(`Email tracked: ${template} sent to ${email}`)
       
       // In production:
       // await db.insert(emailTracking).values({
@@ -184,7 +184,7 @@ export class EmailService {
       //   status: 'sent'
       // });
     } catch (error) {
-      console.error('Error tracking email:', error);
+      console.error('Error tracking email:', error)
     }
   }
 
@@ -195,7 +195,7 @@ export class EmailService {
     try {
       // Check unsubscribe status, rate limits, etc.
       // For now, always return true
-      return true;
+      return true
       
       // In production:
       // const recentEmails = await db.select()
@@ -208,11 +208,11 @@ export class EmailService {
       // 
       // return recentEmails.length === 0;
     } catch (error) {
-      console.error('Error checking email eligibility:', error);
-      return false;
+      console.error('Error checking email eligibility:', error)
+      return false
     }
   }
 }
 
 // Export singleton instance
-export const emailService = EmailService.getInstance();
+export const emailService = EmailService.getInstance()

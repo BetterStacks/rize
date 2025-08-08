@@ -1,27 +1,27 @@
-import Dialogs from "@/components/dialogs";
-import Providers from "@/lib/providers";
-import { cn } from "@/lib/utils";
-import type { Metadata } from "next";
-import { Instrument_Serif, Inter } from "next/font/google";
-import "./globals.css";
-import { Suspense } from "react";
+import Dialogs from '@/components/dialogs'
+import Providers from '@/lib/providers'
+import { cn } from '@/lib/utils'
+import type { Metadata } from 'next'
+import { Instrument_Serif, Inter } from 'next/font/google'
+import './globals.css'
+import { Suspense } from 'react'
 
 const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900", "100", "200", "300"],
-});
+  variable: '--font-inter',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900', '100', '200', '300'],
+})
 
 const instrument = Instrument_Serif({
-  variable: "--font-instrument",
-  subsets: ["latin"],
-  weight: ["400"],
-});
+  variable: '--font-instrument',
+  subsets: ['latin'],
+  weight: ['400'],
+})
 
 export const metadata: Metadata = {
-  title: "Rize",
-  description: "Own your digital identity",
-};
+  title: 'Rize',
+  description: 'Own your digital identity',
+}
 
 export default function RootLayout({
   children,
@@ -32,7 +32,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "bg-light-bg dark:bg-dark-bg antialiased font-inter",
+          'bg-light-bg dark:bg-dark-bg antialiased font-inter',
           inter?.variable,
           instrument?.variable
         )}
@@ -45,5 +45,5 @@ export default function RootLayout({
         </Providers>
       </body>
     </html>
-  );
+  )
 }

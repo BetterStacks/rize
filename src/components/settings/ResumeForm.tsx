@@ -1,97 +1,97 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { FileText, Upload, X, CheckCircle, AlertCircle, Download, RefreshCw, Trash2 } from "lucide-react";
-import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
-import toast from "react-hot-toast";
-import { getResumeProcessingStatus, processResumeData, clearResumeData } from "@/actions/resume-actions";
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
+import { FileText, Upload, X, CheckCircle, AlertCircle, Download, RefreshCw, Trash2 } from 'lucide-react'
+import { useState, useCallback } from 'react'
+import { useDropzone } from 'react-dropzone'
+import toast from 'react-hot-toast'
+import { getResumeProcessingStatus, processResumeData, clearResumeData } from '@/actions/resume-actions'
 
 export function ResumeForm() {
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'success' | 'error'>('idle');
-  const [extractedData, setExtractedData] = useState<any>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'success' | 'error'>('idle')
+  const [extractedData, setExtractedData] = useState<any>(null)
 
   // Query to get current resume status
   const { data: resumeStatus, refetch: refetchStatus } = useQuery({
     queryKey: ['resume-status'],
     queryFn: getResumeProcessingStatus,
-  });
+  })
 
   const { mutate: uploadResume, isPending: isUploading } = useMutation({
     mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', 'resume');
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', 'resume')
       
       const response = await fetch('/api/upload/resume', {
         method: 'POST',
         body: formData,
-      });
+      })
 
       if (!response.ok) {
-        throw new Error('Failed to upload resume');
+        throw new Error('Failed to upload resume')
       }
 
-      return response.json();
+      return response.json()
     },
     onSuccess: (data) => {
-      setExtractedData(data);
-      setUploadStatus('success');
-      toast.success('Resume processed successfully!');
+      setExtractedData(data)
+      setUploadStatus('success')
+      toast.success('Resume processed successfully!')
     },
     onError: (error) => {
-      setUploadStatus('error');
-      toast.error('Failed to process resume: ' + error.message);
+      setUploadStatus('error')
+      toast.error('Failed to process resume: ' + error.message)
     },
-  });
+  })
 
   const { mutate: processData, isPending: isProcessing } = useMutation({
     mutationFn: processResumeData,
     onSuccess: (result) => {
       if (result.success) {
-        toast.success(`Resume data imported: ${result.stats?.experience || 0} experiences, ${result.stats?.education || 0} education entries`);
-        setUploadedFile(null);
-        setUploadStatus('idle');
-        setExtractedData(null);
-        refetchStatus();
+        toast.success(`Resume data imported: ${result.stats?.experience || 0} experiences, ${result.stats?.education || 0} education entries`)
+        setUploadedFile(null)
+        setUploadStatus('idle')
+        setExtractedData(null)
+        refetchStatus()
       } else {
-        toast.error('Failed to import resume data');
+        toast.error('Failed to import resume data')
       }
     },
     onError: (error) => {
-      toast.error('Failed to process resume data');
+      toast.error('Failed to process resume data')
     },
-  });
+  })
 
   const { mutate: clearData, isPending: isClearing } = useMutation({
     mutationFn: clearResumeData,
     onSuccess: (result) => {
       if (result.success) {
-        toast.success('Resume data cleared successfully');
-        refetchStatus();
+        toast.success('Resume data cleared successfully')
+        refetchStatus()
       } else {
-        toast.error('Failed to clear resume data');
+        toast.error('Failed to clear resume data')
       }
     },
     onError: (error) => {
-      toast.error('Failed to clear resume data');
+      toast.error('Failed to clear resume data')
     },
-  });
+  })
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
+    const file = acceptedFiles[0]
     if (file) {
-      setUploadedFile(file);
-      setUploadStatus('uploading');
-      uploadResume(file);
+      setUploadedFile(file)
+      setUploadStatus('uploading')
+      uploadResume(file)
     }
-  }, [uploadResume]);
+  }, [uploadResume])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -102,19 +102,19 @@ export function ResumeForm() {
     },
     multiple: false,
     maxSize: 10 * 1024 * 1024, // 10MB
-  });
+  })
 
   const removeFile = () => {
-    setUploadedFile(null);
-    setUploadStatus('idle');
-    setExtractedData(null);
-  };
+    setUploadedFile(null)
+    setUploadStatus('idle')
+    setExtractedData(null)
+  }
 
   const handleImportData = () => {
     if (extractedData) {
-      processData(extractedData);
+      processData(extractedData)
     }
-  };
+  }
 
   const getStatusIcon = () => {
     switch (uploadStatus) {
@@ -122,32 +122,32 @@ export function ResumeForm() {
       case 'processing':
         return <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"
-        />;
+        />
       case 'success':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return <CheckCircle className="w-5 h-5 text-green-500" />
       case 'error':
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
+        return <AlertCircle className="w-5 h-5 text-red-500" />
       default:
-        return <FileText className="w-5 h-5" />;
+        return <FileText className="w-5 h-5" />
     }
-  };
+  }
 
   const getStatusText = () => {
     switch (uploadStatus) {
       case 'uploading':
-        return 'Uploading...';
+        return 'Uploading...'
       case 'processing':
-        return 'Processing resume...';
+        return 'Processing resume...'
       case 'success':
-        return 'Resume processed successfully';
+        return 'Resume processed successfully'
       case 'error':
-        return 'Failed to process resume';
+        return 'Failed to process resume'
       default:
-        return '';
+        return ''
     }
-  };
+  }
 
   return (
     <Card>
@@ -213,8 +213,8 @@ export function ResumeForm() {
             <Card
               {...getRootProps()}
               className={cn(
-                "border-2 border-dashed transition-all duration-200 cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600",
-                isDragActive && "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
+                'border-2 border-dashed transition-all duration-200 cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600',
+                isDragActive && 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
               )}
             >
               <input {...getInputProps()} />
@@ -223,7 +223,7 @@ export function ResumeForm() {
                   <Upload className="w-6 h-6 text-neutral-600 dark:text-neutral-400" />
                 </div>
                 <h3 className="font-medium mb-2">
-                  {isDragActive ? "Drop your resume here" : "Upload your resume"}
+                  {isDragActive ? 'Drop your resume here' : 'Upload your resume'}
                 </h3>
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">
                   Drag & drop or click to browse
@@ -339,5 +339,5 @@ export function ResumeForm() {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

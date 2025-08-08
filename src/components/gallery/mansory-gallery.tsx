@@ -1,13 +1,13 @@
-import { getGalleryItems } from "@/actions/gallery-actions";
-import { GalleryItemProps } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { useParams } from "next/navigation";
-import { FC } from "react";
-import { Skeleton } from "../ui/skeleton";
-import GalleryItem from "./gallery-item";
-import { Plus } from "lucide-react";
+import { getGalleryItems } from '@/actions/gallery-actions'
+import { GalleryItemProps } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { useQuery } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
+import { useParams } from 'next/navigation'
+import { FC } from 'react'
+import { Skeleton } from '../ui/skeleton'
+import GalleryItem from './gallery-item'
+import { Plus } from 'lucide-react'
 
 type GalleryProps = {
   isMine: boolean;
@@ -15,13 +15,13 @@ type GalleryProps = {
 };
 
 const MansoryGallery: FC<GalleryProps> = ({ isMine, items }) => {
-  const { username } = useParams<{ username: string }>();
+  const { username } = useParams<{ username: string }>()
 
   const { data, isLoading } = useQuery({
-    queryKey: ["get-gallery-items", username],
+    queryKey: ['get-gallery-items', username],
     initialData: items,
     queryFn: () => getGalleryItems(username!),
-  });
+  })
 
   return (
     <div className="w-full mt-6 md:hidden flex flex-col items-center justify-center">
@@ -50,28 +50,28 @@ const MansoryGallery: FC<GalleryProps> = ({ isMine, items }) => {
                 >
                   <GalleryItem index={i} isMine={isMine} item={item} />
                 </motion.div>
-              );
+              )
             })}
           </motion.div>
         )}
       </motion.div>
     </div>
-  );
-};
+  )
+}
 
 const GallerySkeleton = () => {
   return (
-    <div className={cn("w-full columns-2 md:columns-3 gap-2 relative", "")}>
+    <div className={cn('w-full columns-2 md:columns-3 gap-2 relative', '')}>
       {[...Array.from({ length: 4 })].map((_, i) => (
         <Skeleton
           key={i}
           className={cn(
-            " h-[250px] aspect-auto w-full bg-neutral-200 dark:bg-dark-border rounded-3xl cursor-grab  first:mt-0 mt-3 active:cursor-grabbing "
+            ' h-[250px] aspect-auto w-full bg-neutral-200 dark:bg-dark-border rounded-3xl cursor-grab  first:mt-0 mt-3 active:cursor-grabbing '
           )}
         />
       ))}
     </div>
-  );
-};
+  )
+}
 
-export default MansoryGallery;
+export default MansoryGallery

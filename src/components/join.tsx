@@ -1,19 +1,19 @@
-import { useMediaQuery } from "@mantine/hooks";
-import { motion } from "framer-motion";
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
-import { Button } from "./ui/button";
+import { useMediaQuery } from '@mantine/hooks'
+import { motion } from 'framer-motion'
+import Image from 'next/image'
+import { useEffect, useRef, useState } from 'react'
+import { Button } from './ui/button'
 
 const Join = () => {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState(0);
+  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const [height, setHeight] = useState(0)
   useEffect(() => {
     if (sectionRef?.current) {
-      console.log({ h: sectionRef?.current?.offsetHeight });
-      setHeight(sectionRef?.current?.offsetHeight);
+      console.log({ h: sectionRef?.current?.offsetHeight })
+      setHeight(sectionRef?.current?.offsetHeight)
     }
-  }, []);
+  }, [])
   return (
     <div style={{ height: `${height * 4}px` }} className="w-full ">
       <section
@@ -75,6 +75,7 @@ const Join = () => {
             >
               <img
                 src="https://i.pinimg.com/736x/d6/c5/80/d6c580c2371fdb09fded07bf026aedf2.jpg"
+                alt="Profile example"
                 className="aspect-square object-cover  size-60 max-w-sm  rounded-[2rem]"
               />
             </motion.div>
@@ -90,6 +91,7 @@ const Join = () => {
               <div className="flex flex-col items-center justify-center w-[200px] h-[240px] bg-purple-100/80 dark:bg-purple-950/80 backdrop-blur-md border border-purple-200 dark:border-purple-800 rounded-[2rem] ">
                 <img
                   src="https://i.pinimg.com/736x/eb/da/ed/ebdaed1c261c9cb22e86481fbb08fa1e.jpg"
+                  alt="Solana Imani profile picture"
                   className="aspect-square object-cover  size-24 max-w-sm  rounded-full"
                 />
 
@@ -107,7 +109,7 @@ const Join = () => {
         </div>
       </section>
     </div>
-  );
-};
+  )
+}
 
-export default Join;
+export default Join

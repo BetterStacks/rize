@@ -21,14 +21,28 @@ export interface LetrazExperience {
   description: string;
 }
 
+export interface LetrazCertification {
+  name: string;
+  issuer: string;
+  date: string;
+  url?: string;
+}
+
+export interface LetrazProject {
+  name: string;
+  description: string;
+  url?: string;
+  technologies?: string[];
+}
+
 export interface LetrazApiResponse {
   data: {
     personalInfo: LetrazPersonalInfo;
     education: LetrazEducation[];
     experience: LetrazExperience[];
     skills: string[];
-    certifications: any[];
-    projects: any[];
+    certifications: LetrazCertification[];
+    projects: LetrazProject[];
   };
   format: string;
 }
@@ -77,34 +91,34 @@ export interface ExtractedData {
  */
 export async function parseResumeContent(file: File): Promise<ExtractedData> {
   try {
-    const formData = new FormData();
-    formData.append('file', file);
+    const formData = new FormData()
+    formData.append('file', file)
 
-    const response = await fetch('https://letraz.app/api/resume/parse?format=generic', {
+    const response = await fetch('https://f6ce77c4aa04.ngrok-free.app/api/resume/parse?format=generic', {
       method: 'POST',
       headers: {
         'x-authentication': 'dcNI1g9QUK1jCkK5Mag6QMEVnvi3l1xc',
       },
       body: formData,
-    });
+    })
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`)
     }
 
-    const apiResponse: LetrazApiResponse = await response.json();
+    const apiResponse: LetrazApiResponse = await response.json()
     
     // Convert Letraz API response to our internal format
-    return convertLetrazToExtractedData(apiResponse);
+    return convertLetrazToExtractedData(apiResponse)
   } catch (error) {
-    console.error('Error parsing resume with Letraz API:', error);
+    console.error('Error parsing resume with Letraz API:', error)
     // Return empty data structure if parsing fails
     return {
       experience: [],
       education: [],
       skills: [],
       projects: [],
-    };
+    }
   }
 }
 
@@ -112,7 +126,7 @@ export async function parseResumeContent(file: File): Promise<ExtractedData> {
  * Convert Letraz API response to our internal ExtractedData format
  */
 function convertLetrazToExtractedData(apiResponse: LetrazApiResponse): ExtractedData {
-  const { data } = apiResponse;
+  const { data } = apiResponse
 
   console.log(data)
   
@@ -123,7 +137,7 @@ function convertLetrazToExtractedData(apiResponse: LetrazApiResponse): Extracted
     startDate: exp.startDate,
     description: exp.description,
     currentlyWorking: isCurrentPosition(exp.startDate),
-  }));
+  }))
 
   // Convert education
   const education: ExtractedEducation[] = data.education.map(edu => ({
@@ -131,14 +145,14 @@ function convertLetrazToExtractedData(apiResponse: LetrazApiResponse): Extracted
     degree: edu.degree,
     fieldOfStudy: edu.field,
     startDate: edu.startDate,
-  }));
+  }))
 
   // Convert projects (if any in the future)
   const projects: ExtractedProject[] = data.projects.map(proj => ({
     name: proj.name || '',
     description: proj.description || '',
     url: proj.url,
-  }));
+  }))
 
   return {
     experience,
@@ -150,7 +164,7 @@ function convertLetrazToExtractedData(apiResponse: LetrazApiResponse): Extracted
     phone: data.personalInfo?.phone,
     location: data.personalInfo?.location,
     summary: data.personalInfo?.summary,
-  };
+  }
 }
 
 /**
@@ -159,5 +173,5 @@ function convertLetrazToExtractedData(apiResponse: LetrazApiResponse): Extracted
 function isCurrentPosition(startDate: string): boolean {
   // Simple heuristic: if no end date mentioned and start date is recent, assume current
   // This could be enhanced with more sophisticated logic
-  return false; // Default to false, could be enhanced based on business logic
+  return false // Default to false, could be enhanced based on business logic
 }

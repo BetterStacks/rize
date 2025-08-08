@@ -1,16 +1,16 @@
-"use client";
-import { getAllExperience } from "@/actions/experience-actions";
-import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
-import { TExperience } from "@/lib/types";
-import { useMediaQuery } from "@mantine/hooks";
-import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { BriefcaseBusiness, Plus } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import { Button } from "../ui/button";
-import { Skeleton } from "../ui/skeleton";
-import ExperienceCard from "./experience-card";
+'use client'
+import { getAllExperience } from '@/actions/experience-actions'
+import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
+import { TExperience } from '@/lib/types'
+import { useMediaQuery } from '@mantine/hooks'
+import { useQuery } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
+import { BriefcaseBusiness, Plus } from 'lucide-react'
+import { useParams } from 'next/navigation'
+import { useState } from 'react'
+import { Button } from '../ui/button'
+import { Skeleton } from '../ui/skeleton'
+import ExperienceCard from './experience-card'
 
 type WorkExperienceProps = {
   isMine: boolean;
@@ -18,19 +18,19 @@ type WorkExperienceProps = {
 };
 
 const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
-  const { username } = useParams<{ username: string }>();
-  const setOpen = useRightSidebar()[1];
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const { username } = useParams<{ username: string }>()
+  const setOpen = useRightSidebar()[1]
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
 
   const { data, isFetching } = useQuery({
-    queryKey: ["get-all-experience", username],
+    queryKey: ['get-all-experience', username],
     initialData: workExperience,
     queryFn: () => getAllExperience(username),
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-  });
+  })
 
-  const setActiveTab = useActiveSidebarTab()[1];
+  const setActiveTab = useActiveSidebarTab()[1]
 
   return (
     <div
@@ -41,13 +41,13 @@ const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
         <h2 className="text-lg md:text-xl font-medium">Work Experience</h2>
         {isMine && (
           <Button
-            variant={"outline"}
+            variant={'outline'}
             className="  rounded-lg scale-90 text-sm"
-            size={"sm"}
+            size={'sm'}
             onClick={() => {
-              setActiveTab({ id: null, tab: "experience" });
+              setActiveTab({ id: null, tab: 'experience' })
               if (!isDesktop) {
-                setOpen(true);
+                setOpen(true)
               }
             }}
           >
@@ -67,9 +67,9 @@ const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
         ) : data?.length === 0 ? (
           <EmptyWritingState
             onCreateNew={() => {
-              setActiveTab({ id: null, tab: "experience" });
+              setActiveTab({ id: null, tab: 'experience' })
               if (!isDesktop) {
-                setOpen(true);
+                setOpen(true)
               }
             }}
           />
@@ -77,13 +77,13 @@ const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
           data?.map((experience, i) => {
             return (
               <ExperienceCard key={i} experience={experience} isMine={isMine} />
-            );
+            )
           })
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 interface EmptyWorkExperienceStateProps {
   title?: string;
@@ -93,12 +93,12 @@ interface EmptyWorkExperienceStateProps {
 }
 
 export function EmptyWritingState({
-  title = "Share your Work Experience ",
-  description = "Your ideas deserve to be shared. Create your first piece and let your words flow.",
-  ctaText = "Add Experience",
+  title = 'Share your Work Experience ',
+  description = 'Your ideas deserve to be shared. Create your first piece and let your words flow.',
+  ctaText = 'Add Experience',
   onCreateNew = () => {},
 }: EmptyWorkExperienceStateProps) {
-  const [isHovering, setIsHovering] = useState(false);
+  const [isHovering, setIsHovering] = useState(false)
 
   return (
     <div className="flex h-full min-h-[400px] border-2 border-neutral-300/60 dark:border-dark-border/80 rounded-3xl border-dashed w-full items-center justify-center">
@@ -111,7 +111,7 @@ export function EmptyWritingState({
         <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/20 dark:to-indigo-900/20">
           <motion.div
             animate={{ rotate: isHovering ? 15 : 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
           >
             <div className="relative">
               <BriefcaseBusiness
@@ -137,7 +137,7 @@ export function EmptyWritingState({
         </Button>
       </motion.div>
     </div>
-  );
+  )
 }
 
-export default WorkExperience;
+export default WorkExperience

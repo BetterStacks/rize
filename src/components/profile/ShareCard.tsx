@@ -1,14 +1,14 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 import { 
   Dialog, 
   DialogContent, 
   DialogDescription, 
   DialogHeader, 
   DialogTitle 
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog'
 import { 
   Share2, 
   Download, 
@@ -19,10 +19,10 @@ import {
   CheckCircle,
   Palette,
   Sparkles
-} from "lucide-react";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
-import toast from "react-hot-toast";
+} from 'lucide-react'
+import Image from 'next/image'
+import { cn } from '@/lib/utils'
+import toast from 'react-hot-toast'
 
 interface ShareCardProps {
   profile: {
@@ -45,45 +45,45 @@ interface ShareCardProps {
 
 const CARD_THEMES = {
   gradient: {
-    name: "Gradient",
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    textColor: "white",
+    name: 'Gradient',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    textColor: 'white',
   },
   minimal: {
-    name: "Minimal",
-    background: "#ffffff",
-    textColor: "#1f2937",
-    border: "1px solid #e5e7eb"
+    name: 'Minimal',
+    background: '#ffffff',
+    textColor: '#1f2937',
+    border: '1px solid #e5e7eb'
   },
   dark: {
-    name: "Dark",
-    background: "#1f2937",
-    textColor: "#f9fafb",
+    name: 'Dark',
+    background: '#1f2937',
+    textColor: '#f9fafb',
   },
   purple: {
-    name: "Purple",
-    background: "linear-gradient(135deg, #a855f7 0%, #3b82f6 100%)",
-    textColor: "white",
+    name: 'Purple',
+    background: 'linear-gradient(135deg, #a855f7 0%, #3b82f6 100%)',
+    textColor: 'white',
   },
   green: {
-    name: "Green",
-    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-    textColor: "white",
+    name: 'Green',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    textColor: 'white',
   }
-};
+}
 
 export function ShareCard({ profile }: ShareCardProps) {
-  const [open, setOpen] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState<keyof typeof CARD_THEMES>('gradient');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(false)
+  const [selectedTheme, setSelectedTheme] = useState<keyof typeof CARD_THEMES>('gradient')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [copied, setCopied] = useState(false)
 
-  const currentJob = profile.experience?.find(exp => exp.currentlyWorking);
-  const topProject = profile.projects?.[0];
-  const profileUrl = `${window.location.origin}/${profile.username}`;
+  const currentJob = profile.experience?.find(exp => exp.currentlyWorking)
+  const topProject = profile.projects?.[0]
+  const profileUrl = `${window.location.origin}/${profile.username}`
 
   const generateCard = async (format: 'png' | 'jpg' = 'png') => {
-    setIsGenerating(true);
+    setIsGenerating(true)
     try {
       // Create the card HTML
       const cardHtml = `
@@ -175,128 +175,128 @@ export function ShareCard({ profile }: ShareCardProps) {
             rize.so/${profile.username}
           </div>
         </div>
-      `;
+      `
 
       // Use html-to-image library or canvas API to convert to image
       // For now, we'll use a simpler approach with canvas
-      const canvas = document.createElement('canvas');
-      canvas.width = 800;
-      canvas.height = 600;
-      const ctx = canvas.getContext('2d');
+      const canvas = document.createElement('canvas')
+      canvas.width = 800
+      canvas.height = 600
+      const ctx = canvas.getContext('2d')
       
-      if (!ctx) throw new Error('Could not get canvas context');
+      if (!ctx) throw new Error('Could not get canvas context')
 
       // Draw background
       if (selectedTheme === 'gradient' || selectedTheme === 'purple' || selectedTheme === 'green') {
-        const gradient = ctx.createLinearGradient(0, 0, 800, 600);
+        const gradient = ctx.createLinearGradient(0, 0, 800, 600)
         if (selectedTheme === 'gradient') {
-          gradient.addColorStop(0, '#667eea');
-          gradient.addColorStop(1, '#764ba2');
+          gradient.addColorStop(0, '#667eea')
+          gradient.addColorStop(1, '#764ba2')
         } else if (selectedTheme === 'purple') {
-          gradient.addColorStop(0, '#a855f7');
-          gradient.addColorStop(1, '#3b82f6');
+          gradient.addColorStop(0, '#a855f7')
+          gradient.addColorStop(1, '#3b82f6')
         } else {
-          gradient.addColorStop(0, '#10b981');
-          gradient.addColorStop(1, '#059669');
+          gradient.addColorStop(0, '#10b981')
+          gradient.addColorStop(1, '#059669')
         }
-        ctx.fillStyle = gradient;
+        ctx.fillStyle = gradient
       } else {
-        ctx.fillStyle = CARD_THEMES[selectedTheme].background;
+        ctx.fillStyle = CARD_THEMES[selectedTheme].background
       }
-      ctx.fillRect(0, 0, 800, 600);
+      ctx.fillRect(0, 0, 800, 600)
 
       // Set text color
-      ctx.fillStyle = CARD_THEMES[selectedTheme].textColor;
-      ctx.textAlign = 'center';
+      ctx.fillStyle = CARD_THEMES[selectedTheme].textColor
+      ctx.textAlign = 'center'
 
       // Draw profile image (simplified - using a circle)
-      ctx.beginPath();
-      ctx.arc(400, 180, 60, 0, 2 * Math.PI);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-      ctx.fill();
+      ctx.beginPath()
+      ctx.arc(400, 180, 60, 0, 2 * Math.PI)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'
+      ctx.fill()
 
       // Draw name
-      ctx.font = 'bold 42px Inter, sans-serif';
-      ctx.fillStyle = CARD_THEMES[selectedTheme].textColor;
-      ctx.fillText(profile.displayName, 400, 280);
+      ctx.font = 'bold 42px Inter, sans-serif'
+      ctx.fillStyle = CARD_THEMES[selectedTheme].textColor
+      ctx.fillText(profile.displayName, 400, 280)
 
       // Draw username
-      ctx.font = '20px Inter, sans-serif';
-      ctx.globalAlpha = 0.9;
-      ctx.fillText(`@${profile.username}`, 400, 310);
+      ctx.font = '20px Inter, sans-serif'
+      ctx.globalAlpha = 0.9
+      ctx.fillText(`@${profile.username}`, 400, 310)
 
       // Draw job title
       if (currentJob) {
-        ctx.font = 'bold 24px Inter, sans-serif';
-        ctx.globalAlpha = 0.95;
-        ctx.fillText(`${currentJob.title} at ${currentJob.company}`, 400, 350);
+        ctx.font = 'bold 24px Inter, sans-serif'
+        ctx.globalAlpha = 0.95
+        ctx.fillText(`${currentJob.title} at ${currentJob.company}`, 400, 350)
       }
 
       // Draw bio (simplified)
-      ctx.font = '18px Inter, sans-serif';
-      ctx.globalAlpha = 0.9;
-      const bioY = currentJob ? 390 : 350;
-      const bioText = profile.bio.length > 80 ? profile.bio.substring(0, 80) + '...' : profile.bio;
-      ctx.fillText(bioText, 400, bioY);
+      ctx.font = '18px Inter, sans-serif'
+      ctx.globalAlpha = 0.9
+      const bioY = currentJob ? 390 : 350
+      const bioText = profile.bio.length > 80 ? profile.bio.substring(0, 80) + '...' : profile.bio
+      ctx.fillText(bioText, 400, bioY)
 
       // Draw location
       if (profile.location) {
-        ctx.font = '16px Inter, sans-serif';
-        ctx.globalAlpha = 0.8;
-        ctx.fillText(`📍 ${profile.location}`, 400, bioY + 40);
+        ctx.font = '16px Inter, sans-serif'
+        ctx.globalAlpha = 0.8
+        ctx.fillText(`📍 ${profile.location}`, 400, bioY + 40)
       }
 
       // Draw URL
-      ctx.font = '16px Inter, sans-serif';
-      ctx.globalAlpha = 0.7;
-      ctx.textAlign = 'right';
-      ctx.fillText(`rize.so/${profile.username}`, 740, 540);
+      ctx.font = '16px Inter, sans-serif'
+      ctx.globalAlpha = 0.7
+      ctx.textAlign = 'right'
+      ctx.fillText(`rize.so/${profile.username}`, 740, 540)
 
       // Convert to blob and download
       canvas.toBlob((blob) => {
         if (blob) {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${profile.username}-profile-card.${format}`;
-          a.click();
-          URL.revokeObjectURL(url);
-          toast.success('Profile card downloaded! 🎉');
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `${profile.username}-profile-card.${format}`
+          a.click()
+          URL.revokeObjectURL(url)
+          toast.success('Profile card downloaded! 🎉')
         }
-      }, `image/${format}`);
+      }, `image/${format}`)
 
     } catch (error) {
-      toast.error('Failed to generate profile card');
-      console.error('Card generation error:', error);
+      toast.error('Failed to generate profile card')
+      console.error('Card generation error:', error)
     } finally {
-      setIsGenerating(false);
+      setIsGenerating(false)
     }
-  };
+  }
 
   const copyProfileUrl = async () => {
     try {
-      await navigator.clipboard.writeText(profileUrl);
-      setCopied(true);
-      toast.success('Profile URL copied!');
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(profileUrl)
+      setCopied(true)
+      toast.success('Profile URL copied!')
+      setTimeout(() => setCopied(false), 2000)
     } catch (error) {
-      toast.error('Failed to copy URL');
+      toast.error('Failed to copy URL')
     }
-  };
+  }
 
   const shareToSocial = (platform: 'twitter' | 'linkedin' | 'facebook') => {
-    const text = `Check out my profile: ${profile.displayName} - ${currentJob?.title || 'Creator'} ${currentJob?.company ? `at ${currentJob.company}` : ''}`;
-    const url = encodeURIComponent(profileUrl);
-    const encodedText = encodeURIComponent(text);
+    const text = `Check out my profile: ${profile.displayName} - ${currentJob?.title || 'Creator'} ${currentJob?.company ? `at ${currentJob.company}` : ''}`
+    const url = encodeURIComponent(profileUrl)
+    const encodedText = encodeURIComponent(text)
 
     const urls = {
       twitter: `https://twitter.com/intent/tweet?text=${encodedText}&url=${url}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`
-    };
+    }
 
-    window.open(urls[platform], '_blank', 'width=600,height=400');
-  };
+    window.open(urls[platform], '_blank', 'width=600,height=400')
+  }
 
   return (
     <>
@@ -381,10 +381,10 @@ export function ShareCard({ profile }: ShareCardProps) {
                       key={key}
                       onClick={() => setSelectedTheme(key as keyof typeof CARD_THEMES)}
                       className={cn(
-                        "p-3 rounded-lg border-2 transition-all text-left",
+                        'p-3 rounded-lg border-2 transition-all text-left',
                         selectedTheme === key
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
-                          : "border-neutral-200 dark:border-neutral-700 hover:border-neutral-300"
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                          : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300'
                       )}
                     >
                       <div 
@@ -475,5 +475,5 @@ export function ShareCard({ profile }: ShareCardProps) {
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }

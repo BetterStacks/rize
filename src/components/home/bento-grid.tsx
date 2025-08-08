@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "@mantine/hooks";
+import { cn } from '@/lib/utils'
+import { useMediaQuery } from '@mantine/hooks'
 import {
   AnimatePresence,
   motion,
@@ -11,16 +11,16 @@ import {
   useScroll,
   useTransform,
   Variants,
-} from "framer-motion";
-import { Link2 } from "lucide-react";
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
-import { Skeleton } from "../ui/skeleton";
+} from 'framer-motion'
+import { Link2 } from 'lucide-react'
+import Image from 'next/image'
+import { useEffect, useRef, useState } from 'react'
+import { Skeleton } from '../ui/skeleton'
 
 const BentoGrid = () => {
   return (
     <section className="max-w-5xl mx-auto px-4 md:px-2 my-20 w-full ">
-      {" "}
+      {' '}
       <div className="px-4 flex flex-col items-start justify-center">
         <h3 className="text-2xl md:text-3xl leading-tight  md:font-medium font-medium tracking-tighter">
           Everything You Need <br /> to
@@ -39,12 +39,12 @@ const BentoGrid = () => {
             <motion.div
               key={index}
               className={cn(
-                "bg-white dark:bg-dark-border h-[500px] shadow-lg border border-neutral-300/80 dark:border-none flex flex-col rounded-[2.3rem] w-full overflow-hidden relative ",
-                index === 0 && "md:col-span-2 bg-[#e5523f] text-white ",
-                index === 1 && "md:col-span-3 bg-[#fef5c2]",
-                index === 2 && "md:col-span-3 bg-[#3A0CA3]",
-                index === 3 && "md:col-span-2 ",
-                index === 4 && "md:col-span-5 h-[450px] "
+                'bg-white dark:bg-dark-border h-[500px] shadow-lg border border-neutral-300/80 dark:border-none flex flex-col rounded-[2.3rem] w-full overflow-hidden relative ',
+                index === 0 && 'md:col-span-2 bg-[#e5523f] text-white ',
+                index === 1 && 'md:col-span-3 bg-[#fef5c2]',
+                index === 2 && 'md:col-span-3 bg-[#3A0CA3]',
+                index === 3 && 'md:col-span-2 ',
+                index === 4 && 'md:col-span-5 h-[450px] '
               )}
             >
               {index === 0 && <AccountCards />}
@@ -53,20 +53,20 @@ const BentoGrid = () => {
               {index === 3 && <GetUniqueLink />}
               {index === 4 && <SocialPresense />}
             </motion.div>
-          );
+          )
         })}
       </div>
     </section>
-  );
-};
+  )
+}
 
 const GetUniqueLink = () => {
-  const ref = useRef(null);
-  const inView = useInView(ref);
-  const [open, setOpen] = useState(false);
+  const ref = useRef(null)
+  const inView = useInView(ref)
+  const [open, setOpen] = useState(false)
 
-  const cursorControls = useAnimation();
-  const containerControls = useAnimation();
+  const cursorControls = useAnimation()
+  const containerControls = useAnimation()
 
   useEffect(() => {
     if (inView) {
@@ -85,10 +85,10 @@ const GetUniqueLink = () => {
             scale: [0.8, 1.2, 1],
             transition: {
               duration: 0.5,
-              ease: "easeIn",
+              ease: 'easeIn',
             },
           }),
-        ]);
+        ])
         await Promise.all([
           cursorControls.start({
             opacity: 0,
@@ -97,38 +97,38 @@ const GetUniqueLink = () => {
             scale: [0.92, 1.2, 1],
             transition: {
               duration: 0.5,
-              ease: "easeIn",
+              ease: 'easeIn',
             },
           }),
-        ]);
-        setOpen(true);
+        ])
+        setOpen(true)
         await containerControls.start({
           width: 240,
           height: 280,
           scale: [1.2, 1],
           transition: {
             duration: 0.5,
-            type: "spring",
+            type: 'spring',
             bounce: 0.4,
           },
-        });
-      })();
+        })
+      })()
     } else {
-      setOpen(false);
+      setOpen(false)
       cursorControls.set({
         x: 400,
         opacity: 1,
         scale: 1,
         y: 400,
-      });
+      })
       containerControls.set({
         width: 220,
-        height: "48px",
+        height: '48px',
         x: 0,
         y: 0,
-      });
+      })
     }
-  }, [inView, cursorControls, containerControls]);
+  }, [inView, cursorControls, containerControls])
 
   return (
     <div
@@ -148,15 +148,15 @@ const GetUniqueLink = () => {
         <motion.div
           animate={containerControls}
           transition={{
-            type: "spring",
+            type: 'spring',
             bounce: 0.4,
             duration: 0.5,
           }}
           className={cn(
-            "flex py-3  justify-center border border-neutral-300 px-4   items-center space-x-2 ",
+            'flex py-3  justify-center border border-neutral-300 px-4   items-center space-x-2 ',
             open
-              ? "rounded-[2rem] flex-col shadow-xl bg-pink-100"
-              : "rounded-full bg-pink-50 shadow-lg"
+              ? 'rounded-[2rem] flex-col shadow-xl bg-pink-100'
+              : 'rounded-full bg-pink-50 shadow-lg'
           )}
           // onClick={() => setOpen(!open)}
         >
@@ -164,7 +164,7 @@ const GetUniqueLink = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, type: "spring", bounce: 0.4 }}
+              transition={{ duration: 0.3, type: 'spring', bounce: 0.4 }}
               className="flex mt-4 flex-col text-pink-950 items-center justify-center"
             >
               <img
@@ -214,8 +214,8 @@ const GetUniqueLink = () => {
         </motion.div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const Analytics = () => {
   const bars = [
@@ -231,7 +231,7 @@ const Analytics = () => {
     {
       height: 160,
     },
-  ];
+  ]
 
   const Cursor = ({
     className,
@@ -248,7 +248,7 @@ const Analytics = () => {
       <motion.div
         style={style}
         className={cn(
-          "flex flex-col relative px-4 py-2 shadow-2xl border border-neutral-100 shadow-black rounded-full bg-white text-black items-center justify-center",
+          'flex flex-col relative px-4 py-2 shadow-2xl border border-neutral-100 shadow-black rounded-full bg-white text-black items-center justify-center',
           className
         )}
       >
@@ -257,10 +257,10 @@ const Analytics = () => {
           height="100%"
           viewBox="0 0 24 24"
           className={cn(
-            "size-6 absolute  shadow-2xl shadow-black ",
+            'size-6 absolute  shadow-2xl shadow-black ',
             reverseDirection
-              ? "-right-4 -top-3 rotate-90"
-              : "-rotate-2 -left-4 -top-3"
+              ? '-right-4 -top-3 rotate-90'
+              : '-rotate-2 -left-4 -top-3'
           )}
           fill="white"
           xmlns="http://www.w3.org/2000/svg"
@@ -277,21 +277,21 @@ const Analytics = () => {
           {name}
         </span>
       </motion.div>
-    );
-  };
-  const isDesktop = useMediaQuery("(min-width: 768px");
-  const isScreen4k = useMediaQuery("(min-width: 2560px)");
+    )
+  }
+  const isDesktop = useMediaQuery('(min-width: 768px')
+  const isScreen4k = useMediaQuery('(min-width: 2560px)')
 
-  const { scrollYProgress } = useScroll({ axis: "y" });
+  const { scrollYProgress } = useScroll({ axis: 'y' })
   const inputRange = isDesktop
     ? isScreen4k
       ? [0.76, 0.84]
       : [0.63, 0.72]
-    : [0.58, 0.62];
-  const cursorOneX = useTransform(scrollYProgress, inputRange, [200, 100]);
-  const cursorOneY = useTransform(scrollYProgress, inputRange, [-300, -40]);
-  const cursorTwoX = useTransform(scrollYProgress, inputRange, [-600, -140]);
-  const cursorTwoY = useTransform(scrollYProgress, inputRange, [300, -10]);
+    : [0.58, 0.62]
+  const cursorOneX = useTransform(scrollYProgress, inputRange, [200, 100])
+  const cursorOneY = useTransform(scrollYProgress, inputRange, [-300, -40])
+  const cursorTwoX = useTransform(scrollYProgress, inputRange, [-600, -140])
+  const cursorTwoY = useTransform(scrollYProgress, inputRange, [300, -10])
 
   return (
     <div className="w-full h-full text-white flex p-4  flex-col items-center justify-center">
@@ -317,13 +317,13 @@ const Analytics = () => {
                 whileInView={{ height: bar.height }}
                 transition={{
                   duration: 0.5,
-                  type: "spring",
+                  type: 'spring',
                   bounce: 0.4,
                   delay: i * 0.1,
                 }}
                 style={{ width: 60 }}
               />
-            );
+            )
           })}
         </motion.div>
       </div>
@@ -337,8 +337,8 @@ const Analytics = () => {
         </p>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const ArticleCards = () => {
   return (
@@ -357,8 +357,8 @@ const ArticleCards = () => {
         </p>
       </div>
     </div>
-  );
-};
+  )
+}
 const card1Variants: Variants = {
   initial: {
     zIndex: 20,
@@ -370,7 +370,7 @@ const card1Variants: Variants = {
     rotate: -6,
     x: -60,
   },
-};
+}
 const card2Variants: Variants = {
   initial: {
     zIndex: 10,
@@ -384,7 +384,7 @@ const card2Variants: Variants = {
     y: 18,
     x: 50,
   },
-};
+}
 
 const cards = [
   {
@@ -393,9 +393,9 @@ const cards = [
     style: {
       zIndex: 20,
     },
-    username: "ashhhwwinnn",
+    username: 'ashhhwwinnn',
     image:
-      "https://i.pinimg.com/736x/53/ec/98/53ec9845f5a3698945cc4d2735b56102.jpg",
+      'https://i.pinimg.com/736x/53/ec/98/53ec9845f5a3698945cc4d2735b56102.jpg',
   },
   {
     id: 2,
@@ -403,21 +403,21 @@ const cards = [
       zIndex: 10,
     },
     variants: card2Variants,
-    username: "gary_vee",
+    username: 'gary_vee',
     image:
-      "https://i.pinimg.com/736x/40/6c/c4/406cc479ae31af226240b2fa7ec4d782.jpg",
+      'https://i.pinimg.com/736x/40/6c/c4/406cc479ae31af226240b2fa7ec4d782.jpg',
   },
-];
+]
 const AccountCards = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref);
-  const [isHovered, setIsHovered] = useState(false);
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref)
+  const [isHovered, setIsHovered] = useState(false)
 
   useEffect(() => {
     if (inView) {
-      setIsHovered(true);
+      setIsHovered(true)
     }
-  }, [inView]);
+  }, [inView])
 
   return (
     <div
@@ -425,7 +425,7 @@ const AccountCards = () => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "w-full group  flex-col h-full flex p-4 items-center justify-center"
+        'w-full group  flex-col h-full flex p-4 items-center justify-center'
       )}
     >
       <div className="w-full z-20 px-4 mt-4 mb-4">
@@ -441,10 +441,10 @@ const AccountCards = () => {
         {cards.map((card, i) => (
           <motion.div
             key={i}
-            style={{ ...card.style, borderRadius: "2rem" }}
+            style={{ ...card.style, borderRadius: '2rem' }}
             initial={false}
             variants={card.variants}
-            animate={isHovered ? "animate" : "initial"}
+            animate={isHovered ? 'animate' : 'initial'}
             transition={{
               ease: [0.6, 0.05, -0.01, 0.9],
               duration: 0.5,
@@ -465,8 +465,8 @@ const AccountCards = () => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
 interface CardRotateProps {
   children: React.ReactNode;
@@ -474,21 +474,21 @@ interface CardRotateProps {
 }
 
 function CardRotate({ children, onSendToBack }: CardRotateProps) {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const rotateX = useTransform(y, [-100, 100], [60, -60]);
-  const rotateY = useTransform(x, [-100, 100], [-60, 60]);
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const rotateX = useTransform(y, [-100, 100], [60, -60])
+  const rotateY = useTransform(x, [-100, 100], [-60, 60])
 
   function handleDragEnd(_: any, info: PanInfo) {
-    const threshold = 180;
+    const threshold = 180
     if (
       Math.abs(info.offset.x) > threshold ||
       Math.abs(info.offset.y) > threshold
     ) {
-      onSendToBack();
+      onSendToBack()
     } else {
-      x.set(0);
-      y.set(0);
+      x.set(0)
+      y.set(0)
     }
   }
 
@@ -499,12 +499,12 @@ function CardRotate({ children, onSendToBack }: CardRotateProps) {
       drag
       dragConstraints={{ top: 0, right: 0, bottom: 0, left: 0 }}
       dragElastic={0.6}
-      whileTap={{ cursor: "grabbing" }}
+      whileTap={{ cursor: 'grabbing' }}
       onDragEnd={handleDragEnd}
     >
       {children}
     </motion.div>
-  );
+  )
 }
 
 export function PolaroidStack() {
@@ -611,53 +611,53 @@ export function PolaroidStack() {
     {
       id: 1,
       image:
-        "https://i.pinimg.com/474x/9a/6e/cf/9a6ecf3d085a7ac187a1fcf33a5743c2.jpg",
+        'https://i.pinimg.com/474x/9a/6e/cf/9a6ecf3d085a7ac187a1fcf33a5743c2.jpg',
     },
     {
       id: 2,
       image:
-        "https://i.pinimg.com/474x/0d/41/82/0d4182489818f2bf3fb1a29dc19dae5b.jpg",
+        'https://i.pinimg.com/474x/0d/41/82/0d4182489818f2bf3fb1a29dc19dae5b.jpg',
     },
     {
       id: 3,
       image:
-        "https://i.pinimg.com/474x/68/68/dd/6868ddef0f16ce3e7a8a494bf945729b.jpg",
+        'https://i.pinimg.com/474x/68/68/dd/6868ddef0f16ce3e7a8a494bf945729b.jpg',
     },
-  ];
+  ]
 
-  const [cards, setCards] = useState(initialCards);
-  const rotations = [-8, 4, 10];
-  const [hovered, setHovered] = useState<boolean>(false);
+  const [cards, setCards] = useState(initialCards)
+  const rotations = [-8, 4, 10]
+  const [hovered, setHovered] = useState<boolean>(false)
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const sendToBack = (id: number) => {
     setCards((prev) => {
-      const newCards = [...prev];
-      const index = newCards.findIndex((card) => card.id === id);
-      const [card] = newCards.splice(index, 1);
+      const newCards = [...prev]
+      const index = newCards.findIndex((card) => card.id === id)
+      const [card] = newCards.splice(index, 1)
 
-      return [...newCards, card];
-    });
-  };
+      return [...newCards, card]
+    })
+  }
   useEffect(() => {
     if (hovered) {
       intervalRef.current = setInterval(() => {
         if (cards.length > 0) {
-          sendToBack(cards[cards.length - 1].id);
+          sendToBack(cards[cards.length - 1].id)
         }
-      }, 1000); // every second
+      }, 1000) // every second
     } else {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
       }
     }
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [hovered, cards]);
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [hovered, cards])
 
   return (
     <div className="relative w-full h-full flex p-4 flex-col items-center justify-center cursor-pointer">
@@ -670,7 +670,7 @@ export function PolaroidStack() {
       >
         <AnimatePresence>
           {cards.map((card, index) => {
-            const isTop = index === cards.length - 1;
+            const isTop = index === cards.length - 1
             return (
               <motion.div
                 key={card.id}
@@ -684,7 +684,7 @@ export function PolaroidStack() {
                   zIndex: index,
                   rotate: rotations[index],
                   transition: {
-                    type: "spring",
+                    type: 'spring',
                     stiffness: 300,
                     damping: 25,
                     delay: index * 0.05,
@@ -705,7 +705,7 @@ export function PolaroidStack() {
                   />
                 </div>
               </motion.div>
-            );
+            )
           })}
         </AnimatePresence>
       </div>
@@ -717,52 +717,52 @@ export function PolaroidStack() {
         <p className="mt-2 opacity-80">
           Relive your favorite memories by sharing snapshots from your trips and
           experiences. Every photo tells a story — make your profile truly
-          yours.{" "}
+          yours.{' '}
         </p>
       </div>
     </div>
-  );
+  )
 }
 
 const SocialPresense = () => {
-  const target = useRef(null);
-  const isScreen4k = useMediaQuery("(min-width: 2560px)");
+  const target = useRef(null)
+  const isScreen4k = useMediaQuery('(min-width: 2560px)')
   const { scrollYProgress } = useScroll({
-    axis: "y",
-  });
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    console.log(latest);
-  });
+    axis: 'y',
+  })
+  useMotionValueEvent(scrollYProgress, 'change', (latest) => {
+    // console.log(latest)
+  })
 
-  const inputRange = isScreen4k ? [0.82, 0.96] : [0.74, 0.84];
-  const left = useTransform(scrollYProgress, inputRange, [0, -600]);
-  const middle = useTransform(scrollYProgress, inputRange, [0, 600]);
-  const right = useTransform(scrollYProgress, inputRange, [0, -600]);
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-  const smallX = useTransform(scrollYProgress, inputRange, [-100, -600]);
+  const inputRange = isScreen4k ? [0.82, 0.96] : [0.74, 0.84]
+  const left = useTransform(scrollYProgress, inputRange, [0, -600])
+  const middle = useTransform(scrollYProgress, inputRange, [0, 600])
+  const right = useTransform(scrollYProgress, inputRange, [0, -600])
+  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const smallX = useTransform(scrollYProgress, inputRange, [-100, -600])
 
   // Vibrant and fun gradient theme arrays
   const themes1 = [
-    "bg-gradient-to-b from-pink-400 via-pink-300 to-yellow-200",
-    "bg-gradient-to-b from-fuchsia-500 via-red-400 to-orange-300",
-    "bg-gradient-to-b from-cyan-400 via-blue-400 to-indigo-400",
-    "bg-gradient-to-b from-green-400 via-lime-300 to-yellow-200",
-    "bg-gradient-to-b from-purple-400 via-pink-400 to-red-300",
-  ];
+    'bg-gradient-to-b from-pink-400 via-pink-300 to-yellow-200',
+    'bg-gradient-to-b from-fuchsia-500 via-red-400 to-orange-300',
+    'bg-gradient-to-b from-cyan-400 via-blue-400 to-indigo-400',
+    'bg-gradient-to-b from-green-400 via-lime-300 to-yellow-200',
+    'bg-gradient-to-b from-purple-400 via-pink-400 to-red-300',
+  ]
   const themes2 = [
-    "bg-gradient-to-b from-orange-400 via-yellow-300 to-lime-200",
-    "bg-gradient-to-b from-blue-400 via-cyan-300 to-teal-200",
-    "bg-gradient-to-b from-rose-400 via-pink-300 to-fuchsia-300",
-    "bg-gradient-to-b from-violet-400 via-indigo-300 to-blue-200",
-    "bg-gradient-to-b from-emerald-400 via-green-300 to-lime-200",
-  ];
+    'bg-gradient-to-b from-orange-400 via-yellow-300 to-lime-200',
+    'bg-gradient-to-b from-blue-400 via-cyan-300 to-teal-200',
+    'bg-gradient-to-b from-rose-400 via-pink-300 to-fuchsia-300',
+    'bg-gradient-to-b from-violet-400 via-indigo-300 to-blue-200',
+    'bg-gradient-to-b from-emerald-400 via-green-300 to-lime-200',
+  ]
   const themes3 = [
-    "bg-gradient-to-b from-yellow-400 via-orange-300 to-pink-300",
-    "bg-gradient-to-b from-teal-400 via-cyan-300 to-blue-200",
-    "bg-gradient-to-b from-red-400 via-orange-300 to-yellow-200",
-    "bg-gradient-to-b from-indigo-400 via-purple-300 to-pink-200",
-    "bg-gradient-to-b from-lime-400 via-green-300 to-emerald-200",
-  ];
+    'bg-gradient-to-b from-yellow-400 via-orange-300 to-pink-300',
+    'bg-gradient-to-b from-teal-400 via-cyan-300 to-blue-200',
+    'bg-gradient-to-b from-red-400 via-orange-300 to-yellow-200',
+    'bg-gradient-to-b from-indigo-400 via-purple-300 to-pink-200',
+    'bg-gradient-to-b from-lime-400 via-green-300 to-emerald-200',
+  ]
 
   const ProfileSkeleton = () => {
     return (
@@ -774,14 +774,14 @@ const SocialPresense = () => {
         </div>
         <Skeleton className="w-full h-full animate-none rounded-2xl" />
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <div
       ref={target}
       className={cn(
-        "w-full group   h-full flex flex-col md:flex-row items-center justify-center"
+        'w-full group   h-full flex flex-col md:flex-row items-center justify-center'
       )}
     >
       <div className="w-full md:max-w-sm h-full z-20 px-8 mt-8 md:mt-16">
@@ -802,13 +802,13 @@ const SocialPresense = () => {
               <motion.div
                 key={i}
                 className={cn(
-                  "max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem] shadow-xl",
+                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem] shadow-xl',
                   theme
                 )}
               >
                 <ProfileSkeleton />
               </motion.div>
-            );
+            )
           })}
         </motion.div>
         <motion.div
@@ -820,13 +820,13 @@ const SocialPresense = () => {
               <motion.div
                 key={i}
                 className={cn(
-                  "max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem] shadow-xl",
+                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem] shadow-xl',
                   theme
                 )}
               >
                 <ProfileSkeleton />
               </motion.div>
-            );
+            )
           })}
         </motion.div>
         <motion.div
@@ -838,19 +838,19 @@ const SocialPresense = () => {
               <motion.div
                 key={i}
                 className={cn(
-                  "max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem] shadow-xl",
+                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem] shadow-xl',
                   theme
                 )}
               >
                 <ProfileSkeleton />
               </motion.div>
-            );
+            )
           })}
         </motion.div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 type ButtonContainerProps = {
   children: React.ReactNode;
@@ -873,9 +873,9 @@ const ButtonContainer = ({
             animate={{ x: reverse ? [-1000, 0] : [0, -1000] }}
             transition={{
               duration: duration,
-              ease: "linear",
+              ease: 'linear',
               repeat: Infinity,
-              repeatType: "loop",
+              repeatType: 'loop',
               repeatDelay: 0,
             }}
             key={i}
@@ -883,60 +883,60 @@ const ButtonContainer = ({
           >
             {children}
           </motion.div>
-        );
+        )
       })}
     </div>
-  );
-};
+  )
+}
 
 const cardsData = [
   {
     id: 1,
-    title: "Everything about Framer Motion layout animations",
-    img: "https://i.pinimg.com/736x/6b/ac/8d/6bac8d6b911aff989b875d1de7a5f582.jpg",
+    title: 'Everything about Framer Motion layout animations',
+    img: 'https://i.pinimg.com/736x/6b/ac/8d/6bac8d6b911aff989b875d1de7a5f582.jpg',
   },
   {
     id: 2,
-    title: "Creative Block: Joy Harjo’s Tips to Overcoming Creative Block",
-    img: "https://i.pinimg.com/736x/93/a1/82/93a1829cb95d180e1c0821b7224b3117.jpg",
+    title: 'Creative Block: Joy Harjo’s Tips to Overcoming Creative Block',
+    img: 'https://i.pinimg.com/736x/93/a1/82/93a1829cb95d180e1c0821b7224b3117.jpg',
   },
   {
     id: 3,
-    title: "Building a simple shell in C - Part 1 - Dr. Ehoneah Obed",
-    img: "https://i.pinimg.com/736x/68/b4/fb/68b4fbf6972884ea7558f015becb1030.jpg",
+    title: 'Building a simple shell in C - Part 1 - Dr. Ehoneah Obed',
+    img: 'https://i.pinimg.com/736x/68/b4/fb/68b4fbf6972884ea7558f015becb1030.jpg',
   },
-];
+]
 
 export function AnimatedStackedCards() {
-  const [cards, setCards] = useState(cardsData);
-  const [frontIdx, setFrontIdx] = useState(0);
-  const [direction, setDirection] = useState(1); // 1 for forward, -1 for backward
+  const [cards, setCards] = useState(cardsData)
+  const [frontIdx, setFrontIdx] = useState(0)
+  const [direction, setDirection] = useState(1) // 1 for forward, -1 for backward
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setDirection(1);
-      setFrontIdx((prev) => (prev + 1) % cards.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [cards.length]);
+      setDirection(1)
+      setFrontIdx((prev) => (prev + 1) % cards.length)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [cards.length])
 
   const getStackedCards = () => {
-    const arr = [];
+    const arr = []
     for (let i = 0; i < cards.length; i++) {
-      arr.push(cards[(frontIdx + i) % cards.length]);
+      arr.push(cards[(frontIdx + i) % cards.length])
     }
-    return arr;
-  };
+    return arr
+  }
 
-  const stackedCards = getStackedCards();
+  const stackedCards = getStackedCards()
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       <AnimatePresence initial={false} custom={direction}>
         {stackedCards.map((card, idx) => {
           // Only animate the front and the one going out
-          const isFront = idx === 0;
-          const z = cards.length - idx;
+          const isFront = idx === 0
+          const z = cards.length - idx
           return (
             isFront && (
               <motion.div
@@ -952,7 +952,7 @@ export function AnimatedStackedCards() {
                   opacity: 1,
                   scale: 1,
                   y: 0,
-                  transition: { type: "spring", bounce: 0.4, duration: 0.7 },
+                  transition: { type: 'spring', bounce: 0.4, duration: 0.7 },
                 }}
                 layoutId={`card-${card.id}`}
               >
@@ -971,12 +971,12 @@ export function AnimatedStackedCards() {
                 </div>
               </motion.div>
             )
-          );
+          )
         })}
         {/* Animate the back card for a subtle effect */}
         {stackedCards.length > 1 && (
           <motion.div
-            key={stackedCards[1].id + "-back"}
+            key={stackedCards[1].id + '-back'}
             className="absolute w-[300px] md:w-[400px] h-[120px] md:h-[140px] p-3 bg-neutral-100 dark:bg-dark-bg flex items-center justify-center rounded-3xl shadow-2xl  border border-neutral-200 dark:border-dark-border"
             style={{ zIndex: 1 }}
             initial={{
@@ -988,13 +988,13 @@ export function AnimatedStackedCards() {
               opacity: 0.7,
               scale: 0.92,
               y: 20,
-              transition: { type: "spring", bounce: 0.4, duration: 0.7 },
+              transition: { type: 'spring', bounce: 0.4, duration: 0.7 },
             }}
             exit={{
               opacity: 0,
               scale: 0.7,
               y: 80,
-              transition: { duration: 0.5, ease: "easeInOut" },
+              transition: { duration: 0.5, ease: 'easeInOut' },
             }}
             layoutId={`card-${stackedCards[1].id}-back`}
           >
@@ -1013,7 +1013,7 @@ export function AnimatedStackedCards() {
         )}
       </AnimatePresence>
     </div>
-  );
+  )
 }
 
-export default BentoGrid;
+export default BentoGrid

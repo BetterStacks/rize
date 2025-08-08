@@ -1,5 +1,5 @@
-import { ProfileForm } from "@/components/settings/ProfileForm";
-import { ResumeForm } from "@/components/settings/ResumeForm";
+import { ProfileForm } from '@/components/settings/ProfileForm'
+import { ResumeForm } from '@/components/settings/ResumeForm'
 
 const Page = () => {
   return (
@@ -9,7 +9,7 @@ const Page = () => {
         <ResumeForm />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Page;
+export default Page

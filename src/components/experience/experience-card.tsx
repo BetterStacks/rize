@@ -1,16 +1,16 @@
-import { deleteExperience } from "@/actions/experience-actions";
-import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
-import { queryClient } from "@/lib/providers";
-import { TExperience } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "@mantine/hooks";
-import { useMutation } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { Edit2, Loader, Trash2 } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { FC } from "react";
-import toast from "react-hot-toast";
-import { Button } from "../ui/button";
+import { deleteExperience } from '@/actions/experience-actions'
+import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
+import { queryClient } from '@/lib/providers'
+import { TExperience } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { useMediaQuery } from '@mantine/hooks'
+import { useMutation } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
+import { Edit2, Loader, Trash2 } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { FC } from 'react'
+import toast from 'react-hot-toast'
+import { Button } from '../ui/button'
 
 type ExperienceCardProps = {
   experience: TExperience;
@@ -18,34 +18,34 @@ type ExperienceCardProps = {
 };
 
 const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
-  const session = useSession();
-  const [activeTab, setActiveTab] = useActiveSidebarTab();
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const setOpen = useRightSidebar()[1];
+  const session = useSession()
+  const [activeTab, setActiveTab] = useActiveSidebarTab()
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const setOpen = useRightSidebar()[1]
   const formatDate = (date?: string) =>
     date
       ? new Date(date).toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "short",
+          year: 'numeric',
+          month: 'short',
         })
-      : "—";
+      : '—'
   const { mutate: handleDeleteExperience, isPending } = useMutation({
     mutationFn: deleteExperience,
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: ["get-all-experience", session?.data?.user?.username],
-      });
-      toast.success("Experience deleted successfully");
+        queryKey: ['get-all-experience', session?.data?.user?.username],
+      })
+      toast.success('Experience deleted successfully')
     },
     onError() {
-      toast.error("Failed to delete experience");
+      toast.error('Failed to delete experience')
     },
-  });
+  })
   return (
     <motion.div
       className={cn(
-        "flex relative items-start group ",
-        activeTab?.id === experience?.id && ""
+        'flex relative items-start group ',
+        activeTab?.id === experience?.id && ''
       )}
     >
       {isMine && (
@@ -56,9 +56,9 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
             onClick={() => {
               setActiveTab({
                 id: experience?.id,
-                tab: "experience",
-              });
-              setOpen(true);
+                tab: 'experience',
+              })
+              setOpen(true)
             }}
           >
             <Edit2 className="h-4 w-4 opacity-80" />
@@ -67,7 +67,7 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
             variant="outline"
             size="smallIcon"
             onClick={() => {
-              handleDeleteExperience(experience?.id);
+              handleDeleteExperience(experience?.id)
             }}
             disabled={isPending}
           >
@@ -88,20 +88,20 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
         </span>
         <div className="inline-flex mt-3 text-sm gap-x-1 dark:text-neutral-400 text-neutral-600  items-center">
           <span>
-            {" "}
-            {formatDate(experience?.startDate?.toString())} –{" "}
+            {' '}
+            {formatDate(experience?.startDate?.toString())} –{' '}
             {experience?.currentlyWorking
-              ? "Present"
+              ? 'Present'
               : formatDate(experience?.endDate?.toString())}
           </span>
           <span>•</span>
-          <span className="">{experience?.location?.split(",")[0]}</span>
+          <span className="">{experience?.location?.split(',')[0]}</span>
           <span>•</span>
           <span className="">{experience?.employmentType}</span>
         </div>
       </div>
     </motion.div>
-  );
-};
+  )
+}
 
-export default ExperienceCard;
+export default ExperienceCard

@@ -1,6 +1,6 @@
-import { Zap } from "lucide-react";
-import { Button } from "./ui/button";
-import { Card, CardContent } from "./ui/card";
+import { Zap } from 'lucide-react'
+import { Button } from './ui/button'
+import { Card, CardContent } from './ui/card'
 
 const UpgradeCard = () => {
   return (
@@ -17,7 +17,7 @@ const UpgradeCard = () => {
         </Button>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export default UpgradeCard;
+export default UpgradeCard

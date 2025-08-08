@@ -1,11 +1,11 @@
-"use client";
+'use client'
 
-import PostForm from "../explore/post-form";
-import ExperienceDialog from "./ExperienceDialog";
-import PostDialog from "./PostDialog";
-import SearchDialog from "./SearchDialog";
-import AuthDialog from "./SignInDialog";
-import { ProfileUpdateDialog } from "./UpdateProfileDialog";
+import PostForm from '../explore/post-form'
+// import ExperienceDialog from './ExperienceDialog'
+// import PostDialog from './PostDialog'
+import SearchDialog from './SearchDialog'
+import AuthDialog from './SignInDialog'
+import { ProfileUpdateDialog } from './UpdateProfileDialog'
 
 const Dialogs = () => {
   return (
@@ -17,7 +17,7 @@ const Dialogs = () => {
       {/* <ExperienceDialog /> */}
       {/* <PostDialog /> */}
     </>
-  );
-};
+  )
+}
 
-export default Dialogs;
+export default Dialogs

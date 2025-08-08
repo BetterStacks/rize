@@ -1,10 +1,10 @@
-import { cn } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
-import React, { FC, ReactNode } from "react";
-import { Button } from "./ui/button";
-import ClaimUsernameForm from "./claim-username";
-import { useRouter } from "next/navigation";
-import { setCookie } from "cookies-next";
+import { cn } from '@/lib/utils'
+import { Sparkles } from 'lucide-react'
+import React, { FC, ReactNode } from 'react'
+import { Button } from './ui/button'
+import ClaimUsernameForm from './claim-username'
+import { useRouter } from 'next/navigation'
+import { setCookie } from 'cookies-next'
 
 type BottomBannerProps = {
   text?: string;
@@ -16,17 +16,17 @@ type BottomBannerProps = {
 const BottomBanner: FC<BottomBannerProps> = ({
   className,
   icon,
-  text = "Create your own profile on rize 🌱",
+  text = 'Create your own profile on rize 🌱',
 }) => {
-  const router = useRouter();
+  const router = useRouter()
   const handleSubmit = (data: string) => {
-    setCookie("username", data);
-    router.push(`/signup`);
-  };
+    setCookie('username', data)
+    router.push('/signup')
+  }
   return (
     <div
       className={cn(
-        "w-full max-w-2xl p-6 gap-x-4 mt-4 rounded-xl border border-neutral-300/60 dark:border-dark-border/80 flex flex-col items-start bg-neutral-100 dark:bg-dark-border",
+        'w-full max-w-2xl p-6 gap-x-4 mt-4 rounded-xl border border-neutral-300/60 dark:border-dark-border/80 flex flex-col items-start bg-neutral-100 dark:bg-dark-border',
         className
       )}
     >
@@ -55,12 +55,12 @@ const BottomBanner: FC<BottomBannerProps> = ({
           badgeClassName="rounded-xl 5"
           buttonClassName="rounded-xl"
           className={cn(
-            " dark:bg-neutral-800  max-w-xl rounded-2xl border-neutral-300/60"
+            ' dark:bg-neutral-800  max-w-xl rounded-2xl border-neutral-300/60'
           )}
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default BottomBanner;
+export default BottomBanner

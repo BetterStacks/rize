@@ -1,18 +1,18 @@
-"use client";
-import { useRightSidebar } from "@/lib/context";
-import { useMediaQuery } from "@mantine/hooks";
-import { FC, ReactNode } from "react";
-import GalleryContextProvider from "../gallery/gallery-context";
-import Navbar from "../navbar";
-import RightSidebar from "../sidebar/RightSidebar";
+'use client'
+import { useRightSidebar } from '@/lib/context'
+import { useMediaQuery } from '@mantine/hooks'
+import { FC, ReactNode } from 'react'
+import GalleryContextProvider from '../gallery/gallery-context'
+import Navbar from '../navbar'
+import RightSidebar from '../sidebar/RightSidebar'
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "../ui/resizable";
-import { ScrollArea } from "../ui/scroll-area";
-import { Sheet, SheetContent } from "../ui/sheet";
-import { cn } from "@/lib/utils";
+} from '../ui/resizable'
+import { ScrollArea } from '../ui/scroll-area'
+import { Sheet, SheetContent } from '../ui/sheet'
+import { cn } from '@/lib/utils'
 
 type ProfileLayoutProps = {
   children: ReactNode;
@@ -25,8 +25,8 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({
   isMine,
   className,
 }) => {
-  const [open, setOpen] = useRightSidebar();
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const [open, setOpen] = useRightSidebar()
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   return (
     <ResizablePanelGroup
       className="w-full h-full flex items-center  justify-center"
@@ -34,7 +34,7 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({
     >
       <GalleryContextProvider>
         <ResizablePanel
-          className={cn("w-full h-screen relative overflow-hidden", className)}
+          className={cn('w-full h-screen relative overflow-hidden', className)}
         >
           <Navbar isMine={isMine!} />
           <ScrollArea className="h-screen overflow-y-auto relative w-full ">
@@ -62,10 +62,10 @@ const ProfileLayout: FC<ProfileLayoutProps> = ({
         )}
       </GalleryContextProvider>
     </ResizablePanelGroup>
-  );
-};
+  )
+}
 
-export default ProfileLayout;
+export default ProfileLayout
 
 {
   /* <div className="absolute right-0 left-0  flex items-center justify-center w-full">

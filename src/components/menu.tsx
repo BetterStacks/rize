@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
-import { useClickOutside } from "@mantine/hooks";
-import { AnimatePresence, motion, Variants } from "framer-motion";
+import { cn } from '@/lib/utils'
+import { useClickOutside } from '@mantine/hooks'
+import { AnimatePresence, motion, Variants } from 'framer-motion'
 import {
   Compass,
   LogOut,
@@ -12,74 +12,74 @@ import {
   Sun,
   UserRound,
   X,
-} from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
-import { useTheme } from "next-themes";
-import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import { useProfileDialog } from "./dialog-provider";
-import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
+} from 'lucide-react'
+import { signOut, useSession } from 'next-auth/react'
+import { useTheme } from 'next-themes'
+import Image from 'next/image'
+import { useParams, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useProfileDialog } from './dialog-provider'
+import { Button } from './ui/button'
+import { Separator } from './ui/separator'
 
 const Menu = () => {
-  const [open, setOpen] = useState(false);
-  const session = useSession();
-  const params = useParams();
-  const isMine = session?.data?.user?.username === params?.username;
-  const setProfileDialogOpen = useProfileDialog()[1];
+  const [open, setOpen] = useState(false)
+  const session = useSession()
+  const params = useParams()
+  const isMine = session?.data?.user?.username === params?.username
+  const setProfileDialogOpen = useProfileDialog()[1]
   const ref = useClickOutside(() => {
-    setOpen(false);
-  });
-  const { theme, setTheme } = useTheme();
-  const router = useRouter();
+    setOpen(false)
+  })
+  const { theme, setTheme } = useTheme()
+  const router = useRouter()
   const loggedInOptions = [
     {
       id: 2,
-      name: "Account",
+      name: 'Account',
       href: `/${session?.data?.user?.username}`,
       onClick: () => {},
       icon: <UserRound className="opacity-80 size-5" strokeWidth={1.2} />,
     },
     {
       id: 5,
-      name: "Settings",
+      name: 'Settings',
       href: `/${session?.data?.user?.username}?tab=settings`,
       onClick: () => {
-        setProfileDialogOpen(true);
+        setProfileDialogOpen(true)
       },
       icon: <Settings className="opacity-80 size-5" strokeWidth={1.2} />,
     },
-  ];
+  ]
   const options = [
     {
       id: 1,
-      name: "Explore",
-      href: "/explore",
+      name: 'Explore',
+      href: '/explore',
       onClick: () => {
-        router.push("/explore");
+        router.push('/explore')
       },
       icon: <Compass className="opacity-80 size-5" strokeWidth={1.2} />,
     },
     {
       id: 3,
-      name: "Search",
+      name: 'Search',
       href: null,
       onClick: () => {
         // setOpenSearch(true);
       },
       icon: <Search className="opacity-80 size-5" strokeWidth={1.2} />,
     },
-  ];
+  ]
   const themeOptions = [
     {
-      theme: "light",
-      name: "Light",
+      theme: 'light',
+      name: 'Light',
       icon: <Sun className="opacity-80 size-5" strokeWidth={1.4} />,
     },
     {
-      theme: "dark",
-      name: "Dark",
+      theme: 'dark',
+      name: 'Dark',
       icon: <Moon className="opacity-80 size-5" strokeWidth={1.4} />,
     },
     // {
@@ -87,7 +87,7 @@ const Menu = () => {
     //   name: "System",
     //   icon: <Monitor className="opacity-80 size-5" strokeWidth={1.4} />,
     // },
-  ];
+  ]
   const menuVariants: Variants = {
     hide: {
       y: -20,
@@ -101,12 +101,12 @@ const Menu = () => {
       y: -20,
       opacity: 0,
     },
-  };
+  }
   return (
     <>
       <Button
-        variant={"outline"}
-        size={"icon"}
+        variant={'outline'}
+        size={'icon'}
         className="rounded-2xl size-10 p-2"
         onClick={() => setOpen(true)}
       >
@@ -124,15 +124,15 @@ const Menu = () => {
             transition={{ duration: 0.3 }}
             initial="hide"
             animate="show"
-            exit={"exit"}
+            exit={'exit'}
             className={cn(
-              "absolute top-14 bg-white  shadow-2xl backdrop-blur-2xl dark:bg-dark-bg rounded-3xl border border-neutral-300/60 flex flex-col max-w-[280px] w-full  overflow-hidden  dark:border-dark-border/80 z-50",
-              isMine ? "right-4" : "right-4"
+              'absolute top-14 bg-white  shadow-2xl backdrop-blur-2xl dark:bg-dark-bg rounded-3xl border border-neutral-300/60 flex flex-col max-w-[280px] w-full  overflow-hidden  dark:border-dark-border/80 z-50',
+              isMine ? 'right-4' : 'right-4'
             )}
           >
             {session?.data && (
               <>
-                {" "}
+                {' '}
                 <div className="flex p-4 mt-2 items-center justify-start">
                   <Image
                     src={
@@ -191,8 +191,8 @@ const Menu = () => {
                   >
                     <div
                       className={cn(
-                        "z-[2] opacity-50",
-                        theme === option?.theme && "opacity-80"
+                        'z-[2] opacity-50',
+                        theme === option?.theme && 'opacity-80'
                       )}
                     >
                       {option.icon}
@@ -207,9 +207,9 @@ const Menu = () => {
                 ))}
               </motion.div>
             </div>
-            {session?.status === "authenticated" && (
+            {session?.status === 'authenticated' && (
               <>
-                {" "}
+                {' '}
                 <Separator className="h-[0.5px] " />
                 <motion.div
                   className="flex w-full items-center  pt-1  justify-start gap-x-4 cursor-pointer mt-1 px-4 last:mb-4"
@@ -226,7 +226,7 @@ const Menu = () => {
         )}
       </AnimatePresence>
     </>
-  );
-};
+  )
+}
 
-export default Menu;
+export default Menu

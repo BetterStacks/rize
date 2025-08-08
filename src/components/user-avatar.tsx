@@ -1,11 +1,11 @@
-"use client";
-import { cn, isImageUrl } from "@/lib/utils";
-import { Edit3 } from "lucide-react";
-import Image from "next/image";
-import { useState } from "react";
-import toast from "react-hot-toast";
-import { useAvatarDialog } from "./dialog-provider";
-import ChangeAvatarDialog from "./dialogs/ChangeAvatarDialog";
+'use client'
+import { cn, isImageUrl } from '@/lib/utils'
+import { Edit3 } from 'lucide-react'
+import Image from 'next/image'
+import { useState } from 'react'
+import toast from 'react-hot-toast'
+import { useAvatarDialog } from './dialog-provider'
+import ChangeAvatarDialog from './dialogs/ChangeAvatarDialog'
 
 type UserAvatarProps = {
   data: {
@@ -17,13 +17,13 @@ type UserAvatarProps = {
   className?: string;
 };
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ACCEPTED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-];
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+]
 
 const UserAvatar = ({
   data,
@@ -31,35 +31,35 @@ const UserAvatar = ({
   isMyProfile,
   className,
 }: UserAvatarProps) => {
-  const [file, setFile] = useState<File | null>(null);
-  const setIsOpen = useAvatarDialog()[1];
+  const [file, setFile] = useState<File | null>(null)
+  const setIsOpen = useAvatarDialog()[1]
 
-  const handleChange = (e: any) => {
-    const file = e.target.files[0];
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files[0]
     if (!file) {
       // toast.error("Please select a file");
-      return;
+      return
     }
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("File size is too large");
-      return;
+      toast.error('File size is too large')
+      return
     }
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      toast.error("Invalid file type");
-      return;
+      toast.error('Invalid file type')
+      return
     }
-    setFile(file);
-    setIsOpen(true);
-  };
+    setFile(file)
+    setIsOpen(true)
+  }
 
   return (
     <>
       <div
         className={cn(
-          "relative group ring-2    ring-neutral-300 dark:ring-dark-border  rounded-full size-24 md:size-24 lg:size-28   aspect-square ",
+          'relative group ring-2    ring-neutral-300 dark:ring-dark-border  rounded-full size-24 md:size-24 lg:size-28   aspect-square ',
           className,
           isLoading &&
-            "animate-pulse bg-neutral-300  dark:bg-dark-border rounded-full"
+            'animate-pulse bg-neutral-300  dark:bg-dark-border rounded-full'
         )}
       >
         {isMyProfile && (
@@ -83,17 +83,17 @@ const UserAvatar = ({
             src={data?.image as string}
             fill
             style={{
-              objectFit: "cover",
+              objectFit: 'cover',
             }}
             quality={100}
             priority
             alt={`${data?.name}`}
           />
-        )}{" "}
+        )}{' '}
       </div>
       <ChangeAvatarDialog file={file} setFile={setFile} />
     </>
-  );
-};
+  )
+}
 
-export default UserAvatar;
+export default UserAvatar

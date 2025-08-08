@@ -1,13 +1,13 @@
-import { GetExplorePosts } from "@/lib/types";
-import React, { FC, useState } from "react";
-import { Button } from "./ui/button";
-import { Mail, Plus } from "lucide-react";
-import { motion } from "framer-motion";
-import PostCard from "./explore/post-card";
-import { getUserPosts } from "@/actions/post-actions";
-import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { usePostsDialog } from "./dialog-provider";
+import { GetExplorePosts } from '@/lib/types'
+import React, { FC, useState } from 'react'
+import { Button } from './ui/button'
+import { Mail, Plus } from 'lucide-react'
+import { motion } from 'framer-motion'
+import PostCard from './explore/post-card'
+import { getUserPosts } from '@/actions/post-actions'
+import { useParams } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
+import { usePostsDialog } from './dialog-provider'
 
 type Props = {
   posts: GetExplorePosts[];
@@ -15,16 +15,16 @@ type Props = {
 };
 
 const PostSection: FC<Props> = ({ posts, isMine }) => {
-  const { username } = useParams<{ username: string }>();
-  const setOpen = usePostsDialog()[1];
+  const { username } = useParams<{ username: string }>()
+  const setOpen = usePostsDialog()[1]
   const { data, isFetching } = useQuery({
-    queryKey: ["get-user-posts", username],
+    queryKey: ['get-user-posts', username],
     initialData: posts,
     queryFn: () => getUserPosts(username),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     staleTime: Infinity,
-  });
+  })
   return (
     <div
       id="posts"
@@ -34,11 +34,11 @@ const PostSection: FC<Props> = ({ posts, isMine }) => {
         <h2 className="text-lg md:text-xl font-medium ">Popular Posts</h2>
         {isMine && (
           <Button
-            variant={"outline"}
+            variant={'outline'}
             className="  rounded-lg scale-90 text-sm"
-            size={"sm"}
+            size={'sm'}
             onClick={() => {
-              setOpen(true);
+              setOpen(true)
             }}
           >
             <Plus className="opacity-80 mr-2 size-4" />
@@ -66,8 +66,8 @@ const PostSection: FC<Props> = ({ posts, isMine }) => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 interface EmptyPostsStateProps {
   title?: string;
@@ -77,12 +77,12 @@ interface EmptyPostsStateProps {
 }
 
 export function EmptyWritingState({
-  title = "Tell your stories & experiences via posts",
-  description = "Your ideas deserve to be shared. Create your first piece and let your words flow.",
-  ctaText = "Add New Post",
+  title = 'Tell your stories & experiences via posts',
+  description = 'Your ideas deserve to be shared. Create your first piece and let your words flow.',
+  ctaText = 'Add New Post',
   onCreateNew = () => {},
 }: EmptyPostsStateProps) {
-  const [isHovering, setIsHovering] = useState(false);
+  const [isHovering, setIsHovering] = useState(false)
 
   return (
     <div className="flex h-full min-h-[400px] border-2 border-neutral-300/60 dark:border-dark-border/80 rounded-3xl border-dashed w-full items-center justify-center">
@@ -95,7 +95,7 @@ export function EmptyWritingState({
         <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/20 dark:to-indigo-900/20">
           <motion.div
             animate={{ rotate: isHovering ? 15 : 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
           >
             <div className="relative">
               <Mail
@@ -132,7 +132,7 @@ export function EmptyWritingState({
         </Button>
       </motion.div>
     </div>
-  );
+  )
 }
 
-export default PostSection;
+export default PostSection

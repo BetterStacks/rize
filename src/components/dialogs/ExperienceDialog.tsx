@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog'
 import {
   Form,
   FormControl,
@@ -19,56 +19,56 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { Briefcase, Building, MapPin, Save, X } from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { useExperienceDialog } from "../dialog-provider";
+} from '@/components/ui/popover'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { format } from 'date-fns'
+import { Briefcase, Building, MapPin, Save, X } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+import { useExperienceDialog } from '../dialog-provider'
 
 const formSchema = z.object({
-  company: z.string().min(1, "Company name is required"),
-  position: z.string().min(1, "Position is required"),
+  company: z.string().min(1, 'Company name is required'),
+  position: z.string().min(1, 'Position is required'),
   location: z.string().optional(),
   startDate: z.date({
-    required_error: "Start date is required",
+    required_error: 'Start date is required',
   }),
   endDate: z.date().optional(),
   currentlyWorking: z.boolean().default(false),
   description: z.string().optional(),
-});
+})
 
 type WorkExperience = z.infer<typeof formSchema>;
 
 export default function WorkExperienceDialog() {
-  const [open, setOpen] = useExperienceDialog();
-  const [experiences, setExperiences] = useState<WorkExperience[]>([]);
+  const [open, setOpen] = useExperienceDialog()
+  const [experiences, setExperiences] = useState<WorkExperience[]>([])
 
   const form = useForm<WorkExperience>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      company: "",
-      position: "",
-      location: "",
-      description: "",
+      company: '',
+      position: '',
+      location: '',
+      description: '',
       currentlyWorking: false,
     },
-  });
+  })
 
   function onSubmit(values: WorkExperience) {
-    setExperiences([...experiences, values]);
-    form.reset();
-    setOpen(false);
+    setExperiences([...experiences, values])
+    form.reset()
+    setOpen(false)
   }
 
   return (
@@ -160,15 +160,15 @@ export default function WorkExperienceDialog() {
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant={'outline'}
                             className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              'pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground'
                             )}
                           >
                             <Calendar className="mr-2 h-4 w-4" />
                             {field.value ? (
-                              format(field.value, "MMM yyyy")
+                              format(field.value, 'MMM yyyy')
                             ) : (
                               <span>Select date</span>
                             )}
@@ -211,7 +211,7 @@ export default function WorkExperienceDialog() {
               />
             </div>
 
-            {!form.watch("currentlyWorking") && (
+            {!form.watch('currentlyWorking') && (
               <FormField
                 control={form.control}
                 name="endDate"
@@ -222,15 +222,15 @@ export default function WorkExperienceDialog() {
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant={'outline'}
                             className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              'pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground'
                             )}
                           >
                             <Calendar className="mr-2 h-4 w-4" />
                             {field.value ? (
-                              format(field.value, "MMM yyyy")
+                              format(field.value, 'MMM yyyy')
                             ) : (
                               <span>Select date</span>
                             )}
@@ -295,5 +295,5 @@ export default function WorkExperienceDialog() {
         </Form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

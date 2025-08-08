@@ -1,27 +1,31 @@
-import { searchProfiles } from "@/actions/profile-actions";
-import db from "@/lib/db";
-import { posts, projects, profile } from "@/db/schema";
-import { ilike, or, and, eq, isNotNull, desc } from "drizzle-orm";
+import { searchProfiles } from '@/actions/profile-actions'
+import db from '@/lib/db'
+import { posts, projects, profile } from '@/db/schema'
+import { ilike, or, and, eq, isNotNull, desc } from 'drizzle-orm'
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.get("query") || "";
-  const type = searchParams.get("type") || "all"; // all, people, posts, projects
+  const { searchParams } = new URL(request.url)
+  const query = searchParams.get('query') || ''
+  const type = searchParams.get('type') || 'all' // all, people, posts, projects
 
   try {
-    const results: any = {
+    const results: {
+      people: Array<unknown>;
+      posts: Array<unknown>;
+      projects: Array<unknown>;
+    } = {
       people: [],
       posts: [],
       projects: [],
       total: 0
-    };
-
-    if (type === "all" || type === "people") {
-      const profileResults = await searchProfiles(query);
-      results.people = profileResults.slice(0, 10);
     }
 
-    if (type === "all" || type === "posts") {
+    if (type === 'all' || type === 'people') {
+      const profileResults = await searchProfiles(query)
+      results.people = profileResults.slice(0, 10)
+    }
+
+    if (type === 'all' || type === 'posts') {
       const postResults = await db
         .select({
           id: posts.id,
@@ -41,12 +45,12 @@ export async function GET(request: Request) {
           )
         )
         .limit(10)
-        .orderBy(desc(posts.createdAt));
+        .orderBy(desc(posts.createdAt))
 
-      results.posts = postResults;
+      results.posts = postResults
     }
 
-    if (type === "all" || type === "projects") {
+    if (type === 'all' || type === 'projects') {
       const projectResults = await db
         .select({
           id: projects.id,
@@ -67,22 +71,22 @@ export async function GET(request: Request) {
             ilike(projects.description, `%${query}%`)
           )
         )
-        .limit(10);
+        .limit(10)
 
-      results.projects = projectResults;
+      results.projects = projectResults
     }
 
-    results.total = results.people.length + results.posts.length + results.projects.length;
+    results.total = results.people.length + results.posts.length + results.projects.length
 
-    return Response.json(results, { status: 200 });
+    return Response.json(results, { status: 200 })
   } catch (error) {
-    console.error("Error searching:", error);
+    console.error('Error searching:', error)
     return Response.json(
-      { error: "Failed to search" },
+      { error: 'Failed to search' },
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
       }
-    );
+    )
   }
 }

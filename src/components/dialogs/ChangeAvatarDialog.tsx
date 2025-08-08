@@ -1,21 +1,21 @@
-"use client";
-import { queryClient } from "@/lib/providers";
-import { updateProfile } from "@/actions/profile-actions";
-import { getBase64Image, getCroppedImg } from "@/lib/utils";
-import { Loader } from "lucide-react";
-import { useSession } from "next-auth/react";
-import React, { FC, useEffect, useState } from "react";
-import Cropper, { Area } from "react-easy-crop";
-import toast from "react-hot-toast";
-import { useAvatarDialog } from "../dialog-provider";
-import { Button } from "../ui/button";
+'use client'
+import { queryClient } from '@/lib/providers'
+import { updateProfile } from '@/actions/profile-actions'
+import { getBase64Image, getCroppedImg } from '@/lib/utils'
+import { Loader } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import React, { FC, useEffect, useState } from 'react'
+import Cropper, { Area } from 'react-easy-crop'
+import toast from 'react-hot-toast'
+import { useAvatarDialog } from '../dialog-provider'
+import { Button } from '../ui/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog";
+} from '../ui/dialog'
 
 type ChangeAvatarDialogProps = {
   file: File | null;
@@ -23,30 +23,30 @@ type ChangeAvatarDialogProps = {
 };
 
 const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
-  const [isOpen, setIsOpen] = useAvatarDialog();
-  const { update, data: session } = useSession();
-  const [image, setImage] = React.useState<string | null>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [rotation, setRotation] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const [croppedImage, setCroppedImage] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useAvatarDialog()
+  const { update, data: session } = useSession()
+  const [image, setImage] = React.useState<string | null>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [rotation, setRotation] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+  const [croppedImage, setCroppedImage] = useState<string | null>(null)
 
   const onCropComplete = (croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  };
+    setCroppedAreaPixels(croppedAreaPixels)
+  }
 
   useEffect(() => {
-    if (!file) return;
+    if (!file) return
 
-    setImage(URL.createObjectURL(file));
-  }, [file]);
+    setImage(URL.createObjectURL(file))
+  }, [file])
 
   useEffect(() => {
     if (isOpen && (!file || !image)) {
-      toast.error("File not selected");
-      return;
+      toast.error('File not selected')
+      return
     }
     const showCroppedImage = async () => {
       try {
@@ -54,24 +54,24 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
           image as string,
           croppedAreaPixels as Area,
           rotation
-        );
-        setCroppedImage(croppedImage as string);
+        )
+        setCroppedImage(croppedImage as string)
       } catch (e) {
-        console.error(e);
+        console.error(e)
       }
-    };
-    showCroppedImage();
-  }, [croppedAreaPixels, rotation, image, file]);
+    }
+    showCroppedImage()
+  }, [croppedAreaPixels, rotation, image, file])
 
   return (
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          setFile(null);
-          setImage(null);
+          setFile(null)
+          setImage(null)
         }
-        setIsOpen(open);
+        setIsOpen(open)
       }}
     >
       <DialogContent className="sm:rounded-3xl p-0 max-w-md">
@@ -88,8 +88,8 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
           <div className="aspect-square  relative rounded-3xl overflow-hidden w-full ">
             <Cropper
               classes={{
-                containerClassName: "overflow-hidden relative ",
-                mediaClassName: "aspect-square ",
+                containerClassName: 'overflow-hidden relative ',
+                mediaClassName: 'aspect-square ',
               }}
               image={image as string}
               crop={crop}
@@ -107,42 +107,42 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
         </div>
         <div className="border-t px-5 pb-5 pt-5 border-neutral-300 dark:border-dark-border/60 flex  gap-x-3 items-center justify-between">
           <Button
-            variant={"outline"}
+            variant={'outline'}
             onClick={async () => {
-              setIsUploading(true);
+              setIsUploading(true)
               const url = await getBase64Image(
                 file as File,
                 croppedImage as string
-              );
+              )
 
-              const formData = new FormData();
-              formData.append("file", url as string);
-              formData.append("type", "avatar");
+              const formData = new FormData()
+              formData.append('file', url as string)
+              formData.append('type', 'avatar')
 
-              const res = await fetch("/api/upload", {
-                method: "POST",
+              const res = await fetch('/api/upload', {
+                method: 'POST',
                 body: formData,
-              });
-              const data = await res.json();
+              })
+              const data = await res.json()
 
               if (!res.ok) {
-                setIsUploading(false);
-                toast.error(`Failed to upload image: ${data.error}`);
-                return;
+                setIsUploading(false)
+                toast.error(`Failed to upload image: ${data.error}`)
+                return
               }
-              const resp = await updateProfile({ profileImage: data.url });
+              const resp = await updateProfile({ profileImage: data.url })
 
               if (!resp?.success && resp.error) {
-                setIsUploading(false);
-                toast.error(resp?.error as string);
-                return;
+                setIsUploading(false)
+                toast.error(resp?.error as string)
+                return
               }
-              await update();
+              await update()
               await queryClient.invalidateQueries({
-                queryKey: ["get-profile-by-username", session?.user?.username],
-              });
-              toast.success("Profile picture updated successfully");
-              setIsOpen(false);
+                queryKey: ['get-profile-by-username', session?.user?.username],
+              })
+              toast.success('Profile picture updated successfully')
+              setIsOpen(false)
             }}
             className="rounded-lg w-full"
           >
@@ -152,7 +152,7 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
         </div>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default ChangeAvatarDialog;
+export default ChangeAvatarDialog

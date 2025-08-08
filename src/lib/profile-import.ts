@@ -3,6 +3,55 @@
  * Automatically imports profile data from GitHub, LinkedIn during OAuth
  */
 
+interface GitHubRepo {
+  name: string;
+  description: string | null;
+  html_url: string;
+  language: string | null;
+  stargazers_count: number;
+  fork: boolean;
+  archived: boolean;
+}
+
+interface GitHubUser {
+  login: string;
+  name: string | null;
+  bio: string | null;
+  location: string | null;
+  public_repos: number;
+  followers: number;
+}
+
+interface LinkedInPosition {
+  title?: {
+    localized?: {
+      en_US: string;
+    };
+  };
+  companyName?: {
+    localized?: {
+      en_US: string;
+    };
+  };
+  description?: {
+    localized?: {
+      en_US: string;
+    };
+  };
+  dateRange?: {
+    start?: {
+      year: number;
+      month?: number;
+      day?: number;
+    };
+    end?: {
+      year: number;
+      month?: number;
+      day?: number;
+    };
+  };
+}
+
 export interface ImportedProfile {
   displayName?: string;
   bio?: string;
@@ -67,14 +116,14 @@ export async function importFromGitHub(accessToken: string): Promise<ImportedPro
           'Accept': 'application/vnd.github+json'
         }
       })
-    ]);
+    ])
 
     if (!userResponse.ok || !reposResponse.ok) {
-      throw new Error('Failed to fetch GitHub data');
+      throw new Error('Failed to fetch GitHub data')
     }
 
-    const user = await userResponse.json();
-    const repos = await reposResponse.json();
+    const user = await userResponse.json()
+    const repos = await reposResponse.json()
 
     const profile: ImportedProfile = {
       displayName: user.name || user.login,
@@ -83,9 +132,9 @@ export async function importFromGitHub(accessToken: string): Promise<ImportedPro
       website: user.blog || user.html_url,
       company: user.company || undefined,
       projects: repos
-        .filter((repo: any) => !repo.fork && repo.description) // Only non-forked repos with descriptions
+        .filter((repo: GitHubRepo) => !repo.fork && repo.description) // Only non-forked repos with descriptions
         .slice(0, 10) // Limit to top 10
-        .map((repo: any) => ({
+        .map((repo: GitHubRepo) => ({
           name: repo.name,
           description: repo.description,
           url: repo.html_url,
@@ -107,25 +156,25 @@ export async function importFromGitHub(accessToken: string): Promise<ImportedPro
           url: `https://twitter.com/${user.twitter_username}`
         }] : [])
       ].filter(link => link.url)
-    };
+    }
 
     // Extract skills from repository languages
     const languages = repos
-      .map((repo: any) => repo.language)
+      .map((repo: GitHubRepo) => repo.language)
       .filter((lang: string) => lang)
       .reduce((acc: { [key: string]: number }, lang: string) => {
-        acc[lang] = (acc[lang] || 0) + 1;
-        return acc;
-      }, {});
+        acc[lang] = (acc[lang] || 0) + 1
+        return acc
+      }, {})
 
     profile.skills = Object.keys(languages)
       .sort((a, b) => languages[b] - languages[a])
-      .slice(0, 10); // Top 10 languages
+      .slice(0, 10) // Top 10 languages
 
-    return profile;
+    return profile
   } catch (error) {
-    console.error('GitHub import error:', error);
-    return {};
+    console.error('GitHub import error:', error)
+    return {}
   }
 }
 
@@ -150,13 +199,13 @@ export async function importFromLinkedIn(accessToken: string): Promise<ImportedP
           'Accept': 'application/json'
         }
       }).catch(() => null) // Fail silently if no access to positions
-    ]);
+    ])
 
     if (!profileResponse.ok) {
-      throw new Error('Failed to fetch LinkedIn profile');
+      throw new Error('Failed to fetch LinkedIn profile')
     }
 
-    const profileData = await profileResponse.json();
+    const profileData = await profileResponse.json()
     
     const profile: ImportedProfile = {
       displayName: `${profileData.firstName?.localized?.en_US || ''} ${profileData.lastName?.localized?.en_US || ''}`.trim(),
@@ -169,12 +218,12 @@ export async function importFromLinkedIn(accessToken: string): Promise<ImportedP
           url: profileData.publicProfileUrl || ''
         }
       ].filter(link => link.url)
-    };
+    }
 
     // Process experience data if available
     if (experienceResponse && experienceResponse.ok) {
-      const experienceData = await experienceResponse.json();
-      profile.experience = experienceData.elements?.map((position: any) => ({
+      const experienceData = await experienceResponse.json()
+      profile.experience = experienceData.elements?.map((position: LinkedInPosition) => ({
         title: position.title?.localized?.en_US || '',
         company: position.companyName?.localized?.en_US || '',
         description: position.description?.localized?.en_US || undefined,
@@ -189,13 +238,13 @@ export async function importFromLinkedIn(accessToken: string): Promise<ImportedP
           position.dateRange.end.day || 1
         ) : undefined,
         currentlyWorking: !position.dateRange?.end
-      })).slice(0, 5) || []; // Limit to 5 most recent positions
+      })).slice(0, 5) || [] // Limit to 5 most recent positions
     }
 
-    return profile;
+    return profile
   } catch (error) {
-    console.error('LinkedIn import error:', error);
-    return {};
+    console.error('LinkedIn import error:', error)
+    return {}
   }
 }
 
@@ -203,60 +252,60 @@ export async function importFromLinkedIn(accessToken: string): Promise<ImportedP
  * Generate an enhanced bio using imported data
  */
 export function generateEnhancedBio(profile: ImportedProfile): string {
-  const parts: string[] = [];
+  const parts: string[] = []
   
   if (profile.bio) {
-    parts.push(profile.bio);
+    parts.push(profile.bio)
   } else {
     // Generate bio from available data
-    const title = profile.experience?.[0]?.title;
-    const company = profile.experience?.[0]?.company || profile.company;
-    const topSkill = profile.skills?.[0];
+    const title = profile.experience?.[0]?.title
+    const company = profile.experience?.[0]?.company || profile.company
+    const topSkill = profile.skills?.[0]
     
     if (title && company) {
-      parts.push(`${title} at ${company}`);
+      parts.push(`${title} at ${company}`)
     } else if (company) {
-      parts.push(`Working at ${company}`);
+      parts.push(`Working at ${company}`)
     }
     
     if (topSkill && !parts.some(p => p.toLowerCase().includes(topSkill.toLowerCase()))) {
-      parts.push(`Passionate about ${topSkill}`);
+      parts.push(`Passionate about ${topSkill}`)
     }
     
     if (profile.location) {
-      parts.push(`Based in ${profile.location}`);
+      parts.push(`Based in ${profile.location}`)
     }
     
     // Add a motivational ending
     const endings = [
-      "Building the future, one project at a time ✨",
-      "Always learning, always building 🚀",
-      "Turning ideas into reality 💡",
-      "Creating solutions that matter 🌟"
-    ];
+      'Building the future, one project at a time ✨',
+      'Always learning, always building 🚀',
+      'Turning ideas into reality 💡',
+      'Creating solutions that matter 🌟'
+    ]
     
     if (parts.length > 0) {
-      parts.push(endings[Math.floor(Math.random() * endings.length)]);
+      parts.push(endings[Math.floor(Math.random() * endings.length)])
     }
   }
   
-  return parts.join(' • ') || "Building something awesome ✨";
+  return parts.join(' • ') || 'Building something awesome ✨'
 }
 
 /**
  * Create a suggested username from imported data
  */
 export function generateUsername(profile: ImportedProfile, fallbackName?: string): string {
-  const name = profile.displayName || fallbackName || 'user';
+  const name = profile.displayName || fallbackName || 'user'
   
   // Clean the name and create username
   const cleanName = name
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '')
-    .slice(0, 15);
+    .slice(0, 15)
   
   // Add random number to avoid conflicts
-  const randomSuffix = Math.floor(Math.random() * 999) + 1;
+  const randomSuffix = Math.floor(Math.random() * 999) + 1
   
-  return `${cleanName}${randomSuffix}`;
+  return `${cleanName}${randomSuffix}`
 }

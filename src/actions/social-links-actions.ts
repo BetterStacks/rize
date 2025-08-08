@@ -1,34 +1,34 @@
-"use server";
+'use server'
 
-import { profile, socialLinks } from "@/db/schema";
-import { auth } from "@/lib/auth";
-import db from "@/lib/db";
-import { SocialPlatform } from "@/lib/types";
-import { and, eq, getTableColumns } from "drizzle-orm";
-import { getProfileIdByUsername } from "./profile-actions";
+import { socialLinks } from '@/db/schema'
+import { auth } from '@/lib/auth'
+import db from '@/lib/db'
+import { SocialPlatform } from '@/lib/types'
+import { and, eq } from 'drizzle-orm'
+import { getProfileIdByUsername } from './profile-actions'
 
 export const getSocialLinks = async (username: string) => {
-  const profileId = await getProfileIdByUsername(username);
+  const profileId = await getProfileIdByUsername(username)
   if (!profileId?.id) {
-    throw new Error("Profile not found");
+    throw new Error('Profile not found')
   }
   const links = await db
     .select()
     .from(socialLinks)
-    .where(eq(socialLinks.profileId, profileId?.id));
+    .where(eq(socialLinks.profileId, profileId?.id))
 
   if (links.length === 0) {
     // throw new Error("No social links found");
-    return [];
+    return []
   }
 
-  return links;
-};
+  return links
+}
 
 export const addSocialLink = async (url: string, platform: SocialPlatform) => {
-  const session = await auth();
+  const session = await auth()
   if (!session) {
-    throw new Error("Session not found");
+    throw new Error('Session not found')
   }
 
   const newLink = await db
@@ -38,17 +38,17 @@ export const addSocialLink = async (url: string, platform: SocialPlatform) => {
       platform,
       url,
     })
-    .returning();
+    .returning()
   if (newLink.length === 0) {
-    throw new Error("Error adding social link");
+    throw new Error('Error adding social link')
   }
 
-  return newLink[0];
-};
+  return newLink[0]
+}
 export const editSocialLink = async (id: string, url: string) => {
-  const session = await auth();
+  const session = await auth()
   if (!session) {
-    throw new Error("Session not found");
+    throw new Error('Session not found')
   }
 
   const newLink = await db
@@ -62,18 +62,18 @@ export const editSocialLink = async (id: string, url: string) => {
         eq(socialLinks.profileId, session.user.profileId)
       )
     )
-    .returning();
+    .returning()
   if (newLink.length === 0) {
-    throw new Error("Error updating social link");
+    throw new Error('Error updating social link')
   }
 
-  return newLink[0];
-};
+  return newLink[0]
+}
 
 export const removeSocialLink = async (id: string) => {
-  const session = await auth();
+  const session = await auth()
   if (!session) {
-    throw new Error("Session not found");
+    throw new Error('Session not found')
   }
   const link = await db
     .delete(socialLinks)
@@ -83,9 +83,9 @@ export const removeSocialLink = async (id: string) => {
         eq(socialLinks.profileId, session.user.profileId)
       )
     )
-    .returning();
+    .returning()
   if (link.length === 0) {
-    throw new Error("Error deleting social link");
+    throw new Error('Error deleting social link')
   }
-  return link[0];
-};
+  return link[0]
+}

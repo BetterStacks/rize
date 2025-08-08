@@ -1,8 +1,8 @@
-import { ResizablePanel, ResizablePanelGroup } from "../ui/resizable";
-import { ReactNode } from "react";
-import { ScrollArea } from "../ui/scroll-area";
-import Sidebar from "../sidebar/Sidebar";
-import RightSidebar from "../sidebar/RightSidebar";
+import { ResizablePanel, ResizablePanelGroup } from '../ui/resizable'
+import { ReactNode } from 'react'
+import { ScrollArea } from '../ui/scroll-area'
+import Sidebar from '../sidebar/Sidebar'
+import RightSidebar from '../sidebar/RightSidebar'
 
 type SettingsLayoutProps = {
   children: ReactNode;
@@ -28,7 +28,7 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
         <RightSidebar />
       </ResizablePanel>
     </ResizablePanelGroup>
-  );
-};
+  )
+}
 
-export default SettingsLayout;
+export default SettingsLayout

@@ -1,5 +1,5 @@
-"use client";
-import React, { FC } from "react";
+'use client'
+import React, { FC } from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,8 +9,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "../ui/alert-dialog";
-import { useAlertDialog } from "../dialog-provider";
+} from '../ui/alert-dialog'
+import { useAlertDialog } from '../dialog-provider'
 
 type AuthGuardDialogProps = {
   title?: string;
@@ -25,7 +25,7 @@ const AuthGuardDialog: FC<AuthGuardDialogProps> = ({
   onContinue,
   title,
 }) => {
-  const [open, setOpen] = useAlertDialog();
+  const [open, setOpen] = useAlertDialog()
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogContent>
@@ -33,15 +33,15 @@ const AuthGuardDialog: FC<AuthGuardDialogProps> = ({
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>
             {description ||
-              "You need to be signed in to perform this action. Please sign in or create an account to continue."}
+              'You need to be signed in to perform this action. Please sign in or create an account to continue.'}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogAction onClick={onContinue}>Continue</AlertDialogAction>
           <AlertDialogCancel
             onClick={() => {
-              onClose!();
-              setOpen(false);
+              onClose!()
+              setOpen(false)
             }}
           >
             Close
@@ -49,7 +49,7 @@ const AuthGuardDialog: FC<AuthGuardDialogProps> = ({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
-};
+  )
+}
 
-export default AuthGuardDialog;
+export default AuthGuardDialog

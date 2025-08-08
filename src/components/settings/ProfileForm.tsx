@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -12,52 +12,52 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useSession } from "next-auth/react";
-import { useQuery } from "@tanstack/react-query";
-import { getProfileByUsername } from "@/actions/profile-actions";
-import { Separator } from "../ui/separator";
+} from '@/components/ui/select'
+import { useSession } from 'next-auth/react'
+import { useQuery } from '@tanstack/react-query'
+import { getProfileByUsername } from '@/actions/profile-actions'
+import { Separator } from '../ui/separator'
 
 const profileSchema = z.object({
-  website: z.string().url().optional().or(z.literal("")),
+  website: z.string().url().optional().or(z.literal('')),
   bio: z.string().max(160).optional(),
   location: z.string().max(30).optional(),
-  pronouns: z.enum(["he/him", "she/her", "they/them", "other"]).optional(),
+  pronouns: z.enum(['he/him', 'she/her', 'they/them', 'other']).optional(),
   age: z.number().min(13).max(120).optional(),
-});
+})
 
 export function ProfileForm() {
-  const { data: session, update } = useSession();
+  const { data: session, update } = useSession()
   const { data } = useQuery({
-    queryKey: ["get-profile-by-username", session?.user?.username],
+    queryKey: ['get-profile-by-username', session?.user?.username],
     queryFn: () => getProfileByUsername(session?.user?.username as string),
-  });
+  })
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      website: data?.website || "",
-      bio: data?.bio || "",
-      location: data?.location || "",
+      website: data?.website || '',
+      bio: data?.bio || '',
+      location: data?.location || '',
       pronouns: data?.pronouns || undefined,
       age: data?.age || undefined,
     },
-  });
+  })
 
   async function onSubmit(values: z.infer<typeof profileSchema>) {
     try {
-      await update({ ...session, user: { ...session?.user, ...values } });
+      await update({ ...session, user: { ...session?.user, ...values } })
     } catch (error) {
-      console.error("Failed to update profile:", error);
+      console.error('Failed to update profile:', error)
     }
   }
 
@@ -153,5 +153,5 @@ export function ProfileForm() {
         </form>
       </Form>
     </div>
-  );
+  )
 }

@@ -2,23 +2,23 @@ import {
   addSocialLink,
   getSocialLinks,
   removeSocialLink,
-} from "@/actions/social-links-actions";
-import { SocialPlatform } from "@/lib/types";
-import { Edit2, Loader, Plus, Trash2 } from "lucide-react";
-import NextLink from "next/link";
+} from '@/actions/social-links-actions'
+import { SocialPlatform } from '@/lib/types'
+import { Edit2, Loader, Plus, Trash2 } from 'lucide-react'
+import NextLink from 'next/link'
 
-import { queryClient } from "@/lib/providers";
-import { capitalizeFirstLetter, cleanUrl, cn, getIcon } from "@/lib/utils";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Share2 } from "lucide-react";
-import Image from "next/image";
-import { useParams } from "next/navigation";
-import React from "react";
-import toast from "react-hot-toast";
-import { useSocialLinksDialog } from "./dialog-provider";
-import SocialLinksDialog from "./dialogs/AddSocialLinksDialog";
-import EditSocialLink from "./dialogs/EditSocialLinkDialog";
-import { Button } from "./ui/button";
+import { queryClient } from '@/lib/providers'
+import { capitalizeFirstLetter, cleanUrl, cn, getIcon } from '@/lib/utils'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { Share2 } from 'lucide-react'
+import Image from 'next/image'
+import { useParams } from 'next/navigation'
+import React from 'react'
+import toast from 'react-hot-toast'
+import { useSocialLinksDialog } from './dialog-provider'
+import SocialLinksDialog from './dialogs/AddSocialLinksDialog'
+import EditSocialLink from './dialogs/EditSocialLinkDialog'
+import { Button } from './ui/button'
 import {
   Card,
   CardContent,
@@ -26,28 +26,28 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "./ui/card";
+} from './ui/card'
 
 const SocialLinksManager = () => {
-  const params = useParams<{ username: string }>();
-  const setSocialLinksDialogOpen = useSocialLinksDialog()[1];
+  const params = useParams<{ username: string }>()
+  const setSocialLinksDialogOpen = useSocialLinksDialog()[1]
 
   const [linkToEdit, setLinkToEdit] = React.useState<{
     id: string;
     url: string;
     platform: SocialPlatform;
-  } | null>(null);
+  } | null>(null)
 
-  const [editLinkDialogOpen, setEditLinkDialogOpen] = React.useState(false);
+  const [editLinkDialogOpen, setEditLinkDialogOpen] = React.useState(false)
   const { data: links = [] } = useQuery({
     enabled: !!params?.username,
-    queryKey: ["get-social-links", params?.username],
+    queryKey: ['get-social-links', params?.username],
     queryFn: () => getSocialLinks(params?.username),
-  });
+  })
 
   const existingPlatforms = links!.map(
     (link) => link.platform
-  ) as SocialPlatform[];
+  ) as SocialPlatform[]
 
   const { mutate: addSocialLinkMutation } = useMutation({
     mutationFn: ({
@@ -58,14 +58,14 @@ const SocialLinksManager = () => {
       platform: SocialPlatform;
     }) => addSocialLink(url, platform),
     onSuccess: () => {
-      toast.success("Social link added");
-      queryClient.invalidateQueries({ queryKey: ["get-social-links"] });
-      setSocialLinksDialogOpen(false);
+      toast.success('Social link added')
+      queryClient.invalidateQueries({ queryKey: ['get-social-links'] })
+      setSocialLinksDialogOpen(false)
     },
     onError: (error) => {
-      toast.error(error?.message);
+      toast.error(error?.message)
     },
-  });
+  })
   const handleEditLink = ({
     id,
     platform,
@@ -75,9 +75,9 @@ const SocialLinksManager = () => {
     url: string;
     platform: SocialPlatform;
   }) => {
-    setLinkToEdit({ id, url, platform });
-    setEditLinkDialogOpen(true);
-  };
+    setLinkToEdit({ id, url, platform })
+    setEditLinkDialogOpen(true)
+  }
   return (
     <div className="w-full max-w-sm px-2 flex flex-col items-center justify-center mb-6">
       <Card className="bg-white social-links-manager w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
@@ -117,7 +117,7 @@ const SocialLinksManager = () => {
           <CardFooter className="px-3">
             <Button
               className="w-full"
-              variant={"outline"}
+              variant={'outline'}
               onClick={() => setSocialLinksDialogOpen(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -125,7 +125,7 @@ const SocialLinksManager = () => {
             </Button>
           </CardFooter>
         </CardContent>
-      </Card>{" "}
+      </Card>{' '}
       <SocialLinksDialog
         onAdd={(platform, url) => addSocialLinkMutation({ platform, url })}
         existingPlatforms={existingPlatforms}
@@ -140,14 +140,14 @@ const SocialLinksManager = () => {
         />
       )}
     </div>
-  );
-};
+  )
+}
 
-export default SocialLinksManager;
+export default SocialLinksManager
 
 interface SocialLinkProps {
   id: string;
-  platform: any;
+  platform: string;
   url: string;
   onEdit: (link: { id: string; url: string; platform: SocialPlatform }) => void;
 }
@@ -162,18 +162,18 @@ const SocialLink: React.FC<SocialLinkProps> = ({
     useMutation({
       mutationFn: ({ id }: { id: string }) => removeSocialLink(id),
       onSuccess: () => {
-        toast.success("Social link Deleted");
-        queryClient.invalidateQueries({ queryKey: ["get-social-links"] });
+        toast.success('Social link Deleted')
+        queryClient.invalidateQueries({ queryKey: ['get-social-links'] })
       },
       onError: (error) => {
-        toast.error(error?.message);
+        toast.error(error?.message)
       },
-    });
+    })
 
   return (
     <div
       className={cn(
-        "flex items-center justify-between px-4 py-2 rounded-lg mb-2"
+        'flex items-center justify-between px-4 py-2 rounded-lg mb-2'
         // getBgColor()
       )}
     >
@@ -185,10 +185,10 @@ const SocialLink: React.FC<SocialLinkProps> = ({
           alt={platform}
           width={20}
           height={20}
-        />{" "}
+        />{' '}
         {/* </div> */}
         <div className="flex flex-col w-full">
-          <h3 className={cn("font-medium leading-none tracking-tight")}>
+          <h3 className={cn('font-medium leading-none tracking-tight')}>
             {capitalizeFirstLetter(platform)}
           </h3>
           <NextLink
@@ -203,7 +203,7 @@ const SocialLink: React.FC<SocialLinkProps> = ({
       <div className="flex ml-2 space-x-2">
         <Button
           size="icon"
-          variant={"ghost"}
+          variant={'ghost'}
           className=""
           onClick={() => onEdit({ id, url, platform })}
         >
@@ -211,7 +211,7 @@ const SocialLink: React.FC<SocialLinkProps> = ({
         </Button>
         <Button
           size="icon"
-          variant={"ghost"}
+          variant={'ghost'}
           className=""
           onClick={() => deleteSocialLinkMutation({ id: id })}
         >
@@ -223,7 +223,7 @@ const SocialLink: React.FC<SocialLinkProps> = ({
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // export default SocialLink;

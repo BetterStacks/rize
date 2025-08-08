@@ -1,9 +1,9 @@
-import { Metadata } from "next";
+import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - Rize",
-  description: "Privacy Policy for Rize - Learn how we collect, use, and protect your personal information.",
-};
+  title: 'Privacy Policy - Rize',
+  description: 'Privacy Policy for Rize - Learn how we collect, use, and protect your personal information.',
+}
 
 export default function PrivacyPolicy() {
   return (
@@ -245,5 +245,5 @@ export default function PrivacyPolicy() {
         </div>
       </div>
     </div>
-  );
+  )
 }

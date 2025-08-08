@@ -1,24 +1,24 @@
-"use client";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-import { Edit3, Plus, Search, Settings, UserRound } from "lucide-react";
-import { useSession } from "next-auth/react";
-import Image from "next/image";
-import Link from "next/link";
+'use client'
+import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
+import { Edit3, Plus, Search, Settings, UserRound } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import Image from 'next/image'
+import Link from 'next/link'
 import {
   useAuthDialog,
   usePostsDialog,
   useSearchDialog,
-} from "../dialog-provider";
-import { Button } from "../ui/button";
-import { PostAvatar } from "../explore/post-interactions";
+} from '../dialog-provider'
+import { Button } from '../ui/button'
+import { PostAvatar } from '../explore/post-interactions'
 
 const Sidebar = ({ className }: { className?: string }) => {
-  const session = useSession();
+  const session = useSession()
 
-  const setIsPostDialogOpen = usePostsDialog()[1];
-  const setIsAuthDialogOpen = useAuthDialog()[1];
-  const setIsSearchDialogOpen = useSearchDialog()[1];
+  const setIsPostDialogOpen = usePostsDialog()[1]
+  const setIsAuthDialogOpen = useAuthDialog()[1]
+  const setIsSearchDialogOpen = useSearchDialog()[1]
   // const { theme } = useTheme();
   // const options = [
   //   {
@@ -74,25 +74,25 @@ const Sidebar = ({ className }: { className?: string }) => {
     <div
       className={cn(
         className,
-        "h-screen w-[90px] bg-light-bg dark:bg-dark-bg border-r border-neutral-300/60  dark:border-dark-border/60  hidden md:flex flex-col items-center justify-between px-2 z-40 py-4"
+        'h-screen w-[90px] bg-light-bg dark:bg-dark-bg border-r border-neutral-300/60  dark:border-dark-border/60  hidden md:flex flex-col items-center justify-between px-2 z-40 py-4'
       )}
     >
       <div className="flex w-full flex-col mt-4 items-center justify-center gap-y-2 ">
         <div className="mb-6">
-          <Link href={session?.data?.user?.username ? `/${session.data.user.username}` : "/"}>
+          <Link href={session?.data?.user?.username ? `/${session.data.user.username}` : '/'}>
             <Image
               width={42}
               height={42}
               className="rounded-xl hidden dark:flex size-10"
               alt=""
-              src={"/logo-dark.png"}
+              src={'/logo-dark.png'}
             />
             <Image
               width={42}
               height={42}
               className="rounded-xl  dark:hidden flex size-10"
               alt=""
-              src={"/logo-light.png"}
+              src={'/logo-light.png'}
             />
           </Link>
         </div>
@@ -100,31 +100,31 @@ const Sidebar = ({ className }: { className?: string }) => {
 
       <div className="mb-8 flex flex-col gap-y-4">
         <Button
-          variant={"ghost"}
+          variant={'ghost'}
           className="rounded-full size-10 group relative"
-          size={"icon"}
+          size={'icon'}
           onClick={() => {
-            setIsSearchDialogOpen(true);
+            setIsSearchDialogOpen(true)
           }}
           title="Search (⌘K)"
         >
           <Search strokeWidth={1.4} className="size-5 opacity-80 group-hover:opacity-100 transition-opacity" />
         </Button>
         <Button
-          variant={"ghost"}
-          className={cn("rounded-full size-10", !session?.data && "mb-10")}
-          size={"icon"}
+          variant={'ghost'}
+          className={cn('rounded-full size-10', !session?.data && 'mb-10')}
+          size={'icon'}
           onClick={() => {
             if (!session?.data) {
-              setIsAuthDialogOpen(true);
-              return;
+              setIsAuthDialogOpen(true)
+              return
             }
-            setIsPostDialogOpen(true);
+            setIsPostDialogOpen(true)
           }}
         >
           <Plus strokeWidth={1.4} className="size-5 opacity-80" />
         </Button>
-        {session?.status === "authenticated" && (
+        {session?.status === 'authenticated' && (
           <Link href={`/${session?.data?.user?.username}`}>
             <PostAvatar
               avatar={session?.data?.user?.profileImage as string}
@@ -134,34 +134,34 @@ const Sidebar = ({ className }: { className?: string }) => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 const OptionsMenu = () => {
-  const session = useSession();
+  const session = useSession()
   const options = [
     {
       id: 1,
-      name: "Manage Account",
+      name: 'Manage Account',
       href: `/${session?.data?.user?.username}`,
       onClick: () => {},
       icon: <UserRound className="opacity-70 size-5" strokeWidth={1.2} />,
     },
     {
       id: 2,
-      name: "Edit Profile",
+      name: 'Edit Profile',
       href: `/${session?.data?.user?.username}`,
       onClick: () => {},
       icon: <Edit3 className="opacity-70 size-5" strokeWidth={1.2} />,
     },
     {
       id: 3,
-      name: "Settings",
+      name: 'Settings',
       href: `/${session?.data?.user?.username}?tab=settings`,
       onClick: () => {},
       icon: <Settings className="opacity-70 size-5" strokeWidth={1.2} />,
     },
-  ];
+  ]
   return (
     <motion.div>
       {options.map((option) => (
@@ -170,7 +170,7 @@ const OptionsMenu = () => {
           className=" relative group flex items-center justify-start my-1"
           key={option.id}
         >
-          {option?.icon}{" "}
+          {option?.icon}{' '}
           <span className="opacity-80 font-light tracking-tight ml-4  ">
             {option?.name}
           </span>
@@ -180,7 +180,7 @@ const OptionsMenu = () => {
         </div>
       ))}
     </motion.div>
-  );
-};
+  )
+}
 
-export default Sidebar;
+export default Sidebar

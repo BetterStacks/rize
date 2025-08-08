@@ -1,11 +1,11 @@
-import React, { FC } from "react";
-import { Button } from "./ui/button";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
-import { Loader } from "lucide-react";
+import React, { FC } from 'react'
+import { Button } from './ui/button'
+import Image from 'next/image'
+import { cn } from '@/lib/utils'
+import { Loader } from 'lucide-react'
 
 type AuthProviderButtonProps = {
-  provider: "github" | "google" | "linkedin";
+  provider: 'github' | 'google' | 'linkedin';
   icon: string | React.ReactNode;
   className?: string;
   handleClick: () => void;
@@ -24,9 +24,9 @@ const AuthProviderButton: FC<AuthProviderButtonProps> = ({
   return (
     <Button
       onClick={handleClick}
-      variant={"outline"}
+      variant={'outline'}
       disabled={isLoading}
-      className={cn("rounded-lg px-6 ", className)}
+      className={cn('rounded-lg px-6 ', className)}
     >
       {isLoading ? (
         <Loader className="animate-spin size-4 opacity-80 mr-2" />
@@ -41,7 +41,7 @@ const AuthProviderButton: FC<AuthProviderButtonProps> = ({
       )}
       {children}
     </Button>
-  );
-};
+  )
+}
 
-export default AuthProviderButton;
+export default AuthProviderButton

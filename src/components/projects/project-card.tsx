@@ -1,18 +1,18 @@
-import { deleteProject } from "@/actions/project-actions";
-import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
-import { queryClient } from "@/lib/providers";
-import { GetAllProjects } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { Edit2, Globe, Loader, Trash } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { FC } from "react";
-import toast from "react-hot-toast";
-import { Button } from "../ui/button";
-import { useMediaQuery } from "@mantine/hooks";
+import { deleteProject } from '@/actions/project-actions'
+import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
+import { queryClient } from '@/lib/providers'
+import { GetAllProjects } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { useMutation } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
+import { Edit2, Globe, Loader, Trash } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import { FC } from 'react'
+import toast from 'react-hot-toast'
+import { Button } from '../ui/button'
+import { useMediaQuery } from '@mantine/hooks'
 
 type ProjectCardProps = {
   project: GetAllProjects;
@@ -20,27 +20,27 @@ type ProjectCardProps = {
 };
 
 const ProjectCard: FC<ProjectCardProps> = ({ project, isMine }) => {
-  const [tab, setTab] = useActiveSidebarTab();
-  const { username } = useParams<{ username: string }>();
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const setOpen = useRightSidebar()[1];
+  const [tab, setTab] = useActiveSidebarTab()
+  const { username } = useParams<{ username: string }>()
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const setOpen = useRightSidebar()[1]
 
   const { mutate: handleDeleteProject, isPending } = useMutation({
     mutationFn: deleteProject,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["get-projects", username] });
-      toast.success("Project deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ['get-projects', username] })
+      toast.success('Project deleted successfully')
     },
     onError: () => {
-      toast.error("Failed to delete project");
+      toast.error('Failed to delete project')
     },
-  });
+  })
   return (
     <motion.div
       className={cn(
-        "flex w-full bg-neutral-100 group relative dark:bg-neutral-800 transition-all  rounded-2xl border border-neutral-300/60 dark:border-dark-border px-4 py-4 ",
+        'flex w-full bg-neutral-100 group relative dark:bg-neutral-800 transition-all  rounded-2xl border border-neutral-300/60 dark:border-dark-border px-4 py-4 ',
         tab?.id === project?.id &&
-          "dark:bg-indigo-400/10 border-2 border-dashed bg-indigo-400/15 border-indigo-400/30 dark:border-indigo-400/20"
+          'dark:bg-indigo-400/10 border-2 border-dashed bg-indigo-400/15 border-indigo-400/30 dark:border-indigo-400/20'
       )}
     >
       <div className="w-full inline-flex">
@@ -73,25 +73,25 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, isMine }) => {
       {isMine && (
         <div className="space-x-2 absolute right-4 opacity-0 group-hover:opacity-100 flex items-center justify-center">
           <Button
-            variant={"outline"}
+            variant={'outline'}
             className="rounded-lg  text-sm"
-            size={"smallIcon"}
+            size={'smallIcon'}
             onClick={() => {
               setTab((prev) => ({
                 id: prev?.id === project?.id ? null : project?.id,
-                tab: "projects",
-              }));
+                tab: 'projects',
+              }))
               if (!isDesktop) {
-                setOpen(true);
+                setOpen(true)
               }
             }}
           >
             <Edit2 className="size-4 opacity-80" />
           </Button>
           <Button
-            variant={"outline"}
+            variant={'outline'}
             className="rounded-lg  text-sm"
-            size={"smallIcon"}
+            size={'smallIcon'}
             onClick={() => handleDeleteProject(project.id)}
             disabled={isPending}
           >
@@ -104,7 +104,7 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, isMine }) => {
         </div>
       )}
     </motion.div>
-  );
-};
+  )
+}
 
-export default ProjectCard;
+export default ProjectCard

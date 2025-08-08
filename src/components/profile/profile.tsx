@@ -1,6 +1,6 @@
-import { GetProfileByUsername } from "@/lib/types";
-import UserAvatar from "../user-avatar";
-import { cn } from "@/lib/utils";
+import { GetProfileByUsername } from '@/lib/types'
+import UserAvatar from '../user-avatar'
+import { cn } from '@/lib/utils'
 
 type ProfileProps = {
   data: GetProfileByUsername;
@@ -10,7 +10,7 @@ type ProfileProps = {
 };
 
 export const defaultBio = `I’m still setting up, but this is where it all starts 🌱.\n
-A place to share what I do, what I love, and where I’m headed.It’s quiet for now, but trust me—it won’t stay that way for long.`;
+A place to share what I do, what I love, and where I’m headed.It’s quiet for now, but trust me—it won’t stay that way for long.`
 
 const Profile = ({
   data,
@@ -32,7 +32,7 @@ const Profile = ({
           />
         </div>
         <h1 className="  profile-displayName self-start text-xl font-medium md:text-xl lg:text-2xl    tracking-tight">
-          {" "}
+          {' '}
           {data?.displayName || data?.name}
         </h1>
         {/* 
@@ -44,12 +44,12 @@ const Profile = ({
         )} */}
         <div
           className={cn(
-            "w-full  flex flex-col items-start justify-center mt-4 mb-4",
+            'w-full  flex flex-col items-start justify-center mt-4 mb-4',
             bioContainerClassName
           )}
         >
           <div className="profile-Bio flex flex-col items-start text-sm md:text-base  gap-y-0.5 text-neutral-800 dark:text-neutral-300  leading-tight   ">
-            {(data?.bio || defaultBio)?.split("\n").map((line, i) => (
+            {(data?.bio || defaultBio)?.split('\n').map((line, i) => (
               <span key={i}>
                 {line}
                 <br />
@@ -59,10 +59,10 @@ const Profile = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Profile;
+export default Profile
 
 {
   /* {bio.map((token, i) => {

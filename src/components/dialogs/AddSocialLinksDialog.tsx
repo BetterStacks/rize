@@ -1,10 +1,10 @@
-"use client";
-import { SocialPlatform } from "@/lib/types";
-import { Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
-import { FC, ReactNode, useState } from "react";
-import toast from "react-hot-toast";
-import { useSocialLinksDialog } from "../dialog-provider";
-import { Button } from "../ui/button";
+'use client'
+import { SocialPlatform } from '@/lib/types'
+import { Instagram, Linkedin, Twitter, Youtube } from 'lucide-react'
+import { FC, ReactNode, useState } from 'react'
+import toast from 'react-hot-toast'
+import { useSocialLinksDialog } from '../dialog-provider'
+import { Button } from '../ui/button'
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog";
-import { Input } from "../ui/input";
+} from '../ui/dialog'
+import { Input } from '../ui/input'
 import {
   Select,
   SelectContent,
@@ -22,8 +22,8 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
-import { availablePlatforms as platforms } from "@/lib/utils";
+} from '../ui/select'
+import { availablePlatforms as platforms } from '@/lib/utils'
 
 type SocialLinksProps = {
   value: string;
@@ -33,40 +33,40 @@ type SocialLinksProps = {
 };
 const initial: SocialLinksProps[] = [
   {
-    baseUrl: "instagram.com/",
+    baseUrl: 'instagram.com/',
     icon: <Instagram className="opacity-70 size-6" strokeWidth={1.4} />,
-    name: "Instagram",
-    value: "",
+    name: 'Instagram',
+    value: '',
   },
   {
-    baseUrl: "x.com/",
+    baseUrl: 'x.com/',
     icon: <Twitter className="opacity-70 size-6" strokeWidth={1.4} />,
-    name: "X (Twitter)",
-    value: "",
+    name: 'X (Twitter)',
+    value: '',
   },
   {
-    baseUrl: "youtube.com/@",
+    baseUrl: 'youtube.com/@',
     icon: <Youtube className="opacity-70 size-6" strokeWidth={1.4} />,
-    name: "Youtube",
-    value: "",
+    name: 'Youtube',
+    value: '',
   },
   {
-    baseUrl: "linkedin.com/in/",
+    baseUrl: 'linkedin.com/in/',
     icon: <Linkedin className="opacity-70 size-6" strokeWidth={1.4} />,
-    name: "LinkedIn",
-    value: "",
+    name: 'LinkedIn',
+    value: '',
   },
-];
+]
 
 const isValidUrl = (url: string): boolean => {
   try {
-    new URL(url);
-    return true;
+    new URL(url)
+    return true
   } catch (error) {
-    console.error("Invalid URL:", error);
-    return false;
+    console.error('Invalid URL:', error)
+    return false
   }
-};
+}
 
 interface AddSocialLinkProps {
   onAdd: (platform: SocialPlatform, url: string) => void;
@@ -79,43 +79,43 @@ const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
   onAdd,
   isPending,
 }) => {
-  const [open, setOpen] = useSocialLinksDialog();
-  const [platform, setPlatform] = useState<SocialPlatform>("other");
-  const [url, setUrl] = useState("");
+  const [open, setOpen] = useSocialLinksDialog()
+  const [platform, setPlatform] = useState<SocialPlatform>('other')
+  const [url, setUrl] = useState('')
 
   const availablePlatforms: SocialPlatform[] = [...platforms].filter(
-    (p) => p === "other" || !existingPlatforms.includes(p as SocialPlatform)
-  ) as SocialPlatform[];
+    (p) => p === 'other' || !existingPlatforms.includes(p as SocialPlatform)
+  ) as SocialPlatform[]
 
   const handleAdd = () => {
     if (!platform) {
-      toast.error("Please select a social media platform");
-      return;
+      toast.error('Please select a social media platform')
+      return
     }
 
     if (!url) {
-      toast.error("Please enter a URL");
-      return;
+      toast.error('Please enter a URL')
+      return
     }
 
-    let processedUrl = url;
+    let processedUrl = url
     if (
-      !processedUrl.startsWith("http://") &&
-      !processedUrl.startsWith("https://")
+      !processedUrl.startsWith('http://') &&
+      !processedUrl.startsWith('https://')
     ) {
-      processedUrl = "https://" + processedUrl;
+      processedUrl = 'https://' + processedUrl
     }
 
     if (!isValidUrl(processedUrl)) {
-      toast.error("Please enter a valid URL");
-      return;
+      toast.error('Please enter a valid URL')
+      return
     }
 
-    onAdd(platform, processedUrl);
-    setOpen(false);
-    setPlatform("other");
-    setUrl("");
-  };
+    onAdd(platform, processedUrl)
+    setOpen(false)
+    setPlatform('other')
+    setUrl('')
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -169,9 +169,9 @@ const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
             type="button"
             disabled={isPending}
             onClick={() => {
-              setOpen(false);
-              setPlatform("other");
-              setUrl("");
+              setOpen(false)
+              setPlatform('other')
+              setUrl('')
             }}
           >
             Cancel
@@ -179,7 +179,7 @@ const AddSocialLinksDialog: FC<AddSocialLinkProps> = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default AddSocialLinksDialog;
+export default AddSocialLinksDialog

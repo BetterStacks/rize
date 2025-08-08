@@ -1,12 +1,12 @@
-"use client";
-import { getPostComments } from "@/actions/post-actions";
-import { useComment } from "@/hooks/useComment";
-import { queryClient } from "@/lib/providers";
-import { GetCommentWithProfile, TUploadFilesResponse } from "@/lib/types";
-import { cn, isValidUrl } from "@/lib/utils";
-import { useMediaQuery } from "@mantine/hooks";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+'use client'
+import { getPostComments } from '@/actions/post-actions'
+import { useComment } from '@/hooks/useComment'
+import { queryClient } from '@/lib/providers'
+import { GetCommentWithProfile, TUploadFilesResponse } from '@/lib/types'
+import { cn, isValidUrl } from '@/lib/utils'
+import { useMediaQuery } from '@mantine/hooks'
+import { useQuery } from '@tanstack/react-query'
+import axios from 'axios'
 import {
   Bookmark,
   Link2,
@@ -14,25 +14,25 @@ import {
   MoreHorizontalIcon,
   Trash2,
   X,
-} from "lucide-react";
-import { useSession } from "next-auth/react";
-import Image from "next/image";
-import React, { FC, useState } from "react";
-import { useDropzone } from "react-dropzone";
-import toast from "react-hot-toast";
-import Textarea from "react-textarea-autosize";
-import { Result } from "url-metadata";
-import { v4 } from "uuid";
-import { GalleryIcon } from "./explore/post-form";
-import { PostAvatar, PostLinkCard } from "./explore/post-interactions";
-import { Button } from "./ui/button";
+} from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import Image from 'next/image'
+import React, { FC, useState } from 'react'
+import { useDropzone } from 'react-dropzone'
+import toast from 'react-hot-toast'
+import Textarea from 'react-textarea-autosize'
+import { Result } from 'url-metadata'
+import { v4 } from 'uuid'
+import { GalleryIcon } from './explore/post-form'
+import { PostAvatar, PostLinkCard } from './explore/post-interactions'
+import { Button } from './ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Skeleton } from "./ui/skeleton";
+} from './ui/dropdown-menu'
+import { Skeleton } from './ui/skeleton'
 
 type CommentsProps = {
   id: string;
@@ -47,17 +47,17 @@ const Comments: FC<CommentsProps> = ({
   commentCount,
   commented,
 }) => {
-  const [orderBy, setOrderBy] = useState<"newest" | "oldest" | "popular">(
-    "newest"
-  );
-  const session = useSession();
+  const [orderBy, setOrderBy] = useState<'newest' | 'oldest' | 'popular'>(
+    'newest'
+  )
+  const session = useSession()
   const { data: comments, isLoading } = useQuery({
     initialData: initialData,
-    queryKey: ["get-post-comments", id, orderBy],
+    queryKey: ['get-post-comments', id, orderBy],
     queryFn: () => getPostComments(id, orderBy),
-  });
+  })
 
-  const { removeCommentMutation } = useComment({ postId: id });
+  const { removeCommentMutation } = useComment({ postId: id })
 
   return (
     <div className=" mb-10">
@@ -99,19 +99,19 @@ const Comments: FC<CommentsProps> = ({
                   handleDelete={removeCommentMutation.mutate}
                   isDeleting={removeCommentMutation?.isPending}
                 />
-              );
+              )
             })}
           </>
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 type MediaFile = {
   id: string;
   url: string;
-  type: "image" | "video";
+  type: 'image' | 'video';
   file: File;
 };
 
@@ -122,22 +122,22 @@ type TCommentForm = {
 };
 
 const CommentForm: FC<TCommentForm> = ({ id }) => {
-  const session = useSession();
-  const [link, setLink] = useState<string | null>();
-  const [content, setContent] = React.useState<string>("");
-  const [file, setFile] = React.useState<MediaFile | null>(null);
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const session = useSession()
+  const [link, setLink] = useState<string | null>()
+  const [content, setContent] = React.useState<string>('')
+  const [file, setFile] = React.useState<MediaFile | null>(null)
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false)
 
   const onDrop = (acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map((file) => ({
       id: v4(),
       url: URL.createObjectURL(file),
-      type: file.type.startsWith("image") ? "image" : "video",
+      type: file.type.startsWith('image') ? 'image' : 'video',
       file: file,
-    }));
-    setFile(newFiles[0] as MediaFile);
-  };
+    }))
+    setFile(newFiles[0] as MediaFile)
+  }
 
   const {
     getRootProps,
@@ -150,33 +150,33 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
     noClick: true,
     noKeyboard: true,
     accept: {
-      "image/*": [".png", ".jpg", ".jpeg"],
-      "video/*": [".mp4", ".webm", ".mov"],
+      'image/*': ['.png', '.jpg', '.jpeg'],
+      'video/*': ['.mp4', '.webm', '.mov'],
     },
-  });
+  })
 
   const { data: linkMetadata } = useQuery({
-    queryKey: ["get-link-metadata"],
+    queryKey: ['get-link-metadata'],
     enabled: !!link,
     queryFn: async () => {
-      const data = await axios("/api/url", {
+      const data = await axios('/api/url', {
         params: {
           url: link,
         },
-      });
-      return data;
+      })
+      return data
     },
-  });
+  })
   const { addCommentMutation } = useComment({
     postId: id,
-  });
+  })
 
   return (
     <div
       {...getRootProps()}
       className={cn(
-        "pt-4 pb-6 border-b border-neutral-300 dark:border-dark-border px-6 group flex items-center justify-center w-full",
-        isDragActive && "bg-blue-400/20"
+        'pt-4 pb-6 border-b border-neutral-300 dark:border-dark-border px-6 group flex items-center justify-center w-full',
+        isDragActive && 'bg-blue-400/20'
       )}
     >
       <input {...getInputProps()} className="hidden" />
@@ -197,14 +197,14 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
         <Textarea
           autoFocus
           className={cn(
-            "appearance-none  px-2 text-sm md:text-base w-full bg-transparent text-neutral-600 dark:text-neutral-200 tracking-tight font-medium focus-visible:outline-none shadow-none resize-none border-none",
-            (content?.length > 0 || file) && "mb-4"
+            'appearance-none  px-2 text-sm md:text-base w-full bg-transparent text-neutral-600 dark:text-neutral-200 tracking-tight font-medium focus-visible:outline-none shadow-none resize-none border-none',
+            (content?.length > 0 || file) && 'mb-4'
           )}
           value={content}
           onChange={(e) => {
-            setContent(e.target.value);
+            setContent(e.target.value)
           }}
-          placeholder={`What's on your mind?`}
+          placeholder={'What\'s on your mind?'}
         />
         {link && !linkMetadata?.data?.metadata && (
           <div className="max-w-xs w-full mt-4 rounded-2xl relative overflow-hidden  border border-neutral-300/80 dark:border-dark-border">
@@ -220,8 +220,8 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
             data={linkMetadata?.data?.metadata}
             hasRemove
             onRemove={() => {
-              setLink(null);
-              queryClient.setQueryData(["get-link-metadata"], null);
+              setLink(null)
+              queryClient.setQueryData(['get-link-metadata'], null)
             }}
           />
         )}
@@ -235,13 +235,13 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
               <div
                 className="absolute top-2 right-2 opacity-0 z-30 group-hover:opacity-100 transition-all duration-200"
                 onClick={() => {
-                  setFile(null);
+                  setFile(null)
                 }}
               >
                 <button
                   onClick={() => {
-                    setLink(null);
-                    queryClient.setQueryData(["get-link-metadata"], null);
+                    setLink(null)
+                    queryClient.setQueryData(['get-link-metadata'], null)
                   }}
                   className="border border-neutral-200 dark:bg-dark-bg bg-white dark:border-dark-border rounded-full p-2"
                 >
@@ -249,7 +249,7 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
                 </button>
               </div>
               <div className="aspect-video w-full relative rounded-lg overflow-hidden">
-                {file.type === "image" ? (
+                {file.type === 'image' ? (
                   <Image
                     height={400}
                     width={400}
@@ -272,15 +272,15 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
         )}
         <div
           className={cn(
-            "hidden items-center mt-4 justify-between w-full",
-            (content?.length > 0 || file) && "flex"
+            'hidden items-center mt-4 justify-between w-full',
+            (content?.length > 0 || file) && 'flex'
           )}
         >
           <div className="space-x-2 ">
             <Button
-              size={"icon"}
+              size={'icon'}
               className="rounded-full"
-              variant={"ghost"}
+              variant={'ghost'}
               disabled={!!link || addCommentMutation?.isPending}
               onClick={openDropZone}
             >
@@ -293,44 +293,44 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
             <Button
               disabled={!!link || !!file || addCommentMutation?.isPending}
               onClick={async () => {
-                const url = prompt("Enter a link:");
-                if (!url) return;
+                const url = prompt('Enter a link:')
+                if (!url) return
                 if (!isValidUrl(url)) {
-                  toast.error("Invalid URL");
-                  return;
+                  toast.error('Invalid URL')
+                  return
                 }
 
-                setLink(url);
+                setLink(url)
               }}
-              size={"icon"}
+              size={'icon'}
               className="rounded-full"
-              variant={"ghost"}
+              variant={'ghost'}
             >
               <Link2 strokeWidth={1.4} className="-rotate-45 opacity-80" />
             </Button>
           </div>
           <Button
             className="rounded-3xl px-6"
-            variant={"outline"}
-            size={"sm"}
+            variant={'outline'}
+            size={'sm'}
             onClick={async () => {
-              let media: TUploadFilesResponse | undefined = undefined;
+              let media: TUploadFilesResponse | undefined = undefined
 
               if (file) {
-                setIsUploadingMedia(true);
-                const formData = new FormData();
-                formData.append("files", file?.file as File);
-                formData.append("folder", "fyp-stacks/posts");
+                setIsUploadingMedia(true)
+                const formData = new FormData()
+                formData.append('files', file?.file as File)
+                formData.append('folder', 'fyp-stacks/posts')
 
-                const res = await axios.post("/api/upload/files", formData);
-                if (res.status !== 200) throw new Error("Upload failed");
-                const [resp] = res.data?.data as TUploadFilesResponse[];
+                const res = await axios.post('/api/upload/files', formData)
+                if (res.status !== 200) throw new Error('Upload failed')
+                const [resp] = res.data?.data as TUploadFilesResponse[]
                 media = {
                   url: resp?.url,
                   height: resp?.height,
                   width: resp?.width,
-                };
-                setIsUploadingMedia(false);
+                }
+                setIsUploadingMedia(false)
               }
               addCommentMutation.mutate(
                 {
@@ -343,16 +343,16 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
                 },
                 {
                   onSuccess: async () => {
-                    setContent("");
-                    setFile(null);
-                    setLink(null);
-                    queryClient.setQueryData(["get-link-metadata"], null);
+                    setContent('')
+                    setFile(null)
+                    setLink(null)
+                    queryClient.setQueryData(['get-link-metadata'], null)
                     await queryClient.invalidateQueries({
-                      queryKey: ["get-post-comments", id],
-                    });
+                      queryKey: ['get-post-comments', id],
+                    })
                   },
                 }
-              );
+              )
             }}
             disabled={
               content?.length === 0 ||
@@ -368,8 +368,8 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 type CommentCardProps = {
   comment: GetCommentWithProfile;
@@ -382,15 +382,15 @@ const CommentCard: FC<CommentCardProps> = ({
   handleDelete,
   isDeleting,
 }) => {
-  const session = useSession();
+  const session = useSession()
   const isMine =
-    session?.data?.user?.profileId === (comment?.profileId as string);
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
+    session?.data?.user?.profileId === (comment?.profileId as string)
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
 
   return (
     <div
       className={cn(
-        "w-full border-t first:border-none border-neutral-300 dark:border-dark-border px-2 md:px-6 py-4 flex  items-center justify-start"
+        'w-full border-t first:border-none border-neutral-300 dark:border-dark-border px-2 md:px-6 py-4 flex  items-center justify-start'
       )}
     >
       {/* {isDesktop && ( */}
@@ -402,21 +402,21 @@ const CommentCard: FC<CommentCardProps> = ({
         />
       </div>
 
-      <div className={cn("w-full flex flex-col items-start ml-4")}>
+      <div className={cn('w-full flex flex-col items-start ml-4')}>
         <div className="w-full flex items-center justify-between">
           <div className="flex items-center justify-start gap-1 md:gap-2">
             <h3 className="tracking-tight  text-sm md:text-base">
               {comment?.displayName}
             </h3>
             <span className="text-neutral-500 dark:text-neutral-400">
-              {"•"}
+              {'•'}
             </span>
 
             <span className="text-sm text-neutral-500 dark:text-neutral-400">
-              {new Date(comment?.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
+              {new Date(comment?.createdAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
               })}
             </span>
           </div>
@@ -426,13 +426,13 @@ const CommentCard: FC<CommentCardProps> = ({
               className="z-[6]  transition-all duration-200 ease-in"
             >
               <Button
-                size={"smallIcon"}
+                size={'smallIcon'}
                 className="rounded-full focus-visible:ring-0 focus-visible:ring-offset-0  aspect-square "
-                variant={"ghost"}
+                variant={'ghost'}
               >
                 <MoreHorizontalIcon
                   className={cn(
-                    "text-neutral-500 size-4 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
+                    'text-neutral-500 size-4 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
                   )}
                 />
               </Button>
@@ -463,12 +463,12 @@ const CommentCard: FC<CommentCardProps> = ({
           </DropdownMenu>
         </div>
         <span className="dark:text-neutral-300/80 md:text-base text-sm mt-2 text-neutral-600">
-          {comment?.content?.split("\n").map((line, i) => {
+          {comment?.content?.split('\n').map((line, i) => {
             return (
-              <span className={cn("")} key={i}>
+              <span className={cn('')} key={i}>
                 {line} <br className="" />
               </span>
-            );
+            )
           })}
         </span>
 
@@ -476,14 +476,14 @@ const CommentCard: FC<CommentCardProps> = ({
           {comment?.media && (
             <div
               className={cn(
-                "relative border  border-neutral-300/80 aspect-video  w-full rounded-xl overflow-hidden ",
-                "dark:border-dark-border"
+                'relative border  border-neutral-300/80 aspect-video  w-full rounded-xl overflow-hidden ',
+                'dark:border-dark-border'
               )}
               style={{
-                objectFit: "cover",
+                objectFit: 'cover',
               }}
             >
-              {comment?.media?.type === "image" ? (
+              {comment?.media?.type === 'image' ? (
                 <>
                   <Image
                     fill
@@ -491,7 +491,7 @@ const CommentCard: FC<CommentCardProps> = ({
                     alt="Post media"
                     quality={100}
                     priority
-                    style={{ objectFit: "cover" }}
+                    style={{ objectFit: 'cover' }}
                     draggable={false}
                     className=" select-none "
                   />
@@ -499,7 +499,7 @@ const CommentCard: FC<CommentCardProps> = ({
               ) : (
                 <>
                   <video
-                    style={{ objectFit: "cover" }}
+                    style={{ objectFit: 'cover' }}
                     className="w-full h-full select-none  "
                     src={comment?.media?.url}
                     autoPlay
@@ -521,10 +521,10 @@ const CommentCard: FC<CommentCardProps> = ({
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Comments;
+export default Comments
 // const mutation = useMutation({
 //   mutationFn: (payload: TAddNewComment) => addComment({ ...payload }),
 //   onMutate: async () => {

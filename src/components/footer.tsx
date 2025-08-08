@@ -1,32 +1,33 @@
-"use client";
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "@mantine/hooks";
-import { motion, useInView } from "framer-motion";
-import { Moon, Sun } from "lucide-react";
-import { useRef } from "react";
+'use client'
+import { cn } from '@/lib/utils'
+import { useMediaQuery } from '@mantine/hooks'
+import { motion, useInView } from 'framer-motion'
+import { Moon, Sun } from 'lucide-react'
+import { useRef } from 'react'
 
 const Footer = () => {
   // const currentYear = new Date().getFullYear();
   const themeOptions = [
     {
-      theme: "light",
-      name: "Light",
+      theme: 'light',
+      name: 'Light',
       icon: <Sun className="opacity-80 size-5" strokeWidth={1.3} />,
     },
     {
-      theme: "dark",
-      name: "Dark",
+      theme: 'dark',
+      name: 'Dark',
       icon: <Moon className="opacity-80 size-5" strokeWidth={1.3} />,
     },
     {
-      theme: "system",
-      name: "System",
+      theme: 'system',
+      name: 'System',
       icon: <Sun className="opacity-80 size-5" strokeWidth={1.3} />,
     },
-  ];
+  ]
 
   const logos = [
     <a
+      key="twitter"
       href="https://twitter.com"
       target="_blank"
       rel="noopener noreferrer"
@@ -37,6 +38,7 @@ const Footer = () => {
       </svg>
     </a>,
     <a
+      key="github"
       href="https://github.com"
       target="_blank"
       rel="noopener noreferrer"
@@ -51,6 +53,7 @@ const Footer = () => {
       </svg>
     </a>,
     <a
+      key="linkedin"
       href="https://linkedin.com"
       target="_blank"
       rel="noopener noreferrer"
@@ -60,45 +63,45 @@ const Footer = () => {
         <path d="M20.452 20.452h-3.554v-5.569c0-1.327-0.027-3.038-1.852-3.038-1.854 0-2.138 1.447-2.138 2.942v5.665H9.354V9h3.414v1.561h0.049c0.476-0.899 1.637-1.848 3.368-1.848 3.6 0 4.266 2.368 4.266 5.448v6.291zM5.337 7.433c-1.144 0-2.07-0.928-2.07-2.07s0.926-2.07 2.07-2.07c1.142 0 2.07 0.928 2.07 2.07s-0.928 2.07-2.07 2.07zM6.96 20.452H3.713V9h3.247v11.452zM22.225 0H1.771C0.792 0 0 0.771 0 1.729v20.542C0 23.229 0.792 24 1.771 24h20.451C23.208 24 24 23.229 24 22.271V1.729C24 0.771 23.208 0 22.225 0z" />
       </svg>
     </a>,
-  ];
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref);
+  ]
+  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref)
 
   const assets = [
     {
-      src: "https://i.pinimg.com/736x/a9/44/e5/a944e5a03bb1db053832d1ca216d8430.jpg", //image left
-      className: "absolute size-56 bg-white p-2 right-0 rounded-xl",
+      src: 'https://i.pinimg.com/736x/a9/44/e5/a944e5a03bb1db053832d1ca216d8430.jpg', //image left
+      className: 'absolute size-56 bg-white p-2 right-0 rounded-xl',
       style: { rotate: 10 },
       animate: (inView: boolean) =>
         !inView ? { y: 10, x: 0 } : { y: -300, x: 50 },
       transition: {
         duration: 1,
-        type: "spring",
+        type: 'spring',
         stiffness: 100,
         damping: 20,
         mass: 0.5,
       },
-      imgClassName: "rounded-xl",
+      imgClassName: 'rounded-xl',
     },
     {
-      src: "/window.png", //my preview
+      src: '/window.png', //my preview
       className:
-        "max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-10 -right-24",
+        'max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-10 -right-24',
       animate: (inView: boolean) =>
         !inView ? { y: 300, x: 200, rotate: 4 } : { y: 0, x: 100, rotate: -6 },
       transition: {
         duration: 1,
-        type: "spring",
+        type: 'spring',
         stiffness: 100,
         damping: 20,
         mass: 0.5,
       },
     },
     {
-      src: "/window1.png", //second preview
+      src: '/window1.png', //second preview
       className:
-        "max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-60 -right-6",
+        'max-w-md w-full h-[400px] rounded-3xl absolute  border bg-white -bottom-60 -right-6',
       style: { zIndex: 20 },
       animate: (inView: boolean) =>
         !inView
@@ -106,43 +109,43 @@ const Footer = () => {
           : { y: -60, x: 100, rotate: -8 },
       transition: {
         duration: 1,
-        type: "spring",
+        type: 'spring',
         stiffness: 100,
         damping: 20,
         mass: 0.5,
       },
     },
     {
-      src: "https://i.pinimg.com/1200x/0e/a1/49/0ea14948a5b50349506e94aeb7261769.jpg", // image right
-      className: "absolute size-56 bg-white p-2 rounded-xl left-0",
+      src: 'https://i.pinimg.com/1200x/0e/a1/49/0ea14948a5b50349506e94aeb7261769.jpg', // image right
+      className: 'absolute size-56 bg-white p-2 rounded-xl left-0',
       style: { rotate: -10 },
       animate: (inView: boolean) =>
         !inView ? { y: 10, x: -400 } : { y: -300, x: -10 },
       transition: {
         duration: 1,
-        type: "spring",
+        type: 'spring',
         stiffness: 100,
         damping: 20,
         mass: 0.5,
       },
-      imgClassName: "rounded-xl",
+      imgClassName: 'rounded-xl',
     },
     {
-      src: "/preview.png", //purple avatar
-      className: "max-w-xs w-full rounded-3xl absolute -left-10",
+      src: '/preview.png', //purple avatar
+      className: 'max-w-xs w-full rounded-3xl absolute -left-10',
       animate: (inView: boolean) =>
         !inView
           ? { y: 100, x: -100, rotate: 4 }
           : { y: -60, x: -40, rotate: 6 },
       transition: {
         duration: 1,
-        type: "spring",
+        type: 'spring',
         stiffness: 100,
         damping: 20,
         mass: 0.5,
       },
     },
-  ];
+  ]
   return (
     <footer
       ref={ref}
@@ -155,17 +158,17 @@ const Footer = () => {
               key={idx}
               style={asset.style}
               animate={
-                typeof asset.animate === "function"
+                typeof asset.animate === 'function'
                   ? asset.animate(inView)
                   : asset.animate
               }
               transition={asset.transition}
-              className={cn(asset.className, "")}
+              className={cn(asset.className, '')}
             >
               <img
                 src={asset.src}
                 alt=""
-                style={{ objectFit: "cover" }}
+                style={{ objectFit: 'cover' }}
                 className={asset.imgClassName}
               />
             </motion.div>
@@ -191,8 +194,8 @@ const Footer = () => {
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
 // <footer className="w-full  py-6 mt-auto">
 //   <div className=" mx-auto max-w-6xl px-4">
@@ -214,4 +217,4 @@ const Footer = () => {
 //   );
 // };
 
-export default Footer;
+export default Footer

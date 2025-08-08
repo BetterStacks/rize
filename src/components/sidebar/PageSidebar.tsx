@@ -2,101 +2,101 @@ import {
   getPageById,
   removePageThumbnail,
   updatePageThumbnail,
-} from "@/actions/page-actions";
-import { queryClient } from "@/lib/providers";
-import { TUploadFilesResponse } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import { Loader, Trash2, Upload } from "lucide-react";
-import Image from "next/image";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { FileRejection, useDropzone } from "react-dropzone";
-import toast from "react-hot-toast";
-import { Button } from "../ui/button";
+} from '@/actions/page-actions'
+import { queryClient } from '@/lib/providers'
+import { TUploadFilesResponse } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import axios from 'axios'
+import { Loader, Trash2, Upload } from 'lucide-react'
+import Image from 'next/image'
+import { useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { FileRejection, useDropzone } from 'react-dropzone'
+import toast from 'react-hot-toast'
+import { Button } from '../ui/button'
 
 const PageSidebar = () => {
-  const params = useParams();
+  const params = useParams()
   const { data } = useQuery({
-    queryKey: ["get-page-by-id", params?.id],
+    queryKey: ['get-page-by-id', params?.id],
     queryFn: () => getPageById(params?.id as string),
-  });
-  const [file, setFile] = useState<{ url: string; file: File } | null>(null);
+  })
+  const [file, setFile] = useState<{ url: string; file: File } | null>(null)
   useEffect(() => {
     if (data?.thumbnail) {
       setFile({
         url: data?.thumbnail,
         file: new File([], data?.thumbnail),
-      });
+      })
     }
-  }, [data?.thumbnail]);
+  }, [data?.thumbnail])
 
   const onDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     if (rejectedFiles && rejectedFiles[0]?.errors) {
-      rejectedFiles[0]?.errors?.map((err) => toast.error(err?.message));
+      rejectedFiles[0]?.errors?.map((err) => toast.error(err?.message))
 
-      return;
+      return
     }
-    const file = acceptedFiles[0];
-    const path = URL.createObjectURL(file);
-    setFile({ url: path, file });
-  };
+    const file = acceptedFiles[0]
+    const path = URL.createObjectURL(file)
+    setFile({ url: path, file })
+  }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     maxFiles: 1,
     maxSize: 2 * 1024 * 1024,
     accept: {
-      "image/*": [".png", ".jpg", ".jpeg", ".gif"],
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
     },
     onError(err) {
-      toast.error(err.message);
+      toast.error(err.message)
     },
-  });
+  })
 
   const { mutate: handleThumbnailUpload, isPending } = useMutation({
     mutationFn: () => {
-      const formData = new FormData();
-      formData.append("files", file?.file as File);
-      formData.append("folder", "fyp-stacks/pages");
-      return axios.post("/api/upload/files", formData);
+      const formData = new FormData()
+      formData.append('files', file?.file as File)
+      formData.append('folder', 'fyp-stacks/pages')
+      return axios.post('/api/upload/files', formData)
     },
     onSuccess: async (res) => {
-      const response = res?.data;
-      const fileData = response?.data[0] as TUploadFilesResponse;
+      const response = res?.data
+      const fileData = response?.data[0] as TUploadFilesResponse
       await updatePageThumbnail({
         ...fileData,
         pageId: params?.id as string,
-      });
-      toast.success("Thumbnail updated successfully");
+      })
+      toast.success('Thumbnail updated successfully')
       queryClient.invalidateQueries({
-        queryKey: ["get-writings"],
-      });
+        queryKey: ['get-writings'],
+      })
       queryClient.invalidateQueries({
-        queryKey: ["get-page-by-id", params?.id],
-      });
+        queryKey: ['get-page-by-id', params?.id],
+      })
     },
     onError: (err) => {
-      console.error(err);
-      toast.error((err as Error)?.message || "Error uploading thumbnail");
+      console.error(err)
+      toast.error((err as Error)?.message || 'Error uploading thumbnail')
     },
-  });
+  })
 
   const { mutate: deleteThumbnail, isPending: isDeleting } = useMutation({
     mutationFn: removePageThumbnail,
     onSuccess: async () => {
-      toast.success("Thumbnail removed successfully");
-      setFile(null);
+      toast.success('Thumbnail removed successfully')
+      setFile(null)
       queryClient.invalidateQueries({
-        queryKey: ["get-page-by-id", params?.id],
-      });
+        queryKey: ['get-page-by-id', params?.id],
+      })
     },
     onError: (err) => {
-      console.error(err);
-      toast.error((err as Error)?.message || "Error removing thumbnail");
+      console.error(err)
+      toast.error((err as Error)?.message || 'Error removing thumbnail')
     },
-  });
+  })
 
   return (
     <div className="w-full h-full px-4 pt-8">
@@ -109,9 +109,9 @@ const PageSidebar = () => {
         <div className="w-full h-full">
           <div
             className={cn(
-              "w-full overflow-hidden rounded-2xl group dark:border-dark-border relative  flex flex-col items-center justify-center group h-[200px] border-2  border-neutral-300/60",
-              !file && "border-dashed",
-              isDragActive && "border-blue-500 bg-blue-50"
+              'w-full overflow-hidden rounded-2xl group dark:border-dark-border relative  flex flex-col items-center justify-center group h-[200px] border-2  border-neutral-300/60',
+              !file && 'border-dashed',
+              isDragActive && 'border-blue-500 bg-blue-50'
             )}
           >
             {data?.thumbnail && (
@@ -121,8 +121,8 @@ const PageSidebar = () => {
                   onClick={() =>
                     deleteThumbnail({ pageId: params?.id as string })
                   }
-                  variant={"outline"}
-                  size={"icon"}
+                  variant={'outline'}
+                  size={'icon'}
                   className="rounded-2xl z-50"
                 >
                   <Trash2 className="size-4 opacity-80" strokeWidth={1.7} />
@@ -138,7 +138,7 @@ const PageSidebar = () => {
                   alt="Thumbnail"
                   quality={100}
                   className="-z-10"
-                  style={{ objectFit: "cover" }}
+                  style={{ objectFit: 'cover' }}
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center">
@@ -167,8 +167,8 @@ const PageSidebar = () => {
                   ) : (
                     <>
                       {data?.thumbnail
-                        ? "Change Thumbnail"
-                        : "Upload Thumbnail"}
+                        ? 'Change Thumbnail'
+                        : 'Upload Thumbnail'}
                     </>
                   )}
                 </Button>
@@ -245,7 +245,7 @@ const PageSidebar = () => {
     //     )}
     //   </div>
     // </div>
-  );
-};
+  )
+}
 
-export default PageSidebar;
+export default PageSidebar

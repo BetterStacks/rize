@@ -1,5 +1,5 @@
-"use client";
-import React, { useState, useEffect } from "react";
+'use client'
+import React, { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -7,15 +7,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { SocialPlatform } from "@/lib/types";
-import toast from "react-hot-toast";
-import { capitalizeFirstLetter } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
-import { editSocialLink } from "@/actions/social-links-actions";
-import { queryClient } from "@/lib/providers";
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { SocialPlatform } from '@/lib/types'
+import toast from 'react-hot-toast'
+import { capitalizeFirstLetter } from '@/lib/utils'
+import { useMutation } from '@tanstack/react-query'
+import { editSocialLink } from '@/actions/social-links-actions'
+import { queryClient } from '@/lib/providers'
 
 interface EditSocialLinkProps {
   open: boolean;
@@ -28,12 +28,12 @@ interface EditSocialLinkProps {
 
 const isValidUrl = (url: string): boolean => {
   try {
-    new URL(url);
-    return true;
+    new URL(url)
+    return true
   } catch (e) {
-    return false;
+    return false
   }
-};
+}
 
 const EditSocialLink: React.FC<EditSocialLinkProps> = ({
   open,
@@ -42,46 +42,46 @@ const EditSocialLink: React.FC<EditSocialLinkProps> = ({
   url,
   id,
 }) => {
-  const [editedUrl, setEditedUrl] = useState(url);
+  const [editedUrl, setEditedUrl] = useState(url)
 
   useEffect(() => {
-    setEditedUrl(url);
-  }, [url, open]);
+    setEditedUrl(url)
+  }, [url, open])
 
   const { mutate: editSocialLinkMutation, isPending } = useMutation({
     mutationFn: ({ id, url }: { id: string; url: string }) =>
       editSocialLink(id, url),
     onSuccess: () => {
-      toast.success(`${capitalizeFirstLetter(platform)} link updated`);
-      queryClient.invalidateQueries({ queryKey: ["get-social-links"] });
+      toast.success(`${capitalizeFirstLetter(platform)} link updated`)
+      queryClient.invalidateQueries({ queryKey: ['get-social-links'] })
     },
     onError: (error) => {
-      toast.error(error?.message);
+      toast.error(error?.message)
     },
-  });
+  })
 
   const handleSave = async () => {
     if (!editedUrl) {
-      toast.error("Please enter a URL");
-      return;
+      toast.error('Please enter a URL')
+      return
     }
 
-    let processedUrl = editedUrl;
+    let processedUrl = editedUrl
     if (
-      !processedUrl.startsWith("http://") &&
-      !processedUrl.startsWith("https://")
+      !processedUrl.startsWith('http://') &&
+      !processedUrl.startsWith('https://')
     ) {
-      processedUrl = "https://" + processedUrl;
+      processedUrl = 'https://' + processedUrl
     }
 
     if (!isValidUrl(processedUrl)) {
-      toast.error("Please enter a valid URL");
-      return;
+      toast.error('Please enter a valid URL')
+      return
     }
 
-    editSocialLinkMutation({ id, url: processedUrl });
-    onOpenChange(false);
-  };
+    editSocialLinkMutation({ id, url: processedUrl })
+    onOpenChange(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -121,7 +121,7 @@ const EditSocialLink: React.FC<EditSocialLinkProps> = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default EditSocialLink;
+export default EditSocialLink

@@ -1,53 +1,53 @@
-import { getSocialLinks } from "@/actions/social-links-actions";
-import { capitalizeFirstLetter, cn, getIcon } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
-import NextLink from "next/link";
-import { useParams } from "next/navigation";
-import { Button } from "../ui/button";
-import { Skeleton } from "../ui/skeleton";
+import { getSocialLinks } from '@/actions/social-links-actions'
+import { capitalizeFirstLetter, cn, getIcon } from '@/lib/utils'
+import { useQuery } from '@tanstack/react-query'
+import Image from 'next/image'
+import NextLink from 'next/link'
+import { useParams } from 'next/navigation'
+import { Button } from '../ui/button'
+import { Skeleton } from '../ui/skeleton'
 
 export const dummyLinks = [
   {
-    platform: "reddit",
-    url: "https://github.com/",
+    platform: 'reddit',
+    url: 'https://github.com/',
   },
   {
-    platform: "twitter",
-    url: "https://twitter.com/",
+    platform: 'twitter',
+    url: 'https://twitter.com/',
   },
   {
-    platform: "linkedin",
-    url: "https://linkedin.com/in/",
+    platform: 'linkedin',
+    url: 'https://linkedin.com/in/',
   },
   {
-    platform: "youtube",
-    url: "https://instagram.com/",
+    platform: 'youtube',
+    url: 'https://instagram.com/',
   },
   {
-    platform: "github",
-    url: "https://instagram.com/",
+    platform: 'github',
+    url: 'https://instagram.com/',
   },
   {
-    platform: "instagram",
-    url: "https://instagram.com/",
+    platform: 'instagram',
+    url: 'https://instagram.com/',
   },
-];
+]
 
 const SocialLinks = ({ isMine }: { isMine: boolean }) => {
-  const params = useParams<{ username: string }>();
+  const params = useParams<{ username: string }>()
 
   const { data: links = [], isLoading } = useQuery({
     enabled: !!params?.username,
-    queryKey: ["get-social-links", params?.username],
+    queryKey: ['get-social-links', params?.username],
     queryFn: () => getSocialLinks(params?.username),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     staleTime: Infinity,
-  });
+  })
 
   if (!isMine && links?.length === 0) {
-    return;
+    return
   }
 
   return (
@@ -75,10 +75,10 @@ const SocialLinks = ({ isMine }: { isMine: boolean }) => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default SocialLinks;
+export default SocialLinks
 
 const SocialLinkSkeleton = () => {
   return [...Array.from({ length: 12 })].map((_, i) => (
@@ -86,8 +86,8 @@ const SocialLinkSkeleton = () => {
       key={i}
       className="h-9 rounded-md px-3 w-[100px] m-1 bg-neutral-200/60 dark:bg-dark-border animate-none"
     />
-  ));
-};
+  ))
+}
 
 export const SocialLinkButton = ({
   platform,
@@ -101,10 +101,10 @@ export const SocialLinkButton = ({
   buttonClassName?: string;
 }) => {
   return (
-    <NextLink className={cn("scale-95", className)} href={url} target="_blank">
+    <NextLink className={cn('scale-95', className)} href={url} target="_blank">
       <Button
-        variant={"outline"}
-        className={cn("bg-white shadow-lg", buttonClassName)}
+        variant={'outline'}
+        className={cn('bg-white shadow-lg', buttonClassName)}
       >
         <Image
           src={`/${getIcon(platform as any)}`}
@@ -120,5 +120,5 @@ export const SocialLinkButton = ({
         </span>
       </Button>
     </NextLink>
-  );
-};
+  )
+}

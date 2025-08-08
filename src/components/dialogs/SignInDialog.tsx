@@ -1,35 +1,35 @@
-"use client";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
-import { useState } from "react";
-import toast from "react-hot-toast";
-import AuthProviderButton from "../auth-provider-button";
-import { useAuthDialog } from "../dialog-provider";
-import { Button } from "../ui/button";
+'use client'
+import { signIn } from 'next-auth/react'
+import Link from 'next/link'
+import { useState } from 'react'
+import toast from 'react-hot-toast'
+import AuthProviderButton from '../auth-provider-button'
+import { useAuthDialog } from '../dialog-provider'
+import { Button } from '../ui/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog";
+} from '../ui/dialog'
 
 const AuthDialog = () => {
-  const [open, setOpen] = useAuthDialog();
-  const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useAuthDialog()
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSocialSignIn = async () => {
     try {
-      setIsLoading(true);
-      const data = await signIn("google", { redirect: false });
+      setIsLoading(true)
+      const data = await signIn('google', { redirect: false })
       if (data?.error) {
-        toast.error(data.error);
-        return;
+        toast.error(data.error)
+        return
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="rounded-3xl sm:rounded-3xl h-fit bg-white dark:bg-dark-bg dark:border-dark-border border-neutral-300  p-6 md:p-8 sm:max-w-xs md:max-w-sm lg:max-w-md ">
@@ -53,18 +53,18 @@ const AuthDialog = () => {
             SignIn with Google
           </AuthProviderButton>
           <Link
-            href={"/login"}
+            href={'/login'}
             className="w-full"
             onClick={() => setOpen(false)}
           >
-            <Button variant={"outline"} className="rounded-lg w-full">
+            <Button variant={'outline'} className="rounded-lg w-full">
               SignIn with Email
             </Button>
           </Link>
         </div>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default AuthDialog;
+export default AuthDialog

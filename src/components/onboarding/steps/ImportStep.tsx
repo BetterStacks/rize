@@ -1,30 +1,37 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { CheckCircle, Github, Linkedin, Loader, Download, Sparkles } from "lucide-react";
-import { useState } from "react";
-import toast from "react-hot-toast";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { Button } from '@/components/ui/button'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { CheckCircle, Github, Linkedin, Loader, Download, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import toast from 'react-hot-toast'
+import { motion, AnimatePresence } from 'framer-motion'
+import { cn } from '@/lib/utils'
+import type { ImportedData } from '@/types/onboarding'
 
 export function ImportStep({
   onNext,
 }: {
-  onNext: (importedData?: any) => void;
+  onNext: (importedData?: ImportedData) => void;
 }) {
-  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-  const [importedStats, setImportedStats] = useState<any>(null);
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null)
+  const [importedStats, setImportedStats] = useState<{
+    profileUpdated: boolean;
+    experienceCount: number;
+    educationCount: number;
+    projectsCount: number;
+    socialLinksCount: number;
+  } | null>(null)
 
   // Get available import sources
   const { data: sourcesData, isLoading: sourcesLoading } = useQuery({
     queryKey: ['import-sources'],
     queryFn: async () => {
-      const response = await fetch('/api/import-profile');
-      if (!response.ok) throw new Error('Failed to get import sources');
-      return response.json();
+      const response = await fetch('/api/import-profile')
+      if (!response.ok) throw new Error('Failed to get import sources')
+      return response.json()
     },
-  });
+  })
 
   // Import profile mutation
   const { mutate: importProfile, isPending: isImporting } = useMutation({
@@ -33,37 +40,37 @@ export function ImportStep({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider }),
-      });
+      })
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to import profile');
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to import profile')
       }
       
-      return response.json();
+      return response.json()
     },
     onSuccess: (data) => {
-      setImportedStats(data.stats);
-      toast.success(`Profile imported from ${selectedProvider}! 🎉`);
+      setImportedStats(data.stats)
+      toast.success(`Profile imported from ${selectedProvider}! 🎉`)
       
       // Auto-advance after showing success
       setTimeout(() => {
-        onNext(data.importedData);
-      }, 2000);
+        onNext(data.importedData)
+      }, 2000)
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to import profile');
-      setSelectedProvider(null);
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to import profile')
+      setSelectedProvider(null)
     },
-  });
+  })
 
   const handleImport = (provider: string) => {
-    setSelectedProvider(provider);
-    importProfile(provider);
-  };
+    setSelectedProvider(provider)
+    importProfile(provider)
+  }
 
-  const availableSources = sourcesData?.availableSources || {};
-  const hasAnySources = availableSources.github || availableSources.linkedin;
+  const availableSources = sourcesData?.availableSources || {}
+  const hasAnySources = availableSources.github || availableSources.linkedin
 
   if (sourcesLoading) {
     return (
@@ -71,7 +78,7 @@ export function ImportStep({
         <Loader className="animate-spin h-8 w-8 mx-auto mb-4 opacity-60" />
         <p className="text-sm text-muted-foreground">Checking connected accounts...</p>
       </div>
-    );
+    )
   }
 
   return (
@@ -132,8 +139,8 @@ export function ImportStep({
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full h-14 justify-start gap-4 transition-all",
-                  selectedProvider === 'github' && isImporting && "border-blue-500 bg-blue-50 dark:bg-blue-950"
+                  'w-full h-14 justify-start gap-4 transition-all',
+                  selectedProvider === 'github' && isImporting && 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                 )}
                 onClick={() => handleImport('github')}
                 disabled={isImporting}
@@ -161,8 +168,8 @@ export function ImportStep({
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full h-14 justify-start gap-4 transition-all",
-                  selectedProvider === 'linkedin' && isImporting && "border-blue-500 bg-blue-50 dark:bg-blue-950"
+                  'w-full h-14 justify-start gap-4 transition-all',
+                  selectedProvider === 'linkedin' && isImporting && 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                 )}
                 onClick={() => handleImport('linkedin')}
                 disabled={isImporting}
@@ -224,5 +231,5 @@ export function ImportStep({
         )}
       </AnimatePresence>
     </div>
-  );
+  )
 }

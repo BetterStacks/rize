@@ -1,13 +1,13 @@
-"use client";
+'use client'
 
-import { isUsernameAvailable } from "@/actions/profile-actions";
-import { usernameSchema } from "@/lib/types";
-import { useDebouncedCallback, useMediaQuery } from "@mantine/hooks";
-import { Loader } from "lucide-react";
-import { FC, useState } from "react";
-import toast from "react-hot-toast";
-import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
+import { isUsernameAvailable } from '@/actions/profile-actions'
+import { usernameSchema } from '@/lib/types'
+import { useDebouncedCallback, useMediaQuery } from '@mantine/hooks'
+import { Loader } from 'lucide-react'
+import { FC, useState } from 'react'
+import toast from 'react-hot-toast'
+import { Button } from './ui/button'
+import { cn } from '@/lib/utils'
 
 type ClaimUsernameFormProps = {
   onSubmit: (data: string) => void;
@@ -22,62 +22,62 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({
   badgeClassName,
   buttonClassName,
 }) => {
-  const [username, setUsername] = useState("");
-  const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
-  const [isSearching, setIsSearching] = useState<boolean | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [username, setUsername] = useState('')
+  const [isAvailable, setIsAvailable] = useState<boolean | null>(null)
+  const [isSearching, setIsSearching] = useState<boolean | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const isDesktop = useMediaQuery('(min-width: 768px)')
   const handleCheck = useDebouncedCallback(async (username: string) => {
     if (username.length < 3) {
-      setIsAvailable(null);
-      setIsSearching(false);
-      setError(null);
-      return;
+      setIsAvailable(null)
+      setIsSearching(false)
+      setError(null)
+      return
     }
-    const result = usernameSchema.safeParse({ username });
+    const result = usernameSchema.safeParse({ username })
     if (!result.success) {
-      toast.dismiss();
+      toast.dismiss()
       toast.error(
         result.error?.flatten()?.fieldErrors?.username?.[0] as string
-      );
-      setError(result.error?.flatten()?.fieldErrors?.username?.[0] as string);
-      setIsSearching(false);
-      setIsAvailable(false);
-      return;
+      )
+      setError(result.error?.flatten()?.fieldErrors?.username?.[0] as string)
+      setIsSearching(false)
+      setIsAvailable(false)
+      return
     }
-    setIsSearching(true);
-    const check = await isUsernameAvailable(username);
+    setIsSearching(true)
+    const check = await isUsernameAvailable(username)
     if (!check.available) {
-      toast.dismiss();
-      toast.error("Username already taken");
-      setIsSearching(false);
-      setIsAvailable(false);
+      toast.dismiss()
+      toast.error('Username already taken')
+      setIsSearching(false)
+      setIsAvailable(false)
     } else {
-      toast.dismiss();
-      toast.success("Username is available");
-      setIsSearching(false);
-      setIsAvailable(true);
+      toast.dismiss()
+      toast.success('Username is available')
+      setIsSearching(false)
+      setIsAvailable(true)
     }
-    setIsSearching(false);
-  }, 500);
+    setIsSearching(false)
+  }, 500)
 
   return (
     <form
       onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit(username);
+        e.preventDefault()
+        onSubmit(username)
       }}
-      className={cn("w-full font-inter")}
+      className={cn('w-full font-inter')}
     >
       <div
         className={cn(
-          "w-full border mt-2 border-neutral-400/60 overflow-hidden dark:border-none rounded-3xl text-lg md:text-xl  p-1 flex items-center justify-center bg-white dark:bg-neutral-900",
+          'w-full border mt-2 border-neutral-400/60 overflow-hidden dark:border-none rounded-3xl text-lg md:text-xl  p-1 flex items-center justify-center bg-white dark:bg-neutral-900',
           className
         )}
       >
         <div
           className={cn(
-            "px-3  ml-0.5 border border-neutral-300 dark:border-none py-1 bg-white dark:bg-dark-border rounded-3xl shadow-lg ",
+            'px-3  ml-0.5 border border-neutral-300 dark:border-none py-1 bg-white dark:bg-dark-border rounded-3xl shadow-lg ',
             badgeClassName
           )}
         >
@@ -92,8 +92,8 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({
             placeholder="your-username"
             value={username}
             onChange={(e) => {
-              setUsername(e.target.value?.trim());
-              handleCheck(e.target.value?.trim());
+              setUsername(e.target.value?.trim())
+              handleCheck(e.target.value?.trim())
             }}
             className="text-lg w-full dark:text-opacity-80 bg-transparent dark:placeholder:text-neutral-500 focus-visible:outline-none"
           />
@@ -104,9 +104,9 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({
           <Button
             type="submit"
             disabled={!isAvailable || isSearching!}
-            size={isDesktop ? "default" : "sm"}
+            size={isDesktop ? 'default' : 'sm'}
             className={cn(
-              "rounded-3xl  bg-black text-white dark:bg-white dark:text-neutral-800 hover:dark:bg-neutral-100 dark:hover:bg-neutral-300",
+              'rounded-3xl  bg-black text-white dark:bg-white dark:text-neutral-800 hover:dark:bg-neutral-100 dark:hover:bg-neutral-300',
               buttonClassName
             )}
           >
@@ -118,6 +118,6 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({
         <p className="text-sm text-red-500 leading-tight px-3 mt-2">{error}</p>
       )}
     </form>
-  );
-};
-export default ClaimUsernameForm;
+  )
+}
+export default ClaimUsernameForm

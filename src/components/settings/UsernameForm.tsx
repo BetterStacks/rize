@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -12,30 +12,30 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useSession } from "next-auth/react";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { useSession } from 'next-auth/react'
 
 const usernameSchema = z.object({
   username: z
     .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(20, "Username must be less than 20 characters")
+    .min(3, 'Username must be at least 3 characters')
+    .max(20, 'Username must be less than 20 characters')
     .regex(
       /^[a-zA-Z0-9_]+$/,
-      "Username can only contain letters, numbers, and underscores"
+      'Username can only contain letters, numbers, and underscores'
     ),
-});
+})
 
 export function UsernameForm() {
-  const { data: session, update } = useSession();
+  const { data: session, update } = useSession()
 
   const form = useForm<z.infer<typeof usernameSchema>>({
     resolver: zodResolver(usernameSchema),
     defaultValues: {
-      username: session?.user?.username || "",
+      username: session?.user?.username || '',
     },
-  });
+  })
 
   async function onSubmit(values: z.infer<typeof usernameSchema>) {
     try {
@@ -43,9 +43,9 @@ export function UsernameForm() {
       await update({
         ...session,
         user: { ...session?.user, username: values.username },
-      });
+      })
     } catch (error) {
-      console.error("Failed to update username:", error);
+      console.error('Failed to update username:', error)
     }
   }
 
@@ -78,5 +78,5 @@ export function UsernameForm() {
         </form>
       </Form>
     </div>
-  );
+  )
 }

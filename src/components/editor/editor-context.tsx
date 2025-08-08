@@ -1,10 +1,10 @@
-"use client";
-import { TPage } from "@/lib/types";
-import { createContext, ReactNode, useContext, useMemo, useState } from "react";
-import { createEditor } from "slate";
-import { withHistory } from "slate-history";
-import { Slate, withReact } from "slate-react";
-import { initialValue, withImages } from "./utils";
+'use client'
+import { TPage } from '@/lib/types'
+import { createContext, ReactNode, useContext, useMemo, useState } from 'react'
+import { createEditor } from 'slate'
+import { withHistory } from 'slate-history'
+import { Slate, withReact } from 'slate-react'
+import { initialValue, withImages } from './utils'
 
 type EditorContextProviderProps = {
   children: ReactNode;
@@ -16,15 +16,15 @@ type EditorContextProps = {
   setState: (state: typeof TPage) => void;
 } | null;
 
-export const EditorContext = createContext<EditorContextProps>(null);
+export const EditorContext = createContext<EditorContextProps>(null)
 
 export const useEditorState = () => {
-  const ctx = useContext(EditorContext);
+  const ctx = useContext(EditorContext)
   if (!ctx) {
-    throw new Error("EditorContext not found");
+    throw new Error('EditorContext not found')
   }
-  return { state: ctx.state, setState: ctx.setState };
-};
+  return { state: ctx.state, setState: ctx.setState }
+}
 
 const EditorContextProvider = ({
   children,
@@ -32,13 +32,13 @@ const EditorContextProvider = ({
 }: EditorContextProviderProps) => {
   const [value, setValue] = useState<typeof TPage>({
     ...state,
-    title: state?.title || "Untitled",
+    title: state?.title || 'Untitled',
     content: state?.content || JSON.stringify(initialValue),
-  });
+  })
   const editor = useMemo(
     () => withImages(withHistory(withReact(createEditor()))),
     []
-  );
+  )
 
   return (
     <Slate
@@ -52,7 +52,7 @@ const EditorContextProvider = ({
         {children}
       </EditorContext.Provider>
     </Slate>
-  );
-};
+  )
+}
 
-export default EditorContextProvider;
+export default EditorContextProvider

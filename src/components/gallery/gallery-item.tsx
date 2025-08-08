@@ -1,11 +1,11 @@
-import { removeGalleryItem } from "@/actions/gallery-actions";
-import { queryClient } from "@/lib/providers";
-import { GalleryItemProps } from "@/lib/types";
-import { cn, isImageUrl } from "@/lib/utils";
-import { Trash2 } from "lucide-react";
-import Image from "next/image";
-import toast from "react-hot-toast";
-import { Button } from "../ui/button";
+import { removeGalleryItem } from '@/actions/gallery-actions'
+import { queryClient } from '@/lib/providers'
+import { GalleryItemProps } from '@/lib/types'
+import { cn, isImageUrl } from '@/lib/utils'
+import { Trash2 } from 'lucide-react'
+import Image from 'next/image'
+import toast from 'react-hot-toast'
+import { Button } from '../ui/button'
 
 type TGalleryItemProps = {
   item: GalleryItemProps;
@@ -16,19 +16,19 @@ type TGalleryItemProps = {
 function GalleryItem({ item, isMine }: TGalleryItemProps) {
   const removeItemFromGallery = async () => {
     if (!item.id) {
-      throw new Error("Item not found in gallery");
+      throw new Error('Item not found in gallery')
     }
     try {
-      const res = await removeGalleryItem(item.id);
+      const res = await removeGalleryItem(item.id)
       if (!res) {
-        throw new Error("Failed to remove item from gallery");
+        throw new Error('Failed to remove item from gallery')
       }
-      toast.success("Item removed from gallery");
-      queryClient.invalidateQueries({ queryKey: ["get-gallery-items"] });
+      toast.success('Item removed from gallery')
+      queryClient.invalidateQueries({ queryKey: ['get-gallery-items'] })
     } catch (error) {
-      toast.error((error as Error).message);
+      toast.error((error as Error).message)
     }
-  };
+  }
 
   return (
     <>
@@ -36,9 +36,9 @@ function GalleryItem({ item, isMine }: TGalleryItemProps) {
         <Button
           onClick={removeItemFromGallery}
           className={cn(
-            "rounded-full absolute group-hover:opacity-100 opacity-0 z-20 top-2 right-2 p-1 "
+            'rounded-full absolute group-hover:opacity-100 opacity-0 z-20 top-2 right-2 p-1 '
           )}
-          size={"icon"}
+          size={'icon'}
         >
           <Trash2 className="size-4 " />
         </Button>
@@ -50,11 +50,11 @@ function GalleryItem({ item, isMine }: TGalleryItemProps) {
           alt=""
           fill
           className="select-none z-10"
-          style={{ objectFit: "cover" }}
+          style={{ objectFit: 'cover' }}
         />
       ) : (
         <video
-          style={{ objectFit: "cover" }}
+          style={{ objectFit: 'cover' }}
           className="w-full h-full "
           src={item?.url}
           autoPlay
@@ -64,7 +64,7 @@ function GalleryItem({ item, isMine }: TGalleryItemProps) {
         />
       )}
     </>
-  );
+  )
 }
 
-export default GalleryItem;
+export default GalleryItem

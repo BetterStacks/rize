@@ -1,15 +1,15 @@
-import { Variants } from "framer-motion";
+import { Variants } from 'framer-motion'
 
 export const messyGridVariants: Variants = {
   hidden: {},
   visible: {
     transition: {
-      type: "spring",
+      type: 'spring',
       stiffness: 260,
       damping: 20,
     },
   },
-};
+}
 
 export const messyGridItemVariants: Variants = {
   hidden: { opacity: 0, x: -50, rotate: 0 },
@@ -23,7 +23,7 @@ export const messyGridItemVariants: Variants = {
       duration: 0.25,
     },
   }),
-};
+}
 export const mansoryGridVariants: Variants = {
   hidden: {
     // spacing: -100,
@@ -31,7 +31,7 @@ export const mansoryGridVariants: Variants = {
   visible: {
     // spacing: -100,
   },
-};
+}
 export const mansoryGridItemVariants: Variants = {
   hidden: { opacity: 0, y: 50, rotate: 0 },
   visible: (i: number) => ({
@@ -43,4 +43,4 @@ export const mansoryGridItemVariants: Variants = {
       duration: 0.25,
     },
   }),
-};
+}

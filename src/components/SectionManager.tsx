@@ -1,7 +1,7 @@
-"use client";
-import { toggleSection, updateSections } from "@/actions/general-actions";
-import { useSections } from "@/lib/section-context";
-import { cn } from "@/lib/utils";
+'use client'
+import { toggleSection, updateSections } from '@/actions/general-actions'
+import { useSections } from '@/lib/section-context'
+import { cn } from '@/lib/utils'
 import {
   closestCenter,
   DndContext,
@@ -10,30 +10,30 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-} from "@dnd-kit/core";
+} from '@dnd-kit/core'
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { motion } from "framer-motion";
-import { AlignJustify, Loader } from "lucide-react";
-import { useMemo } from "react";
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { motion } from 'framer-motion'
+import { AlignJustify, Loader } from 'lucide-react'
+import { useMemo } from 'react'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./ui/card";
-import { Checkbox } from "./ui/checkbox";
-import { Skeleton } from "./ui/skeleton";
+} from './ui/card'
+import { Checkbox } from './ui/checkbox'
+import { Skeleton } from './ui/skeleton'
 
 const SectionManager = () => {
-  const { sections, setSections, isFetching } = useSections();
+  const { sections, setSections, isFetching } = useSections()
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -44,35 +44,35 @@ const SectionManager = () => {
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
-  );
+  )
 
   // const togglePayload = useMemo(() => {}, [sections]);
 
   const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
+    const { active, over } = event
     if (active.id !== over?.id) {
-      const oldIndex = sections.findIndex((item) => item.id === active.id);
-      const newIndex = sections.findIndex((item) => item.id === over?.id);
-      const newSections = arrayMove(sections, oldIndex, newIndex);
-      setSections(newSections);
-      const slugs = newSections.map((section) => section.id);
+      const oldIndex = sections.findIndex((item) => item.id === active.id)
+      const newIndex = sections.findIndex((item) => item.id === over?.id)
+      const newSections = arrayMove(sections, oldIndex, newIndex)
+      setSections(newSections)
+      const slugs = newSections.map((section) => section.id)
       // const togglePayload = newSections.map((slug) => ({
       //   slug: slug.id,
       //   enabled: slug?.enabled,
       // }));
-      await updateSections(slugs);
+      await updateSections(slugs)
     }
-  };
+  }
 
   const handleCheck = async (id: string) => {
     setSections((prevSections) => {
       return prevSections.map((s) =>
         s.id === id ? { ...s, enabled: !s.enabled } : s
-      );
-    });
-    const payload = [{ slug: id }];
-    await toggleSection(payload);
-  };
+      )
+    })
+    const payload = [{ slug: id }]
+    await toggleSection(payload)
+  }
 
   return (
     <div className="w-full  px-2 max-w-sm flex flex-col items-center justify-center mb-6">
@@ -121,10 +121,10 @@ const SectionManager = () => {
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default SectionManager;
+export default SectionManager
 
 function SortableItem({
   id,
@@ -144,20 +144,20 @@ function SortableItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id, disabled: !checked });
+  } = useSortable({ id, disabled: !checked })
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  };
+  }
 
   return (
     <motion.div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "p-2 mb-2 w-full flex z-0 items-center justify-between bg-white dark:bg-dark-bg   rounded-lg cursor-pointer",
+        'p-2 mb-2 w-full flex z-0 items-center justify-between bg-white dark:bg-dark-bg   rounded-lg cursor-pointer',
         isDragging &&
-          "drop-shadow-xl z-10 shadow-black/40 border border-neutral-300/80 dark:border-dark-border"
+          'drop-shadow-xl z-10 shadow-black/40 border border-neutral-300/80 dark:border-dark-border'
       )}
     >
       <div className="flex items-center justify-center">
@@ -174,5 +174,5 @@ function SortableItem({
         <AlignJustify strokeWidth={1.4} className="size-4" />
       </button>
     </motion.div>
-  );
+  )
 }

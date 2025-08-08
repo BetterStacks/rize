@@ -1,39 +1,39 @@
-"use client";
-import React from "react";
-import { Dialog, DialogContent, DialogHeader } from "../ui/dialog";
-import { useSearchDialog } from "../dialog-provider";
-import { Input } from "../ui/input";
-import { useDebouncedCallback } from "@mantine/hooks";
-import axios from "axios";
-import { TProfile } from "@/lib/types";
-import { Loader } from "lucide-react";
+'use client'
+import React from 'react'
+import { Dialog, DialogContent, DialogHeader } from '../ui/dialog'
+import { useSearchDialog } from '../dialog-provider'
+import { Input } from '../ui/input'
+import { useDebouncedCallback } from '@mantine/hooks'
+import axios from 'axios'
+import { TProfile } from '@/lib/types'
+import { Loader } from 'lucide-react'
 
 type ProfileItemProps = Pick<
   TProfile,
-  "username" | "displayName" | "profileImage"
+  'username' | 'displayName' | 'profileImage'
 > & { image?: string; name?: string };
 
 const CommentDialog = () => {
-  const [open, setOpen] = useSearchDialog();
-  const [query, setQuery] = React.useState("");
-  const [results, setResults] = React.useState<ProfileItemProps[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  const [hasSearched, setHasSearched] = React.useState(false);
+  const [open, setOpen] = useSearchDialog()
+  const [query, setQuery] = React.useState('')
+  const [results, setResults] = React.useState<ProfileItemProps[]>([])
+  const [loading, setLoading] = React.useState(false)
+  const [hasSearched, setHasSearched] = React.useState(false)
   const handleSearch = useDebouncedCallback(async (query: string) => {
-    if (query.trim() === "") {
+    if (query.trim() === '') {
       // setResults([]);
-      setLoading(false);
-      setHasSearched(false);
-      return;
+      setLoading(false)
+      setHasSearched(false)
+      return
     }
-    setLoading(true);
-    setHasSearched(true);
-    const res = await axios.get("/api/search", {
+    setLoading(true)
+    setHasSearched(true)
+    const res = await axios.get('/api/search', {
       params: { query },
-    });
-    setLoading(false);
-    setResults([...(res?.data as ProfileItemProps[])]);
-  }, 300);
+    })
+    setLoading(false)
+    setResults([...(res?.data as ProfileItemProps[])])
+  }, 300)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -42,8 +42,8 @@ const CommentDialog = () => {
           <Input
             value={query}
             onChange={(e) => {
-              setQuery(e.target.value);
-              handleSearch(e.target.value);
+              setQuery(e.target.value)
+              handleSearch(e.target.value)
             }}
           />
         </DialogHeader>
@@ -77,7 +77,7 @@ const CommentDialog = () => {
         </div>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default CommentDialog;
+export default CommentDialog

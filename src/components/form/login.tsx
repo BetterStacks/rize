@@ -1,54 +1,54 @@
-"use client";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader } from "lucide-react";
-import { signIn } from "next-auth/react";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
-import { z } from "zod";
-import Logo from "../logo";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+'use client'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Loader } from 'lucide-react'
+import { signIn } from 'next-auth/react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import toast from 'react-hot-toast'
+import { z } from 'zod'
+import Logo from '../logo'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
 
 const LoginSchema = z.object({
-  email: z.string().email({ message: "Invalid email address." }),
+  email: z.string().email({ message: 'Invalid email address.' }),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters." }),
-});
+    .min(6, { message: 'Password must be at least 6 characters.' }),
+})
 
 type TLoginValues = z.infer<typeof LoginSchema>;
 
 const Login = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
   const [isSocialLoading, setIsSocialLoading] = useState<
-    "google" | "github" | "linkedin" | null
-  >(null);
+    'google' | 'github' | 'linkedin' | null
+  >(null)
 
   const form = useForm<TLoginValues>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
-  });
+  })
 
-  const handleSocialSignIn = async (provider: "google" | "github" | "linkedin") => {
+  const handleSocialSignIn = async (provider: 'google' | 'github' | 'linkedin') => {
     try {
-      setIsSocialLoading(provider);
-      const data = await signIn(provider);
+      setIsSocialLoading(provider)
+      const data = await signIn(provider)
       if (data?.error) {
-        toast.error(data.error);
-        return;
+        toast.error(data.error)
+        return
       }
-      toast.success("Logged in successfully");
+      toast.success('Logged in successfully')
     } finally {
-      setIsSocialLoading(null);
+      setIsSocialLoading(null)
     }
-  };
+  }
 
   return (
     <div className=" w-full shadow-2xl bg-white dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 space-y-4 rounded-3xl p-6">
@@ -63,12 +63,12 @@ const Login = () => {
       </div>
       <div className="flex flex-col space-y-2">
         <Button
-          variant={"outline"}
+          variant={'outline'}
           disabled={!!isSocialLoading}
-          onClick={() => handleSocialSignIn("google")}
+          onClick={() => handleSocialSignIn('google')}
           className="rounded-lg px-6"
         >
-          {isSocialLoading === "google" ? (
+          {isSocialLoading === 'google' ? (
             <Loader className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <Image
@@ -82,12 +82,12 @@ const Login = () => {
           Sign in with Google
         </Button>
         <Button
-          variant={"outline"}
+          variant={'outline'}
           disabled={!!isSocialLoading}
-          onClick={() => handleSocialSignIn("linkedin")}
+          onClick={() => handleSocialSignIn('linkedin')}
           className="rounded-lg px-6"
         >
-          {isSocialLoading === "linkedin" ? (
+          {isSocialLoading === 'linkedin' ? (
             <Loader className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <Image
@@ -127,19 +127,19 @@ const Login = () => {
       <form
         onSubmit={form.handleSubmit(async (values) => {
           try {
-            setIsLoading(true);
-            const res = await signIn("credentials", {
+            setIsLoading(true)
+            const res = await signIn('credentials', {
               email: values?.email,
               password: values?.password,
               redirect: false,
-            });
+            })
             if (res?.error) {
-              toast.error(res.error);
-              return;
+              toast.error(res.error)
+              return
             }
-            toast.success("Logged in successfully");
+            toast.success('Logged in successfully')
           } finally {
-            setIsLoading(false);
+            setIsLoading(false)
           }
         })}
         className="flex gap-y-2 flex-col "
@@ -149,7 +149,7 @@ const Login = () => {
           <Input
             className="border-neutral-300/80"
             type="email"
-            {...form.register("email")}
+            {...form.register('email')}
             placeholder="example@gmail.com"
           />
         </div>
@@ -159,11 +159,11 @@ const Login = () => {
             className="border-neutral-300/80"
             type="password"
             placeholder="password"
-            {...form.register("password")}
+            {...form.register('password')}
           />
         </div>
         <Button
-          variant={"secondary"}
+          variant={'secondary'}
           disabled={
             Object.entries(form.formState.errors)?.length > 0 || isLoading
           }
@@ -175,15 +175,15 @@ const Login = () => {
       </form>
       <div className="w-full mt-6 mb-10 flex items-center justify-center">
         <span className="text-sm w-full text-center font-medium opacity-80">
-          {" "}
-          Dont have a account yet?{" "}
-          <Link href={"/signup"} className="text-indigo-500">
+          {' '}
+          Dont have a account yet?{' '}
+          <Link href={'/signup'} className="text-indigo-500">
             Register
           </Link>
         </span>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login

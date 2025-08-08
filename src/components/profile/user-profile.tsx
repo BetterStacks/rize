@@ -1,6 +1,6 @@
-"use client";
-import { getProfileByUsername } from "@/actions/profile-actions";
-import { useSections } from "@/lib/section-context";
+'use client'
+import { getProfileByUsername } from '@/actions/profile-actions'
+import { useSections } from '@/lib/section-context'
 import {
   GalleryItemProps,
   GetAllProjects,
@@ -9,22 +9,22 @@ import {
   GetProfileByUsername,
   TEducation,
   TExperience,
-} from "@/lib/types";
-import { capitalizeFirstLetter } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
-import React, { useMemo } from "react";
-import Education from "../education/education";
-import WorkExperience from "../experience/experience";
-import Gallery from "../gallery/gallery";
-import PostSection from "../posts-section";
-import Projects from "../projects/projects";
-import { Separator } from "../ui/separator";
-import Writings from "../writings/writings";
-import Profile from "./profile";
-import SocialLinks from "./social-links";
-import BottomBanner from "../bottom-banner";
-import { useSession } from "next-auth/react";
+} from '@/lib/types'
+import { capitalizeFirstLetter } from '@/lib/utils'
+import { useQuery } from '@tanstack/react-query'
+import { useParams } from 'next/navigation'
+import React, { useMemo } from 'react'
+import Education from '../education/education'
+import WorkExperience from '../experience/experience'
+import Gallery from '../gallery/gallery'
+import PostSection from '../posts-section'
+import Projects from '../projects/projects'
+import { Separator } from '../ui/separator'
+import Writings from '../writings/writings'
+import Profile from './profile'
+import SocialLinks from './social-links'
+import BottomBanner from '../bottom-banner'
+import { useSession } from 'next-auth/react'
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -47,14 +47,14 @@ const UserProfile = ({
   workExperience,
   posts,
 }: UserProfileProps) => {
-  const params = useParams<{ username: string }>();
-  const session = useSession();
+  const params = useParams<{ username: string }>()
+  const session = useSession()
   const { data: profileData, isLoading } = useQuery({
-    queryKey: ["get-profile-by-username", params.username],
+    queryKey: ['get-profile-by-username', params.username],
     initialData: data,
     queryFn: () => getProfileByUsername(params.username),
-  });
-  const { sections } = useSections();
+  })
+  const { sections } = useSections()
 
   const sectionMap = {
     gallery: {
@@ -83,18 +83,18 @@ const UserProfile = ({
         <WorkExperience workExperience={workExperience} isMine={isMine} />
       ),
     },
-  };
+  }
 
   const filteredSections = useMemo(() => {
     const updated = sections.filter(
       (section) => sectionMap[section.id as keyof typeof sectionMap]?.enabled
-    );
-    return updated;
-  }, [sections]);
+    )
+    return updated
+  }, [sections])
 
   const areAllSectionsDisabled = filteredSections.every(
     (section) => !section.enabled
-  );
+  )
 
   return (
     <div className="w-full flex flex-col items-center justify-start">
@@ -106,10 +106,10 @@ const UserProfile = ({
         <>
           <div className="w-full border-2 py-6 px-4 border-dashed border-neutral-300/60 dark:border-dark-border rounded-2xl max-w-2xl p-4 flex flex-col md:flex-row items-center md:items-start justify-center mt-4">
             <p className=" md:w-1/2 text-neutral-600 dark:text-neutral-400">
-              Oops ! It seems like{" "}
+              Oops ! It seems like{' '}
               {capitalizeFirstLetter(
-                profileData?.displayName?.split(" ")[0] as string
-              )}{" "}
+                profileData?.displayName?.split(' ')[0] as string
+              )}{' '}
               hasn't added any content yet. 🍃
             </p>
           </div>
@@ -124,9 +124,9 @@ const UserProfile = ({
           </React.Fragment>
         ))}
 
-      {session?.status === "unauthenticated" && <BottomBanner />}
+      {session?.status === 'unauthenticated' && <BottomBanner />}
     </div>
-  );
-};
+  )
+}
 
-export default UserProfile;
+export default UserProfile

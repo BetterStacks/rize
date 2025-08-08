@@ -1,32 +1,32 @@
-"use server";
+'use server'
 
-import { initialValue } from "@/components/editor/utils";
-import { media, page, profile } from "@/db/schema";
-import { auth } from "@/lib/auth";
-import db from "@/lib/db";
-import { TPage, TUploadFilesResponse } from "@/lib/types";
-import { and, eq, getTableColumns } from "drizzle-orm";
-import { getProfileIdByUsername } from "./profile-actions";
+import { initialValue } from '@/components/editor/utils'
+import { media, page, profile } from '@/db/schema'
+import { auth } from '@/lib/auth'
+import db from '@/lib/db'
+import { TPage, TUploadFilesResponse } from '@/lib/types'
+import { and, eq, getTableColumns } from 'drizzle-orm'
+import { getProfileIdByUsername } from './profile-actions'
 
 export const createPage = async () => {
   try {
-    const sessoin = await auth();
+    const sessoin = await auth()
     const p = await db
       .insert(page)
       .values({
-        title: "Untitled",
+        title: 'Untitled',
         content: JSON.stringify(initialValue),
         profileId: sessoin?.user?.profileId as string,
       })
-      .returning();
+      .returning()
     if (p.length === 0) {
-      throw new Error("Error creating page");
+      throw new Error('Error creating page')
     }
-    return { data: p[0], error: null };
+    return { data: p[0], error: null }
   } catch (error) {
-    return { data: null, error: (error as Error)?.message };
+    return { data: null, error: (error as Error)?.message }
   }
-};
+}
 
 export const updatePage = async (payload: typeof TPage) => {
   try {
@@ -34,23 +34,23 @@ export const updatePage = async (payload: typeof TPage) => {
       .update(page)
       .set(payload)
       .where(eq(page.id, payload.id!))
-      .returning();
+      .returning()
     // console.log({ p });
     if (p.length === 0) {
-      throw new Error("Error updating page");
+      throw new Error('Error updating page')
     }
-    return { ok: true, error: null };
+    return { ok: true, error: null }
   } catch (error) {
-    return { ok: false, error: (error as Error)?.message };
+    return { ok: false, error: (error as Error)?.message }
   }
-};
+}
 export const getAllPages = async (username: string) => {
   // try {
-  const profileId = await getProfileIdByUsername(username);
+  const profileId = await getProfileIdByUsername(username)
   if (!profileId) {
-    throw new Error("Profile not found");
+    throw new Error('Profile not found')
   }
-  const { ...rest } = getTableColumns(page);
+  const { ...rest } = getTableColumns(page)
   const pages = await db
     .select({
       ...rest,
@@ -60,14 +60,14 @@ export const getAllPages = async (username: string) => {
     .from(page)
     .leftJoin(media, eq(media.id, page.thumbnail))
     .innerJoin(profile, eq(profile.id, page.profileId))
-    .where(eq(page.profileId, profileId?.id as string));
+    .where(eq(page.profileId, profileId?.id as string))
   if (pages.length === 0) {
-    return [];
+    return []
   }
-  return pages as (typeof TPage & { thumbnail: string })[];
-};
+  return pages as (typeof TPage & { thumbnail: string })[]
+}
 export const getPageById = async (id: string) => {
-  const { ...rest } = getTableColumns(page);
+  const { ...rest } = getTableColumns(page)
   const pages = await db
     .select({
       ...rest,
@@ -76,63 +76,63 @@ export const getPageById = async (id: string) => {
     .from(page)
     .leftJoin(media, eq(media.id, page.thumbnail))
     .where(and(eq(page.id, id)))
-    .limit(1);
+    .limit(1)
   // console.log(pages);
   if (pages.length === 0) {
-    throw new Error("No page found");
+    throw new Error('No page found')
   }
-  return pages[0];
-};
+  return pages[0]
+}
 
 export async function updatePageThumbnail(
   payload: TUploadFilesResponse & { pageId: string }
 ) {
-  const session = await auth();
+  const session = await auth()
   if (!session || !session?.user?.profileId) {
-    throw new Error("Session not found");
+    throw new Error('Session not found')
   }
   const newMedia = await db
     .insert(media)
     .values({
       url: payload?.url,
-      type: "image",
+      type: 'image',
       profileId: session?.user?.profileId,
       height: payload?.height,
       width: payload?.width,
     })
-    .returning({ id: media.id });
+    .returning({ id: media.id })
   if (newMedia.length === 0) {
-    throw new Error("Error creating thumbnail media");
+    throw new Error('Error creating thumbnail media')
   }
 
   const newThumbnail = await db
     .update(page)
     .set({ thumbnail: newMedia[0].id })
     .where(eq(page.id, payload?.pageId))
-    .returning();
+    .returning()
 
   if (newThumbnail.length === 0) {
-    throw new Error("Error updating page thumbnail");
+    throw new Error('Error updating page thumbnail')
   }
 
-  return true;
+  return true
 }
 
 export async function removePageThumbnail({ pageId }: { pageId: string }) {
-  const session = await auth();
+  const session = await auth()
   if (!session || !session?.user?.profileId) {
-    throw new Error("Session not found");
+    throw new Error('Session not found')
   }
 
   const newThumbnail = await db
     .update(page)
     .set({ thumbnail: null })
     .where(eq(page.id, pageId))
-    .returning();
+    .returning()
 
   if (newThumbnail.length === 0) {
-    throw new Error("Error deleting page thumbnail");
+    throw new Error('Error deleting page thumbnail')
   }
 
-  return true;
+  return true
 }

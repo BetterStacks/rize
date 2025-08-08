@@ -1,10 +1,10 @@
-import { TPage } from "@/lib/types";
-import { Dot } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { FC, useMemo } from "react";
-import readingTime from "reading-time";
-import { Node } from "slate";
+import { TPage } from '@/lib/types'
+import { Dot } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { FC, useMemo } from 'react'
+import readingTime from 'reading-time'
+import { Node } from 'slate'
 
 type WrtingCardProps = {
   data: typeof TPage & { thumbnail: string };
@@ -12,12 +12,12 @@ type WrtingCardProps = {
 
 const WritingCard: FC<WrtingCardProps> = ({ data }) => {
   const time = useMemo(() => {
-    const editorContent = JSON.parse(data?.content);
+    const editorContent = JSON.parse(data?.content)
     const stringifiedContent = editorContent
       .map((node: Node) => Node.string(node))
-      .join("\n");
-    return readingTime(stringifiedContent);
-  }, [data?.content]);
+      .join('\n')
+    return readingTime(stringifiedContent)
+  }, [data?.content])
   return (
     <article className="flex w-full group  bg-white shadow-lg group relative dark:bg-neutral-800 transition-all  rounded-2xl border border-neutral-300/60 dark:border-dark-border overflow-hidden">
       <Link
@@ -26,7 +26,7 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
       >
         <div className="w-[120px] border-r border-neutral-300/60 dark:border-dark-border border md:w-[160px] h-full relative overflow-hidden">
           <Image
-            src={data?.thumbnail!}
+            src={data?.thumbnail || '/placeholder-thumbnail.jpg'}
             alt="Thumbnail"
             fill
             className="object-cover"
@@ -49,7 +49,7 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
         <div className="relative flex md:hidden  border border-neutral-200 dark:border-dark-border/80 h-[250px] aspect-square rounded-2xl overflow-hidden bg-neutral-200 dark:bg-dark-border">
           {data?.thumbnail ? (
             <Image
-              src={data?.thumbnail!}
+              src={data?.thumbnail || '/placeholder-thumbnail.jpg'}
               alt="Thumbnail"
               fill
               className="object-cover"
@@ -67,7 +67,7 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
         <div className="relative hidden md:flex w-[160px] border border-neutral-200 dark:border-dark-border/80 h-[120px] rounded-2xl overflow-hidden bg-neutral-200 dark:bg-dark-border">
           {data?.thumbnail ? (
             <Image
-              src={data?.thumbnail!}
+              src={data?.thumbnail || '/placeholder-thumbnail.jpg'}
               alt="Thumbnail"
               fill
               className="object-cover"
@@ -78,7 +78,7 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
         </div> */}
       </Link>
     </article>
-  );
-};
+  )
+}
 
-export default WritingCard;
+export default WritingCard

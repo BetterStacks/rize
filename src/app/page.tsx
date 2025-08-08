@@ -1,40 +1,40 @@
-"use client";
+'use client'
 
-import ClaimUsernameForm from "@/components/claim-username";
-import Footer from "@/components/footer";
-import BentoGrid from "@/components/home/bento-grid";
-import FAQSection from "@/components/home/faq";
-import HeroSection from "@/components/home/hero";
-import TextReveal from "@/components/home/text-reveal";
-import UserReviews from "@/components/home/user-reviews";
-import Join from "@/components/join";
-import { setCookie } from "cookies-next";
-import { motion } from "framer-motion";
-import Lenis from "lenis";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import ClaimUsernameForm from '@/components/claim-username'
+import Footer from '@/components/footer'
+import BentoGrid from '@/components/home/bento-grid'
+import FAQSection from '@/components/home/faq'
+import HeroSection from '@/components/home/hero'
+import TextReveal from '@/components/home/text-reveal'
+import UserReviews from '@/components/home/user-reviews'
+import Join from '@/components/join'
+import { setCookie } from 'cookies-next'
+import { motion } from 'framer-motion'
+import Lenis from 'lenis'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 
 export default function Home() {
   useEffect(() => {
-    const lenis = new Lenis();
+    const lenis = new Lenis()
 
-    function raf(time: any) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
+    function raf(time: number) {
+      lenis.raf(time)
+      requestAnimationFrame(raf)
     }
 
-    requestAnimationFrame(raf);
-  }, []);
+    requestAnimationFrame(raf)
+  }, [])
 
   const titles = [
-    "Designers",
-    "Developers",
-    "Creators",
-    "Founders",
-    "Individuals",
-  ];
+    'Designers',
+    'Developers',
+    'Creators',
+    'Founders',
+    'Individuals',
+  ]
 
-  const [activeTitle, setActiveTitle] = useState(titles[0]);
+  const [activeTitle, setActiveTitle] = useState(titles[0])
 
   return (
     <div className="w-full flex flex-col ">
@@ -55,16 +55,16 @@ export default function Home() {
       </div>
       <ClaimUsernameSection />
     </div>
-  );
+  )
 }
 
 const ClaimUsernameSection = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+  const ref = useRef<HTMLDivElement>(null)
+  const router = useRouter()
   const handleSubmit = (data: string) => {
-    setCookie("username", data);
-    router.push(`/signup`);
-  };
+    setCookie('username', data)
+    router.push('/signup')
+  }
   return (
     <section
       ref={ref}
@@ -95,7 +95,7 @@ const ClaimUsernameSection = () => {
           transition={{ duration: 0.5 }}
           className="text-3xl md:text-4xl text-center text-white font-medium tracking-tighter"
         >
-          Get Started with <br /> Rize and Grow Your{" "}
+          Get Started with <br /> Rize and Grow Your{' '}
           <span className="font-instrument leading-none md:text-5xl font-thin italic">
             Network
           </span>
@@ -107,7 +107,7 @@ const ClaimUsernameSection = () => {
           className="mt-4 text-center"
         >
           <span className="text-center  text-neutral-200 leading-tight text-lg font-medium">
-            Customize your profile to showcase your unique style and Share{" "}
+            Customize your profile to showcase your unique style and Share{' '}
             <br className="hidden md:block" />
             your thoughts, experiences, and ideas with the world.
           </span>
@@ -123,5 +123,5 @@ const ClaimUsernameSection = () => {
       </div>
       <Footer />
     </section>
-  );
-};
+  )
+}

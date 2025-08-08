@@ -1,17 +1,17 @@
-import { useToggleLikePost } from "@/hooks/useToggleLike";
-import { GetExplorePosts, TPostMedia } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import moment from "moment";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FC } from "react";
+import { useToggleLikePost } from '@/hooks/useToggleLike'
+import { GetExplorePosts, TPostMedia } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import moment from 'moment'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { FC } from 'react'
 import PostInteractions, {
   PostAvatar,
   PostCardContainer,
   PostCardOptions,
   PostLinkCard,
-} from "./post-interactions";
+} from './post-interactions'
 
 type PostCardProps = {
   post: GetExplorePosts;
@@ -21,45 +21,45 @@ type PostCardProps = {
   showHeader?: boolean;
 };
 
-moment.updateLocale("en", {
+moment.updateLocale('en', {
   relativeTime: {
-    past: "%s",
-    s: "%dsec",
-    ss: "%dsec",
-    m: "%d min",
-    mm: "%d min",
-    h: "%d hr ago",
-    hh: "%d hr ago",
-    d: "%dd",
-    dd: "%dd",
-    w: "%d week",
-    ww: "%d weeks",
-    M: "%d mon",
-    MM: "%d mon",
-    y: "%dyr",
-    yy: "%dyr",
+    past: '%s',
+    s: '%dsec',
+    ss: '%dsec',
+    m: '%d min',
+    mm: '%d min',
+    h: '%d hr ago',
+    hh: '%d hr ago',
+    d: '%dd',
+    dd: '%dd',
+    w: '%d week',
+    ww: '%d weeks',
+    M: '%d mon',
+    MM: '%d mon',
+    y: '%dyr',
+    yy: '%dyr',
   },
-});
+})
 
 const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
-  const hasMedia = post?.media;
-  const onlyMedia = hasMedia && !post?.content;
-  const onlyContent = !hasMedia && post?.content?.length > 0;
-  const onlyLink = !post?.content && post?.link;
+  const hasMedia = post?.media
+  const onlyMedia = hasMedia && !post?.content
+  const onlyContent = !hasMedia && post?.content?.length > 0
+  const onlyLink = !post?.content && post?.link
 
-  const router = useRouter();
+  const router = useRouter()
 
   const mutation = useToggleLikePost({
     liked: Boolean(post.liked),
     postId: post.id,
-  });
+  })
 
   const handleLikeClick = () => {
-    mutation.mutate();
-  };
+    mutation.mutate()
+  }
   const handleViewPost = () => {
-    router.push(`/post/${post?.id}`);
-  };
+    router.push(`/post/${post?.id}`)
+  }
   if (onlyContent) {
     return (
       <OnlyContentCard
@@ -71,7 +71,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
         commentCount={Number(post?.commentCount)}
         commented={Boolean(post?.commented)}
       />
-    );
+    )
   } else if (onlyMedia) {
     return (
       <OnlyMediaCard
@@ -83,7 +83,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
         commentCount={Number(post?.commentCount)}
         commented={Boolean(post?.commented)}
       />
-    );
+    )
   }
   return (
     <PostCardContainer handlePostClick={handleViewPost} className="group">
@@ -92,15 +92,15 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
           <div
             key={(post?.media as TPostMedia)?.id}
             className={cn(
-              "relative border-b border-neutral-300/80  w-full rounded-t-3xl overflow-hidden ",
-              "dark:border-dark-border",
+              'relative border-b border-neutral-300/80  w-full rounded-t-3xl overflow-hidden ',
+              'dark:border-dark-border',
               mediaContainerClassName
             )}
             style={{
               aspectRatio:
                 (post?.media as TPostMedia).width /
                 (post?.media as TPostMedia).height,
-              objectFit: "cover",
+              objectFit: 'cover',
             }}
           >
             <div className="absolute top-2 z-[2] px-4 pt-2 w-full gap-x-2 flex items-center justify-between">
@@ -113,14 +113,14 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
                 profileId={post?.profileId as string}
               />
             </div>
-            {(post?.media as TPostMedia)?.type === "image" ? (
+            {(post?.media as TPostMedia)?.type === 'image' ? (
               <>
                 <Image
                   fill
                   src={(post?.media as TPostMedia).url}
                   alt="Post media"
                   loading="lazy"
-                  style={{ objectFit: "cover" }}
+                  style={{ objectFit: 'cover' }}
                   draggable={false}
                   className=" select-none "
                 />
@@ -128,7 +128,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
             ) : (
               <>
                 <video
-                  style={{ objectFit: "cover" }}
+                  style={{ objectFit: 'cover' }}
                   className="w-full h-full select-none  "
                   src={(post?.media as TPostMedia).url}
                   autoPlay
@@ -142,11 +142,11 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
           </div>
         )}
       </div>
-      <div className={cn("flex  gap-y-2 px-4 py-2 mt-4", !hasMedia && "mt-4")}>
+      <div className={cn('flex  gap-y-2 px-4 py-2 mt-4', !hasMedia && 'mt-4')}>
         {!hasMedia && (
           <div
             className={cn(
-              "size-10 aspect-square  rounded-full  flex relative overflow-hidden"
+              'size-10 aspect-square  rounded-full  flex relative overflow-hidden'
             )}
           >
             <Image
@@ -154,7 +154,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
               src={post?.avatar as string}
               fill
               style={{
-                objectFit: "cover",
+                objectFit: 'cover',
               }}
               quality={100}
               priority
@@ -164,22 +164,22 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
         )}
         <div
           className={cn(
-            " flex flex-1 flex-col items-start",
-            !hasMedia && "ml-3"
+            ' flex flex-1 flex-col items-start',
+            !hasMedia && 'ml-3'
           )}
         >
           <Link href={`/${post?.username}`}>
-            <h2 className={cn(" text-sm text-black  ", "dark:text-white")}>
+            <h2 className={cn(' text-sm text-black  ', 'dark:text-white')}>
               {post.name}
             </h2>
           </Link>
           <div
             className={cn(
-              "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 "
+              'flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 '
             )}
           >
-            <p className={cn("mr-1")}>@{post.username}</p>
-            {"•"}
+            <p className={cn('mr-1')}>@{post.username}</p>
+            {'•'}
             <span className="ml-1">{moment(post?.createdAt).fromNow()}</span>
           </div>
         </div>
@@ -194,16 +194,16 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
       {post?.content && (
         <p
           className={cn(
-            "text-neutral-600 leading-snug line-clamp-[10]  font-medium  text-sm p-4  ",
-            "dark:text-neutral-400 "
+            'text-neutral-600 leading-snug line-clamp-[10]  font-medium  text-sm p-4  ',
+            'dark:text-neutral-400 '
           )}
         >
-          {post?.content?.split("\n").map((line, i) => {
+          {post?.content?.split('\n').map((line, i) => {
             return (
-              <span className={cn("")} key={i}>
+              <span className={cn('')} key={i}>
                 {line} <br className="" />
               </span>
-            );
+            )
           })}
         </p>
       )}
@@ -222,8 +222,8 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
         handleCommentClick={() => {}}
       />
     </PostCardContainer>
-  );
-};
+  )
+}
 type GeneralPostProps = {
   handleLike?: () => void;
   post: GetExplorePosts;
@@ -249,7 +249,7 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
     <PostCardContainer handlePostClick={handleViewPost} className="group">
       <div
         className={cn(
-          "flex w-full items-center justify-between   px-4 py-2 mt-4"
+          'flex w-full items-center justify-between   px-4 py-2 mt-4'
         )}
       >
         <div className="flex items-center justify-start">
@@ -257,19 +257,19 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
             avatar={post?.avatar as string}
             name={post?.name as string}
           />
-          <div className={cn(" flex flex-col items-start", "ml-3")}>
+          <div className={cn(' flex flex-col items-start', 'ml-3')}>
             <Link href={`/${post?.username}`}>
-              <h2 className={cn(" text-sm text-black  ", "dark:text-white")}>
+              <h2 className={cn(' text-sm text-black  ', 'dark:text-white')}>
                 {post.name}
               </h2>
             </Link>
             <div
               className={cn(
-                "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 "
+                'flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 '
               )}
             >
-              <p className={cn("mr-1")}>@{post.username}</p>
-              {"•"}
+              <p className={cn('mr-1')}>@{post.username}</p>
+              {'•'}
               <span className="ml-1">{moment(post?.createdAt).fromNow()}</span>
             </div>
           </div>
@@ -281,16 +281,16 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
       </div>
       <p
         className={cn(
-          "text-neutral-600 leading-snug line-clamp-[10] mb-2 font-medium  text-sm p-4  ",
-          "dark:text-neutral-400 "
+          'text-neutral-600 leading-snug line-clamp-[10] mb-2 font-medium  text-sm p-4  ',
+          'dark:text-neutral-400 '
         )}
       >
-        {post?.content?.split("\n").map((line, i) => {
+        {post?.content?.split('\n').map((line, i) => {
           return (
-            <span className={cn("")} key={i}>
+            <span className={cn('')} key={i}>
               {line} <br className="" />
             </span>
-          );
+          )
         })}
       </p>
       {post?.link && <PostLinkCard {...post?.link} />}
@@ -303,8 +303,8 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
         handleCommentClick={handleComment!}
       />
     </PostCardContainer>
-  );
-};
+  )
+}
 const OnlyMediaCard: FC<GeneralPostProps> = ({
   post,
   likeCount,
@@ -312,7 +312,7 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
   handleLike,
   handleViewPost,
 }) => {
-  const media = post?.media;
+  const media = post?.media
   return (
     <PostCardContainer
       handlePostClick={handleViewPost}
@@ -321,7 +321,7 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
       <div className="bg-gradient-to-b transition-all duration-75 ease-in group-hover:opacity-100 opacity-0 w-full from-black via-black/60 to-transparent h-40 absolute z-[6] inset-0" />
       <div
         className={cn(
-          "flex w-full group-hover:opacity-100 transition-all duration-75 ease-in opacity-0 absolute top-5 z-[8]   items-center justify-between   px-4 "
+          'flex w-full group-hover:opacity-100 transition-all duration-75 ease-in opacity-0 absolute top-5 z-[8]   items-center justify-between   px-4 '
         )}
       >
         <div className="flex items-center justify-start">
@@ -329,17 +329,17 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
             avatar={post?.avatar as string}
             name={post?.name as string}
           />
-          <div className={cn(" flex flex-col items-start", "ml-3")}>
+          <div className={cn(' flex flex-col items-start', 'ml-3')}>
             <Link href={`/${post?.username}`}>
-              <h2 className={cn(" text-sm   ", "text-white")}>{post.name}</h2>
+              <h2 className={cn(' text-sm   ', 'text-white')}>{post.name}</h2>
             </Link>
             <div
               className={cn(
-                "flex items-center justify-start text-neutral-400 text-sm font-light leading-snug  "
+                'flex items-center justify-start text-neutral-400 text-sm font-light leading-snug  '
               )}
             >
-              <p className={cn("mr-1")}>@{post.username}</p>
-              {"•"}
+              <p className={cn('mr-1')}>@{post.username}</p>
+              {'•'}
               <span className="ml-1">{moment(post?.createdAt).fromNow()}</span>
             </div>
           </div>
@@ -355,9 +355,9 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
             (post?.media as TPostMedia).width /
             (post?.media as TPostMedia).height,
         }}
-        className={cn("relative  overflow-hidden ")}
+        className={cn('relative  overflow-hidden ')}
       >
-        {(post?.media as TPostMedia)?.type === "image" ? (
+        {(post?.media as TPostMedia)?.type === 'image' ? (
           <>
             <Image
               fill
@@ -365,14 +365,14 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
               alt="Post media"
               draggable={false}
               loading="lazy"
-              style={{ objectFit: "cover" }}
+              style={{ objectFit: 'cover' }}
               className="select-none "
             />
           </>
         ) : (
           <>
             <video
-              style={{ objectFit: "cover" }}
+              style={{ objectFit: 'cover' }}
               className="w-full h-full select-none  "
               src={(post?.media as TPostMedia)?.url}
               autoPlay
@@ -391,10 +391,10 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
         handleLikeClick={handleLike!}
       /> */}
     </PostCardContainer>
-  );
-};
+  )
+}
 
-export default PostCard;
+export default PostCard
 
 // if (onlyMedia) {
 //   return (

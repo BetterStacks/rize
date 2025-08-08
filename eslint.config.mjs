@@ -13,7 +13,19 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
+      "semi": ["error", "never"],
+      "quotes": ["error", "single"],
+      "arrow-spacing": ["error", { "before": true, "after": true }],
+      "no-console": "warn",
+      // "indent": ["error", "tab"],
+      "react/jsx-no-undef": "off",
+      "@next/next/no-sync-scripts": "off",
+      "@next/next/no-img-element": "off",
+      "react-hooks/exhaustive-deps": "off",
       "react/no-unescaped-entities": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+      "@typescript-eslint/no-unused-vars": "off"
     },
   },
 ];

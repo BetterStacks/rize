@@ -1,21 +1,21 @@
-"use client";
-import { getRecentlyJoinedProfilesCached } from "@/actions/profile-actions";
-import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
-import { Separator } from "./ui/separator";
+'use client'
+import { getRecentlyJoinedProfilesCached } from '@/actions/profile-actions'
+import { cn } from '@/lib/utils'
+import { useQuery } from '@tanstack/react-query'
+import Link from 'next/link'
+import { Separator } from './ui/separator'
 
 const RecentlyJoined = () => {
   const { data: profiles, isLoading } = useQuery({
-    queryKey: ["recently-joined"],
+    queryKey: ['recently-joined'],
     queryFn: () => getRecentlyJoinedProfilesCached(),
     refetchOnWindowFocus: false,
-  });
+  })
   return (
     <>
       <div className="w-full flex flex-col mt-10 pb-8 px-6">
         <h3 className="dark:text-neutral-300 text-neutral-800 font-medium mb-4 tracking-tight">
-          Recently{" "}
+          Recently{' '}
           <span className="dark:text-neutral-500 text-neutral-600">Joined</span>
         </h3>
         <div className="flex flex-col items-start gap-y-1">
@@ -35,10 +35,10 @@ const RecentlyJoined = () => {
                   className="w-full"
                 >
                   <div className="flex items-center  w-full  ">
-                    <div className={cn(" flex flex-col items-start ", "")}>
+                    <div className={cn(' flex flex-col items-start ', '')}>
                       <h2
                         className={cn(
-                          " tracking-tight  dark:text-neutral-400 text-neutral-600 "
+                          ' tracking-tight  dark:text-neutral-400 text-neutral-600 '
                         )}
                       >
                         {profile?.displayName}
@@ -82,10 +82,10 @@ const RecentlyJoined = () => {
     //     ))}
     //   </CardContent>
     // </Card>
-  );
-};
+  )
+}
 
-export default RecentlyJoined;
+export default RecentlyJoined
 
 {
   /* <div className="size-7 border rounded-full border-neutral-300 dark:border-dark-border aspect-square flex  relative overflow-hidden">

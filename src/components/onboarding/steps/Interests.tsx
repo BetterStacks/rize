@@ -1,19 +1,19 @@
-"use client";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+'use client'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 
 export const interests = [
-  { emoji: "🎵", tag: "Music" },
-  { emoji: "🎨", tag: "Art" },
-  { emoji: "🎮", tag: "Gaming" },
-  { emoji: "📱", tag: "Tech" },
-  { emoji: "🌱", tag: "Nature" },
-  { emoji: "✈️", tag: "Travel" },
-  { emoji: "📚", tag: "Books" },
-  { emoji: "🎬", tag: "Movies" },
-  { emoji: "🏃", tag: "Fitness" },
-  { emoji: "🍜", tag: "Food" },
-];
+  { emoji: '🎵', tag: 'Music' },
+  { emoji: '🎨', tag: 'Art' },
+  { emoji: '🎮', tag: 'Gaming' },
+  { emoji: '📱', tag: 'Tech' },
+  { emoji: '🌱', tag: 'Nature' },
+  { emoji: '✈️', tag: 'Travel' },
+  { emoji: '📚', tag: 'Books' },
+  { emoji: '🎬', tag: 'Movies' },
+  { emoji: '🏃', tag: 'Fitness' },
+  { emoji: '🍜', tag: 'Food' },
+]
 export function InterestsStep({
   onNext,
   formData,
@@ -23,7 +23,7 @@ export function InterestsStep({
 }) {
   const [selectedInterests, setSelectedInterests] = useState<string[]>(
     formData?.interests || []
-  );
+  )
 
   return (
     <div className="p-8">
@@ -35,14 +35,14 @@ export function InterestsStep({
           <Button
             key={interest.tag}
             variant={
-              selectedInterests.includes(interest.tag) ? "secondary" : "outline"
+              selectedInterests.includes(interest.tag) ? 'secondary' : 'outline'
             }
             onClick={() => {
               setSelectedInterests((prev) =>
                 prev.includes(interest.tag)
                   ? prev.filter((i) => i !== interest.tag)
                   : [...prev, interest.tag]
-              );
+              )
             }}
             className="rounded-full"
           >
@@ -52,7 +52,7 @@ export function InterestsStep({
       </div>
 
       <Button
-        variant={"secondary"}
+        variant={'secondary'}
         onClick={() => onNext(selectedInterests)}
         disabled={selectedInterests.length < 3}
         className="w-full "
@@ -60,5 +60,5 @@ export function InterestsStep({
         Continue
       </Button>
     </div>
-  );
+  )
 }

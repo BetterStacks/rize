@@ -1,9 +1,9 @@
-import PostForm from "@/components/explore/post-form";
-import RecentlyJoined from "@/components/recently-joined";
-import Sidebar from "@/components/sidebar/Sidebar";
-import { ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import React, { FC } from "react";
+import PostForm from '@/components/explore/post-form'
+import RecentlyJoined from '@/components/recently-joined'
+import Sidebar from '@/components/sidebar/Sidebar'
+import { ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import React, { FC } from 'react'
 
 type Props = {
   children: React.ReactNode;
@@ -32,7 +32,7 @@ const ExploreLayout: FC<Props> = ({ children }) => {
         <RecentlyJoined />
       </div>
     </ResizablePanelGroup>
-  );
-};
+  )
+}
 
-export default ExploreLayout;
+export default ExploreLayout

@@ -1,17 +1,17 @@
-"use client";
-import { getRecentlyJoinedProfiles } from "@/actions/profile-actions";
-import { TProfile } from "@/lib/types";
-import { useDebouncedCallback } from "@mantine/hooks";
-import { useQuery } from "@tanstack/react-query";
-import { signOut, useSession } from "next-auth/react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useSearchDialog } from "../dialog-provider";
+'use client'
+import { getRecentlyJoinedProfiles } from '@/actions/profile-actions'
+import { TProfile } from '@/lib/types'
+import { useDebouncedCallback } from '@mantine/hooks'
+import { useQuery } from '@tanstack/react-query'
+import { signOut, useSession } from 'next-auth/react'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { useSearchDialog } from '../dialog-provider'
 
-import axios from "axios";
-import { ArrowRight, FileText, FolderOpen, Hash, Loader, LogOut, MessageCircle, Moon, Sun, User, Users, Zap } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import axios from 'axios'
+import { ArrowRight, FolderOpen, Hash, Loader, LogOut, MessageCircle, Moon, Sun, User, Users } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
 import {
   CommandDialog,
   CommandEmpty,
@@ -20,46 +20,46 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "../ui/command";
-import { ScrollArea } from "../ui/scroll-area";
-import { Separator } from "../ui/separator";
+} from '../ui/command'
+import { ScrollArea } from '../ui/scroll-area'
+import { Separator } from '../ui/separator'
 
 type ProfileItemProps = Pick<
   TProfile,
-  "username" | "displayName" | "profileImage"
+  'username' | 'displayName' | 'profileImage'
 > & { image?: string; name?: string };
 
 const SearchDialog = () => {
-  const [open, setOpen] = useSearchDialog();
+  const [open, setOpen] = useSearchDialog()
   
   // Add keyboard shortcut support
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setOpen(true);
+        e.preventDefault()
+        setOpen(true)
       }
-    };
+    }
     
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [setOpen]);
-  const session = useSession();
-  const router = useRouter();
-  const [query, setQuery] = useState("");
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [setOpen])
+  const session = useSession()
+  const router = useRouter()
+  const [query, setQuery] = useState('')
   const [results, setResults] = useState<{
     people: ProfileItemProps[];
     posts: any[];
     projects: any[];
     total: number;
-  }>({ people: [], posts: [], projects: [], total: 0 });
-  const [hasSearched, setHasSearched] = useState(false);
-  const [loading, setLoading] = useState(false);
+  }>({ people: [], posts: [], projects: [], total: 0 })
+  const [hasSearched, setHasSearched] = useState(false)
+  const [loading, setLoading] = useState(false)
   const { data, isLoading } = useQuery({
-    queryKey: ["recently-joined-profiles"],
+    queryKey: ['recently-joined-profiles'],
     queryFn: () => getRecentlyJoinedProfiles(),
-  });
-  const { theme, setTheme } = useTheme();
+  })
+  const { theme, setTheme } = useTheme()
 
   const viewProfilePayload = {
     displayName: session?.data?.user?.displayName,
@@ -67,31 +67,31 @@ const SearchDialog = () => {
     profileImage: session?.data?.user?.profileImage,
     image: session?.data?.user?.image,
     name: session?.data?.user?.name,
-  };
+  }
 
   const handleSearch = useDebouncedCallback(async (query: string) => {
-    if (query.trim() === "") {
+    if (query.trim() === '') {
       // setResults([]);
-      setLoading(false);
-      setHasSearched(false);
-      return;
+      setLoading(false)
+      setHasSearched(false)
+      return
     }
-    setLoading(true);
-    setHasSearched(true);
-    const res = await axios.get("/api/search", {
+    setLoading(true)
+    setHasSearched(true)
+    const res = await axios.get('/api/search', {
       params: { query },
-    });
-    setLoading(false);
-    setResults(res?.data);
-  }, 300);
+    })
+    setLoading(false)
+    setResults(res?.data)
+  }, 300)
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
         value={query}
         onValueChange={(value) => {
-          setQuery(value);
-          handleSearch(value);
+          setQuery(value)
+          handleSearch(value)
         }}
         placeholder="Search people, posts, or type a command..."
       />
@@ -109,8 +109,8 @@ const SearchDialog = () => {
                     <CommandItem
                       className="py-3"
                       onSelect={() => {
-                        router.push(`/${profile?.username}`);
-                        setOpen(false);
+                        router.push(`/${profile?.username}`)
+                        setOpen(false)
                       }}
                       value={`${profile?.username} ${profile?.displayName} `}
                       key={`person-${profile?.username}`}
@@ -136,8 +136,8 @@ const SearchDialog = () => {
                     <CommandItem
                       className="py-3 items-start"
                       onSelect={() => {
-                        router.push(`/${post?.username}`);
-                        setOpen(false);
+                        router.push(`/${post?.username}`)
+                        setOpen(false)
                       }}
                       value={`${post?.content} ${post?.displayName}`}
                       key={`post-${post?.id}`}
@@ -171,11 +171,11 @@ const SearchDialog = () => {
                       className="py-3 items-start"
                       onSelect={() => {
                         if (project?.url) {
-                          window.open(project.url, '_blank');
+                          window.open(project.url, '_blank')
                         } else {
-                          router.push(`/${project?.username}`);
+                          router.push(`/${project?.username}`)
                         }
-                        setOpen(false);
+                        setOpen(false)
                       }}
                       value={`${project?.name} ${project?.description} ${project?.displayName}`}
                       key={`project-${project?.id}`}
@@ -223,8 +223,8 @@ const SearchDialog = () => {
             <CommandGroup heading="🏠 Quick Actions">
               <CommandItem
                 onSelect={() => {
-                  router.push(`/${session?.data?.user?.username}`);
-                  setOpen(false);
+                  router.push(`/${session?.data?.user?.username}`)
+                  setOpen(false)
                 }}
               >
                 <User className="mr-2 h-4 w-4" />
@@ -232,8 +232,8 @@ const SearchDialog = () => {
               </CommandItem>
               <CommandItem
                 onSelect={() => {
-                  router.push('/explore');
-                  setOpen(false);
+                  router.push('/explore')
+                  setOpen(false)
                 }}
               >
                 <Hash className="mr-2 h-4 w-4" />
@@ -246,30 +246,30 @@ const SearchDialog = () => {
             <CommandGroup heading="⚡ Actions">
               <CommandItem
                 value={
-                  theme === "light"
-                    ? "Switch to dark mode"
-                    : "Switch to light mode"
+                  theme === 'light'
+                    ? 'Switch to dark mode'
+                    : 'Switch to light mode'
                 }
                 onSelect={() => {
-                  setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+                  setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
                 }}
               >
-                {theme === "light" ? (
+                {theme === 'light' ? (
                   <Moon strokeWidth={1.2} className="mr-2 h-4 w-4" />
                 ) : (
                   <Sun strokeWidth={1.2} className="mr-2 h-4 w-4" />
                 )}
                 <span>
-                  {theme === "light"
-                    ? "Switch to dark mode"
-                    : "Switch to light mode"}
+                  {theme === 'light'
+                    ? 'Switch to dark mode'
+                    : 'Switch to light mode'}
                 </span>
               </CommandItem>
-              {session?.status === "authenticated" && (
+              {session?.status === 'authenticated' && (
                 <CommandItem
                   value="Logout"
                   onSelect={() => {
-                    signOut();
+                    signOut()
                   }}
                 >
                   <LogOut strokeWidth={1.2} className="mr-2 h-4 w-4" />
@@ -291,15 +291,15 @@ const SearchDialog = () => {
                       <CommandItem
                         className="py-3"
                         onSelect={() => {
-                          router.push(`/${profile?.username}`);
-                          setOpen(false);
+                          router.push(`/${profile?.username}`)
+                          setOpen(false)
                         }}
                         key={profile?.username}
                       >
                         <ProfileItem payload={{ ...profile } as any} />
                         <ArrowRight className="ml-auto h-4 w-4 opacity-40" />
                       </CommandItem>
-                    );
+                    )
                   })}
             </CommandGroup>
           )}
@@ -326,8 +326,8 @@ const SearchDialog = () => {
         </div>
       </div>
     </CommandDialog>
-  );
-};
+  )
+}
 
 const ProfileItem = ({ payload }: { payload: ProfileItemProps }) => {
   return (
@@ -349,10 +349,10 @@ const ProfileItem = ({ payload }: { payload: ProfileItemProps }) => {
         </span>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default SearchDialog;
+export default SearchDialog
 
 // <Command.Dialog
 //   open={open}

@@ -1,18 +1,18 @@
-import { userExists } from "@/actions/user-actions";
-import { profile, users } from "@/db/schema";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { compareSync } from "bcryptjs";
-import { eq } from "drizzle-orm";
-import NextAuth, { DefaultSession } from "next-auth";
-import { encode as defaultEncode } from "next-auth/jwt";
-import Credentials from "next-auth/providers/credentials";
-import Github from "next-auth/providers/github";
-import LinkedInProvider from "next-auth/providers/linkedin";
-import Google from "next-auth/providers/google";
-import { v4 } from "uuid";
-import db from "./db";
+import { userExists } from '@/actions/user-actions'
+import { profile, users } from '@/db/schema'
+import { DrizzleAdapter } from '@auth/drizzle-adapter'
+import { compareSync } from 'bcryptjs'
+import { eq } from 'drizzle-orm'
+import NextAuth, { DefaultSession } from 'next-auth'
+import { encode as defaultEncode } from 'next-auth/jwt'
+import Credentials from 'next-auth/providers/credentials'
+import Github from 'next-auth/providers/github'
+import LinkedInProvider from 'next-auth/providers/linkedin'
+import Google from 'next-auth/providers/google'
+import { v4 } from 'uuid'
+import db from './db'
 
-declare module "next-auth/jwt" {
+declare module 'next-auth/jwt' {
   /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
   interface JWT {
     /** OpenID ID Token */
@@ -26,7 +26,7 @@ declare module "next-auth/jwt" {
   }
 }
 
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
     user: {
       id: string;
@@ -36,43 +36,43 @@ declare module "next-auth" {
       profileImage: string;
       displayName: string;
       hasCompletedWalkthrough: boolean;
-    } & DefaultSession["user"];
+    } & DefaultSession['user'];
   }
 }
-const adapter = DrizzleAdapter(db);
+const adapter = DrizzleAdapter(db)
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.AUTH_SECRET,
   adapter,
   session: {
-    strategy: "database",
+    strategy: 'database',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
     async jwt({ token, user, account, trigger, session }) {
-      if (account?.provider === "credentials") {
-        token.credentials = true;
+      if (account?.provider === 'credentials') {
+        token.credentials = true
       }
       if (user) {
-        token.id = user.id as string;
+        token.id = user.id as string
         const userData = await db
           .select({ isOnboarded: users.isOnboarded })
           .from(users)
           .where(eq(users.id, user.id!))
-          .limit(1);
+          .limit(1)
 
-        token.isOnboarded = userData[0]?.isOnboarded || false;
+        token.isOnboarded = userData[0]?.isOnboarded || false
       }
 
-      if (trigger === "update" && session) {
-        return { ...token, ...session.user };
+      if (trigger === 'update' && session) {
+        return { ...token, ...session.user }
       }
 
-      return token;
+      return token
     },
     async session({ session, user }) {
       if (!user) {
-        return session;
+        return session
       }
 
       const userData = await db
@@ -87,69 +87,69 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         .from(users)
         .leftJoin(profile, eq(profile.userId, users.id))
         .where(eq(users.id, user.id))
-        .limit(1);
+        .limit(1)
 
       if (!userData[0]) {
-        return session;
+        return session
       }
 
       session.user = {
         ...session.user,
         id: user.id,
         ...(userData[0] as any),
-      };
+      }
 
-      return session;
+      return session
     },
     signIn: async (payload) => {
-      const { user, account } = payload;
-      const provider = account?.provider;
+      const { user, account } = payload
+      const provider = account?.provider
       
       // Auto-import profile data on first sign-in from GitHub/LinkedIn
-      if ((provider === "github" || provider === "linkedin") && account?.access_token && user?.id) {
+      if ((provider === 'github' || provider === 'linkedin') && account?.access_token && user?.id) {
         try {
           // Check if user already has a profile
           const existingProfile = await db
             .select()
             .from(profile)
             .where(eq(profile.userId, user.id))
-            .limit(1);
+            .limit(1)
 
           // Only import if no profile exists (first time sign-in)
           if (existingProfile.length === 0) {
             // Import will be handled by a background job or client-side after sign-in
-            console.log(`New user signed up with ${provider}, profile import available`);
+            console.log(`New user signed up with ${provider}, profile import available`)
           }
         } catch (error) {
-          console.error("Error checking profile during sign-in:", error);
+          console.error('Error checking profile during sign-in:', error)
         }
       }
 
-      return true;
+      return true
     },
   },
   jwt: {
     encode: async function (params) {
       if (params.token?.credentials) {
-        const sessionToken = v4();
+        const sessionToken = v4()
 
         if (!params.token.sub) {
-          throw new Error("No user ID found in token");
+          throw new Error('No user ID found in token')
         }
 
         const createdSession = await adapter?.createSession?.({
           sessionToken: sessionToken,
           userId: params.token.sub,
           expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-        });
+        })
 
         if (!createdSession) {
-          throw new Error("Failed to create session");
+          throw new Error('Failed to create session')
         }
 
-        return sessionToken;
+        return sessionToken
       }
-      return defaultEncode(params);
+      return defaultEncode(params)
     },
   },
   providers: [
@@ -158,29 +158,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
     Github,
     Credentials({
-      name: "Credentials",
+      name: 'Credentials',
 
-      type: "credentials",
+      type: 'credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        const { password, email } = credentials;
-        const exists = await userExists(email as string);
+        const { password, email } = credentials
+        const exists = await userExists(email as string)
 
         if (!exists) {
-          throw new Error("User with not found");
+          throw new Error('User with not found')
         }
         const match = compareSync(
           password as string,
           exists?.password as string
-        );
+        )
         if (!match) {
-          throw new Error("Password does not match");
+          throw new Error('Password does not match')
         }
 
-        return exists;
+        return exists
       },
     }),
     LinkedInProvider({
@@ -188,13 +188,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
       authorization: {
         params: {
-          scope: "openid profile email"
+          scope: 'openid profile email'
         }
       }
     }),
   ],
   trustHost: true,
-});
+})
 
 // async signIn(payload) {
 //   const { credentials, account, user } = payload;

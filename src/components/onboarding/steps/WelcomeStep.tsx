@@ -1,5 +1,5 @@
-"use client";
-import { Button } from "@/components/ui/button";
+'use client'
+import { Button } from '@/components/ui/button'
 
 export function WelcomeStep({ onNext }: { onNext: () => void }) {
   return (
@@ -9,12 +9,12 @@ export function WelcomeStep({ onNext }: { onNext: () => void }) {
         <span className="italic ml-2">Rize ✨</span>
       </h1>
       <Button
-        variant={"secondary"}
+        variant={'secondary'}
         className="w-full  self-end"
         onClick={onNext}
       >
         Get Started
       </Button>
     </div>
-  );
+  )
 }

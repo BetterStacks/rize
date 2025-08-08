@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import Image from "next/image";
+import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 type Testimonial = {
   id: number;
@@ -12,53 +12,53 @@ type Testimonial = {
 const testimonials: Testimonial[] = [
   {
     id: 1,
-    name: "Sarah Johnson",
-    role: "CEO",
-    company: "GrowthTech",
+    name: 'Sarah Johnson',
+    role: 'CEO',
+    company: 'GrowthTech',
     content:
-      "Rize transformed our business growth strategy with their innovative approach. Absolutely game-changing!",
+      'Rize transformed our business growth strategy with their innovative approach. Absolutely game-changing!',
   },
   {
     id: 2,
-    name: "Michael Chen",
-    role: "Marketing Director",
-    company: "Upward Inc.",
+    name: 'Michael Chen',
+    role: 'Marketing Director',
+    company: 'Upward Inc.',
     content:
-      "Since implementing Rize, our conversion rates have increased by 40%. The results speak for themselves.",
+      'Since implementing Rize, our conversion rates have increased by 40%. The results speak for themselves.',
   },
   {
     id: 3,
-    name: "Jessica Williams",
-    role: "Founder",
-    company: "ElevatePro",
+    name: 'Jessica Williams',
+    role: 'Founder',
+    company: 'ElevatePro',
     content:
-      "Rize provided exactly what we needed to scale our operations efficiently. Their platform is intuitive and powerful.",
+      'Rize provided exactly what we needed to scale our operations efficiently. Their platform is intuitive and powerful.',
   },
   {
     id: 4,
-    name: "David Rodriguez",
-    role: "COO",
-    company: "NextLevel",
+    name: 'David Rodriguez',
+    role: 'COO',
+    company: 'NextLevel',
     content:
-      "The insights we've gained through Rize have completely revolutionized our approach to customer engagement.",
+      'The insights we\'ve gained through Rize have completely revolutionized our approach to customer engagement.',
   },
   {
     id: 5,
-    name: "Emma Thompson",
-    role: "Growth Strategist",
-    company: "Ascend Group",
+    name: 'Emma Thompson',
+    role: 'Growth Strategist',
+    company: 'Ascend Group',
     content:
-      "I recommend Rize to all my clients. It's the most comprehensive growth platform I've ever worked with.",
+      'I recommend Rize to all my clients. It\'s the most comprehensive growth platform I\'ve ever worked with.',
   },
   {
     id: 6,
-    name: "James Wilson",
-    role: "Product Manager",
-    company: "InnovateX",
+    name: 'James Wilson',
+    role: 'Product Manager',
+    company: 'InnovateX',
     content:
-      "Rize helped us identify opportunities we were missing. Our product roadmap is now much more aligned with market needs.",
+      'Rize helped us identify opportunities we were missing. Our product roadmap is now much more aligned with market needs.',
   },
-];
+]
 
 const TestimonialsMarquee = () => {
   return (
@@ -79,9 +79,9 @@ const TestimonialsMarquee = () => {
           transition={{
             x: {
               repeat: Infinity,
-              repeatType: "loop",
+              repeatType: 'loop',
               duration: 40,
-              ease: "linear",
+              ease: 'linear',
             },
           }}
         >
@@ -115,7 +115,7 @@ const TestimonialsMarquee = () => {
         </motion.div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TestimonialsMarquee;
+export default TestimonialsMarquee

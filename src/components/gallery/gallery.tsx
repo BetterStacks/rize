@@ -1,35 +1,35 @@
-import { getGalleryItems } from "@/actions/gallery-actions";
-import { GalleryItemProps } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { motion, Variants } from "framer-motion";
-import { useParams } from "next/navigation";
-import { FC, useEffect, useState } from "react";
-import { Skeleton } from "../ui/skeleton";
+import { getGalleryItems } from '@/actions/gallery-actions'
+import { GalleryItemProps } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { useQuery } from '@tanstack/react-query'
+import { motion, Variants } from 'framer-motion'
+import { useParams } from 'next/navigation'
+import { FC, useEffect, useState } from 'react'
+import { Skeleton } from '../ui/skeleton'
 import {
   mansoryGridItemVariants,
   mansoryGridVariants,
   messyGridItemVariants,
   messyGridVariants,
-} from "./gallery-config";
-import { EmptyGalleryState } from "./gallery-empty-state";
-import GalleryItem from "./gallery-item";
+} from './gallery-config'
+import { EmptyGalleryState } from './gallery-empty-state'
+import GalleryItem from './gallery-item'
 
 export const galleryLayouts = {
-  "messy-grid": {
+  'messy-grid': {
     container:
-      "flex flex-wrap mt-6 -space-x-6 -space-y-6 w-full  max-w-3xl   items-center justify-center",
-    item: "w-[260px] h-[260px]  aspect-square  shadow-2xl ",
+      'flex flex-wrap mt-6 -space-x-6 -space-y-6 w-full  max-w-3xl   items-center justify-center',
+    item: 'w-[260px] h-[260px]  aspect-square  shadow-2xl ',
     containerVariants: messyGridVariants,
     itemVariants: messyGridItemVariants,
   },
-  "masonry-grid": {
-    container: "w-full columns-2 md:columns-3  max-w-2xl relative",
-    item: "mt-4 first:mt-0 shadow-lg ",
+  'masonry-grid': {
+    container: 'w-full columns-2 md:columns-3  max-w-2xl relative',
+    item: 'mt-4 first:mt-0 shadow-lg ',
     containerVariants: mansoryGridVariants,
     itemVariants: mansoryGridItemVariants,
   },
-};
+}
 
 type GalleryProps = {
   isMine: boolean;
@@ -48,7 +48,7 @@ const imagesContainerVariants: Variants = {
       staggerChildren: 0.1, // Adjust the stagger duration as needed
     },
   },
-};
+}
 
 const itemVariants: Variants = {
   hidden: { opacity: 0, x: 50, rotate: 0 },
@@ -58,29 +58,29 @@ const itemVariants: Variants = {
     rotate: i % 2 == 0 ? 6 : -6,
     transition: {
       duration: 0.25,
-      type: "spring",
+      type: 'spring',
       stiffness: 260,
       damping: 20,
     },
   }),
-};
+}
 
 const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
-  const { username } = useParams<{ username: string }>();
+  const { username } = useParams<{ username: string }>()
 
   const { data, isLoading } = useQuery({
-    queryKey: ["get-gallery-items", username],
+    queryKey: ['get-gallery-items', username],
     initialData: items,
     queryFn: () => getGalleryItems(username!),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
-  });
-  const [sortedItems, setSortedItems] = useState(data || []);
+  })
+  const [sortedItems, setSortedItems] = useState(data || [])
 
   useEffect(() => {
-    setSortedItems(data);
-  }, [data]);
+    setSortedItems(data)
+  }, [data])
 
   return (
     <div className="w-full my-12 flex flex-col items-center justify-center">
@@ -104,7 +104,7 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
                   isMine={isMine}
                   item={item}
                 />
-              );
+              )
             })}
           </motion.div>
         )}
@@ -132,35 +132,35 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
                 >
                   <GalleryItem index={i} isMine={isMine} item={item} />
                 </motion.div>
-              );
+              )
             })}
           </motion.div>
         )}
       </motion.div>
     </div>
-  );
-};
+  )
+}
 
 const GallerySkeleton = () => {
   return (
     <div
       className={cn(
-        "w-full flex items-center justify-center flex-wrap gap-2 -space-x-16 ",
-        ""
+        'w-full flex items-center justify-center flex-wrap gap-2 -space-x-16 ',
+        ''
       )}
     >
       {[...Array.from({ length: 5 })].map((_, i) => (
         <Skeleton
           key={i}
-          style={{ borderRadius: "12%" }}
+          style={{ borderRadius: '12%' }}
           className={cn(
-            "group even:rotate-6 odd:-rotate-6  aspect-square w-full h-full  relative overflow-hidden hover:shadow-2xl  bg-neutral-100 dark:bg-dark-border animate-none shadow-2xl cursor-grab size-48 first:mt-0 active:cursor-grabbing "
+            'group even:rotate-6 odd:-rotate-6  aspect-square w-full h-full  relative overflow-hidden hover:shadow-2xl  bg-neutral-100 dark:bg-dark-border animate-none shadow-2xl cursor-grab size-48 first:mt-0 active:cursor-grabbing '
           )}
         />
       ))}
     </div>
-  );
-};
+  )
+}
 
 const SortableGalleryItem: FC<{
   item: GalleryItemProps;
@@ -169,7 +169,7 @@ const SortableGalleryItem: FC<{
 }> = ({ item, index, isMine }) => {
   return (
     <motion.div
-      style={{ borderRadius: "12%" }}
+      style={{ borderRadius: '12%' }}
       variants={itemVariants}
       custom={index}
       whileHover={{
@@ -179,15 +179,15 @@ const SortableGalleryItem: FC<{
         zIndex: 100,
       }}
       className={cn(
-        "group aspect-square w-full h-full -my-4 -mx-8 relative overflow-hidden bg-neutral-100 dark:bg-dark-border cursor-grab size-48 active:cursor-grabbing shadow-2xl "
+        'group aspect-square w-full h-full -my-4 -mx-8 relative overflow-hidden bg-neutral-100 dark:bg-dark-border cursor-grab size-48 active:cursor-grabbing shadow-2xl '
       )}
     >
       <GalleryItem index={index} isMine={isMine} item={item} />
     </motion.div>
-  );
-};
+  )
+}
 
-export default Gallery;
+export default Gallery
 // function handleDragEnd(event: DragEndEvent) {
 //   const { active, over } = event;
 //   if (active.id !== over?.id) {

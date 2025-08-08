@@ -1,45 +1,45 @@
-import { auth } from "@/lib/auth";
-import { v2 as cloudinary, UploadApiOptions } from "cloudinary";
-import { NextRequest } from "next/server";
+import { auth } from '@/lib/auth'
+import { v2 as cloudinary, UploadApiOptions } from 'cloudinary'
+import { NextRequest } from 'next/server'
 
 cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-});
+})
 
 export async function POST(req: NextRequest) {
   try {
-    const data = await req.formData();
-    const type = data.get("type") as string;
-    const file = data.getAll("file") as string[]; // file
-    const session = await auth();
-    let options: UploadApiOptions = {};
-    const results: string[] = [];
+    const data = await req.formData()
+    const type = data.get('type') as string
+    const file = data.getAll('file') as string[] // file
+    const session = await auth()
+    let options: UploadApiOptions = {}
+    const results: string[] = []
 
     if (!file || file.length === 0) {
-      throw new Error("No file found");
+      throw new Error('No file found')
     }
-    if (type === "avatar") {
+    if (type === 'avatar') {
       options = {
-        folder: "fyp-stacks/avatar",
-        transformation: [{ radius: "max" }],
+        folder: 'fyp-stacks/avatar',
+        transformation: [{ radius: 'max' }],
         overwrite: true,
         public_id: `${session?.user?.profileId}.avatar`,
-      };
-      const upload = await cloudinary.uploader.upload(file[0], options);
+      }
+      const upload = await cloudinary.uploader.upload(file[0], options)
       return Response.json(
         {
-          message: "File uploaded successfully",
+          message: 'File uploaded successfully',
           url: upload.secure_url,
         },
         { status: 200 }
-      );
-    } else if (type === "gallery") {
+      )
+    } else if (type === 'gallery') {
       options = {
-        folder: "fyp-stacks/gallery",
-        resource_type: "auto",
-      };
+        folder: 'fyp-stacks/gallery',
+        resource_type: 'auto',
+      }
     }
 
     const uploadFiles = Promise.allSettled(
@@ -47,24 +47,24 @@ export async function POST(req: NextRequest) {
     );
 
     (await uploadFiles).map((result) => {
-      if (result.status === "fulfilled") {
-        results.push(result.value.secure_url);
+      if (result.status === 'fulfilled') {
+        results.push(result.value.secure_url)
       } else {
-        console.log({ err: result.reason });
+        console.log({ err: result.reason })
       }
-    });
+    })
     return Response.json(
       {
-        message: "File uploaded successfully",
+        message: 'File uploaded successfully',
         url: results,
       },
       { status: 200 }
-    );
+    )
   } catch (error) {
     return Response.json(
-      { message: "Cloudinary upload failed", error: (error as Error).message },
+      { message: 'Cloudinary upload failed', error: (error as Error).message },
       { status: 500 }
-    );
+    )
   }
 }
 

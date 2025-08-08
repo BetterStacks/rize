@@ -1,15 +1,15 @@
-"use client";
-import { createPage, getAllPages } from "@/actions/page-actions";
-import { GetAllWritings } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { FileText, Plus } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import toast from "react-hot-toast";
-import { Button } from "../ui/button";
-import { Skeleton } from "../ui/skeleton";
-import WritingCard from "./writing-card";
+'use client'
+import { createPage, getAllPages } from '@/actions/page-actions'
+import { GetAllWritings } from '@/lib/types'
+import { useQuery } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
+import { FileText, Plus } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import toast from 'react-hot-toast'
+import { Button } from '../ui/button'
+import { Skeleton } from '../ui/skeleton'
+import WritingCard from './writing-card'
 
 type WritingsProps = {
   isMine: boolean;
@@ -17,26 +17,26 @@ type WritingsProps = {
 };
 
 const Writings = ({ isMine, writings }: WritingsProps) => {
-  const router = useRouter();
+  const router = useRouter()
 
-  const { username } = useParams<{ username: string }>();
+  const { username } = useParams<{ username: string }>()
   const { data, isFetching } = useQuery({
-    queryKey: ["get-writings", username],
+    queryKey: ['get-writings', username],
     initialData: writings,
     queryFn: () => getAllPages(username),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-  });
+  })
 
   const createNewPage = async () => {
-    const page = await createPage();
+    const page = await createPage()
     if (page?.error) {
-      toast.error(page.error);
-      return;
+      toast.error(page.error)
+      return
     }
-    toast.success("Page created");
-    router.push(`/page/${page?.data?.id}`);
-  };
+    toast.success('Page created')
+    router.push(`/page/${page?.data?.id}`)
+  }
   return (
     <div
       id="writings"
@@ -48,8 +48,8 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
           <Button
             className="  rounded-lg scale-90 text-sm"
             onClick={createNewPage}
-            size={"sm"}
-            variant={"outline"}
+            size={'sm'}
+            variant={'outline'}
           >
             <Plus className="opacity-80 mr-2 size-4" />
             New Page
@@ -72,13 +72,13 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
               <motion.div key={i} custom={i}>
                 <WritingCard data={writing} />
               </motion.div>
-            );
+            )
           })
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 interface EmptyWritingStateProps {
   title?: string;
@@ -88,12 +88,12 @@ interface EmptyWritingStateProps {
 }
 
 export function EmptyWritingState({
-  title = "Start Your Writing Journey",
-  description = "Your ideas deserve to be shared. Create your first piece and let your words flow.",
-  ctaText = "Create New Document",
+  title = 'Start Your Writing Journey',
+  description = 'Your ideas deserve to be shared. Create your first piece and let your words flow.',
+  ctaText = 'Create New Document',
   onCreateNew = () => {},
 }: EmptyWritingStateProps) {
-  const [isHovering, setIsHovering] = useState(false);
+  const [isHovering, setIsHovering] = useState(false)
 
   return (
     <div className="flex h-full min-h-[400px] border-2 border-neutral-300/60 dark:border-dark-border/80 rounded-3xl border-dashed w-full items-center justify-center">
@@ -106,7 +106,7 @@ export function EmptyWritingState({
         <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/20 dark:to-indigo-900/20">
           <motion.div
             animate={{ rotate: isHovering ? 15 : 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
           >
             <div className="relative">
               <FileText
@@ -143,7 +143,7 @@ export function EmptyWritingState({
         </Button>
       </motion.div>
     </div>
-  );
+  )
 }
 
-export default Writings;
+export default Writings

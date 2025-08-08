@@ -1,11 +1,11 @@
-import Editor from "@/components/editor/editor";
-import EditorContextProvider from "@/components/editor/editor-context";
-import PageLayout from "@/components/layout/PageLayout";
-import { auth } from "@/lib/auth";
-import { getProfileById } from "@/actions/profile-actions";
-import { Metadata } from "next";
-import { FC } from "react";
-import { getPageById } from "@/actions/page-actions";
+import Editor from '@/components/editor/editor'
+import EditorContextProvider from '@/components/editor/editor-context'
+import PageLayout from '@/components/layout/PageLayout'
+import { auth } from '@/lib/auth'
+import { getProfileById } from '@/actions/profile-actions'
+import { Metadata } from 'next'
+import { FC } from 'react'
+import { getPageById } from '@/actions/page-actions'
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -13,16 +13,16 @@ type PageProps = {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const data = await getPageById((await params).id);
+  const data = await getPageById((await params).id)
 
   if (!data) {
     return {
-      title: "Page Not Found",
-      description: "The requested page could not be found",
+      title: 'Page Not Found',
+      description: 'The requested page could not be found',
       openGraph: {
         images: [],
       },
-    };
+    }
   }
 
   return {
@@ -30,14 +30,14 @@ export async function generateMetadata({
     openGraph: {
       images: [data.thumbnail as string],
     },
-  };
+  }
 }
 
 const Page: FC<PageProps> = async ({ params }) => {
-  const data = await getPageById((await params)?.id as string);
-  const author = await getProfileById(data?.profileId as string);
-  const session = await auth();
-  const isMyPage = data?.profileId === session?.user?.profileId;
+  const data = await getPageById((await params)?.id as string)
+  const author = await getProfileById(data?.profileId as string)
+  const session = await auth()
+  const isMyPage = data?.profileId === session?.user?.profileId
   return (
     <EditorContextProvider state={data}>
       <PageLayout isMyPage={isMyPage}>
@@ -49,7 +49,7 @@ const Page: FC<PageProps> = async ({ params }) => {
         </div>
       </PageLayout>
     </EditorContextProvider>
-  );
-};
+  )
+}
 
-export default Page;
+export default Page

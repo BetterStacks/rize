@@ -13,10 +13,10 @@ export interface UserData {
 }
 
 export const generateWelcomeEmail = (userData: UserData): EmailTemplate => {
-  const { name, username } = userData;
+  const { name, username } = userData
   
   return {
-    subject: "Welcome to Rize! Let's build your story 🌟",
+    subject: 'Welcome to Rize! Let\'s build your story 🌟',
     html: `
 <!DOCTYPE html>
 <html>
@@ -202,17 +202,17 @@ The Rize Team
 © 2025 Rize. Own your digital identity.
 Unsubscribe: [link]
     `
-  };
-};
+  }
+}
 
 export const generateFollowUpEmail = (userData: UserData): EmailTemplate => {
-  const { name, username, completionPercentage = 0 } = userData;
-  const isIncomplete = completionPercentage < 80;
+  const { name, username, completionPercentage = 0 } = userData
+  const isIncomplete = completionPercentage < 80
   
   return {
     subject: isIncomplete 
       ? `${name}, your Rize profile is ${completionPercentage}% complete ✨` 
-      : "Make your Rize profile shine! Here's how 🚀",
+      : 'Make your Rize profile shine! Here\'s how 🚀',
     html: `
 <!DOCTYPE html>
 <html>
@@ -445,10 +445,10 @@ The Rize Team
 © 2025 Rize. Own your digital identity.
 Unsubscribe: [link]
     `
-  };
-};
+  }
+}
 
 export const EMAIL_TEMPLATES = {
   welcome: generateWelcomeEmail,
   followUp: generateFollowUpEmail,
-} as const;
+} as const

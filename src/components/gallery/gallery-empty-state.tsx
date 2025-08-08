@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { Camera, Plus } from "lucide-react";
+import { motion } from 'framer-motion'
+import { Camera, Plus } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 
 interface EmptyGalleryStateProps {
   title?: string;
@@ -13,9 +13,9 @@ interface EmptyGalleryStateProps {
 }
 
 export function EmptyGalleryState({
-  title = "Your Gallery Awaits",
-  description = "Add your first images to create a stunning gallery. Share your visual story with the world.",
-  ctaText = "Add Images",
+  title = 'Your Gallery Awaits',
+  description = 'Add your first images to create a stunning gallery. Share your visual story with the world.',
+  ctaText = 'Add Images',
   onAddImages = () => {},
 }: EmptyGalleryStateProps) {
   return (
@@ -31,7 +31,7 @@ export function EmptyGalleryState({
           <motion.div
             className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/20 dark:to-indigo-900/20"
             whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
           >
             <Camera
               className="size-6 text-violet-500 dark:text-violet-400"
@@ -56,5 +56,5 @@ export function EmptyGalleryState({
         </div>
       </motion.div>
     </div>
-  );
+  )
 }

@@ -1,12 +1,12 @@
-import { useRightSidebar } from "@/lib/context";
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "@mantine/hooks";
-import { Edit3, Sidebar } from "lucide-react";
-import { FC } from "react";
-import { useProfileDialog } from "./dialog-provider";
-import Menu from "./menu";
-import { Button } from "./ui/button";
-import { ShareCard } from "./profile/ShareCard";
+import { useRightSidebar } from '@/lib/context'
+import { cn } from '@/lib/utils'
+import { useMediaQuery } from '@mantine/hooks'
+import { Edit3, Sidebar } from 'lucide-react'
+import { FC } from 'react'
+import { useProfileDialog } from './dialog-provider'
+import Menu from './menu'
+import { Button } from './ui/button'
+import { ShareCard } from './profile/ShareCard'
 
 type NavbarProps = {
   isMine: boolean;
@@ -29,21 +29,21 @@ type NavbarProps = {
 };
 
 const Navbar: FC<NavbarProps> = ({ isMine, profile }) => {
-  const setOpen = useProfileDialog()[1];
-  const setSidebarOpen = useRightSidebar()[1];
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const setOpen = useProfileDialog()[1]
+  const setSidebarOpen = useRightSidebar()[1]
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   return (
     <nav className="absolute top-0 w-full flex items-center justify-center z-50 py-3 px-2 md:px-0 ">
       <div
         className={cn(
-          "w-full flex items-center  relative justify-end px-2 md:px-4  ",
-          isMine && !isDesktop && "justify-between"
+          'w-full flex items-center  relative justify-end px-2 md:px-4  ',
+          isMine && !isDesktop && 'justify-between'
         )}
       >
         {isMine && !isDesktop && (
           <Button
-            variant={"outline"}
-            size={"icon"}
+            variant={'outline'}
+            size={'icon'}
             className="rounded-2xl p-2"
             onClick={() => setSidebarOpen(true)}
           >
@@ -76,8 +76,8 @@ const Navbar: FC<NavbarProps> = ({ isMine, profile }) => {
           {isMine && (
             <>
               <Button
-                variant={"outline"}
-                size={"icon"}
+                variant={'outline'}
+                size={'icon'}
                 className=" rounded-2xl size-10 p-2"
                 onClick={() => setOpen(true)}
               >
@@ -89,7 +89,7 @@ const Navbar: FC<NavbarProps> = ({ isMine, profile }) => {
         </div>
       </div>
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

@@ -1,19 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
-import urlMetadata from "url-metadata";
+import { NextRequest, NextResponse } from 'next/server'
+import urlMetadata from 'url-metadata'
 
 export async function GET(req: NextRequest) {
   try {
-    const url = req.nextUrl.searchParams.get("url");
+    const url = req.nextUrl.searchParams.get('url')
     if (url == null) {
-      return NextResponse.json({ error: "No URL found" }, { status: 404 });
+      return NextResponse.json({ error: 'No URL found' }, { status: 404 })
     }
 
-    const metadata = await urlMetadata(url);
-    return NextResponse.json({ metadata }, { status: 200 });
+    const metadata = await urlMetadata(url)
+    return NextResponse.json({ metadata }, { status: 200 })
   } catch (error) {
     return NextResponse.json(
       { error: (error as Error)?.message },
       { status: 500 }
-    );
+    )
   }
 }

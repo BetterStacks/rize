@@ -1,9 +1,9 @@
-import { Metadata } from "next";
+import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: "Terms of Service - Rize",
-  description: "Terms of Service for Rize - Understanding your rights and responsibilities when using our platform.",
-};
+  title: 'Terms of Service - Rize',
+  description: 'Terms of Service for Rize - Understanding your rights and responsibilities when using our platform.',
+}
 
 export default function TermsOfService() {
   return (
@@ -297,5 +297,5 @@ export default function TermsOfService() {
         </div>
       </div>
     </div>
-  );
+  )
 }

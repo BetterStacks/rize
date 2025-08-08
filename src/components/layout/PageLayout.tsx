@@ -1,14 +1,14 @@
-"use client";
-import { usePageSidebar } from "@/lib/context";
-import { useMediaQuery } from "@mantine/hooks";
-import { Sidebar } from "lucide-react";
-import { ReactNode } from "react";
-import Toolbar from "../editor/toolbar";
-import PageSidebar from "../sidebar/PageSidebar";
-import { Button } from "../ui/button";
-import { ResizablePanel, ResizablePanelGroup } from "../ui/resizable";
-import { ScrollArea } from "../ui/scroll-area";
-import { Sheet, SheetContent } from "../ui/sheet";
+'use client'
+import { usePageSidebar } from '@/lib/context'
+import { useMediaQuery } from '@mantine/hooks'
+import { Sidebar } from 'lucide-react'
+import { ReactNode } from 'react'
+import Toolbar from '../editor/toolbar'
+import PageSidebar from '../sidebar/PageSidebar'
+import { Button } from '../ui/button'
+import { ResizablePanel, ResizablePanelGroup } from '../ui/resizable'
+import { ScrollArea } from '../ui/scroll-area'
+import { Sheet, SheetContent } from '../ui/sheet'
 
 const PageLayout = ({
   children,
@@ -17,8 +17,8 @@ const PageLayout = ({
   children: ReactNode;
   isMyPage: boolean;
 }) => {
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const [open, setOpen] = usePageSidebar();
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const [open, setOpen] = usePageSidebar()
 
   return (
     <ResizablePanelGroup
@@ -30,8 +30,8 @@ const PageLayout = ({
           {isMyPage && !isDesktop && (
             <div className="absolute right-4 top-4 z-50">
               <Button
-                variant={"outline"}
-                size={"icon"}
+                variant={'outline'}
+                size={'icon'}
                 className=" size-10 ml-1 p-2"
                 onClick={() => setOpen(true)}
               >
@@ -65,10 +65,10 @@ const PageLayout = ({
         </Sheet>
       )}
     </ResizablePanelGroup>
-  );
-};
+  )
+}
 
-export default PageLayout;
+export default PageLayout
 
 {
   /* <ResizableHandle

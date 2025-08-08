@@ -1,5 +1,5 @@
-"use client";
-import React, { createContext, ReactNode, useContext, useState } from "react";
+'use client'
+import React, { createContext, ReactNode, useContext, useState } from 'react'
 
 type TAppContext = {
   activeSidebarTab: { id?: string | null; tab: string };
@@ -13,40 +13,40 @@ type TAppContext = {
 };
 
 const AppContext = createContext<TAppContext>({
-  activeSidebarTab: { id: null, tab: "gallery" },
+  activeSidebarTab: { id: null, tab: 'gallery' },
   setActiveSidebarTab: () => {},
   isRightSidebarOpen: false,
   setIsRightSidebarOpen: () => {},
   isPageSidebarOpen: false,
   setIsPageSidebarOpen: () => {},
-});
+})
 
 export const useRightSidebar = () => {
-  const ctx = useContext(AppContext);
+  const ctx = useContext(AppContext)
 
-  return [ctx.isRightSidebarOpen, ctx.setIsRightSidebarOpen] as const;
-};
+  return [ctx.isRightSidebarOpen, ctx.setIsRightSidebarOpen] as const
+}
 export const usePageSidebar = () => {
-  const ctx = useContext(AppContext);
+  const ctx = useContext(AppContext)
 
-  return [ctx.isPageSidebarOpen, ctx.setIsPageSidebarOpen] as const;
-};
+  return [ctx.isPageSidebarOpen, ctx.setIsPageSidebarOpen] as const
+}
 export const useActiveSidebarTab = () => {
-  const ctx = useContext(AppContext);
+  const ctx = useContext(AppContext)
 
-  return [ctx.activeSidebarTab, ctx.setActiveSidebarTab] as const;
-};
+  return [ctx.activeSidebarTab, ctx.setActiveSidebarTab] as const
+}
 
 const Context = ({ children }: { children: ReactNode }) => {
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
-  const [isPageSidebarOpen, setIsPageSidebarOpen] = useState(false);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
+  const [isPageSidebarOpen, setIsPageSidebarOpen] = useState(false)
   const [activeSidebarTab, setActiveSidebarTab] = useState<{
     id?: string | null;
     tab: string;
   }>({
     id: null,
-    tab: "gallery",
-  });
+    tab: 'gallery',
+  })
 
   return (
     <div className="w-full ">
@@ -63,7 +63,7 @@ const Context = ({ children }: { children: ReactNode }) => {
         {children}
       </AppContext.Provider>
     </div>
-  );
-};
+  )
+}
 
-export default Context;
+export default Context

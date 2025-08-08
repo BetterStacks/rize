@@ -4,18 +4,21 @@ import {
   useMotionValueEvent,
   useScroll,
   useTransform,
-} from "framer-motion";
-import { useRef, useState } from "react";
+} from 'framer-motion'
+import { useRef, useState, useMemo } from 'react'
 
 const TextReveal = () => {
-  const container = useRef(null);
-  const para = `Rize is where authenticity meets aesthetic, craft a profile that feels real, looks premium, and signals credibility`;
-  const words = para.split(" ");
+  const container = useRef(null)
+  const para = 'Rize is where authenticity meets aesthetic, craft a profile that feels real, looks premium, and signals credibility'
+  const words = para.split(' ')
 
   const { scrollYProgress: scrollYTextProgress } = useScroll({
     target: container,
     // offset: ["start start", "end 0.9"],
-  });
+  })
+
+  // Create a single transform for all words
+  const overallOpacity = useTransform(scrollYTextProgress, [0, 1], [0, 1])
   return (
     <motion.section
       ref={container}
@@ -25,57 +28,65 @@ const TextReveal = () => {
         <motion.p
           layout
           style={{
-            display: "flex",
-            flexWrap: "wrap",
+            display: 'flex',
+            flexWrap: 'wrap',
           }}
           className=" w-full text-3xl md:gap-y-1.5 md:text-4xl lg:text-5xl xl:text-6xl font-medium lg:font-semibold xl:font-bold "
         >
-          {words.map((line, index) => {
-            const start = index / words.length;
-
-            const end = start + 1 / words.length;
-            const opacity = useTransform(
-              scrollYTextProgress,
-              [start, end],
-              [0, 1]
-            );
-            return <Word key={index} opacity={opacity} text={line} />;
-          })}
+          {words.map((line, index) => (
+            <Word 
+              key={index} 
+              opacity={overallOpacity}
+              text={line}
+              index={index}
+              totalWords={words.length}
+              scrollProgress={scrollYTextProgress}
+            />
+          ))}
         </motion.p>
       </motion.section>
     </motion.section>
-  );
-};
+  )
+}
 
 const Word = ({
   opacity,
   text,
+  index,
+  totalWords,
+  scrollProgress,
 }: {
   opacity: MotionValue<number>;
   text: string;
+  index: number;
+  totalWords: number;
+  scrollProgress: MotionValue<number>;
 }) => {
-  const words = ["authenticity", "premium", "aesthetic", "credibility"];
-  const [visible, setVisible] = useState(false);
-  useMotionValueEvent(opacity, "change", (v) => {
+  const start = index / totalWords
+  const end = start + 1 / totalWords
+  const wordOpacity = useTransform(scrollProgress, [start, end], [0, 1])
+  const words = ['authenticity', 'premium', 'aesthetic', 'credibility']
+  const [visible, setVisible] = useState(false)
+  useMotionValueEvent(wordOpacity, 'change', (v) => {
     if (words.includes(text)) {
       if (v === 1) {
-        setVisible(true);
+        setVisible(true)
       } else {
-        setVisible(false);
+        setVisible(false)
       }
     }
-  });
+  })
   return (
     <span className=" relative">
       <span className="opacity-20 absolute">{text}</span>
-      <motion.span style={{ opacity }} className="mr-2">
+      <motion.span style={{ opacity: wordOpacity }} className="mr-2">
         {text}
       </motion.span>
     </span>
-  );
-};
+  )
+}
 
-export default TextReveal;
+export default TextReveal
 
 {
   /* <AnimatePresence>

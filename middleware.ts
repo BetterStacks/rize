@@ -4,19 +4,23 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
+  // Explicit favicon handling - ensure it serves from public directory
+  if (pathname === '/favicon.ico') {
+    return NextResponse.next();
+  }
+  
   // Skip middleware for API routes and static files
   if (
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/static/') ||
-    pathname.includes('.') // This catches favicon.ico, .js, .css, .png, etc.
+    pathname.includes('.') // This catches .js, .css, .png, etc.
   ) {
     return NextResponse.next();
   }
 
   // Skip for known static routes
   const staticRoutes = [
-    '/favicon.ico',
     '/robots.txt',
     '/sitemap.xml',
     '/manifest.json'
