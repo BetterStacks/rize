@@ -13,7 +13,7 @@ import {
   desc,
   eq,
   getTableColumns,
-  // ilike,
+  ilike,
   not,
   // or,
   sql,
@@ -84,7 +84,7 @@ export const getProfileByUsername = async (username: string) => {
     })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
-    .where(eq(profile.username, username))
+    .where(eq(profile.username, username.toLowerCase()))
     .limit(1)
 
   if (!p || p.length === 0) {
@@ -111,7 +111,7 @@ export const createProfile = async (username: string) => {
     // User already has a profile, update the username instead of creating new
     const updatedProfile = await db
       .update(profile)
-      .set({ username })
+      .set({ username: username.toLowerCase() })
       .where(eq(profile.userId, session.user.id))
       .returning()
     
@@ -127,7 +127,7 @@ export const createProfile = async (username: string) => {
     .insert(profile)
     .values({
       userId: session?.user?.id,
-      username: username,
+      username: username.toLowerCase(),
     })
     .returning()
   if (p.length === 0) {
@@ -143,7 +143,7 @@ export const isUsernameAvailable = async (username: string) => {
   const [user] = await db
     .select()
     .from(profile)
-    .where(eq(profile.username, username))
+    .where(eq(profile.username, username.toLowerCase()))
     .limit(1)
 
   // If no user found with this username, it's available
@@ -201,7 +201,7 @@ export const getProfileIdByUsername = async (username: string) => {
   const profileId = await db
     .select({ id: profile.id })
     .from(profile)
-    .where(eq(profile.username, username))
+    .where(eq(profile.username, username.toLowerCase()))
   if (profileId.length === 0) {
     throw new Error('Profile not found')
   }

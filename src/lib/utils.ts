@@ -218,7 +218,7 @@ export function isEqual(a: unknown, b: unknown): boolean {
     return a.getTime() === b.getTime()
   }
 
-  // Handle null or undefined
+  // Handle null or undefined (your existing check is perfect)
   if (a == null || b == null) return a === b
 
   // Handle arrays
@@ -227,15 +227,22 @@ export function isEqual(a: unknown, b: unknown): boolean {
     return a.every((item, i) => isEqual(item, b[i]))
   }
 
-  // Handle objects
+  // Handle objects - THIS IS THE CORRECTED PART
   if (typeof a === 'object' && typeof b === 'object') {
-    const aKeys = Object.keys(a)
-    const bKeys = Object.keys(b)
+    // Assert that a and b are objects that can be indexed by a string.
+    const objA = a as Record<string, unknown>
+    const objB = b as Record<string, unknown>
+
+    const aKeys = Object.keys(objA)
+    const bKeys = Object.keys(objB)
+
     if (aKeys.length !== bKeys.length) return false
-    return aKeys.every((key) => isEqual(a[key], b[key]))
+
+    // Now TypeScript allows indexing with 'key'
+    return aKeys.every((key) => isEqual(objA[key], objB[key]))
   }
 
-  // Fallback
+  // Fallback for all other cases
   return false
 }
 

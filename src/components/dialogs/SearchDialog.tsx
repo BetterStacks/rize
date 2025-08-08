@@ -282,7 +282,7 @@ const SearchDialog = () => {
 
           {!hasSearched && (
             <CommandGroup heading="🌟 Recently Joined" className="">
-              {data?.length > 0 &&
+              {data && data.length > 0 &&
                 data
                   ?.filter((p) => p?.username !== session?.data?.user?.username)
                   ?.slice(0, 4)

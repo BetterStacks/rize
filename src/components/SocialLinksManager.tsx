@@ -205,7 +205,7 @@ const SocialLink: React.FC<SocialLinkProps> = ({
           size="icon"
           variant={'ghost'}
           className=""
-          onClick={() => onEdit({ id, url, platform })}
+          onClick={() => onEdit({ id, url, platform: platform as any })}
         >
           <Edit2 className="size-4 opacity-80" />
         </Button>

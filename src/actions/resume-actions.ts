@@ -1,7 +1,7 @@
 'use server'
 import { auth } from '@/lib/auth'
 import db from '@/lib/db'
-import { education, experience, profile } from '@/db/schema'
+import { education, experience, profile, projects } from '@/db/schema'
 import { ExtractedData } from '@/lib/resume-parser'
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
@@ -79,18 +79,17 @@ export async function processResumeData(resumeData: ExtractedData) {
         .slice(0, 5) // Limit to 5 projects
         .map(proj => ({
           profileId,
-          name: proj.name,
-          description: proj.description,
+          name: proj.name as string, // We filtered for truthy name above
+          description: proj.description as string, // We filtered for truthy description above
           url: proj.url,
           status: 'completed' as const,
-          // logo: will need to be handled separately or made optional
+          // logo field is now optional in schema
         }))
 
-      // For now, skip projects insertion as it requires logo (media)
-      // In production, you'd want to either:
-      // 1. Make logo optional in schema
-      // 2. Generate placeholder images
-      // 3. Add projects in a separate step
+      // Insert projects now that logo field is optional
+      if (projectsData.length > 0) {
+        await db.insert(projects).values(projectsData)
+      }
     }
 
     // Update profile with extracted personal info if available
@@ -316,7 +315,7 @@ export async function cleanupOldResumeFiles(userId: string) {
     
     const searchResult = await cloudinary.search
       .expression(searchExpression)
-      .sort_by([['created_at', 'desc']])
+      .sort_by('created_at', 'desc')
       .max_results(10) // Get up to 10 recent files
       .execute()
 
@@ -324,7 +323,7 @@ export async function cleanupOldResumeFiles(userId: string) {
     if (searchResult.resources && searchResult.resources.length > 1) {
       const filesToDelete = searchResult.resources.slice(1) // Skip the first (most recent) file
       
-      const deletePromises = filesToDelete.map(resource => 
+      const deletePromises = filesToDelete.map((resource: any) => 
         cloudinary.uploader.destroy(resource.public_id, { resource_type: 'raw' })
       )
       

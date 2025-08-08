@@ -29,7 +29,7 @@ export async function processImportedProfile(importedData: ImportedProfile) {
 
     if (userProfile.length === 0) {
       // Create new profile with imported data
-      const username = generateUsername(importedData, session.user.name)
+      const username = generateUsername(importedData, session.user.name || undefined)
       const enhancedBio = generateEnhancedBio(importedData)
 
       const newProfile = await db
@@ -125,7 +125,7 @@ export async function processImportedProfile(importedData: ImportedProfile) {
           description: proj.description,
           url: proj.url,
           status: proj.status,
-          // Note: logo field might be required - using a placeholder or making it optional
+          // logo field is now optional in schema
         }))
 
       if (projectsData.length > 0) {

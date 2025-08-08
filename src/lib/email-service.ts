@@ -158,7 +158,7 @@ export class EmailService {
       if (profile.displayName) completedSections++
       if (gallery && gallery.length > 0) completedSections++
       if (projects && projects.length > 0) completedSections++
-      if (profile.socialLinks && profile.socialLinks.length > 0) completedSections++
+      // if (profile.socialLinks && profile.socialLinks.length > 0) completedSections++
 
       return Math.round((completedSections / totalSections) * 100)
     } catch (error) {

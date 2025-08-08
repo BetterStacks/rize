@@ -92,7 +92,7 @@ export function ShareCard({ profile }: ShareCardProps) {
           height: 600px;
           padding: 60px;
           background: ${CARD_THEMES[selectedTheme].background};
-          ${CARD_THEMES[selectedTheme].border ? `border: ${CARD_THEMES[selectedTheme].border};` : ''}
+          ${'border' in CARD_THEMES[selectedTheme] ? `border: ${(CARD_THEMES[selectedTheme] as any).border};` : ''}
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
           color: ${CARD_THEMES[selectedTheme].textColor};
           display: flex;
@@ -333,7 +333,7 @@ export function ShareCard({ profile }: ShareCardProps) {
                 className="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-lg"
                 style={{
                   background: CARD_THEMES[selectedTheme].background,
-                  border: CARD_THEMES[selectedTheme].border,
+                  border: 'border' in CARD_THEMES[selectedTheme] ? (CARD_THEMES[selectedTheme] as any).border : undefined,
                   color: CARD_THEMES[selectedTheme].textColor,
                 }}
               >

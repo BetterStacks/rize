@@ -111,17 +111,17 @@ export function ImportStep({
             <div>
               <h3 className="font-semibold text-lg mb-2">Profile enhanced! ✨</h3>
               <div className="text-sm text-muted-foreground space-y-1">
-                {importedStats.experience > 0 && (
-                  <p>• {importedStats.experience} work experience{importedStats.experience !== 1 ? 's' : ''}</p>
+                {importedStats.experienceCount > 0 && (
+                  <p>• {importedStats.experienceCount} work experience{importedStats.experienceCount !== 1 ? 's' : ''}</p>
                 )}
-                {importedStats.projects > 0 && (
-                  <p>• {importedStats.projects} project{importedStats.projects !== 1 ? 's' : ''}</p>
+                {importedStats.projectsCount > 0 && (
+                  <p>• {importedStats.projectsCount} project{importedStats.projectsCount !== 1 ? 's' : ''}</p>
                 )}
-                {importedStats.education > 0 && (
-                  <p>• {importedStats.education} education entr{importedStats.education !== 1 ? 'ies' : 'y'}</p>
+                {importedStats.educationCount > 0 && (
+                  <p>• {importedStats.educationCount} education entr{importedStats.educationCount !== 1 ? 'ies' : 'y'}</p>
                 )}
-                {importedStats.socialLinks > 0 && (
-                  <p>• {importedStats.socialLinks} social link{importedStats.socialLinks !== 1 ? 's' : ''}</p>
+                {importedStats.socialLinksCount > 0 && (
+                  <p>• {importedStats.socialLinksCount} social link{importedStats.socialLinksCount !== 1 ? 's' : ''}</p>
                 )}
               </div>
             </div>

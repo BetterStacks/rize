@@ -213,7 +213,7 @@ export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
         <Button
           variant="secondary"
           onClick={uploadStatus === 'success' ? handleContinue : handleSkip}
-          disabled={isPending || isUploading || (uploadedFile && uploadStatus !== 'success')}
+          disabled={isPending || isUploading || (uploadedFile != null && uploadStatus !== 'success')}
           className="flex-1"
         >
           {uploadStatus === 'success' ? 'Continue with data' : 'Continue'}

@@ -68,7 +68,7 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
           })}
         </div>
       </div>
-      {projects?.length > 0 && (
+      {projects && projects.length > 0 && (
         <>
           <Separator className="mt-4" />
           <div className="flex flex-col items-start justify-start mt-4 gap-y-2">
@@ -95,7 +95,7 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
           </div>
         </>
       )}
-      {writings?.length > 0 && (
+      {writings && writings.length > 0 && (
         <>
           <Separator className="mt-4" />
           <div className="flex flex-col items-start justify-start mt-4 gap-y-2">

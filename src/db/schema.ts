@@ -266,11 +266,9 @@ export const projects = pgTable('projects', {
     onDelete: 'cascade',
   }),
   status: ProjectStatus('status').notNull().default('wip'),
-  logo: uuid('logo')
-    .notNull()
-    .references(() => media.id, {
-      onDelete: 'cascade',
-    }),
+  logo: uuid('logo').references(() => media.id, {
+    onDelete: 'cascade',
+  }),
   url: text('url'),
   startDate: timestamp('start_date'),
   endDate: timestamp('end_date'),

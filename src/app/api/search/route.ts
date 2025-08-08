@@ -13,6 +13,7 @@ export async function GET(request: Request) {
       people: Array<unknown>;
       posts: Array<unknown>;
       projects: Array<unknown>;
+      total: number;
     } = {
       people: [],
       posts: [],

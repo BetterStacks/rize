@@ -281,7 +281,7 @@ const HeroSection = () => {
         // isScreen4k && "overflow-auto"
       )}
     >
-      {session?.data?.user && (
+      {session?.data?.user ? (
         <Link
           className="absolute top-4 right-4"
           prefetch
@@ -300,6 +300,21 @@ const HeroSection = () => {
             />
           </div>
         </Link>
+      ) : (
+        <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+          <Link
+            href="/login"
+            className="px-4 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+          >
+            Login
+          </Link>
+          <Link
+            href="/signup"
+            className="px-4 py-2 text-sm font-medium bg-black text-white dark:bg-white dark:text-black rounded-lg hover:opacity-90 transition-opacity"
+          >
+            Sign Up
+          </Link>
+        </div>
       )}
       <div className="w-fit md:mt-16 mb-32 relative">
         <motion.div className="flex flex-col  items-center justify-center md:mt-24 gap-3 relative">

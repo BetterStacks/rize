@@ -376,7 +376,7 @@ export const ProjectsTab: FC<ProjectTabProps> = ({ id }) => {
         description: defaultValues?.description,
         endDate: defaultValues?.endDate as Date,
         startDate: defaultValues?.startDate as Date,
-        logo: defaultValues?.logo,
+        logo: defaultValues?.logo || undefined,
       })
     } else if (mode === 'create') {
       form.reset({
