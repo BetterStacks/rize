@@ -1,7 +1,34 @@
-import { Resend } from 'resend'
+// Initialize Loops client
+const LOOPS_API_KEY = process.env.RIZE_LOOPS_API_KEY
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY)
+if (!LOOPS_API_KEY) {
+  console.warn('RIZE_LOOPS_API_KEY not found in environment variables')
+}
+
+// Loops API helper
+const loops = {
+  async sendTransactionalEmail(params: {
+    transactionalId: string;
+    email: string;
+    dataVariables?: Record<string, any>;
+  }) {
+    const response = await fetch('https://app.loops.so/api/v1/transactional', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOOPS_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`Loops API error: ${response.status} - ${error}`)
+    }
+
+    return response.json()
+  }
+}
 
 export interface EmailJobData {
   to: string;
@@ -39,28 +66,25 @@ export class EmailService {
 
   /**
    * Send welcome email immediately after user signs up
+   * Note: You need to create a 'welcome' transactional email template in your Loops dashboard
    */
   async sendWelcomeEmail(userData: EmailJobData['userData']): Promise<boolean> {
     try {
-      const { generateWelcomeEmail } = await import('./email-templates')
-      const emailContent = generateWelcomeEmail(userData)
-
-      const { error } = await resend.emails.send({
-        from: 'Rize Team <onboarding@rize.co>',
-        to: userData.email,
-        subject: emailContent.subject,
-        html: emailContent.html,
-        text: emailContent.text,
-        tags: [
-          { name: 'category', value: 'onboarding' },
-          { name: 'template', value: 'welcome' }
-        ]
-      })
-
-      if (error) {
-        console.error('Failed to send welcome email:', error)
+      if (!LOOPS_API_KEY) {
+        console.error('RIZE_LOOPS_API_KEY not configured')
         return false
       }
+
+      await loops.sendTransactionalEmail({
+        transactionalId: 'welcome', // This should match your Loops template ID
+        email: userData.email,
+        dataVariables: {
+          name: userData.name,
+          username: userData.username || '',
+          profileImage: userData.profileImage || '',
+          // Add any other variables your welcome email template needs
+        }
+      })
 
       // Track email sent
       await this.trackEmailSent(userData.email, 'welcome')
@@ -90,34 +114,29 @@ export class EmailService {
 
   /**
    * Send follow-up email with profile completion nudge
+   * Note: You need to create a 'follow-up' transactional email template in your Loops dashboard
    */
   async sendFollowUpEmail(userData: EmailJobData['userData']): Promise<boolean> {
     try {
-      // Calculate profile completion percentage
-      const completionPercentage = await this.calculateProfileCompletion(userData.username)
-      
-      const { generateFollowUpEmail } = await import('./email-templates')
-      const emailContent = generateFollowUpEmail({
-        ...userData,
-        completionPercentage
-      })
-
-      const { error } = await resend.emails.send({
-        from: 'Rize Team <team@rize.co>',
-        to: userData.email,
-        subject: emailContent.subject,
-        html: emailContent.html,
-        text: emailContent.text,
-        tags: [
-          { name: 'category', value: 'onboarding' },
-          { name: 'template', value: 'followUp' }
-        ]
-      })
-
-      if (error) {
-        console.error('Failed to send follow-up email:', error)
+      if (!LOOPS_API_KEY) {
+        console.error('RIZE_LOOPS_API_KEY not configured')
         return false
       }
+
+      // Calculate profile completion percentage
+      const completionPercentage = await this.calculateProfileCompletion(userData.username)
+
+      await loops.sendTransactionalEmail({
+        transactionalId: 'follow-up', // This should match your Loops template ID
+        email: userData.email,
+        dataVariables: {
+          name: userData.name,
+          username: userData.username || '',
+          profileImage: userData.profileImage || '',
+          completionPercentage,
+          // Add any other variables your follow-up email template needs
+        }
+      })
 
       // Track email sent
       await this.trackEmailSent(userData.email, 'followUp')

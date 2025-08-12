@@ -24,7 +24,20 @@ import Writings from '../writings/writings'
 import Profile from './profile'
 import SocialLinks from './social-links'
 import BottomBanner from '../bottom-banner'
+import { StoryElementsDisplay } from '../story/story-elements-display'
 import { useSession } from 'next-auth/react'
+
+type StoryElement = {
+  id: string
+  profileId: string
+  type: 'mission' | 'value' | 'milestone' | 'dream' | 'superpower'
+  title: string
+  content: string
+  order: number
+  isPublic: boolean
+  createdAt: Date
+  updatedAt: Date
+}
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -35,6 +48,7 @@ type UserProfileProps = {
   education: TEducation[];
   workExperience: TExperience[];
   posts: GetExplorePosts[];
+  storyElements: StoryElement[];
 };
 
 const UserProfile = ({
@@ -46,6 +60,7 @@ const UserProfile = ({
   education,
   workExperience,
   posts,
+  storyElements,
 }: UserProfileProps) => {
   const params = useParams<{ username: string }>()
   const session = useSession()
@@ -100,6 +115,16 @@ const UserProfile = ({
     <div className="w-full flex flex-col items-center justify-start">
       <Profile isMine={isMine} data={profileData} isLoading={isLoading} />
       <SocialLinks isMine={isMine} />
+
+      {/* Story Elements Section */}
+      {storyElements && storyElements.length > 0 && (
+        <>
+          <div className="w-full mt-8 mb-6 max-w-2xl">
+            <StoryElementsDisplay elements={storyElements} />
+          </div>
+          <Separator className="w-full max-w-2xl" />
+        </>
+      )}
 
       <Separator className="w-full mt-6 max-w-2xl" />
       {areAllSectionsDisabled && !isLoading && (

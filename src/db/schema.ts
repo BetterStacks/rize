@@ -68,6 +68,8 @@ export const profile = pgTable('profile', {
   pronouns: Pronouns('pronouns').notNull().default('he/him'),
   bio: text('bio'),
   location: text('location'),
+  personalMission: text('personal_mission'),
+  lifePhilosophy: text('life_philosophy'),
   hasCompletedWalkthrough: boolean('has_completed_walkthrough')
     .notNull()
     .default(false),
@@ -328,6 +330,24 @@ export const profileSections = pgTable('profile_sections', {
   order: integer('order').notNull(),
 })
 
+export const storyElements = pgTable('story_elements', {
+  id: uuid('id')
+    .primaryKey()
+    .$defaultFn(() => gen_uuid()),
+  profileId: uuid('profile_id')
+    .notNull()
+    .references(() => profile.id, { onDelete: 'cascade' }),
+  type: varchar('type', { length: 50 }).notNull(), // 'mission', 'value', 'milestone', 'dream', 'superpower'
+  title: varchar('title', { length: 200 }).notNull(),
+  content: text('content').notNull(),
+  order: integer('order').notNull().default(0),
+  isPublic: boolean('is_public').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .$onUpdate(() => new Date()),
+})
+
 export const postMediaRelations = relations(postMedia, ({ one }) => ({
   posts: one(posts, {
     fields: [postMedia.postId],
@@ -386,7 +406,15 @@ const profileRelations = relations(profile, ({ many, one }) => ({
   education: many(education),
   projects: many(projects),
   sections: many(profileSections),
+  storyElements: many(storyElements),
   page: many(page),
+}))
+
+const storyElementsRelations = relations(storyElements, ({ one }) => ({
+  profile: one(profile, {
+    fields: [storyElements.profileId],
+    references: [profile.id],
+  }),
 }))
 const usersRelations = relations(users, ({ many }) => ({
   profiles: many(profile),

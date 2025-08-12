@@ -23,42 +23,65 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useSession } from 'next-auth/react'
-import { useQuery } from '@tanstack/react-query'
-import { getProfileByUsername } from '@/actions/profile-actions'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getProfileByUsername, updateProfile } from '@/actions/profile-actions'
+import { profileSchema } from '@/lib/types'
 import { Separator } from '../ui/separator'
+import { useEffect } from 'react'
+import toast from 'react-hot-toast'
 
-const profileSchema = z.object({
+// Use a subset of the main profileSchema for the settings form
+const settingsProfileSchema = z.object({
   website: z.string().url().optional().or(z.literal('')),
-  bio: z.string().max(160).optional(),
-  location: z.string().max(30).optional(),
-  pronouns: z.enum(['he/him', 'she/her', 'they/them', 'other']).optional(),
-  age: z.number().min(13).max(120).optional(),
+  bio: z.string().max(200).optional(),
+  displayName: z.string().min(2).max(30).optional(),
 })
 
 export function ProfileForm() {
   const { data: session, update } = useSession()
-  const { data } = useQuery({
+  const queryClient = useQueryClient()
+  
+  const { data, isLoading } = useQuery({
     queryKey: ['get-profile-by-username', session?.user?.username],
     queryFn: () => getProfileByUsername(session?.user?.username as string),
+    enabled: !!session?.user?.username,
   })
 
-  const form = useForm<z.infer<typeof profileSchema>>({
-    resolver: zodResolver(profileSchema),
+  const form = useForm<z.infer<typeof settingsProfileSchema>>({
+    resolver: zodResolver(settingsProfileSchema),
     defaultValues: {
-      website: data?.website || '',
-      bio: data?.bio || '',
-      location: data?.location || '',
-      pronouns: data?.pronouns || undefined,
-      age: data?.age || undefined,
+      website: '',
+      bio: '',
+      displayName: '',
     },
   })
 
-  async function onSubmit(values: z.infer<typeof profileSchema>) {
-    try {
-      await update({ ...session, user: { ...session?.user, ...values } })
-    } catch (error) {
-      console.error('Failed to update profile:', error)
+  // Reset form when data loads
+  useEffect(() => {
+    if (data && !isLoading) {
+      form.reset({
+        website: data.website || '',
+        bio: data.bio || '',
+        displayName: data.displayName || '',
+      })
     }
+  }, [data, isLoading, form])
+
+  const updateMutation = useMutation({
+    mutationFn: updateProfile,
+    onSuccess: async () => {
+      toast.success('Profile updated successfully!')
+      queryClient.invalidateQueries({ queryKey: ['get-profile-by-username'] })
+      // Update session data
+      await update()
+    },
+    onError: (error: any) => {
+      toast.error('Failed to update profile: ' + (error?.message || 'Unknown error'))
+    },
+  })
+
+  async function onSubmit(values: z.infer<typeof settingsProfileSchema>) {
+    updateMutation.mutate(values)
   }
 
   return (
@@ -100,56 +123,30 @@ export function ProfileForm() {
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>Maximum 160 characters.</FormDescription>
+                <FormDescription>Maximum 200 characters.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Your location" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+            control={form.control}
+            name="displayName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Display Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Your display name" {...field} />
+                </FormControl>
+                <FormDescription>This name will be shown on your profile.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="pronouns"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pronouns</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select pronouns" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="he/him">he/him</SelectItem>
-                      <SelectItem value="she/her">she/her</SelectItem>
-                      <SelectItem value="they/them">they/them</SelectItem>
-                      <SelectItem value="other">other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit" disabled={updateMutation.isPending || isLoading}>
+            {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+          </Button>
         </form>
       </Form>
     </div>

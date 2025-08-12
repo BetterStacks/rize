@@ -20,17 +20,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
   
-  try {
-    const user = await getProfileByUsername(username)
-    return {
-      title: `${user?.displayName || 'User'} - Rize`,
-      description: ` ${user?.bio}`,
-    }
-  } catch (error) {
+  const user = await getProfileByUsername(username)
+  
+  if (!user) {
     return {
       title: 'Profile Not Found - Rize',
       description: 'This profile could not be found',
     }
+  }
+  
+  return {
+    title: `${user?.displayName || 'User'} - Rize`,
+    description: `${user?.bio}`,
   }
 }
 

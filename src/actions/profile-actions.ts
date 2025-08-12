@@ -88,7 +88,7 @@ export const getProfileByUsername = async (username: string) => {
     .limit(1)
 
   if (!p || p.length === 0) {
-    throw new Error('Profile not found')
+    return null
   }
 
   return p[0] as GetProfileByUsername

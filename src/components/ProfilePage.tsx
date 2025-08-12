@@ -7,6 +7,7 @@ import { getAllPages } from '@/actions/page-actions'
 import { getUserPosts } from '@/actions/post-actions'
 import { getProfileByUsername } from '@/actions/profile-actions'
 import { getAllProjects } from '@/actions/project-actions'
+import { getStoryElementsByUsername } from '@/actions/story-actions'
 import UserProfileLayout from '@/components/layout/UserProfileLayout'
 import { auth } from '@/lib/auth'
 import SectionContextProvider from '@/lib/section-context'
@@ -22,6 +23,27 @@ type Props = {
 const ProfilePage: FC<Props> = async ({ username }) => {
   const session = await auth()
   const user = await getProfileByUsername(username)
+  
+  if (!user) {
+    // Profile not found - show 404 or create profile if it's the user's own profile
+    return (
+      <div className="w-full flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-4 max-w-md">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+            Profile Not Found
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            The profile "@{username}" doesn't exist or hasn't been set up yet.
+          </p>
+          {session?.user?.username === username && (
+            <p className="text-sm text-blue-600 dark:text-blue-400">
+              It looks like this is your profile. Please complete your onboarding to set it up.
+            </p>
+          )}
+        </div>
+      </div>
+    )
+  }
   const [
     gallery,
     writings,
@@ -30,6 +52,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
     workExperience,
     posts,
     sections,
+    storyElements,
   ] = await Promise.all([
     getGalleryItems(username),
     getAllPages(username).then((pages) =>
@@ -43,6 +66,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
     getAllExperience(username),
     getUserPosts(username),
     getSections(username),
+    getStoryElementsByUsername(username),
   ])
 
   const isMine = user?.username === session?.user?.username
@@ -72,6 +96,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
             education={education}
             workExperience={workExperience}
             posts={posts}
+            storyElements={(storyElements?.success ? storyElements.data || [] : []) as any[]}
           />
         </div>
       </UserProfileLayout>

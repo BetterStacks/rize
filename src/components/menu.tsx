@@ -44,9 +44,10 @@ const Menu = () => {
     {
       id: 5,
       name: 'Settings',
-      href: `/${session?.data?.user?.username}?tab=settings`,
+      href: '/settings',
       onClick: () => {
-        setProfileDialogOpen(true)
+        router.push('/settings')
+        setOpen(false) // Close the menu
       },
       icon: <Settings className="opacity-80 size-5" strokeWidth={1.2} />,
     },

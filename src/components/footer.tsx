@@ -77,7 +77,7 @@ const Footer = () => {
         !inView ? { y: 10, x: 0 } : { y: -300, x: 50 },
       transition: {
         duration: 1,
-        type: "spring" as const,
+        type: 'spring' as const,
         stiffness: 100,
         damping: 20,
         mass: 0.5,
@@ -92,7 +92,7 @@ const Footer = () => {
         !inView ? { y: 300, x: 200, rotate: 4 } : { y: 0, x: 100, rotate: -6 },
       transition: {
         duration: 1,
-        type: "spring" as const,
+        type: 'spring' as const,
         stiffness: 100,
         damping: 20,
         mass: 0.5,
@@ -109,7 +109,7 @@ const Footer = () => {
           : { y: -60, x: 100, rotate: -8 },
       transition: {
         duration: 1,
-        type: "spring" as const,
+        type: 'spring' as const,
         stiffness: 100,
         damping: 20,
         mass: 0.5,
@@ -123,7 +123,7 @@ const Footer = () => {
         !inView ? { y: 10, x: -400 } : { y: -300, x: -10 },
       transition: {
         duration: 1,
-        type: "spring" as const,
+        type: 'spring' as const,
         stiffness: 100,
         damping: 20,
         mass: 0.5,
@@ -139,7 +139,7 @@ const Footer = () => {
           : { y: -60, x: -40, rotate: 6 },
       transition: {
         duration: 1,
-        type: "spring" as const,
+        type: 'spring' as const,
         stiffness: 100,
         damping: 20,
         mass: 0.5,

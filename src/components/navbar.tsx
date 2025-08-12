@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@mantine/hooks'
 import { Edit3, Sidebar } from 'lucide-react'
 import { FC } from 'react'
+import { useRouter } from 'next/navigation'
 import { useProfileDialog } from './dialog-provider'
 import Menu from './menu'
 import { Button } from './ui/button'
@@ -31,6 +32,7 @@ type NavbarProps = {
 const Navbar: FC<NavbarProps> = ({ isMine, profile }) => {
   const setOpen = useProfileDialog()[1]
   const setSidebarOpen = useRightSidebar()[1]
+  const router = useRouter()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   return (
     <nav className="absolute top-0 w-full flex items-center justify-center z-50 py-3 px-2 md:px-0 ">
@@ -79,7 +81,7 @@ const Navbar: FC<NavbarProps> = ({ isMine, profile }) => {
                 variant={'outline'}
                 size={'icon'}
                 className=" rounded-2xl size-10 p-2"
-                onClick={() => setOpen(true)}
+                onClick={() => router.push('/settings')}
               >
                 <Edit3 strokeWidth={1.5} className="size-5 opacity-70" />
               </Button>
