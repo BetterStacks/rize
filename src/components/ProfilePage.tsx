@@ -8,7 +8,7 @@ import { getUserPosts } from '@/actions/post-actions'
 import { getProfileByUsername } from '@/actions/profile-actions'
 import { getAllProjects } from '@/actions/project-actions'
 import { getStoryElementsByUsername } from '@/actions/story-actions'
-import UserProfileLayout from '@/components/layout/UserProfileLayout'
+import DashboardLayout from '@/components/layout/DashboardLayout'
 import { auth } from '@/lib/auth'
 import SectionContextProvider from '@/lib/section-context'
 import { cn } from '@/lib/utils'
@@ -84,22 +84,40 @@ const ProfilePage: FC<Props> = async ({ username }) => {
       posts={posts}
       profileSections={sections}
     >
-      <UserProfileLayout isMine={isMine} className={cn('overflow-hidden')}>
-        <div className="w-full flex items-center justify-center">
-          {/* {shouldStartWalkthrough && <Walkthrough />} */}
-          <UserProfile
-            isMine={isMine}
-            data={user}
-            gallery={gallery}
-            writings={writings}
-            projects={projects}
-            education={education}
-            workExperience={workExperience}
-            posts={posts}
-            storyElements={(storyElements?.success ? storyElements.data || [] : []) as any[]}
-          />
-        </div>
-      </UserProfileLayout>
+      <DashboardLayout 
+        variant="profile" 
+        isMine={isMine} 
+        className={cn('overflow-hidden')}
+        profile={{
+          displayName: user?.displayName || user?.username || 'User',
+          username: user?.username || '',
+          bio: user?.bio || '',
+          profileImage: user?.profileImage || '',
+          location: user?.location,
+          experience: workExperience?.map(exp => ({
+            title: exp.title,
+            company: exp.company,
+            currentlyWorking: exp.currentlyWorking
+          })) || [],
+          projects: projects?.map(proj => ({
+            name: proj.name,
+            description: proj.description
+          })) || []
+        }}
+      >
+        {/* {shouldStartWalkthrough && <Walkthrough />} */}
+        <UserProfile
+          isMine={isMine}
+          data={user}
+          gallery={gallery}
+          writings={writings}
+          projects={projects}
+          education={education}
+          workExperience={workExperience}
+          posts={posts}
+          storyElements={(storyElements?.success ? storyElements.data || [] : []) as any[]}
+        />
+      </DashboardLayout>
     </SectionContextProvider>
   )
 }

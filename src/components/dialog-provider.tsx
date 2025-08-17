@@ -20,7 +20,8 @@ type DialogContextType = {
   isPostDialogOpen: boolean;
   isAuthDialogOpen: boolean;
   isAlertDialogOpen: boolean;
-  isCommentDialogOpen?: boolean; // Placeholder for future use
+  isCommentDialogOpen?: boolean;
+  isSearchDialogOpen?: boolean;
 };
 
 type setDialogContextType = [
@@ -37,7 +38,8 @@ type setDialogContextType = [
     setIsPostDialogOpen: UpdateStateFunctionType;
     setIsAuthDialogOpen: UpdateStateFunctionType;
     setIsAlertDialogOpen: UpdateStateFunctionType;
-    setIsCommentDialogOpen: UpdateStateFunctionType; // Placeholder for future use
+    setIsCommentDialogOpen: UpdateStateFunctionType;
+    setIsSearchDialogOpen: UpdateStateFunctionType;
   }
 ];
 
@@ -53,7 +55,8 @@ const defaultContextState: DialogContextType = {
   isPostDialogOpen: false,
   isAuthDialogOpen: false,
   isAlertDialogOpen: false,
-  isCommentDialogOpen: false, // Assuming you might want to add this later
+  isCommentDialogOpen: false,
+  isSearchDialogOpen: false,
 }
 
 const DialogContext = createContext([
@@ -70,7 +73,8 @@ const DialogContext = createContext([
     setIsPostDialogOpen: () => {},
     setIsAuthDialogOpen: () => {},
     setIsAlertDialogOpen: () => {},
-    setIsCommentDialogOpen: () => {}, // Placeholder for future use
+    setIsCommentDialogOpen: () => {},
+    setIsSearchDialogOpen: () => {},
   },
 ] as setDialogContextType)
 
@@ -205,8 +209,8 @@ export const useSearchDialog = () => {
     )
   }
   return [
-    context[0].isCommentDialogOpen,
-    context[1].setIsCommentDialogOpen,
+    context[0].isSearchDialogOpen,
+    context[1].setIsSearchDialogOpen,
   ] as const
 }
 
@@ -286,6 +290,12 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
     },
     [openContext, setOpenContext]
   )
+  const setIsSearchDialogOpen = useCallback(
+    (isOpen: boolean) => {
+      setOpenContext({ ...openContext, isSearchDialogOpen: isOpen })
+    },
+    [openContext, setOpenContext]
+  )
   return (
     <DialogContext.Provider
       value={[
@@ -303,6 +313,7 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
           setIsAuthDialogOpen,
           setIsAlertDialogOpen,
           setIsCommentDialogOpen,
+          setIsSearchDialogOpen,
         },
       ]}
     >

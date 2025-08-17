@@ -1,6 +1,6 @@
 import Editor from '@/components/editor/editor'
 import EditorContextProvider from '@/components/editor/editor-context'
-import PageLayout from '@/components/layout/PageLayout'
+import DashboardLayout from '@/components/layout/DashboardLayout'
 import { auth } from '@/lib/auth'
 import { getProfileById } from '@/actions/profile-actions'
 import { Metadata } from 'next'
@@ -10,6 +10,7 @@ import { getPageById } from '@/actions/page-actions'
 type PageProps = {
   params: Promise<{ id: string }>;
 };
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -38,16 +39,18 @@ const Page: FC<PageProps> = async ({ params }) => {
   const author = await getProfileById(data?.profileId as string)
   const session = await auth()
   const isMyPage = data?.profileId === session?.user?.profileId
+  
   return (
     <EditorContextProvider state={data}>
-      <PageLayout isMyPage={isMyPage}>
-        <div className="w-full flex items-center justify-center">
-          <div className="w-full max-w-3xl">
-            {/* @ts-expect-error */}
-            <Editor author={author} />
-          </div>
-        </div>
-      </PageLayout>
+      <DashboardLayout 
+        variant="writing"
+        isMine={isMyPage}
+        contentMaxWidth="max-w-4xl"
+        contentPadding="px-6"
+      >
+        {/* @ts-expect-error */}
+        <Editor author={author} />
+      </DashboardLayout>
     </EditorContextProvider>
   )
 }

@@ -1,4 +1,5 @@
 import Dialogs from '@/components/dialogs'
+import { BottomNav } from '@/components/ui/bottom-nav'
 import Providers from '@/lib/providers'
 import { cn } from '@/lib/utils'
 import type { Metadata } from 'next'
@@ -42,6 +43,7 @@ export default function RootLayout({
             <Dialogs />
           </Suspense>
           {children}
+          <BottomNav />
         </Providers>
       </body>
     </html>
