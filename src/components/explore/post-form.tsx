@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from '../ui/dialog'
 import { Skeleton } from '../ui/skeleton'
+import { CreativeAvatar } from '../ui/creative-avatar'
 import { PostLinkCard } from './post-interactions'
 
 type MediaFile = {
@@ -222,25 +223,14 @@ const PostForm = () => {
         <DialogFooter className="px-4 pb-2">
           <div className="w-full mt-4 gap-x-2 flex items-center justify-between">
             <div className="flex items-center justify-center gap-x-2">
-              <div
-                className={cn(
-                  'size-7 bg-neutral-200 dark:bg-dark-border mr-2 rounded-full aspect-square flex relative overflow-hidden',
-                  session?.status === 'loading' && 'animate-pulse'
-                )}
-              >
-                {data?.profileImage && (
-                  <Image
-                    src={data?.profileImage as string}
-                    fill
-                    style={{
-                      objectFit: 'cover',
-                    }}
-                    quality={100}
-                    priority
-                    alt={`${data?.name}`}
-                  />
-                )}
-              </div>
+              <CreativeAvatar
+                src={data?.profileImage}
+                name={data?.name || 'You'}
+                size="sm"
+                variant="auto"
+                className="mr-2"
+                showHoverEffect={false}
+              />
               <Button
                 size={'icon'}
                 className="rounded-full"

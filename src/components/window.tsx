@@ -2,6 +2,7 @@ import { useMediaQuery } from '@mantine/hooks'
 import { motion, useTransform } from 'framer-motion'
 import Image from 'next/image'
 import { FC } from 'react'
+import { CreativeAvatar } from './ui/creative-avatar'
 import { initialValue } from './editor/utils'
 import { dummyLinks, SocialLinkButton } from './profile/social-links'
 import ProjectCard from './projects/project-card'
@@ -41,12 +42,13 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
   return (
     <div className="w-full h-full  px-6 py-10 max-w-2xl mx-auto">
       <div className="flex flex-col items-start 4k:mt-10  justify-start">
-        <Image
+        <CreativeAvatar
           src={avatar}
-          alt=""
-          width={100}
-          height={100}
-          className="object-cover border-2 border-neutral-200 dark:border-neutral-800 aspect-square rounded-full"
+          name={name}
+          size="xl"
+          variant="auto"
+          showHoverEffect={false}
+          className="border-2 border-neutral-200 dark:border-neutral-800"
         />
         <h3 className="text-2xl font-semibold tracking-tighter mt-4">{name}</h3>
         <span className="text-neutral-600 dark:bg-dark-border bg-neutral-200/80 px-3 rounded-full text-sm  py-1 dark:text-neutral-400 font-medium mt-2">
@@ -144,7 +146,7 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
   )
 }
 
-export default Window
+export default ProfileContainer
 
 type GalleryItemProps = {
   item: string;

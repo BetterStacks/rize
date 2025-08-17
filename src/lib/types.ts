@@ -280,7 +280,7 @@ export const profileSchema = z.object({
   isOnboarded: z.boolean().optional(),
   username: z.string().min(5).max(20).optional(),
 
-  profileImage: z.string().url().optional(),
+  profileImage: z.string().optional(),
   bio: z.string().max(200, 'Bio must be 200 characters or less').optional(),
   hasCompletedWalkthrough: z.boolean().optional(),
   isLive: z.boolean().optional(),

@@ -1,32 +1,33 @@
 import * as React from 'react'
-import { motion } from 'framer-motion'
+import { motion, HTMLMotionProps } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & {
-    hover?: boolean
-    glow?: boolean
-    gradient?: boolean
-  }
->(({ className, hover = true, glow = false, gradient = false, ...props }, ref) => (
-  <motion.div
-    ref={ref}
-    className={cn(
-      'rounded-3xl border bg-white text-black shadow-sm transition-all duration-300',
-      'dark:border-dark-border dark:bg-dark-bg dark:text-white',
-      hover && 'hover:shadow-lg hover:-translate-y-1',
-      glow && 'shadow-lg shadow-purple-500/10 dark:shadow-purple-400/10',
-      gradient && 'bg-gradient-to-br from-white via-neutral-50 to-neutral-100 dark:from-dark-bg dark:via-neutral-900 dark:to-neutral-800',
-      className
-    )}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, ease: 'easeOut' }}
-    whileHover={hover ? { scale: 1.02 } : undefined}
-    {...props}
-  />
-))
+type CardProps = Omit<HTMLMotionProps<'div'>, 'ref'> & {
+  hover?: boolean
+  glow?: boolean
+  gradient?: boolean
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, hover = true, glow = false, gradient = false, ...props }, ref) => (
+    <motion.div
+      ref={ref}
+      className={cn(
+        'rounded-3xl border bg-white text-black shadow-sm transition-all duration-300',
+        'dark:border-dark-border dark:bg-dark-bg dark:text-white',
+        hover && 'hover:shadow-lg hover:-translate-y-1',
+        glow && 'shadow-lg shadow-purple-500/10 dark:shadow-purple-400/10',
+        gradient && 'bg-gradient-to-br from-white via-neutral-50 to-neutral-100 dark:from-dark-bg dark:via-neutral-900 dark:to-neutral-800',
+        className
+      )}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      whileHover={hover ? { scale: 1.02 } : undefined}
+      {...props}
+    />
+  )
+)
 Card.displayName = 'Card'
 
 const CardHeader = React.forwardRef<

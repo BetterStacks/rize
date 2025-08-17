@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation'
 import { FC, useRef, useState } from 'react'
 import ClaimUsernameForm from '../claim-username'
 import Logo from '../logo'
+import { CreativeAvatar } from '../ui/creative-avatar'
 import { ProfileContainer } from '../window'
 
 const heading = 'Own Your Story \n Not Just Your Resume'
@@ -287,16 +288,13 @@ const HeroSection = () => {
           prefetch
           href={`/${session?.data?.user?.username}`}
         >
-          <div className="relative rounded-full overflow-hidden aspect-square size-10  z-50 flex items-center gap-2">
-            <Image
-              src={
-                (session?.data?.user?.profileImage ||
-                  session?.data?.user?.image) as string
-              }
-              alt={`${session?.data?.user?.name} profile image`}
-              className="object-cover"
-              priority
-              fill
+          <div className="z-50">
+            <CreativeAvatar
+              src={session?.data?.user?.profileImage || session?.data?.user?.image || null}
+              name={session?.data?.user?.name || 'User'}
+              size="md"
+              variant="auto"
+              showHoverEffect={false}
             />
           </div>
         </Link>

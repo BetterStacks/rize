@@ -1,4 +1,3 @@
-'use server'
 import { getAllEducation } from '@/actions/education-actions'
 import { getAllExperience } from '@/actions/experience-actions'
 import { getGalleryItems } from '@/actions/gallery-actions'
@@ -15,6 +14,8 @@ import { cn } from '@/lib/utils'
 import { FC } from 'react'
 import UserProfile from './profile/user-profile'
 import Walkthrough from './walkthrough'
+import ScrollFixWrapper from './scroll-fix-wrapper'
+import ProfileNotFound from './profile-not-found'
 
 type Props = {
   username: string;
@@ -25,24 +26,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
   const user = await getProfileByUsername(username)
   
   if (!user) {
-    // Profile not found - show 404 or create profile if it's the user's own profile
-    return (
-      <div className="w-full flex flex-col items-center justify-center min-h-[50vh]">
-        <div className="text-center space-y-4 max-w-md">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-            Profile Not Found
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            The profile "@{username}" doesn't exist or hasn't been set up yet.
-          </p>
-          {session?.user?.username === username && (
-            <p className="text-sm text-blue-600 dark:text-blue-400">
-              It looks like this is your profile. Please complete your onboarding to set it up.
-            </p>
-          )}
-        </div>
-      </div>
-    )
+    return <ProfileNotFound username={username} />
   }
   const [
     gallery,
@@ -74,51 +58,36 @@ const ProfilePage: FC<Props> = async ({ username }) => {
     isMine && !session?.user?.hasCompletedWalkthrough
 
   return (
-    <SectionContextProvider
-      isMine={isMine}
-      gallery={gallery}
-      writings={writings}
-      projects={projects}
-      education={education}
-      workExperience={workExperience}
-      posts={posts}
-      profileSections={sections}
-    >
-      <DashboardLayout 
-        variant="profile" 
-        isMine={isMine} 
-        className={cn('overflow-hidden')}
-        profile={{
-          displayName: user?.displayName || user?.username || 'User',
-          username: user?.username || '',
-          bio: user?.bio || '',
-          profileImage: user?.profileImage || '',
-          location: user?.location,
-          experience: workExperience?.map(exp => ({
-            title: exp.title,
-            company: exp.company,
-            currentlyWorking: exp.currentlyWorking
-          })) || [],
-          projects: projects?.map(proj => ({
-            name: proj.name,
-            description: proj.description
-          })) || []
-        }}
+    <ScrollFixWrapper>
+      <SectionContextProvider
+        isMine={isMine}
+        gallery={gallery}
+        writings={writings}
+        projects={projects}
+        education={education}
+        workExperience={workExperience}
+        posts={posts}
+        profileSections={sections}
       >
-        {/* {shouldStartWalkthrough && <Walkthrough />} */}
-        <UserProfile
+        <DashboardLayout 
+          variant="profile" 
           isMine={isMine}
-          data={user}
-          gallery={gallery}
-          writings={writings}
-          projects={projects}
-          education={education}
-          workExperience={workExperience}
-          posts={posts}
-          storyElements={(storyElements?.success ? storyElements.data || [] : []) as any[]}
-        />
-      </DashboardLayout>
-    </SectionContextProvider>
+        >
+          {/* {shouldStartWalkthrough && <Walkthrough />} */}
+          <UserProfile
+            isMine={isMine}
+            data={user}
+            gallery={gallery}
+            writings={writings}
+            projects={projects}
+            education={education}
+            workExperience={workExperience}
+            posts={posts}
+            storyElements={(storyElements?.success ? storyElements.data || [] : []) as any[]}
+          />
+        </DashboardLayout>
+      </SectionContextProvider>
+    </ScrollFixWrapper>
   )
 }
 

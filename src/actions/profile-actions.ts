@@ -22,39 +22,43 @@ import { cache } from 'react'
 import { z } from 'zod'
 
 export async function updateProfile(data: z.infer<typeof profileSchema>) {
-  const session = await auth()
-  if (!session) {
-    return { success: false, error: 'Session not found' }
+  try {
+    const session = await auth()
+    if (!session) {
+      return { success: false, error: 'Session not found' }
+    }
+
+    const validatedFields = profileSchema.safeParse(data)
+
+    if (!validatedFields.success) {
+      return { success: false, error: 'Invalid profile data' }
+    }
+
+    const { email, isOnboarded, ...profileData } = validatedFields.data
+
+    const userUpdates = { email, isOnboarded }
+    const profileUpdates = profileData
+    
+    // Update users table if there are user-related updates
+    if (userUpdates?.email || userUpdates?.isOnboarded) {
+      await db
+        .update(users)
+        .set(userUpdates)
+        .where(eq(users.id, session?.user?.id))
+    }
+    
+    // Only update profile table if there are profile-related updates
+    if (Object.keys(profileUpdates).length > 0) {
+      await db
+        .update(profile)
+        .set(profileUpdates)
+        .where(eq(profile.id, session?.user?.profileId))
+    }
+
+    return { success: true, error: null }
+  } catch (error) {
+    return { success: false, error: 'Failed to update profile' }
   }
-
-  const validatedFields = profileSchema.safeParse(data)
-
-  if (!validatedFields.success) {
-    return { success: false, error: validatedFields.error.format() }
-  }
-
-  const { email, isOnboarded, ...profileData } = validatedFields.data
-
-  const userUpdates = { email, isOnboarded }
-  const profileUpdates = profileData
-  
-  // Update users table if there are user-related updates
-  if (userUpdates?.email || userUpdates?.isOnboarded) {
-    await db
-      .update(users)
-      .set(userUpdates)
-      .where(eq(users.id, session?.user?.id))
-  }
-  
-  // Only update profile table if there are profile-related updates
-  if (Object.keys(profileUpdates).length > 0) {
-    await db
-      .update(profile)
-      .set(profileUpdates)
-      .where(eq(profile.id, session?.user?.profileId))
-  }
-
-  return { success: true, error: null }
 }
 
 export const getProfileById = async (id: string) => {

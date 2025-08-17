@@ -3,6 +3,7 @@ import { useRightSidebar } from '@/lib/context'
 import { useMediaQuery } from '@mantine/hooks'
 import { motion } from 'framer-motion'
 import { FC, ReactNode } from 'react'
+import { useEnsureScroll } from '@/hooks/useScrollFix'
 import GalleryContextProvider from '../gallery/gallery-context'
 import Navbar from '../navbar'
 import RightSidebar from '../sidebar/RightSidebar'
@@ -57,6 +58,9 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
   const [rightSidebarOpen, setRightSidebarOpen] = useRightSidebar()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const isMobile = useMediaQuery('(max-width: 768px)')
+  
+  // Ensure scroll works properly
+  useEnsureScroll()
 
   // Default sidebar configurations based on variant
   const getDefaultSidebarConfig = (): SidebarConfig => {

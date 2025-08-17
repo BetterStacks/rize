@@ -8,15 +8,32 @@ import { TPage, TUploadFilesResponse } from '@/lib/types'
 import { and, eq, getTableColumns } from 'drizzle-orm'
 import { getProfileIdByUsername } from './profile-actions'
 
-export const createPage = async () => {
+export const createPage = async (title?: string) => {
   try {
-    const sessoin = await auth()
+    const session = await auth()
+    if (!session?.user?.profileId) {
+      throw new Error('Authentication required')
+    }
+
+    // Generate a more interesting default title
+    const defaultTitles = [
+      'My New Story',
+      'Untitled Thoughts', 
+      'Fresh Ideas',
+      'New Chapter',
+      'Today\'s Thoughts',
+      'My Latest Project',
+      'Work in Progress'
+    ]
+    
+    const randomTitle = title || defaultTitles[Math.floor(Math.random() * defaultTitles.length)]
+    
     const p = await db
       .insert(page)
       .values({
-        title: 'Untitled',
+        title: randomTitle,
         content: JSON.stringify(initialValue),
-        profileId: sessoin?.user?.profileId as string,
+        profileId: session.user.profileId,
       })
       .returning()
     if (p.length === 0) {
@@ -135,4 +152,42 @@ export async function removePageThumbnail({ pageId }: { pageId: string }) {
   }
 
   return true
+}
+
+export const deletePage = async (pageId: string) => {
+  try {
+    const session = await auth()
+    if (!session || !session?.user?.profileId) {
+      throw new Error('Unauthorized')
+    }
+
+    // First check if the page belongs to the user
+    const existingPage = await db
+      .select({ profileId: page.profileId })
+      .from(page)
+      .where(eq(page.id, pageId))
+      .limit(1)
+
+    if (existingPage.length === 0) {
+      throw new Error('Page not found')
+    }
+
+    if (existingPage[0].profileId !== session.user.profileId) {
+      throw new Error('Unauthorized to delete this page')
+    }
+
+    // Delete the page
+    const deletedPage = await db
+      .delete(page)
+      .where(eq(page.id, pageId))
+      .returning()
+
+    if (deletedPage.length === 0) {
+      throw new Error('Error deleting page')
+    }
+
+    return { success: true, error: null }
+  } catch (error) {
+    return { success: false, error: (error as Error)?.message }
+  }
 }

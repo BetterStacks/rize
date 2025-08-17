@@ -18,6 +18,7 @@ import Link from 'next/link'
 import { FC } from 'react'
 import toast from 'react-hot-toast'
 import { Result } from 'url-metadata'
+import { CreativeAvatar } from '../ui/creative-avatar'
 import { useAlertDialog, useAuthDialog } from '../dialog-provider'
 import { Button } from '../ui/button'
 import {
@@ -154,24 +155,14 @@ export const PostAvatar: FC<PostaAvatarProps> = ({
   className,
 }) => {
   return (
-    <div
-      className={cn(
-        'size-10 aspect-square  rounded-full  flex relative overflow-hidden',
-        className
-      )}
-    >
-      <Image
-        className=" rounded-full w-full aspect-square"
-        src={avatar as string}
-        fill
-        style={{
-          objectFit: 'cover',
-        }}
-        quality={100}
-        priority
-        alt={`${name} - Avatar`}
-      />
-    </div>
+    <CreativeAvatar
+      src={avatar}
+      name={name}
+      size="md"
+      variant="auto"
+      className={className}
+      showHoverEffect={false}
+    />
   )
 }
 

@@ -18,6 +18,7 @@ import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { CreativeAvatar } from './ui/creative-avatar'
 import { useProfileDialog } from './dialog-provider'
 import { Button } from './ui/button'
 import { Separator } from './ui/separator'
@@ -135,15 +136,12 @@ const Menu = () => {
               <>
                 {' '}
                 <div className="flex p-4 mt-2 items-center justify-start">
-                  <Image
-                    src={
-                      session?.data?.user?.profileImage ||
-                      (session?.data?.user?.image as string)
-                    }
-                    alt="image"
-                    width={50}
-                    height={50}
-                    className="aspect-square size-10 rounded-full"
+                  <CreativeAvatar
+                    src={session?.data?.user?.profileImage || session?.data?.user?.image || null}
+                    name={session?.data?.user?.name || 'User'}
+                    size="md"
+                    variant="auto"
+                    showHoverEffect={false}
                   />
 
                   <div className="ml-2 flex flex-col items-start justify-start ">

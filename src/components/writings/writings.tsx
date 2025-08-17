@@ -1,15 +1,15 @@
 'use client'
-import { createPage, getAllPages } from '@/actions/page-actions'
+import { getAllPages } from '@/actions/page-actions'
 import { GetAllWritings } from '@/lib/types'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { FileText, Plus } from 'lucide-react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useState } from 'react'
-import toast from 'react-hot-toast'
 import { Button } from '../ui/button'
 import { Skeleton } from '../ui/skeleton'
 import WritingCard from './writing-card'
+import { CreatePageDialog } from './create-page-dialog'
 
 type WritingsProps = {
   isMine: boolean;
@@ -17,7 +17,7 @@ type WritingsProps = {
 };
 
 const Writings = ({ isMine, writings }: WritingsProps) => {
-  const router = useRouter()
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
 
   const { username } = useParams<{ username: string }>()
   const { data, isFetching } = useQuery({
@@ -28,15 +28,6 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
     refetchOnMount: false,
   })
 
-  const createNewPage = async () => {
-    const page = await createPage()
-    if (page?.error) {
-      toast.error(page.error)
-      return
-    }
-    toast.success('Page created')
-    router.push(`/page/${page?.data?.id}`)
-  }
   return (
     <div
       id="writings"
@@ -46,8 +37,8 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
         <h2 className="text-lg md:text-xl font-medium ">Writings</h2>
         {isMine && (
           <Button
-            className="  rounded-lg scale-90 text-sm"
-            onClick={createNewPage}
+            className="rounded-lg scale-90 text-sm"
+            onClick={() => setShowCreateDialog(true)}
             size={'sm'}
             variant={'outline'}
           >
@@ -65,7 +56,7 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
             />
           ))
         ) : data?.length === 0 ? (
-          <EmptyWritingState onCreateNew={createNewPage} />
+          <EmptyWritingState onCreateNew={() => setShowCreateDialog(true)} />
         ) : (
           data?.map((writing, i) => {
             return (
@@ -76,6 +67,11 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
           })
         )}
       </div>
+      
+      <CreatePageDialog 
+        open={showCreateDialog} 
+        onOpenChange={setShowCreateDialog} 
+      />
     </div>
   )
 }
