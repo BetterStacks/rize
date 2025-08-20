@@ -25,7 +25,7 @@ import Profile from './profile'
 import SocialLinks from './social-links'
 import BottomBanner from '../bottom-banner'
 import { StoryElementsDisplay } from '../story/story-elements-display'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 
 type StoryElement = {
   id: string
@@ -149,7 +149,7 @@ const UserProfile = ({
           </React.Fragment>
         ))}
 
-      {session?.status === 'unauthenticated' && <BottomBanner />}
+      {!session?.data && <BottomBanner />}
     </div>
   )
 }

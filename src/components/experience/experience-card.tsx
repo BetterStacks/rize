@@ -7,7 +7,7 @@ import { useMediaQuery } from '@mantine/hooks'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Edit2, Loader, Trash2 } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { FC } from 'react'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/button'
@@ -33,7 +33,7 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
     mutationFn: deleteExperience,
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: ['get-all-experience', session?.data?.user?.username],
+        queryKey: ['get-all-experience', (session?.data?.user as any)?.username],
       })
       toast.success('Experience deleted successfully')
     },

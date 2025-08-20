@@ -1,7 +1,7 @@
 'use client'
 
 import { updateProfile } from '@/actions/profile-actions'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/hooks/useAuth'
 import Joyride, { EVENTS, STATUS, TooltipRenderProps } from 'react-joyride'
 import { Button } from './ui/button'
 

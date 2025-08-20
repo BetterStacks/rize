@@ -5,7 +5,7 @@ import { setCookie } from 'cookies-next'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import { FC } from 'react'
 
@@ -17,7 +17,7 @@ const ProfileNotFound: FC<ProfileNotFoundProps> = ({ username }) => {
   const { theme } = useTheme()
   const session = useSession()
   const router = useRouter()
-  const isMyProfile = session?.data?.user?.username === username
+  const isMyProfile = (session?.data?.user as any)?.username === username
 
   const handleClaimProfile = () => {
     setCookie('username', username)

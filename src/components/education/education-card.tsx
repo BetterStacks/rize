@@ -7,7 +7,7 @@ import { useMediaQuery } from '@mantine/hooks'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Edit2, Loader, Trash2 } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { FC } from 'react'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/button'
@@ -32,7 +32,7 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
     mutationFn: deleteEducation,
     onSuccess() {
       queryClient.invalidateQueries({
-        queryKey: ['get-education', session?.data?.user?.username],
+        queryKey: ['get-education', (session?.data?.user as any)?.username],
       })
       toast.success('Education deleted successfully')
     },

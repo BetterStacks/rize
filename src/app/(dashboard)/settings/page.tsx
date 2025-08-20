@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import { ProfileForm } from '@/components/settings/ProfileForm'
 import { StoryElementsForm } from '@/components/settings/StoryElementsForm'
 import { ResumeForm } from '@/components/settings/ResumeForm'
@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 const Page = async () => {
-  const session = await auth()
+  const session = await getServerSession()
   
   if (!session?.user) {
     redirect('/login')

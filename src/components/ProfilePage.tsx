@@ -8,7 +8,7 @@ import { getProfileByUsername } from '@/actions/profile-actions'
 import { getAllProjects } from '@/actions/project-actions'
 import { getStoryElementsByUsername } from '@/actions/story-actions'
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import SectionContextProvider from '@/lib/section-context'
 import { cn } from '@/lib/utils'
 import { FC } from 'react'
@@ -22,7 +22,7 @@ type Props = {
 };
 
 const ProfilePage: FC<Props> = async ({ username }) => {
-  const session = await auth()
+  const session = await getServerSession()
   const user = await getProfileByUsername(username)
   
   if (!user) {

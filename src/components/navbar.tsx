@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { FC, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import Link from 'next/link'
 import { useProfileDialog, useSearchDialog, usePostsDialog } from './dialog-provider'
 import Menu from './menu'

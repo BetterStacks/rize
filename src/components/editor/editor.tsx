@@ -4,7 +4,7 @@ import { ImageElement, TPage, TProfile, VideoElement } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { useWindowEvent } from '@mantine/hooks'
 import { Dot, Loader, Trash2 } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
@@ -33,7 +33,7 @@ type EditorProps = {
 const RichTextExample = ({ author }: EditorProps) => {
   const session = useSession()
   const { state, setState } = useEditorState()
-  const isMyPage = state?.profileId === session?.data?.user?.profileId
+  const isMyPage = state?.profileId === (session?.data?.user as any)?.profileId
   const params = useParams()
   const [isSaving, setIsSaving] = useState(false)
   const renderElement = useCallback((props: any) => <Element {...props} />, [])

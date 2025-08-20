@@ -2,7 +2,7 @@
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { Edit3, Plus, Search, Settings, UserRound } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/hooks/useAuth'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -79,7 +79,7 @@ const Sidebar = ({ className }: { className?: string }) => {
     >
       <div className="flex w-full flex-col mt-4 items-center justify-center gap-y-2 ">
         <div className="mb-6">
-          <Link href={session?.data?.user?.username ? `/${session.data.user.username}` : '/'}>
+          <Link href={(session?.data?.user as any)?.username ? `/${(session?.data?.user as any).username}` : '/'}>
             <Image
               width={42}
               height={42}
@@ -124,11 +124,11 @@ const Sidebar = ({ className }: { className?: string }) => {
         >
           <Plus strokeWidth={1.4} className="size-5 opacity-80" />
         </Button>
-        {session?.status === 'authenticated' && (
-          <Link href={`/${session?.data?.user?.username}`}>
+        {session?.data && (
+                      <Link href={`/${session?.data?.user?.username}`}>
             <PostAvatar
-              avatar={session?.data?.user?.profileImage as string}
-              name={session?.data?.user?.displayName as string}
+              avatar={session?.data?.user?.profileImage || session?.data?.user?.image || ''}
+              name={session?.data?.user?.displayName || session?.data?.user?.name || ''}
             />
           </Link>
         )}
@@ -143,14 +143,14 @@ const OptionsMenu = () => {
     {
       id: 1,
       name: 'Manage Account',
-      href: `/${session?.data?.user?.username}`,
+      href: `/${(session?.data?.user as any)?.username}`,
       onClick: () => {},
       icon: <UserRound className="opacity-70 size-5" strokeWidth={1.2} />,
     },
     {
       id: 2,
       name: 'Edit Profile',
-      href: `/${session?.data?.user?.username}`,
+      href: `/${(session?.data?.user as any)?.username}`,
       onClick: () => {},
       icon: <Edit3 className="opacity-70 size-5" strokeWidth={1.2} />,
     },

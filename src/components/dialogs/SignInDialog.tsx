@@ -1,5 +1,5 @@
 'use client'
-import { signIn } from 'next-auth/react'
+import { signInWithGoogle, signInWithLinkedIn } from '@/lib/auth-client'
 import Link from 'next/link'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
@@ -18,14 +18,30 @@ const AuthDialog = () => {
   const [open, setOpen] = useAuthDialog()
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSocialSignIn = async () => {
+  const handleSocialSignIn = async (provider: 'google' | 'linkedin') => {
     try {
       setIsLoading(true)
-      const data = await signIn('google', { redirect: false })
-      if (data?.error) {
-        toast.error(data.error)
+      let result
+      switch (provider) {
+        case 'google':
+          result = await signInWithGoogle()
+          break
+        case 'linkedin':
+          result = await signInWithLinkedIn()
+          break
+        default:
+          throw new Error('Unsupported provider')
+      }
+      
+      if (result?.error) {
+        toast.error(result.error.message || 'Sign in failed')
         return
       }
+      
+      setOpen(false)
+      toast.success('Signed in successfully')
+    } catch (error: any) {
+      toast.error(error.message || 'Sign in failed')
     } finally {
       setIsLoading(false)
     }
@@ -45,7 +61,7 @@ const AuthDialog = () => {
         <div className="flex w-full justify-self-start  h-fit mt-4 mb-6 flex-col gap-y-4  items-center justify-start ">
           <AuthProviderButton
             isLoading={isLoading}
-            handleClick={() => handleSocialSignIn()}
+            handleClick={() => handleSocialSignIn('google')}
             icon="/google.svg"
             provider="google"
             className="w-full"

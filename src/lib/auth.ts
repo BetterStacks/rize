@@ -1,234 +1,202 @@
-import { userExists } from '@/actions/user-actions'
-import { profile, users } from '@/db/schema'
-import { DrizzleAdapter } from '@auth/drizzle-adapter'
-import { compareSync } from 'bcryptjs'
-import { eq } from 'drizzle-orm'
-import NextAuth, { DefaultSession } from 'next-auth'
-import { encode as defaultEncode } from 'next-auth/jwt'
-import Credentials from 'next-auth/providers/credentials'
-import Github from 'next-auth/providers/github'
-import LinkedInProvider from 'next-auth/providers/linkedin'
-import Google from 'next-auth/providers/google'
-import { v4 } from 'uuid'
+import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { profile, users, accounts, sessions, verification } from '@/db/schema'
 import db from './db'
+import { eq } from 'drizzle-orm'
+import { compareSync } from 'bcryptjs'
+import { userExists } from '@/actions/user-actions'
 
-declare module 'next-auth/jwt' {
-  /** Returned by the `jwt` callback and `auth`, when using JWT sessions */
-  interface JWT {
-    /** OpenID ID Token */
-    id: string;
-    image: string;
-    username: string;
-    profileId: string;
-    isOnboarded: boolean;
-    displayName: string;
-    hasCompletedWalkthrough: boolean;
-  }
-}
-
-declare module 'next-auth' {
-  interface Session {
-    user: {
-      id: string;
-      username: string;
-      isOnboarded: boolean;
-      profileId: string;
-      profileImage: string;
-      displayName: string;
-      hasCompletedWalkthrough: boolean;
-    } & DefaultSession['user'];
-  }
-}
-const adapter = DrizzleAdapter(db)
-
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  secret: process.env.AUTH_SECRET,
-  adapter,
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: 'pg', 
+    usePlural: false,
+    schema: {
+      user: users,
+      account: accounts, 
+      session: sessions,
+      verification: verification,
+    }
+  }),
+  telemetry: {
+    enabled: false,
+  },
+  emailAndPassword: {
+    enabled: true,
+  },
+  socialProviders: {
+    google: {
+      clientId: process.env.AUTH_GOOGLE_ID!,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+    },
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    },
+    // Proper LinkedIn configuration
+    linkedin: {
+      clientId: process.env.LINKEDIN_CLIENT_ID!,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
+    },
+  },
   session: {
-    strategy: 'database',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    expiresIn: 60 * 60 * 24 * 30, // 30 days
+    updateAge: 60 * 60 * 24, // 24 hours
   },
-  callbacks: {
-    async jwt({ token, user, account, trigger, session }) {
-      if (account?.provider === 'credentials') {
-        token.credentials = true
-      }
-      if (user) {
-        token.id = user.id as string
-        const userData = await db
-          .select({ isOnboarded: users.isOnboarded })
-          .from(users)
-          .where(eq(users.id, user.id!))
-          .limit(1)
-
-        token.isOnboarded = userData[0]?.isOnboarded || false
-      }
-
-      if (trigger === 'update' && session) {
-        return { ...token, ...session.user }
-      }
-
-      return token
-    },
-    async session({ session, user }) {
-      if (!user) {
-        return session
-      }
-
-      const userData = await db
-        .select({
-          isOnboarded: users.isOnboarded,
-          username: profile.username,
-          profileId: profile.id,
-          profileImage: profile.profileImage,
-          displayName: profile.displayName,
-          hasCompletedWalkthrough: profile.hasCompletedWalkthrough,
-        })
-        .from(users)
-        .leftJoin(profile, eq(profile.userId, users.id))
-        .where(eq(users.id, user.id))
-        .limit(1)
-
-      if (!userData[0]) {
-        return session
-      }
-
-      session.user = {
-        ...session.user,
-        id: user.id,
-        ...(userData[0] as any),
-      }
-
-      return session
-    },
-    signIn: async (payload) => {
-      const { user, account } = payload
-      const provider = account?.provider
-      
-      // Auto-import profile data on first sign-in from GitHub/LinkedIn
-      if ((provider === 'github' || provider === 'linkedin') && account?.access_token && user?.id) {
-        try {
-          // Check if user already has a profile
-          const existingProfile = await db
-            .select()
-            .from(profile)
-            .where(eq(profile.userId, user.id))
-            .limit(1)
-
-          // Only import if no profile exists (first time sign-in)
-          if (existingProfile.length === 0) {
-            // Import will be handled by a background job or client-side after sign-in
-            console.log(`New user signed up with ${provider}, profile import available`)
-          }
-        } catch (error) {
-          console.error('Error checking profile during sign-in:', error)
-        }
-      }
-
-      return true
-    },
-  },
-  jwt: {
-    encode: async function (params) {
-      if (params.token?.credentials) {
-        const sessionToken = v4()
-
-        if (!params.token.sub) {
-          throw new Error('No user ID found in token')
-        }
-
-        const createdSession = await adapter?.createSession?.({
-          sessionToken: sessionToken,
-          userId: params.token.sub,
-          expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-        })
-
-        if (!createdSession) {
-          throw new Error('Failed to create session')
-        }
-
-        return sessionToken
-      }
-      return defaultEncode(params)
-    },
-  },
-  providers: [
-    Google({
-      allowDangerousEmailAccountLinking: true,
-    }),
-    Github,
-    Credentials({
-      name: 'Credentials',
-
-      type: 'credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+  user: {
+    additionalFields: {
+      isOnboarded: {
+        type: 'boolean',
+        defaultValue: false,
       },
-      async authorize(credentials) {
-        const { password, email } = credentials
-        const exists = await userExists(email as string)
-
-        if (!exists) {
-          throw new Error('User with not found')
-        }
-        const match = compareSync(
-          password as string,
-          exists?.password as string
-        )
-        if (!match) {
-          throw new Error('Password does not match')
-        }
-
-        return exists
-      },
-    }),
-    LinkedInProvider({
-      clientId: process.env.LINKEDIN_CLIENT_ID,
-      clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-      authorization: {
-        params: {
-          scope: 'openid profile email'
-        }
-      }
-    }),
-  ],
-  trustHost: true,
+    },
+  },
+  advanced: {
+    database: {
+      generateId: () => crypto.randomUUID(),
+    }
+  },
+  // Remove hooks temporarily to fix OAuth flow
+  // We'll implement profile creation differently
+  trustedOrigins: [process.env.NEXT_PUBLIC_BASE_URL!, process.env.BASE_URL!].filter(Boolean),
+  secret: process.env.AUTH_SECRET!,
 })
 
-// async signIn(payload) {
-//   const { credentials, account, user } = payload;
-//   console.log(payload);
-//   const provider = account?.provider;
-//   if (provider === "google") {
-//     const username = await getServerCookie("username");
-//     if (username) {
-//       await db.insert(profile).values({
-//         userId: user?.id!,
-//         username: username,
-//       });
+// Export the auth handlers for API routes
+export const authHandler = auth.handler
+export const GET = authHandler
+export const POST = authHandler
 
-//       await deleteServerCookie("username");
-//     }
-//   }
+// Types are handled by our custom useSession hook in /hooks/useAuth.ts
 
-//   return true;
-// },
-// signIn: async (data) => {
-//   const { user } = data;
-//   if (!user?.id) return false;
+// Define types for better type safety - use the Session type from better-auth  
+export type BetterAuthSession = Awaited<ReturnType<typeof auth.api.getSession>>;
+export type BetterAuthUser = NonNullable<BetterAuthSession>['user'];
 
-//   const existingProfile = await db
-//     .select({ username: profile.username })
-//     .from(profile)
-//     .where(eq(profile.userId, user.id))
-//     .limit(1);
+// Enhanced session type with profile data
+export type EnrichedSession = {
+  user: BetterAuthUser & {
+    isOnboarded?: boolean;
+    username?: string;
+    profileId?: string;
+    profileImage?: string;
+    displayName?: string;
+    hasCompletedWalkthrough?: boolean;
+  };
+  session: {
+    id: string;
+    expiresAt: Date;
+    token: string;
+    userId: string;
+  };
+};
 
-//   if (existingProfile.length > 0) {
-//     return true;
-//   }
+// Export server-side session helper with enriched user data
+export const getServerSession = async (): Promise<EnrichedSession | null> => {
+  const { headers } = await import('next/headers')
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
 
-//   // Check for username cookie if no profile exists
+  if (!session) return null
 
-//   return true;
-// },
+  // Enrich user data with profile information
+  try {
+    const userData = await db
+      .select({
+        isOnboarded: users.isOnboarded,
+        username: profile.username,
+        profileId: profile.id,
+        profileImage: profile.profileImage,
+        displayName: profile.displayName,
+        hasCompletedWalkthrough: profile.hasCompletedWalkthrough,
+      })
+      .from(users)
+      .leftJoin(profile, eq(profile.userId, users.id))
+      .where(eq(users.id, session.user.id))
+      .limit(1)
+
+    const userInfo = userData[0] || {}
+
+    return {
+      ...session,
+      user: {
+        ...session.user,
+        isOnboarded: userInfo.isOnboarded || false,
+        username: userInfo.username || undefined,
+        profileId: userInfo.profileId || undefined,
+        profileImage: userInfo.profileImage || undefined,
+        displayName: userInfo.displayName || undefined,
+        hasCompletedWalkthrough: userInfo.hasCompletedWalkthrough || false,
+      }
+    }
+  } catch (error) {
+    console.error('Error enriching session:', error)
+    // Return basic session if enrichment fails
+    return {
+      ...session,
+      user: {
+        ...session.user,
+        isOnboarded: false,
+        username: undefined,
+        profileId: undefined,
+        profileImage: undefined,
+        displayName: undefined,
+        hasCompletedWalkthrough: false,
+      }
+    }
+  }
+}
+
+// Helper function to get profileId from session with proper error handling
+export const getProfileIdFromSession = async (): Promise<string> => {
+  const session = await getServerSession()
+  if (!session) {
+    throw new Error('Unauthorized')
+  }
+  
+  const profileId = session.user.profileId
+  if (!profileId) {
+    throw new Error('Profile not found. Please complete onboarding first.')
+  }
+  
+  return profileId
+}
+
+// Legacy compatibility - alias for consistency
+export type Session = EnrichedSession;
+
+// Standardized authentication helpers for server actions
+export const requireAuth = async (): Promise<EnrichedSession> => {
+  const session = await getServerSession()
+  if (!session) {
+    throw new Error('Authentication required')
+  }
+  return session
+}
+
+export const requireProfile = async (): Promise<string> => {
+  const session = await requireAuth()
+  const profileId = session.user.profileId
+  if (!profileId) {
+    throw new Error('Profile not found. Please complete onboarding first.')
+  }
+  return profileId
+}
+
+// Helper that returns both session and profileId for convenience
+export const requireAuthWithProfile = async (): Promise<{ 
+  session: EnrichedSession; 
+  profileId: string; 
+  userId: string; 
+}> => {
+  const session = await requireAuth()
+  const profileId = session.user.profileId
+  if (!profileId) {
+    throw new Error('Profile not found. Please complete onboarding first.')
+  }
+  return {
+    session,
+    profileId,
+    userId: session.user.id,
+  }
+}

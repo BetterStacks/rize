@@ -1,7 +1,7 @@
 'use server'
 
 import { emailService } from '@/lib/email-service'
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import db from '@/lib/db'
 import { emailPreferences, emailTracking } from '@/db/email-schema'
 import { users } from '@/db/schema'
@@ -66,7 +66,7 @@ export async function triggerWelcomeEmailSequence(userData: EmailJobPayload) {
  */
 export async function triggerFollowUpEmail(email: string) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user) {
       throw new Error('Unauthorized')
     }
@@ -113,7 +113,7 @@ export async function updateEmailPreferences(preferences: {
   marketingEmails?: boolean;
 }) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       throw new Error('Unauthorized')
     }
@@ -162,7 +162,7 @@ export async function unsubscribeFromEmails(token: string) {
  */
 export async function getEmailAnalytics(days: number = 30) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user) {
       throw new Error('Unauthorized')
     }

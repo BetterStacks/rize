@@ -13,7 +13,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react'
-import { signOut, useSession } from 'next-auth/react'
+import { signOut, useSession } from '@/lib/auth-client'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
@@ -25,9 +25,9 @@ import { Separator } from './ui/separator'
 
 const Menu = () => {
   const [open, setOpen] = useState(false)
-  const session = useSession()
+  const { data: session } = useSession()
   const params = useParams()
-  const isMine = session?.data?.user?.username === params?.username
+  const isMine = (session?.user as any)?.username === params?.username
   const setProfileDialogOpen = useProfileDialog()[1]
   const ref = useClickOutside(() => {
     setOpen(false)
@@ -38,7 +38,7 @@ const Menu = () => {
     {
       id: 2,
       name: 'Account',
-      href: `/${session?.data?.user?.username}`,
+      href: `/${(session?.user as any)?.username}`,
       onClick: () => {},
       icon: <UserRound className="opacity-80 size-5" strokeWidth={1.2} />,
     },
@@ -132,13 +132,13 @@ const Menu = () => {
               isMine ? 'right-4' : 'right-4'
             )}
           >
-            {session?.data && (
+            {session && (
               <>
                 {' '}
                 <div className="flex p-4 mt-2 items-center justify-start">
                   <CreativeAvatar
-                    src={session?.data?.user?.profileImage || session?.data?.user?.image || null}
-                    name={session?.data?.user?.name || 'User'}
+                    src={(session?.user as any)?.profileImage || session?.user?.image || null}
+                    name={session?.user?.name || 'User'}
                     size="md"
                     variant="auto"
                     showHoverEffect={false}
@@ -146,17 +146,17 @@ const Menu = () => {
 
                   <div className="ml-2 flex flex-col items-start justify-start ">
                     <h3 className="font-medium leading-tight truncate">
-                      {session?.data?.user?.displayName}
+                      {(session?.user as any)?.displayName}
                     </h3>
                     <span className="opacity-70 text-sm leading-tight truncate">
-                      @{session?.data?.user?.username}
+                      @{(session?.user as any)?.username}
                     </span>
                   </div>
                 </div>
                 <Separator className="h-[0.5px]" />
               </>
             )}
-            {[...options, ...(session?.data ? loggedInOptions : [])].map(
+            {[...options, ...(session ? loggedInOptions : [])].map(
               (option, i) => (
                 <motion.div
                   key={i}
@@ -206,7 +206,7 @@ const Menu = () => {
                 ))}
               </motion.div>
             </div>
-            {session?.status === 'authenticated' && (
+            {session && (
               <>
                 {' '}
                 <Separator className="h-[0.5px] " />

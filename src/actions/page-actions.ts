@@ -2,7 +2,7 @@
 
 import { initialValue } from '@/components/editor/utils'
 import { media, page, profile } from '@/db/schema'
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import db from '@/lib/db'
 import { TPage, TUploadFilesResponse } from '@/lib/types'
 import { and, eq, getTableColumns } from 'drizzle-orm'
@@ -10,7 +10,7 @@ import { getProfileIdByUsername } from './profile-actions'
 
 export const createPage = async (title?: string) => {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.profileId) {
       throw new Error('Authentication required')
     }
@@ -104,7 +104,7 @@ export const getPageById = async (id: string) => {
 export async function updatePageThumbnail(
   payload: TUploadFilesResponse & { pageId: string }
 ) {
-  const session = await auth()
+  const session = await getServerSession()
   if (!session || !session?.user?.profileId) {
     throw new Error('Session not found')
   }
@@ -136,7 +136,7 @@ export async function updatePageThumbnail(
 }
 
 export async function removePageThumbnail({ pageId }: { pageId: string }) {
-  const session = await auth()
+  const session = await getServerSession()
   if (!session || !session?.user?.profileId) {
     throw new Error('Session not found')
   }
@@ -156,7 +156,7 @@ export async function removePageThumbnail({ pageId }: { pageId: string }) {
 
 export const deletePage = async (pageId: string) => {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session || !session?.user?.profileId) {
       throw new Error('Unauthorized')
     }

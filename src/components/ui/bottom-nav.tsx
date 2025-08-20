@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Home, Compass, Plus, Bell, User } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/hooks/useAuth'
 import { usePostsDialog } from '../dialog-provider'
 import { cn } from '@/lib/utils'
 

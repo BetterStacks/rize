@@ -1,7 +1,7 @@
 'use server'
 
 import { media, projects } from '@/db/schema'
-import { auth } from '@/lib/auth'
+import { requireProfile, requireAuthWithProfile } from '@/lib/auth'
 import db from '@/lib/db'
 import { GetAllProjects, TProject } from '@/lib/types'
 import { eq, getTableColumns } from 'drizzle-orm'
@@ -58,10 +58,7 @@ const newProjectSchema = z.object({
 })
 
 export const createProject = async (data: z.infer<typeof newProjectSchema>) => {
-  const session = await auth()
-  if (!session?.user?.profileId) {
-    throw new Error('User not authenticated')
-  }
+  const profileId = await requireProfile()
 
   const parsed = newProjectSchema.parse(data)
   const logoMedia = await db
@@ -70,7 +67,7 @@ export const createProject = async (data: z.infer<typeof newProjectSchema>) => {
       // @ts-ignore
       url: data?.logo,
       type: 'image',
-      profileId: session?.user?.profileId,
+      profileId: profileId,
       height: parseInt(data?.height as string),
       width: parseInt(data?.width as string),
     })
@@ -85,7 +82,7 @@ export const createProject = async (data: z.infer<typeof newProjectSchema>) => {
     ...parsed,
     endDate: new Date(parsed?.endDate as string) || null,
     startDate: new Date(parsed?.startDate as string),
-    profileId: session?.user?.profileId,
+    profileId: profileId,
     logo: logoId,
   })
   return project
@@ -95,21 +92,17 @@ export const updateProject = async (
   payload: Partial<TProject & { width: number; height: number }>
 ) => {
   try {
+    const profileId = await requireProfile()
     let updatedPayload = { ...payload }
 
     if (payload?.logo) {
-      const session = await auth()
-      if (!session?.user?.profileId) {
-        throw new Error('User not authenticated')
-      }
-
       const logoMedia = await db
         .insert(media)
         .values({
           // @ts-ignore
           url: payload?.logo,
           type: 'image',
-          profileId: session?.user?.profileId,
+          profileId: profileId,
           height: payload?.height,
           width: payload?.width,
         })

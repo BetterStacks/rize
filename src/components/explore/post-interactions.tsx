@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react'
 import moment from 'moment'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import Image from 'next/image'
 import Link from 'next/link'
 import { FC } from 'react'
@@ -236,7 +236,7 @@ export const PostCardOptions: FC<PostCardOptionsProps> = ({
 }) => {
   const queryClient = useQueryClient()
   const session = useSession()
-  const isMine = session?.data?.user?.profileId === profileId
+  const isMine = (session?.data?.user as any)?.profileId === profileId
   const { mutate, isPending } = useMutation({
     mutationFn: deletePost,
     onSuccess: () => {

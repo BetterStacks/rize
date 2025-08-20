@@ -1,7 +1,7 @@
 import { addComment, deleteComment } from '@/actions/post-actions'
 import { TAddNewComment } from '@/lib/types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
 
 type UseCommentProps = {

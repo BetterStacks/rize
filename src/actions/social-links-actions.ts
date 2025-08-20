@@ -1,7 +1,7 @@
 'use server'
 
 import { socialLinks } from '@/db/schema'
-import { auth } from '@/lib/auth'
+import { requireAuthWithProfile } from '@/lib/auth'
 import db from '@/lib/db'
 import { SocialPlatform } from '@/lib/types'
 import { and, eq } from 'drizzle-orm'
@@ -26,15 +26,12 @@ export const getSocialLinks = async (username: string) => {
 }
 
 export const addSocialLink = async (url: string, platform: SocialPlatform) => {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Session not found')
-  }
+  const { profileId } = await requireAuthWithProfile()
 
   const newLink = await db
     .insert(socialLinks)
     .values({
-      profileId: session?.user?.profileId,
+      profileId,
       platform,
       url,
     })
@@ -46,10 +43,7 @@ export const addSocialLink = async (url: string, platform: SocialPlatform) => {
   return newLink[0]
 }
 export const editSocialLink = async (id: string, url: string) => {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Session not found')
-  }
+  const { profileId } = await requireAuthWithProfile()
 
   const newLink = await db
     .update(socialLinks)
@@ -59,7 +53,7 @@ export const editSocialLink = async (id: string, url: string) => {
     .where(
       and(
         eq(socialLinks.id, id),
-        eq(socialLinks.profileId, session.user.profileId)
+        eq(socialLinks.profileId, profileId)
       )
     )
     .returning()
@@ -71,16 +65,13 @@ export const editSocialLink = async (id: string, url: string) => {
 }
 
 export const removeSocialLink = async (id: string) => {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Session not found')
-  }
+  const { profileId } = await requireAuthWithProfile()
   const link = await db
     .delete(socialLinks)
     .where(
       and(
         eq(socialLinks.id, id),
-        eq(socialLinks.profileId, session.user.profileId)
+        eq(socialLinks.profileId, profileId)
       )
     )
     .returning()

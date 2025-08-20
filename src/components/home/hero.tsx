@@ -10,7 +10,7 @@ import {
   Variants,
 } from 'framer-motion'
 import { Star } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -235,7 +235,7 @@ const HeroSection = () => {
   const router = useRouter()
   const imageContainerRef = useRef(null)
   const isDesktop = useMediaQuery('(min-width: 768px)')
-  const isLoggedIn = session?.status === 'authenticated'
+  const isLoggedIn = !!session?.data
   const { scrollYProgress } = useScroll({
     axis: 'y',
     // offset: ["start end", "end end"],
@@ -286,11 +286,11 @@ const HeroSection = () => {
         <Link
           className="absolute top-4 right-4"
           prefetch
-          href={`/${session?.data?.user?.username}`}
+          href={`/${(session?.data?.user as any)?.username}`}
         >
           <div className="z-50">
             <CreativeAvatar
-              src={session?.data?.user?.profileImage || session?.data?.user?.image || null}
+              src={(session?.data?.user as any)?.profileImage || session?.data?.user?.image || null}
               name={session?.data?.user?.name || 'User'}
               size="md"
               variant="auto"

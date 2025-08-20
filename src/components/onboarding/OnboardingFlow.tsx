@@ -1,13 +1,14 @@
 'use client'
 import { createProfile, updateProfile } from '@/actions/profile-actions'
+import { createProfileAfterOAuth } from '@/actions/auth-actions'
 import { cn } from '@/lib/utils'
 import { useLocalStorage } from '@mantine/hooks'
 import { useMutation } from '@tanstack/react-query'
-import { deleteCookie, hasCookie } from 'cookies-next'
+import { deleteCookie, hasCookie, getCookie } from 'cookies-next'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { FinishStep } from './steps/FinishStep'
 import { InterestsStep } from './steps/Interests'
@@ -22,6 +23,8 @@ import { processResumeData } from '@/actions/resume-actions'
 export default function OnboardingFlow() {
   const router = useRouter()
   const session = useSession()
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false)
+  const [profileCreated, setProfileCreated] = useState(false)
   const [formData, setFormData] = useLocalStorage({
     key: 'onboarding-data',
     defaultValue: {
@@ -32,6 +35,71 @@ export default function OnboardingFlow() {
       resumeData: null,
     },
   })
+
+  // Auto-create profile for OAuth users who don't have one yet
+  useEffect(() => {
+    const autoCreateProfile = async () => {
+      // Only run if user exists, has no profile, not already creating, and haven't created yet
+      if (session?.data?.user && !session?.data?.user?.profileId && !isCreatingProfile && !profileCreated) {
+        console.log('🔧 Auto-creating profile for OAuth user...')
+        setIsCreatingProfile(true)
+        
+        try {
+          // Get claimed username from client-side cookie
+          const claimedUsername = getCookie('username') as string | undefined
+          console.log('🔍 Claimed username from client cookie:', claimedUsername)
+          
+          const result = await createProfileAfterOAuth(
+            session.data.user.id, 
+            {
+              name: session.data.user.name,
+              email: session.data.user.email,
+              image: session.data.user.image,
+            },
+            claimedUsername
+          )
+          
+          if (result.success) {
+            console.log('✅ Profile auto-created:', result.username)
+            toast.success(`Welcome! Your username is ${result.username}`)
+            
+            // Clear the username cookie after successful profile creation
+            if (claimedUsername) {
+              deleteCookie('username')
+              console.log('🔧 Cleared username cookie')
+            }
+            
+            // Update form data with created username
+            setFormData(prev => ({ 
+              ...prev, 
+              username: result.username || '' 
+            }))
+            
+            // Mark as profile created to prevent re-runs
+            setProfileCreated(true)
+            
+            // Refresh session to get new profile data (but don't depend on it)
+            setTimeout(() => {
+              session.refetch()
+              // Skip to profile details step since username is already set
+              setCurrentStep(2)
+            }, 200)
+            
+          } else {
+            console.error('❌ Failed to auto-create profile:', result.error)
+            toast.error('Failed to create profile. Please try again.')
+          }
+        } catch (error) {
+          console.error('❌ Error auto-creating profile:', error)
+          toast.error('Failed to create profile. Please try again.')
+        } finally {
+          setIsCreatingProfile(false)
+        }
+      }
+    }
+
+    autoCreateProfile()
+  }, [session?.data?.user?.id, session?.data?.user?.profileId, isCreatingProfile, profileCreated])
 
   const { mutate, isPending } = useMutation({
     mutationFn: createProfile,
@@ -84,7 +152,7 @@ export default function OnboardingFlow() {
           return
         }
         toast.success('Profile picture updated successfully')
-        await session?.update()
+        // Session will update automatically with better-auth
         setCurrentStep(3)
       },
     })
@@ -107,7 +175,7 @@ export default function OnboardingFlow() {
       await updateProfile({
         isOnboarded: true,
       })
-      await session?.update()
+      // Session will update automatically with better-auth
       
       router.push(`/${formData?.username}`)
       localStorage.removeItem('onboarding-data')

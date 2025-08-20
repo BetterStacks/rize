@@ -15,7 +15,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import Image from 'next/image'
 import React, { FC, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
@@ -185,8 +185,8 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
           {/* {session?.status === "loading" ? ( */}
           <PostAvatar
             className="size-8"
-            avatar={session?.data?.user?.profileImage as string}
-            name={session?.data?.user?.displayName as string}
+            avatar={(session?.data?.user as any)?.profileImage || session?.data?.user?.image}
+            name={(session?.data?.user as any)?.displayName || session?.data?.user?.name}
           />
           {/* ) : (
             <Skeleton className="size-8 rounded-full aspect-square dark:bg-dark-border bg-neutral-200 " />
@@ -384,7 +384,7 @@ const CommentCard: FC<CommentCardProps> = ({
 }) => {
   const session = useSession()
   const isMine =
-    session?.data?.user?.profileId === (comment?.profileId as string)
+    (session?.data?.user as any)?.profileId === (comment?.profileId as string)
   const isDesktop = useMediaQuery('(min-width: 1024px)')
 
   return (
