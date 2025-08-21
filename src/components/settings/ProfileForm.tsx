@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getProfileByUsername, updateProfile } from '@/actions/profile-actions'
 import { profileSchema } from '@/lib/types'
@@ -38,13 +38,13 @@ const settingsProfileSchema = z.object({
 })
 
 export function ProfileForm() {
-  const { data: session, update } = useSession()
+  const { data: session } = useSession()
   const queryClient = useQueryClient()
   
   const { data, isLoading } = useQuery({
-    queryKey: ['get-profile-by-username', session?.user?.username],
-    queryFn: () => getProfileByUsername(session?.user?.username as string),
-    enabled: !!session?.user?.username,
+    queryKey: ['get-profile-by-username', (session?.user as any)?.username],
+    queryFn: () => getProfileByUsername((session?.user as any)?.username as string),
+          enabled: !!(session?.user as any)?.username,
   })
 
   const form = useForm<z.infer<typeof settingsProfileSchema>>({
@@ -72,8 +72,7 @@ export function ProfileForm() {
     onSuccess: async () => {
       toast.success('Profile updated successfully!')
       queryClient.invalidateQueries({ queryKey: ['get-profile-by-username'] })
-      // Update session data
-      await update()
+      // Session will update automatically with better-auth
     },
     onError: (error: any) => {
       toast.error('Failed to update profile: ' + (error?.message || 'Unknown error'))

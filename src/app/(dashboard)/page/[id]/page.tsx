@@ -1,7 +1,7 @@
 import Editor from '@/components/editor/editor'
 import EditorContextProvider from '@/components/editor/editor-context'
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import { getProfileById } from '@/actions/profile-actions'
 import { Metadata } from 'next'
 import { FC } from 'react'
@@ -37,7 +37,7 @@ export async function generateMetadata({
 const Page: FC<PageProps> = async ({ params }) => {
   const data = await getPageById((await params)?.id as string)
   const author = await getProfileById(data?.profileId as string)
-  const session = await auth()
+  const session = await getServerSession()
   const isMyPage = data?.profileId === session?.user?.profileId
   
   return (

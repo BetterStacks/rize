@@ -1,6 +1,6 @@
 'use server'
 import { sections } from '@/db/schema'
-import { auth } from '@/lib/auth'
+import { requireProfile } from '@/lib/auth'
 import db from '@/lib/db'
 import { and, eq, not } from 'drizzle-orm'
 import { getProfileIdByUsername } from './profile-actions'
@@ -24,10 +24,7 @@ export const getSections = async (username: string) => {
 }
 
 export async function bulkInsertSections() {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
+  const profileId = await requireProfile()
   const sectionsList = [
     {
       slug: 'gallery',
@@ -64,17 +61,14 @@ export async function bulkInsertSections() {
   await db.insert(sections).values(
     sectionsList?.map((section) => ({
       ...section,
-      profileId: session.user.profileId,
+      profileId: profileId,
     }))
   )
 }
 
 export async function updateSections(orderedIds: string[]) {
   // Update order
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
+  const profileId = await requireProfile()
 
   await Promise.all(
     orderedIds.map((id, index) =>
@@ -83,7 +77,7 @@ export async function updateSections(orderedIds: string[]) {
         .set({ order: index })
         .where(
           and(
-            eq(sections.profileId, session?.user?.profileId),
+            eq(sections.profileId, profileId),
             eq(sections.slug, id)
           )
         )
@@ -92,11 +86,8 @@ export async function updateSections(orderedIds: string[]) {
 }
 
 export async function toggleSection(toggles: TogglePayload[]) {
-  // Update order
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
+  // Update order  
+  const profileId = await requireProfile()
   await Promise.all(
     toggles.map(({ slug }) =>
       db
@@ -104,7 +95,7 @@ export async function toggleSection(toggles: TogglePayload[]) {
         .set({ enabled: not(sections.enabled) })
         .where(
           and(
-            eq(sections.profileId, session?.user?.profileId),
+            eq(sections.profileId, profileId),
             eq(sections.slug, slug)
           )
         )

@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
@@ -15,18 +15,28 @@ export default function AuthGuard({
   authOnly,
   guestOnly,
 }: AuthGuardProps) {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = useSession()
   const router = useRouter()
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (isPending) return
 
     if (guestOnly && session) {
-      if (!session?.user?.isOnboarded) {
+      // Check if user is onboarded
+      const isOnboarded = session.user?.isOnboarded
+      const username = session.user?.username
+      
+      if (!isOnboarded) {
         router.push('/onboarding')
         return
       }
-      router.push(`/${session?.user?.username}`)
+      
+      if (username) {
+        router.push(`/${username}`)
+      } else {
+        // Fallback to settings if username not available
+        router.push('/settings')
+      }
       return
     }
 
@@ -34,7 +44,7 @@ export default function AuthGuard({
       router.push('/login')
       return
     }
-  }, [status, session, authOnly, guestOnly, router])
+  }, [isPending, session, authOnly, guestOnly, router])
 
   if (
     (!authOnly && !guestOnly) ||

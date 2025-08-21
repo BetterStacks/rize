@@ -6,7 +6,7 @@ import { capitalizeFirstLetter, cn, isValidUrl } from '@/lib/utils'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { Link2, Loader, X } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
@@ -224,7 +224,7 @@ const PostForm = () => {
           <div className="w-full mt-4 gap-x-2 flex items-center justify-between">
             <div className="flex items-center justify-center gap-x-2">
               <CreativeAvatar
-                src={data?.profileImage}
+                src={(data as any)?.profileImage || data?.image}
                 name={data?.name || 'You'}
                 size="sm"
                 variant="auto"

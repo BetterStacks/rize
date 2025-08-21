@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useTransition } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import { Button } from '@/components/ui/button'

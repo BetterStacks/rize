@@ -4,8 +4,8 @@ import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { experience } from '@/db/schema'
 import db from '@/lib/db'
-import { eq } from 'drizzle-orm'
-import { auth } from '@/lib/auth'
+import { and, eq } from 'drizzle-orm'
+import { requireProfile } from '@/lib/auth'
 import { TExperience } from '@/lib/types'
 import { getProfileIdByUsername } from './profile-actions'
 
@@ -22,11 +22,7 @@ const experienceSchema = z.object({
 })
 
 export async function upsertExperience(data: z.infer<typeof experienceSchema>) {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
-  const profileId = session.user.profileId
+  const profileId = await requireProfile()
 
   const validated = experienceSchema.parse(data)
 
@@ -43,14 +39,11 @@ export async function upsertExperience(data: z.infer<typeof experienceSchema>) {
 }
 
 export const getExperienceById = async (id: string) => {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
+  const profileId = await requireProfile()
   const experienceById = await db
     .select()
     .from(experience)
-    .where(eq(experience.id, id))
+    .where(and(eq(experience.id, id), eq(experience.profileId, profileId)))
     .limit(1)
   if (experienceById?.length === 0) {
     return null
@@ -74,10 +67,7 @@ export const getAllExperience = async (username: string) => {
 }
 
 export const deleteExperience = async (id: string) => {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
-  await db.delete(experience).where(eq(experience.id, id))
+  const profileId = await requireProfile()
+  await db.delete(experience).where(and(eq(experience.id, id), eq(experience.profileId, profileId)))
   revalidatePath('/[username]')
 }

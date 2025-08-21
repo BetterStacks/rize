@@ -32,7 +32,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useQueryState } from 'nuqs'
@@ -183,11 +183,11 @@ const DialogSidebar = ({ options, active, setActive }: DialogSidebarProps) => {
 }
 
 const EditProfile = () => {
-  const { data, update } = useSession()
+  const { data } = useSession()
   const [isUpdating, setIsUpdating] = useState(false)
   const { data: profile } = useQuery({
-    queryKey: ['get-profile-by-username', data?.user?.username],
-    queryFn: () => getProfileByUsername(data?.user?.username as string),
+    queryKey: ['get-profile-by-username', (data?.user as any)?.username],
+    queryFn: () => getProfileByUsername((data?.user as any)?.username as string),
   })
   const {
     register,
@@ -218,11 +218,12 @@ const EditProfile = () => {
       setIsUpdating(false)
       toast.error('Failed to update profile')
     }
-    await update()
     await queryClient.invalidateQueries({
       queryKey: ['get-profile-by-username', profile?.username],
     })
-    revalidatePageOnClient(`/${data.username}`)
+    if (data.username) {
+      revalidatePageOnClient(`/${data.username}`)
+    }
     setIsUpdating(false)
     toast.dismiss()
     if (isAvailable) {
@@ -233,7 +234,7 @@ const EditProfile = () => {
   }
 
   const handleCheck = useDebouncedCallback(async (username: string) => {
-    if (username === data?.user?.username) {
+    if (username === (data?.user as any)?.username) {
       setIsAvailable(null)
       setIsSearching(false)
       return

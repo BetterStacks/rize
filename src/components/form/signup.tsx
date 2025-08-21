@@ -3,13 +3,14 @@ import { register } from '@/actions/user-actions'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { Loader } from 'lucide-react'
-import { signIn } from 'next-auth/react'
+import { signInWithGoogle, signInWithLinkedIn, signInWithCredentials } from '@/lib/auth-client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { z } from 'zod'
+import { getCookie } from 'cookies-next'
 import Logo from '../logo'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -28,6 +29,14 @@ const SignUp = () => {
   const [isSocialLoading, setIsSocialLoading] = useState<
     'google' | 'github' |  'linkedin' | null
   >(null)
+
+  // Log claimed username for debugging
+  useEffect(() => {
+    const claimedUsername = getCookie('username')
+    if (claimedUsername) {
+      console.log('Claimed username found in signup:', claimedUsername)
+    }
+  }, [])
   const form = useForm<TLoginValues>({
     resolver: zodResolver(RegisterSchema),
     defaultValues: {
@@ -39,12 +48,11 @@ const SignUp = () => {
   const { mutate: signup, isPending } = useMutation({
     mutationFn: register,
     onSuccess: async (data, payload) => {
-      await signIn('credentials', {
-        email: payload?.email,
-        password: payload?.password,
-        redirect: true,
-        redirectTo: '/onboarding',
-      })
+      if (payload?.email && payload?.password) {
+        await signInWithCredentials(payload.email, payload.password)
+      }
+      // Redirect to onboarding after successful signup
+      window.location.href = '/onboarding'
 
       toast.dismiss()
       toast.success('Account created successfully')
@@ -57,13 +65,25 @@ const SignUp = () => {
   const handleSocialSignIn = async (provider: 'google' | 'github' | 'linkedin') => {
     try {
       setIsSocialLoading(provider)
-      await signIn(provider, {
-        redirect: true,
-        redirectTo: '/onboarding',
-      })
-    } finally {
+      // Social sign-in will redirect to provider, then back to app
+      // better-auth handles the redirect flow automatically
+      switch (provider) {
+        case 'google':
+          await signInWithGoogle()
+          break
+        case 'linkedin':
+          await signInWithLinkedIn()
+          break
+        default:
+          throw new Error('Unsupported provider')
+      }
+      // No manual redirect needed - better-auth handles the OAuth flow
+    } catch (error: any) {
+      console.error('Social sign-in error:', error)
+      toast.error(error.message || 'Sign up failed')
       setIsSocialLoading(null)
     }
+    // Note: setIsSocialLoading(null) not called on success because the page will redirect
   }
 
   return (

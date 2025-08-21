@@ -3,7 +3,7 @@ import { queryClient } from '@/lib/providers'
 import { updateProfile } from '@/actions/profile-actions'
 import { getBase64Image, getCroppedImg } from '@/lib/utils'
 import { Loader } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import React, { FC, useEffect, useState } from 'react'
 import Cropper, { Area } from 'react-easy-crop'
 import toast from 'react-hot-toast'
@@ -24,7 +24,7 @@ type ChangeAvatarDialogProps = {
 
 const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
   const [isOpen, setIsOpen] = useAvatarDialog()
-  const { update, data: session } = useSession()
+  const { data: session } = useSession()
   const [image, setImage] = React.useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [rotation, setRotation] = useState(0)
@@ -137,9 +137,9 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
                 toast.error(resp?.error as string)
                 return
               }
-              await update()
+              // Session will update automatically with better-auth
               await queryClient.invalidateQueries({
-                queryKey: ['get-profile-by-username', session?.user?.username],
+                queryKey: ['get-profile-by-username', (session?.user as any)?.username],
               })
               toast.success('Profile picture updated successfully')
               setIsOpen(false)

@@ -1,7 +1,7 @@
 'use client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader } from 'lucide-react'
-import { signIn } from 'next-auth/react'
+import { signInWithGoogle, signInWithLinkedIn, signInWithCredentials } from '@/lib/auth-client'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -39,15 +39,25 @@ const Login = () => {
   const handleSocialSignIn = async (provider: 'google' | 'github' | 'linkedin') => {
     try {
       setIsSocialLoading(provider)
-      const data = await signIn(provider)
-      if (data?.error) {
-        toast.error(data.error)
-        return
+      // Social sign-in will redirect to provider, then back to app
+      // better-auth handles the redirect flow automatically  
+      switch (provider) {
+        case 'google':
+          await signInWithGoogle()
+          break
+        case 'linkedin':
+          await signInWithLinkedIn()
+          break
+        default:
+          throw new Error('Unsupported provider')
       }
-      toast.success('Logged in successfully')
-    } finally {
+      // No manual redirect needed - better-auth handles the OAuth flow
+    } catch (error: any) {
+      console.error('Social sign-in error:', error)
+      toast.error(error.message || 'Sign in failed')
       setIsSocialLoading(null)
     }
+    // Note: setIsSocialLoading(null) not called on success because the page will redirect
   }
 
   return (
@@ -128,16 +138,14 @@ const Login = () => {
         onSubmit={form.handleSubmit(async (values) => {
           try {
             setIsLoading(true)
-            const res = await signIn('credentials', {
-              email: values?.email,
-              password: values?.password,
-              redirect: false,
-            })
-            if (res?.error) {
-              toast.error(res.error)
+            const result = await signInWithCredentials(values.email, values.password)
+            if (result?.error) {
+              toast.error(result.error.message || 'Login failed')
               return
             }
             toast.success('Logged in successfully')
+          } catch (error: any) {
+            toast.error(error.message || 'Login failed')
           } finally {
             setIsLoading(false)
           }

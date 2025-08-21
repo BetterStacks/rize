@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { importFromGitHub, importFromLinkedIn } from '@/lib/profile-import'
 import { processImportedProfile } from '@/actions/import-actions'
@@ -8,7 +8,7 @@ import { eq, and } from 'drizzle-orm'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -27,19 +27,19 @@ export async function POST(request: NextRequest) {
       .where(
         and(
           eq(accounts.userId, session.user.id),
-          eq(accounts.provider, provider)
+          eq(accounts.providerId, provider) // Use correct column name
         )
       )
       .limit(1)
 
-    if (!accountData.length || !accountData[0].access_token) {
+    if (!accountData.length || !accountData[0].accessToken) {
       return NextResponse.json(
         { error: `No ${provider} account connected or access token missing` }, 
         { status: 400 }
       )
     }
 
-    const accessToken = accountData[0].access_token
+    const accessToken = accountData[0].accessToken // Use correct column name
     let importedData
 
     // Import data based on provider
@@ -85,25 +85,39 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
+    console.log('🔍 Getting import sources...')
+    const session = await getServerSession()
     
     if (!session?.user?.id) {
+      console.log('❌ No session or user ID')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get available import sources
-    const userAccounts = await db
-      .select({
-        provider: accounts.provider,
-        access_token: accounts.access_token
-      })
-      .from(accounts)
-      .where(eq(accounts.userId, session.user.id))
+    console.log('✅ Session found:', { userId: session.user.id })
+
+    // Get available import sources - handle case where no accounts exist
+    let userAccounts = []
+    try {
+      userAccounts = await db
+        .select({
+          providerId: accounts.providerId, // Use correct column name
+          accessToken: accounts.accessToken,
+        })
+        .from(accounts)
+        .where(eq(accounts.userId, session.user.id))
+        
+      console.log('✅ User accounts query result:', userAccounts)
+    } catch (dbError) {
+      console.error('Database query error:', dbError)
+      // Continue with empty accounts array
+    }
 
     const availableSources = {
-      github: userAccounts.some(acc => acc.provider === 'github' && acc.access_token),
-      linkedin: userAccounts.some(acc => acc.provider === 'linkedin' && acc.access_token),
+      github: userAccounts.some(acc => acc.providerId === 'github' && acc.accessToken),
+      linkedin: userAccounts.some(acc => acc.providerId === 'linkedin' && acc.accessToken),
     }
+
+    console.log('✅ Available sources:', availableSources)
 
     return NextResponse.json({
       success: true,

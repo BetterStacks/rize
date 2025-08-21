@@ -3,7 +3,7 @@ import { getRecentlyJoinedProfiles } from '@/actions/profile-actions'
 import { TProfile } from '@/lib/types'
 import { useDebouncedCallback } from '@mantine/hooks'
 import { useQuery } from '@tanstack/react-query'
-import { signOut, useSession } from 'next-auth/react'
+import { signOut, useSession } from '@/lib/auth-client'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useSearchDialog } from '../dialog-provider'
@@ -62,9 +62,9 @@ const SearchDialog = () => {
   const { theme, setTheme } = useTheme()
 
   const viewProfilePayload = {
-    displayName: session?.data?.user?.displayName,
-    username: session?.data?.user?.username,
-    profileImage: session?.data?.user?.profileImage,
+    displayName: (session?.data?.user as any)?.displayName || session?.data?.user?.name,
+    username: (session?.data?.user as any)?.username,
+    profileImage: (session?.data?.user as any)?.profileImage || session?.data?.user?.image,
     image: session?.data?.user?.image,
     name: session?.data?.user?.name,
   }
@@ -223,7 +223,10 @@ const SearchDialog = () => {
             <CommandGroup heading="🏠 Quick Actions">
               <CommandItem
                 onSelect={() => {
-                  router.push(`/${session?.data?.user?.username}`)
+                  const username = (session?.data?.user as any)?.username
+                  if (username) {
+                    router.push(`/${username}`)
+                  }
                   setOpen(false)
                 }}
               >
@@ -265,7 +268,7 @@ const SearchDialog = () => {
                     : 'Switch to light mode'}
                 </span>
               </CommandItem>
-              {session?.status === 'authenticated' && (
+              {session?.data && (
                 <CommandItem
                   value="Logout"
                   onSelect={() => {
@@ -284,7 +287,7 @@ const SearchDialog = () => {
             <CommandGroup heading="🌟 Recently Joined" className="">
               {data && data.length > 0 &&
                 data
-                  ?.filter((p) => p?.username !== session?.data?.user?.username)
+                  ?.filter((p) => p?.username !== (session?.data?.user as any)?.username)
                   ?.slice(0, 4)
                   ?.map((profile) => {
                     return (

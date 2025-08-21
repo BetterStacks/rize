@@ -2,7 +2,7 @@
 'use server'
 
 import { education } from '@/db/schema'
-import { auth } from '@/lib/auth'
+import { requireProfile } from '@/lib/auth'
 import db from '@/lib/db'
 import { TEducation } from '@/lib/types'
 import { and, eq } from 'drizzle-orm'
@@ -22,11 +22,8 @@ const educationSchema = z.object({
 })
 
 export async function upsertEducation(data: z.infer<typeof educationSchema>) {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
-  const profileId = session.user.profileId
+  const profileId = await requireProfile()
+  
   const validated = educationSchema.parse(data)
   if (validated.id) {
     await db
@@ -34,7 +31,7 @@ export async function upsertEducation(data: z.infer<typeof educationSchema>) {
       .set({ ...validated, updatedAt: new Date() })
       .where(eq(education.id, validated.id))
   } else {
-    await db.insert(education).values({ ...validated, profileId: profileId })
+    await db.insert(education).values({ ...validated, profileId })
   }
 }
 
@@ -53,14 +50,11 @@ export const getAllEducation = async (username: string) => {
   return allEducation as TEducation[]
 }
 export const getEducationById = async (id: string) => {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
+  const profileId = await requireProfile()
   const data = await db
     .select()
     .from(education)
-    .where(eq(education.id, id as string))
+    .where(and(eq(education.id, id as string), eq(education.profileId, profileId)))
     .limit(1)
   if (data?.length === 0) {
     return null
@@ -69,11 +63,7 @@ export const getEducationById = async (id: string) => {
 }
 
 export async function deleteEducation(id: string) {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
-  const profileId = session.user.profileId
+  const profileId = await requireProfile()
   await db
     .delete(education)
     .where(and(eq(education.id, id), eq(education.profileId, profileId)))

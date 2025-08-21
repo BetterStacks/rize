@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 
 const usernameSchema = z.object({
   username: z
@@ -28,22 +28,20 @@ const usernameSchema = z.object({
 })
 
 export function UsernameForm() {
-  const { data: session, update } = useSession()
+  const { data: session } = useSession()
 
   const form = useForm<z.infer<typeof usernameSchema>>({
     resolver: zodResolver(usernameSchema),
     defaultValues: {
-      username: session?.user?.username || '',
+      username: (session?.user as any)?.username || '',
     },
   })
 
   async function onSubmit(values: z.infer<typeof usernameSchema>) {
     try {
       // Add your API call to update username
-      await update({
-        ...session,
-        user: { ...session?.user, username: values.username },
-      })
+      // Update username logic here
+      console.log('Username update:', values)
     } catch (error) {
       console.error('Failed to update username:', error)
     }

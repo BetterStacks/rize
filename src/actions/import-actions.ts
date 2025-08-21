@@ -1,6 +1,6 @@
 'use server'
 
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import db from '@/lib/db'
 import { profile, projects, experience, education, socialLinks } from '@/db/schema'
 import { eq } from 'drizzle-orm'
@@ -12,7 +12,7 @@ import { ImportedProfile, generateEnhancedBio, generateUsername } from '@/lib/pr
  */
 export async function processImportedProfile(importedData: ImportedProfile) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     
     if (!session?.user?.id) {
       return { success: false, error: 'Unauthorized' }
@@ -174,7 +174,7 @@ export async function processImportedProfile(importedData: ImportedProfile) {
  */
 export async function getImportSources() {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     
     if (!session?.user?.id) {
       return { success: false, error: 'Unauthorized' }

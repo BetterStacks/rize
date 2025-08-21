@@ -5,7 +5,7 @@ import { queryClient } from '@/lib/providers'
 import { getBase64Image, getCroppedImg } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { Camera, Palette, Upload, Loader, ArrowLeft } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import React, { FC, useEffect, useState } from 'react'
 import Cropper, { Area } from 'react-easy-crop'
 import toast from 'react-hot-toast'
@@ -30,7 +30,7 @@ type Step = 'selection' | 'crop' | 'creative'
 
 const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }) => {
   const [isOpen, setIsOpen] = useAvatarDialog()
-  const { update, data: session } = useSession()
+  const { data: session } = useSession()
   const [step, setStep] = useState<Step>('selection')
   const [selectedMethod, setSelectedMethod] = useState<'upload' | 'creative'>('upload')
   
@@ -132,9 +132,8 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
         return
       }
 
-      await update()
       await queryClient.invalidateQueries({
-        queryKey: ['get-profile-by-username', session?.user?.username],
+        queryKey: ['get-profile-by-username', (session?.user as any)?.username],
       })
 
       toast.success('Profile picture updated successfully')
@@ -164,9 +163,8 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
         return
       }
 
-      await update()
       await queryClient.invalidateQueries({
-        queryKey: ['get-profile-by-username', session?.user?.username],
+        queryKey: ['get-profile-by-username', (session?.user as any)?.username],
       })
 
       toast.success('Profile picture updated successfully')

@@ -1,7 +1,7 @@
 'use server'
 
 import { storyElements, profile } from '@/db/schema'
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import db from '@/lib/db'
 import { eq, and, desc, asc, sql } from 'drizzle-orm'
 import { cache } from 'react'
@@ -54,7 +54,7 @@ export const getStoryElementsByUsername = cache(async (username: string) => {
 // Get all story elements for authenticated user (including private ones)
 export const getMyStoryElements = cache(async () => {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return { success: false, error: 'Authentication required' }
     }
@@ -97,7 +97,7 @@ export const getMyStoryElements = cache(async () => {
 // Create a new story element
 export async function createStoryElement(data: z.infer<typeof storyElementSchema>) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return { success: false, error: 'Authentication required' }
     }
@@ -177,7 +177,7 @@ export async function createStoryElement(data: z.infer<typeof storyElementSchema
 // Update a story element
 export async function updateStoryElement(data: z.infer<typeof updateStoryElementSchema>) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return { success: false, error: 'Authentication required' }
     }
@@ -239,7 +239,7 @@ export async function updateStoryElement(data: z.infer<typeof updateStoryElement
 // Delete a story element
 export async function deleteStoryElement(elementId: string) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return { success: false, error: 'Authentication required' }
     }
@@ -302,7 +302,7 @@ export async function deleteStoryElement(elementId: string) {
 // Reorder story elements
 export async function reorderStoryElements(elementIds: string[]) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return { success: false, error: 'Authentication required' }
     }
@@ -361,7 +361,7 @@ export async function reorderStoryElements(elementIds: string[]) {
 // Toggle visibility of a story element
 export async function toggleStoryElementVisibility(elementId: string, isPublic: boolean) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     if (!session?.user?.id) {
       return { success: false, error: 'Authentication required' }
     }

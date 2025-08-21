@@ -18,7 +18,7 @@ import {
   Menu,
   User2,
 } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Button } from '../ui/button'
@@ -97,7 +97,7 @@ const ExploreFeed = () => {
     {
       icon: <User2 className="size-5 opacity-80 " strokeWidth={1.4} />,
       name: 'Account',
-      href: `/${session?.data?.user?.username}`,
+      href: `/${(session?.data?.user as any)?.username}`,
       onClick: () => {},
     },
   ]

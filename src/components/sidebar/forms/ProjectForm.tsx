@@ -13,7 +13,7 @@ import { cn, isEqual } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Loader, Upload, X } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import Image from 'next/image'
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
@@ -47,9 +47,9 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
 
   // Fetch existing project data
   const { data: defaultValues, isLoading: isFetchingValues } = useQuery({
-    queryKey: ['get-project-by-id', session?.data?.user?.username, id],
+    queryKey: ['get-project-by-id', (session?.data?.user as any)?.username, id],
     enabled: !!id,
-    queryFn: () => getProjectByID(session?.data?.user?.username as string, id as string),
+    queryFn: () => getProjectByID((session?.data?.user as any)?.username as string, id as string),
   })
 
   const form = useForm<ProjectFormData>({

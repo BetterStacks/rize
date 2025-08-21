@@ -10,7 +10,7 @@ import {
   posts,
   profile,
 } from '@/db/schema'
-import { auth } from '@/lib/auth'
+import { requireAuth, requireProfile, requireAuthWithProfile } from '@/lib/auth'
 import db from '@/lib/db'
 import {
   AddCommentPayload,
@@ -29,7 +29,15 @@ const PAGE_SIZE = 6
 
 export const getExploreFeed = async (pageParam: number = 0) => {
   const { ...rest } = getTableColumns(posts)
-  const session = await auth()
+  // Optional auth - show different content for logged in vs anonymous users
+  let session = null
+  let userProfileId = null
+  try {
+    session = await requireAuth()
+    userProfileId = session.user.profileId
+  } catch {
+    // User not logged in - continue with anonymous access
+  }
 
   const offset = pageParam * PAGE_SIZE
   const query = db
@@ -40,14 +48,14 @@ export const getExploreFeed = async (pageParam: number = 0) => {
       avatar: profile.profileImage,
       likeCount: sql<number>`COUNT(DISTINCT likes.profile_id)`.as('likesCount'),
       commentCount: sql<number>`COUNT(DISTINCT comments.id)`.as('commentCount'),
-      liked: session
-        ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${session.user.profileId}), false)`.as(
+      liked: session && userProfileId
+        ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${userProfileId}), false)`.as(
             'liked'
           )
         : sql<boolean>`false`.as('liked'),
 
-      commented: session
-        ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${session.user.profileId}), false)`.as(
+      commented: session && userProfileId
+        ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${userProfileId}), false)`.as(
             'commented'
           )
         : sql<boolean>`false`.as('commented'),
@@ -109,11 +117,19 @@ export const getExploreFeed = async (pageParam: number = 0) => {
   }
 }
 export const getUserPosts = async (username: string) => {
-  const profileId = await getProfileIdByUsername(username)
-  if (!profileId) {
+  const targetProfileId = await getProfileIdByUsername(username)
+  if (!targetProfileId) {
     throw new Error('Profile not found')
   }
-  const session = await auth()
+  // Optional auth - show different content for logged in vs anonymous users
+  let session = null
+  let currentUserProfileId = null
+  try {
+    session = await requireAuth()
+    currentUserProfileId = session.user.profileId
+  } catch {
+    // User not logged in - continue with anonymous access
+  }
   const { ...rest } = getTableColumns(posts)
   const postsData = await db
     .select({
@@ -123,14 +139,14 @@ export const getUserPosts = async (username: string) => {
       avatar: profile.profileImage,
       likeCount: sql<number>`COUNT(DISTINCT likes.profile_id)`.as('likesCount'),
       commentCount: sql<number>`COUNT(DISTINCT comments.id)`.as('commentCount'),
-      liked: session
-        ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${session.user.profileId}), false)`.as(
+      liked: session && currentUserProfileId
+        ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${currentUserProfileId}), false)`.as(
             'liked'
           )
         : sql<boolean>`false`.as('liked'),
 
-      commented: session
-        ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${session.user.profileId}), false)`.as(
+      commented: session && currentUserProfileId
+        ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${currentUserProfileId}), false)`.as(
             'commented'
           )
         : sql<boolean>`false`.as('commented'),
@@ -166,7 +182,7 @@ export const getUserPosts = async (username: string) => {
     .leftJoin(comments, eq(posts.id, comments.postId))
     .leftJoin(media, eq(postMedia.mediaId, media.id))
     .leftJoin(postLinks, eq(posts.id, postLinks.postId))
-    .where(eq(posts.profileId, profileId?.id))
+    .where(eq(posts.profileId, targetProfileId.id))
     .groupBy(
       posts.id,
       profile.username,
@@ -187,20 +203,25 @@ export const getUserPosts = async (username: string) => {
 }
 
 export const deletePost = async (postId: string) => {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
+  const userProfileId = await requireProfile()
   await db
     .delete(posts)
     .where(
-      and(eq(posts.id, postId), eq(posts.profileId, session.user.profileId))
+      and(eq(posts.id, postId), eq(posts.profileId, userProfileId))
     )
 }
 
 export const getPostById = async (id: string) => {
   const { ...rest } = getTableColumns(posts)
-  const session = await auth()
+  // Optional auth - show different content for logged in vs anonymous users
+  let session = null
+  let currentUserProfileId = null
+  try {
+    session = await requireAuth()
+    currentUserProfileId = session.user.profileId
+  } catch {
+    // User not logged in - continue with anonymous access
+  }
 
   const query = await db
     .select({
@@ -210,14 +231,14 @@ export const getPostById = async (id: string) => {
       avatar: profile.profileImage,
       likeCount: sql<number>`COUNT(DISTINCT likes.profile_id)`.as('likesCount'),
       commentCount: sql<number>`COUNT(DISTINCT comments.id)`.as('commentCount'),
-      liked: session
-        ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${session.user.profileId}), false)`.as(
+      liked: session && currentUserProfileId
+        ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${currentUserProfileId}), false)`.as(
             'liked'
           )
         : sql<boolean>`false`.as('liked'),
 
-      commented: session
-        ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${session.user.profileId}), false)`.as(
+      commented: session && currentUserProfileId
+        ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${currentUserProfileId}), false)`.as(
             'commented'
           )
         : sql<boolean>`false`.as('commented'),
@@ -281,11 +302,7 @@ const newPostSchema = z.object({
 })
 
 export const createPost = async (payload: z.infer<typeof newPostSchema>) => {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
-  const profileId = session.user.profileId
+  const userProfileId = await requireProfile()
   const { success, data } = newPostSchema.safeParse(payload)
   if (!success) {
     throw new Error('Invalid payload')
@@ -295,7 +312,7 @@ export const createPost = async (payload: z.infer<typeof newPostSchema>) => {
       .insert(posts)
       .values({
         content: data.content || null,
-        profileId: profileId,
+        profileId: userProfileId,
       })
       .returning({ id: posts.id })
 
@@ -321,7 +338,7 @@ export const createPost = async (payload: z.infer<typeof newPostSchema>) => {
         .values({
           url: data?.file?.url as string,
           type: isImageUrl(data?.file?.url as string) ? 'image' : 'video',
-          profileId: profileId,
+          profileId: userProfileId,
           height: data?.file?.height as number,
           width: data?.file?.width as number,
         })
@@ -339,14 +356,11 @@ export const createPost = async (payload: z.infer<typeof newPostSchema>) => {
 }
 
 export async function toggleLike(postId: string, like: boolean) {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
+  const userProfileId = await requireProfile()
   if (like) {
     await db
       .insert(likes)
-      .values({ postId, profileId: session?.user?.profileId })
+      .values({ postId, profileId: userProfileId })
       .onConflictDoNothing()
   } else {
     await db
@@ -354,21 +368,18 @@ export async function toggleLike(postId: string, like: boolean) {
       .where(
         and(
           eq(likes.postId, postId),
-          eq(likes.profileId, session?.user?.profileId)
+          eq(likes.profileId, userProfileId)
         )
       )
   }
 }
 
 export async function toggleBookmark(postId: string, bookmark: boolean) {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
+  const userProfileId = await requireProfile()
   if (bookmark) {
     await db
       .insert(bookmarks)
-      .values({ postId, profileId: session?.user?.profileId })
+      .values({ postId, profileId: userProfileId })
       .onConflictDoNothing()
   } else {
     await db
@@ -376,7 +387,7 @@ export async function toggleBookmark(postId: string, bookmark: boolean) {
       .where(
         and(
           eq(bookmarks.postId, postId),
-          eq(bookmarks.profileId, session?.user?.profileId)
+          eq(bookmarks.profileId, userProfileId)
         )
       )
   }
@@ -455,13 +466,10 @@ export const addComment = async (payload: TAddNewComment) => {
 }
 
 export const deleteComment = async (id: string) => {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Unauthorized')
-  }
+  const userProfileId = await requireProfile()
   await db
     .delete(comments)
     .where(
-      and(eq(comments.id, id), eq(comments.profileId, session.user.profileId))
+      and(eq(comments.id, id), eq(comments.profileId, userProfileId))
     )
 }

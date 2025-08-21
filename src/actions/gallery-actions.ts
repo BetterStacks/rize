@@ -1,7 +1,7 @@
 'use server'
 
 import { gallery, galleryMedia, media } from '@/db/schema'
-import { auth } from '@/lib/auth'
+import { requireAuthWithProfile } from '@/lib/auth'
 import db from '@/lib/db'
 import { GalleryItemProps, TUploadFilesResponse } from '@/lib/types'
 import { isImageUrl } from '@/lib/utils'
@@ -9,21 +9,18 @@ import { eq, getTableColumns } from 'drizzle-orm'
 import { getProfileIdByUsername } from './profile-actions'
 
 export const getGalleryId = async () => {
-  const session = await auth()
-  if (!session || !session?.user?.profileId) {
-    throw new Error('Session not found')
-  }
+  const { profileId } = await requireAuthWithProfile()
   const galleryId = await db
     .select({
       id: gallery.id,
     })
     .from(gallery)
-    .where(eq(gallery.profileId, session?.user?.profileId as string))
+    .where(eq(gallery.profileId, profileId))
 
   if (galleryId.length === 0) {
     const newGallery = await db
       .insert(gallery)
-      .values({ layout: 'default', profileId: session?.user?.profileId })
+      .values({ layout: 'default', profileId })
       .returning({ id: gallery.id })
     return newGallery[0]
   }
@@ -54,10 +51,7 @@ export const getGalleryItems = async (username: string) => {
 }
 
 export const addGalleryItem = async (payload: TUploadFilesResponse) => {
-  const session = await auth()
-  if (!session || !session?.user?.profileId) {
-    throw new Error('Session not found')
-  }
+  const { profileId } = await requireAuthWithProfile()
   const { id } = await getGalleryId()
   if (!id) {
     throw new Error('Gallery not found')
@@ -67,7 +61,7 @@ export const addGalleryItem = async (payload: TUploadFilesResponse) => {
     .values({
       url: payload?.url,
       type: isImageUrl(payload?.url) ? 'image' : 'video',
-      profileId: session?.user?.profileId,
+      profileId,
       height: payload?.height,
       width: payload?.width,
     })
@@ -89,10 +83,7 @@ export const addGalleryItem = async (payload: TUploadFilesResponse) => {
 }
 
 export const removeGalleryItem = async (id: string) => {
-  const session = await auth()
-  if (!session || !session?.user?.profileId) {
-    throw new Error('Session not found')
-  }
+  const { profileId } = await requireAuthWithProfile()
   if (!id) {
     throw new Error('Provide an ID')
   }

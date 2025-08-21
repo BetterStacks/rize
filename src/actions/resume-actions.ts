@@ -1,5 +1,5 @@
 'use server'
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import db from '@/lib/db'
 import { education, experience, profile, projects } from '@/db/schema'
 import { ExtractedData } from '@/lib/resume-parser'
@@ -18,7 +18,7 @@ cloudinary.config({
  */
 export async function processResumeData(resumeData: ExtractedData) {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     
     if (!session?.user?.id) {
       return { success: false, error: 'Unauthorized' }
@@ -218,7 +218,7 @@ function parseDate(dateString?: string): Date | null {
  */
 export async function getResumeProcessingStatus() {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     
     if (!session?.user?.id) {
       return { success: false, error: 'Unauthorized' }
@@ -263,7 +263,7 @@ export async function getResumeProcessingStatus() {
  */
 export async function clearResumeData() {
   try {
-    const session = await auth()
+    const session = await getServerSession()
     
     if (!session?.user?.id) {
       return { success: false, error: 'Unauthorized' }

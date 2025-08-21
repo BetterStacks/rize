@@ -5,7 +5,7 @@ import {
   profileSections,
   users,
 } from '@/db/schema'
-import { auth } from '@/lib/auth'
+import { requireAuth, requireAuthWithProfile, requireProfile } from '@/lib/auth'
 import db from '@/lib/db'
 import { GetProfileByUsername, profileSchema } from '@/lib/types'
 import {
@@ -23,41 +23,35 @@ import { z } from 'zod'
 
 export async function updateProfile(data: z.infer<typeof profileSchema>) {
   try {
-    const session = await auth()
-    if (!session) {
-      return { success: false, error: 'Session not found' }
-    }
+    const { session, profileId, userId } = await requireAuthWithProfile()
 
     const validatedFields = profileSchema.safeParse(data)
-
     if (!validatedFields.success) {
       return { success: false, error: 'Invalid profile data' }
     }
 
     const { email, isOnboarded, ...profileData } = validatedFields.data
-
     const userUpdates = { email, isOnboarded }
-    const profileUpdates = profileData
     
     // Update users table if there are user-related updates
-    if (userUpdates?.email || userUpdates?.isOnboarded) {
+    if (userUpdates?.email || userUpdates?.isOnboarded !== undefined) {
       await db
         .update(users)
         .set(userUpdates)
-        .where(eq(users.id, session?.user?.id))
+        .where(eq(users.id, userId))
     }
     
-    // Only update profile table if there are profile-related updates
-    if (Object.keys(profileUpdates).length > 0) {
+    // Update profile table if there are profile-related updates
+    if (Object.keys(profileData).length > 0) {
       await db
         .update(profile)
-        .set(profileUpdates)
-        .where(eq(profile.id, session?.user?.profileId))
+        .set(profileData)
+        .where(eq(profile.id, profileId))
     }
 
     return { success: true, error: null }
   } catch (error) {
-    return { success: false, error: 'Failed to update profile' }
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update profile' }
   }
 }
 
@@ -99,10 +93,7 @@ export const getProfileByUsername = async (username: string) => {
 }
 
 export const createProfile = async (username: string) => {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Session not found')
-  }
+  const session = await requireAuth()
 
   // Check if user already has a profile
   const existingProfile = await db
@@ -130,7 +121,7 @@ export const createProfile = async (username: string) => {
   const p = await db
     .insert(profile)
     .values({
-      userId: session?.user?.id,
+      userId: session.user.id,
       username: username.toLowerCase(),
     })
     .returning()
@@ -142,8 +133,7 @@ export const createProfile = async (username: string) => {
 }
 
 export const isUsernameAvailable = async (username: string) => {
-  const session = await auth()
-  
+  // Public endpoint - no authentication required
   const [user] = await db
     .select()
     .from(profile)
@@ -231,11 +221,7 @@ const sectionSchema = z.object({
 export async function updateSectionsAction(
   sections: z.infer<typeof sectionSchema>[]
 ) {
-  const session = await auth()
-  if (!session) {
-    throw new Error('Session not found')
-  }
-  const profileId = session.user.profileId
+  const profileId = await requireProfile()
 
   await Promise.all(
     sections.map((section, index) =>
@@ -272,7 +258,7 @@ export const getRecentlyJoinedProfiles = async (limit: number = 5) => {
 
 export const getRecentlyJoinedProfilesCached = cache(
   async (limit: number = 5) => {
-    const session = await auth()
+    const session = await requireAuth()
 
     return await db
       .select({
@@ -285,7 +271,9 @@ export const getRecentlyJoinedProfilesCached = cache(
       .from(profile)
       .innerJoin(users, eq(profile.userId, users.id))
       .where(
-        session ? not(eq(profile.username, session.user.username)) : undefined
+        session && session.user.username 
+          ? not(eq(profile.username, session.user.username)) 
+          : undefined
       )
       .orderBy(desc(profile.createdAt))
       .limit(limit)

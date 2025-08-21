@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import { v2 as cloudinary, UploadApiOptions } from 'cloudinary'
 import { NextRequest } from 'next/server'
 
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const data = await req.formData()
     const type = data.get('type') as string
     const file = data.getAll('file') as string[] // file
-    const session = await auth()
+    const session = await getServerSession()
     let options: UploadApiOptions = {}
     const results: string[] = []
 
