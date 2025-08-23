@@ -2,7 +2,7 @@
 
 import { initialValue } from '@/components/editor/utils'
 import { media, page, profile } from '@/db/schema'
-import { getServerSession } from '@/lib/auth'
+import { requireProfile, requireAuth } from '@/lib/auth'
 import db from '@/lib/db'
 import { TPage, TUploadFilesResponse } from '@/lib/types'
 import { and, eq, getTableColumns } from 'drizzle-orm'
@@ -10,10 +10,7 @@ import { getProfileIdByUsername } from './profile-actions'
 
 export const createPage = async (title?: string) => {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.profileId) {
-      throw new Error('Authentication required')
-    }
+    const profileId = await requireProfile()
 
     // Generate a more interesting default title
     const defaultTitles = [
@@ -33,7 +30,7 @@ export const createPage = async (title?: string) => {
       .values({
         title: randomTitle,
         content: JSON.stringify(initialValue),
-        profileId: session.user.profileId,
+        profileId: profileId,
       })
       .returning()
     if (p.length === 0) {
@@ -104,16 +101,13 @@ export const getPageById = async (id: string) => {
 export async function updatePageThumbnail(
   payload: TUploadFilesResponse & { pageId: string }
 ) {
-  const session = await getServerSession()
-  if (!session || !session?.user?.profileId) {
-    throw new Error('Session not found')
-  }
+  const profileId = await requireProfile()
   const newMedia = await db
     .insert(media)
     .values({
       url: payload?.url,
       type: 'image',
-      profileId: session?.user?.profileId,
+      profileId: profileId,
       height: payload?.height,
       width: payload?.width,
     })
@@ -136,10 +130,7 @@ export async function updatePageThumbnail(
 }
 
 export async function removePageThumbnail({ pageId }: { pageId: string }) {
-  const session = await getServerSession()
-  if (!session || !session?.user?.profileId) {
-    throw new Error('Session not found')
-  }
+  const profileId = await requireProfile()
 
   const newThumbnail = await db
     .update(page)
@@ -156,10 +147,7 @@ export async function removePageThumbnail({ pageId }: { pageId: string }) {
 
 export const deletePage = async (pageId: string) => {
   try {
-    const session = await getServerSession()
-    if (!session || !session?.user?.profileId) {
-      throw new Error('Unauthorized')
-    }
+    const profileId = await requireProfile()
 
     // First check if the page belongs to the user
     const existingPage = await db
@@ -172,7 +160,7 @@ export const deletePage = async (pageId: string) => {
       throw new Error('Page not found')
     }
 
-    if (existingPage[0].profileId !== session.user.profileId) {
+    if (existingPage[0].profileId !== profileId) {
       throw new Error('Unauthorized to delete this page')
     }
 

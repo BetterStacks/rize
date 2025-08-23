@@ -1,7 +1,7 @@
 'use server'
 
 import { storyElements, profile } from '@/db/schema'
-import { getServerSession } from '@/lib/auth'
+import { requireAuth, requireProfile, requireAuthWithProfile } from '@/lib/auth'
 import db from '@/lib/db'
 import { eq, and, desc, asc, sql } from 'drizzle-orm'
 import { cache } from 'react'
@@ -54,10 +54,7 @@ export const getStoryElementsByUsername = cache(async (username: string) => {
 // Get all story elements for authenticated user (including private ones)
 export const getMyStoryElements = cache(async () => {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
-      return { success: false, error: 'Authentication required' }
-    }
+    const session = await requireAuth()
 
     // First check if user has a profile
     const userProfile = await db
@@ -97,25 +94,11 @@ export const getMyStoryElements = cache(async () => {
 // Create a new story element
 export async function createStoryElement(data: z.infer<typeof storyElementSchema>) {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
-      return { success: false, error: 'Authentication required' }
-    }
+    const profileId = await requireProfile()
 
     const validatedFields = storyElementSchema.safeParse(data)
     if (!validatedFields.success) {
       return { success: false, error: validatedFields.error.format() }
-    }
-
-    // Get user's profile
-    const userProfile = await db
-      .select({ id: profile.id })
-      .from(profile)
-      .where(eq(profile.userId, session.user.id))
-      .limit(1)
-
-    if (!userProfile[0]) {
-      return { success: false, error: 'Profile not found' }
     }
 
     // Check if user already has this type of story element
@@ -123,7 +106,7 @@ export async function createStoryElement(data: z.infer<typeof storyElementSchema
       .select({ id: storyElements.id })
       .from(storyElements)
       .where(and(
-        eq(storyElements.profileId, userProfile[0].id),
+        eq(storyElements.profileId, profileId),
         eq(storyElements.type, validatedFields.data.type)
       ))
       .limit(1)
@@ -136,7 +119,7 @@ export async function createStoryElement(data: z.infer<typeof storyElementSchema
     const lastElement = await db
       .select({ order: storyElements.order })
       .from(storyElements)
-      .where(eq(storyElements.profileId, userProfile[0].id))
+      .where(eq(storyElements.profileId, profileId))
       .orderBy(desc(storyElements.order))
       .limit(1)
 
@@ -146,7 +129,7 @@ export async function createStoryElement(data: z.infer<typeof storyElementSchema
     const [newElement] = await db
       .insert(storyElements)
       .values({
-        profileId: userProfile[0].id,
+        profileId: profileId,
         type: validatedFields.data.type,
         title: validatedFields.data.title,
         content: validatedFields.data.content,
@@ -159,7 +142,7 @@ export async function createStoryElement(data: z.infer<typeof storyElementSchema
     const profileData = await db
       .select({ username: profile.username })
       .from(profile)
-      .where(eq(profile.id, userProfile[0].id))
+      .where(eq(profile.id, profileId))
       .limit(1)
 
     if (profileData[0]?.username) {
@@ -177,10 +160,7 @@ export async function createStoryElement(data: z.infer<typeof storyElementSchema
 // Update a story element
 export async function updateStoryElement(data: z.infer<typeof updateStoryElementSchema>) {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
-      return { success: false, error: 'Authentication required' }
-    }
+    const profileId = await requireProfile()
 
     const validatedFields = updateStoryElementSchema.safeParse(data)
     if (!validatedFields.success) {
@@ -196,10 +176,9 @@ export async function updateStoryElement(data: z.infer<typeof updateStoryElement
         profileId: storyElements.profileId 
       })
       .from(storyElements)
-      .innerJoin(profile, eq(profile.id, storyElements.profileId))
       .where(and(
         eq(storyElements.id, id),
-        eq(profile.userId, session.user.id)
+        eq(storyElements.profileId, profileId)
       ))
       .limit(1)
 
@@ -239,10 +218,7 @@ export async function updateStoryElement(data: z.infer<typeof updateStoryElement
 // Delete a story element
 export async function deleteStoryElement(elementId: string) {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
-      return { success: false, error: 'Authentication required' }
-    }
+    const profileId = await requireProfile()
 
     // Verify ownership
     const existingElement = await db
@@ -252,10 +228,9 @@ export async function deleteStoryElement(elementId: string) {
         order: storyElements.order 
       })
       .from(storyElements)
-      .innerJoin(profile, eq(profile.id, storyElements.profileId))
       .where(and(
         eq(storyElements.id, elementId),
-        eq(profile.userId, session.user.id)
+        eq(storyElements.profileId, profileId)
       ))
       .limit(1)
 
@@ -302,10 +277,7 @@ export async function deleteStoryElement(elementId: string) {
 // Reorder story elements
 export async function reorderStoryElements(elementIds: string[]) {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
-      return { success: false, error: 'Authentication required' }
-    }
+    const profileId = await requireProfile()
 
     // Verify all elements belong to the user
     const userElements = await db
@@ -314,8 +286,7 @@ export async function reorderStoryElements(elementIds: string[]) {
         profileId: storyElements.profileId 
       })
       .from(storyElements)
-      .innerJoin(profile, eq(profile.id, storyElements.profileId))
-      .where(eq(profile.userId, session.user.id))
+      .where(eq(storyElements.profileId, profileId))
 
     const userElementIds = userElements.map(el => el.id)
     const hasUnauthorized = elementIds.some(id => !userElementIds.includes(id))
@@ -361,10 +332,7 @@ export async function reorderStoryElements(elementIds: string[]) {
 // Toggle visibility of a story element
 export async function toggleStoryElementVisibility(elementId: string, isPublic: boolean) {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
-      return { success: false, error: 'Authentication required' }
-    }
+    const profileId = await requireProfile()
 
     // Verify ownership and update
     const result = await db
@@ -377,7 +345,7 @@ export async function toggleStoryElementVisibility(elementId: string, isPublic: 
       .where(and(
         eq(storyElements.id, elementId),
         eq(storyElements.profileId, profile.id),
-        eq(profile.userId, session.user.id)
+        eq(storyElements.profileId, profileId)
       ))
       .returning({ profileId: storyElements.profileId })
 

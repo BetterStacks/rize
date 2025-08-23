@@ -363,7 +363,7 @@ export async function seedProfiles(count: number = 100) {
         id: `seed-user-${actualIndex}`,
         name: profileData.displayName,
         email: email,
-        emailVerified: new Date(),
+        emailVerified: true,
         image: profileData.profileImage,
         isOnboarded: true,
       }).returning()

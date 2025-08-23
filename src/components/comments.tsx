@@ -15,7 +15,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import { useSession } from '@/lib/auth-client'
+import { useSession } from '@/hooks/useAuth'
 import Image from 'next/image'
 import React, { FC, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
@@ -182,15 +182,12 @@ const CommentForm: FC<TCommentForm> = ({ id }) => {
       <input {...getInputProps()} className="hidden" />
       {isDesktop && session?.data && (
         <div className="mr-4 self-start flex-shrink-0">
-          {/* {session?.status === "loading" ? ( */}
           <PostAvatar
             className="size-8"
-            avatar={(session?.data?.user as any)?.profileImage || session?.data?.user?.image}
-            name={(session?.data?.user as any)?.displayName || session?.data?.user?.name}
+            avatar={session?.data?.user?.profileImage || session?.data?.user?.image || ''}
+            name={session?.data?.user?.displayName || session?.data?.user?.name || ''}
           />
-          {/* ) : (
-            <Skeleton className="size-8 rounded-full aspect-square dark:bg-dark-border bg-neutral-200 " />
-          )} */}
+
         </div>
       )}
       <div className="flex-1  ">

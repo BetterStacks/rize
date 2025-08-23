@@ -1,7 +1,7 @@
 'use server'
 
 import { emailService } from '@/lib/email-service'
-import { getServerSession } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth'
 import db from '@/lib/db'
 import { emailPreferences, emailTracking } from '@/db/email-schema'
 import { users } from '@/db/schema'
@@ -66,10 +66,7 @@ export async function triggerWelcomeEmailSequence(userData: EmailJobPayload) {
  */
 export async function triggerFollowUpEmail(email: string) {
   try {
-    const session = await getServerSession()
-    if (!session?.user) {
-      throw new Error('Unauthorized')
-    }
+    const session = await requireAuth()
 
     // Get user data
     const user = await db
@@ -113,10 +110,7 @@ export async function updateEmailPreferences(preferences: {
   marketingEmails?: boolean;
 }) {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
-      throw new Error('Unauthorized')
-    }
+    const session = await requireAuth()
 
     await db
       .update(emailPreferences)
@@ -162,10 +156,7 @@ export async function unsubscribeFromEmails(token: string) {
  */
 export async function getEmailAnalytics(days: number = 30) {
   try {
-    const session = await getServerSession()
-    if (!session?.user) {
-      throw new Error('Unauthorized')
-    }
+    const session = await requireAuth()
 
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 

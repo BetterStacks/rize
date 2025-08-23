@@ -1,5 +1,5 @@
 'use server'
-import { getServerSession } from '@/lib/auth'
+import { requireProfile } from '@/lib/auth'
 import db from '@/lib/db'
 import { education, experience, profile, projects } from '@/db/schema'
 import { ExtractedData } from '@/lib/resume-parser'
@@ -18,24 +18,18 @@ cloudinary.config({
  */
 export async function processResumeData(resumeData: ExtractedData) {
   try {
-    const session = await getServerSession()
-    
-    if (!session?.user?.id) {
-      return { success: false, error: 'Unauthorized' }
-    }
+    const profileId = await requireProfile()
 
-    // Get user's profile
+    // Get user's profile for conditional updates
     const userProfile = await db
       .select()
       .from(profile)
-      .where(eq(profile.userId, session.user.id))
+      .where(eq(profile.id, profileId))
       .limit(1)
 
     if (!userProfile.length) {
       return { success: false, error: 'Profile not found' }
     }
-
-    const profileId = userProfile[0].id
 
     // Insert experience data
     if (resumeData.experience && resumeData.experience.length > 0) {
@@ -112,7 +106,9 @@ export async function processResumeData(resumeData: ExtractedData) {
     }
 
     // Revalidate the profile page
-    revalidatePath(`/${session.user.username}`)
+    if (userProfile[0].username) {
+      revalidatePath(`/${userProfile[0].username}`)
+    }
 
     return { 
       success: true, 
@@ -218,23 +214,18 @@ function parseDate(dateString?: string): Date | null {
  */
 export async function getResumeProcessingStatus() {
   try {
-    const session = await getServerSession()
-    
-    if (!session?.user?.id) {
-      return { success: false, error: 'Unauthorized' }
-    }
+    const profileId = await requireProfile()
 
+    // Get user's profile for additional data if needed
     const userProfile = await db
       .select()
       .from(profile)
-      .where(eq(profile.userId, session.user.id))
+      .where(eq(profile.id, profileId))
       .limit(1)
 
     if (!userProfile.length) {
       return { success: false, error: 'Profile not found' }
     }
-
-    const profileId = userProfile[0].id
 
     // Check if user has any resume-imported data
     const [experienceCount, educationCount] = await Promise.all([
@@ -263,23 +254,18 @@ export async function getResumeProcessingStatus() {
  */
 export async function clearResumeData() {
   try {
-    const session = await getServerSession()
-    
-    if (!session?.user?.id) {
-      return { success: false, error: 'Unauthorized' }
-    }
+    const profileId = await requireProfile()
 
+    // Get user's profile for additional data if needed
     const userProfile = await db
       .select()
       .from(profile)
-      .where(eq(profile.userId, session.user.id))
+      .where(eq(profile.id, profileId))
       .limit(1)
 
     if (!userProfile.length) {
       return { success: false, error: 'Profile not found' }
     }
-
-    const profileId = userProfile[0].id
 
     // Delete all experience and education data
     // Note: You might want to add a flag to distinguish resume-imported vs manually added data
@@ -289,7 +275,9 @@ export async function clearResumeData() {
     ])
 
     // Revalidate the profile page
-    revalidatePath(`/${session.user.username}`)
+    if (userProfile[0].username) {
+      revalidatePath(`/${userProfile[0].username}`)
+    }
 
     return { 
       success: true, 

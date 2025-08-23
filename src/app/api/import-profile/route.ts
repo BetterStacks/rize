@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     console.log('✅ Session found:', { userId: session.user.id })
 
     // Get available import sources - handle case where no accounts exist
-    let userAccounts = []
+    let userAccounts: { providerId: string; accessToken: string | null }[] = []
     try {
       userAccounts = await db
         .select({

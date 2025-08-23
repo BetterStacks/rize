@@ -1,4 +1,4 @@
-import { getServerSession } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { parseResumeContent } from '@/lib/resume-parser'
 // import { cleanupOldResumeFiles } from '@/actions/resume-actions'
@@ -12,7 +12,7 @@ cloudinary.config({
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await requireAuth()
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

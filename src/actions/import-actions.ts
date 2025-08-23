@@ -1,6 +1,6 @@
 'use server'
 
-import { getServerSession } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth'
 import db from '@/lib/db'
 import { profile, projects, experience, education, socialLinks } from '@/db/schema'
 import { eq } from 'drizzle-orm'
@@ -12,11 +12,7 @@ import { ImportedProfile, generateEnhancedBio, generateUsername } from '@/lib/pr
  */
 export async function processImportedProfile(importedData: ImportedProfile) {
   try {
-    const session = await getServerSession()
-    
-    if (!session?.user?.id) {
-      return { success: false, error: 'Unauthorized' }
-    }
+    const session = await requireAuth()
 
     // Get or create user profile
     const userProfile = await db
@@ -174,11 +170,7 @@ export async function processImportedProfile(importedData: ImportedProfile) {
  */
 export async function getImportSources() {
   try {
-    const session = await getServerSession()
-    
-    if (!session?.user?.id) {
-      return { success: false, error: 'Unauthorized' }
-    }
+    const session = await requireAuth()
 
     // Check which accounts are connected
     const accounts = await db.query.accounts.findMany({
@@ -186,9 +178,9 @@ export async function getImportSources() {
     })
 
     const availableSources = {
-      github: accounts.some(account => account.provider === 'github'),
-      linkedin: accounts.some(account => account.provider === 'linkedin'),
-      google: accounts.some(account => account.provider === 'google'),
+      github: accounts.some(account => account.providerId === 'github'),
+      linkedin: accounts.some(account => account.providerId === 'linkedin'),
+      google: accounts.some(account => account.providerId === 'google'),
     }
 
     return { 
