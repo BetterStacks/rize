@@ -120,7 +120,7 @@ async function createProfileFromExtractedData(data: ExtractedData) {
     id: userId,
     name: data.name!,
     email: data.email!,
-    emailVerified: new Date(),
+    emailVerified: true,
     image: `https://images.unsplash.com/photo-${1500000000 + Math.floor(Math.random() * 1000)}?w=400&h=400&fit=crop&crop=face`,
     isOnboarded: true,
   }).returning()

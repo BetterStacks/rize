@@ -145,11 +145,6 @@ export const isUsernameAvailable = async (username: string) => {
     return { available: true }
   }
 
-  // If current user owns this username, it's available for them to keep
-  if (session?.user?.profileId && user.id === session.user.profileId) {
-    return { available: true }
-  }
-
   // Username is taken by someone else
   return { available: false }
 }
