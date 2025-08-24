@@ -30,20 +30,51 @@ const EditorContextProvider = ({
   children,
   state,
 }: EditorContextProviderProps) => {
+  // Handle both HTML and JSON content formats
+  const getInitialContent = () => {
+    if (!state?.content) {
+      return JSON.stringify(initialValue)
+    }
+    
+    // If content starts with '<', it's HTML, convert to JSON for compatibility
+    if (state.content.startsWith('<')) {
+      // For now, just wrap HTML in a simple JSON structure
+      return JSON.stringify([{ type: 'paragraph', children: [{ text: state.content }] }])
+    }
+    
+    // Try to parse as JSON, fallback to default if invalid
+    try {
+      JSON.parse(state.content)
+      return state.content
+    } catch {
+      return JSON.stringify(initialValue)
+    }
+  }
+
   const [value, setValue] = useState<typeof TPage>({
     ...state,
     title: state?.title || 'Untitled',
-    content: state?.content || JSON.stringify(initialValue),
+    content: getInitialContent(),
   })
+  
   const editor = useMemo(
     () => withImages(withHistory(withReact(createEditor()))),
     []
   )
 
+  // Parse content safely for Slate
+  const getSlateContent = () => {
+    try {
+      return JSON.parse(value?.content as string)
+    } catch {
+      return initialValue
+    }
+  }
+
   return (
     <Slate
       editor={editor}
-      initialValue={JSON.parse(value?.content as string)}
+      initialValue={getSlateContent()}
       onValueChange={(value) =>
         setValue((prev) => ({ ...prev, content: JSON.stringify(value) }))
       }

@@ -1,4 +1,4 @@
-import Editor from '@/components/editor/editor'
+import TiptapPageEditor from '@/components/editor/tiptap-page-editor'
 import EditorContextProvider from '@/components/editor/editor-context'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { getServerSession } from '@/lib/auth'
@@ -48,8 +48,7 @@ const Page: FC<PageProps> = async ({ params }) => {
         contentMaxWidth="max-w-4xl"
         contentPadding="px-6"
       >
-        {/* @ts-expect-error */}
-        <Editor author={author} />
+        <TiptapPageEditor isMyPage={isMyPage} author={author || undefined} />
       </DashboardLayout>
     </EditorContextProvider>
   )
