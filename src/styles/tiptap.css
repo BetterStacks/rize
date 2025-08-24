@@ -178,6 +178,19 @@
   font-style: italic;
 }
 
+/* Blockquotes */
+.tiptap-editor blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: #6b7280;
+}
+
+.tiptap-editor blockquote p {
+  margin: 0.5rem 0;
+}
+
 .tiptap-editor u {
   text-decoration: underline;
 }

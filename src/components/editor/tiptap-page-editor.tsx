@@ -32,6 +32,8 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Dropcursor from '@tiptap/extension-dropcursor'
 import Gapcursor from '@tiptap/extension-gapcursor'
 import History from '@tiptap/extension-history'
+import Blockquote from '@tiptap/extension-blockquote'
+import Code from '@tiptap/extension-code'
 import { createLowlight } from 'lowlight'
 
 // Languages for syntax highlighting
@@ -52,7 +54,7 @@ lowlight.register('html', html)
 lowlight.register('json', json)
 
 type TiptapPageEditorProps = {
-  author: Partial<TProfile & { name: string; email: string; image: string }>;
+  author: Partial<TProfile & { name: string | null; email: string | null; image: string | null }>;
   isMyPage: boolean;
 };
 
@@ -87,6 +89,16 @@ const TiptapPageEditor = ({ author, isMyPage }: TiptapPageEditorProps) => {
       }),
       ListItem,
       History,
+      Blockquote.configure({
+        HTMLAttributes: {
+          class: 'tiptap-blockquote',
+        },
+      }),
+      Code.configure({
+        HTMLAttributes: {
+          class: 'tiptap-code',
+        },
+      }),
       TiptapImage.configure({
         HTMLAttributes: {
           class: 'max-w-full h-auto rounded-lg my-4',
@@ -242,8 +254,10 @@ const TiptapPageEditor = ({ author, isMyPage }: TiptapPageEditorProps) => {
   }, [editor])
 
   const handleTitleChange = useCallback((title: string) => {
-    setState((prev: any) => ({ ...prev, title }))
-  }, [setState])
+    if (state) {
+      setState({ ...state, title })
+    }
+  }, [setState, state])
 
 
   if (!state) {
