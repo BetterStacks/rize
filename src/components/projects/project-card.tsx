@@ -59,11 +59,17 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, isMine }) => {
         )}
         <div className="flex ml-4 flex-col">
           <div className="flex items-center justify-start ">
-            <Link href={project.url!} target="_blank">
+            {project.url ? (
+              <Link href={project.url} target="_blank">
+                <h2 className="font-medium tracking-tight leading-tight">
+                  {project.name}
+                </h2>
+              </Link>
+            ) : (
               <h2 className="font-medium tracking-tight leading-tight">
                 {project.name}
               </h2>
-            </Link>
+            )}
           </div>
           <p className="opacity-80 text-sm leading-tight">
             {project.description}

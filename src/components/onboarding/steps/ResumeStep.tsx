@@ -201,7 +201,7 @@ export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
         </Card>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex mt-8 gap-3">
         <Button
           variant="outline"
           onClick={handleSkip}

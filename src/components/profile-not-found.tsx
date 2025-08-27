@@ -25,12 +25,7 @@ const ProfileNotFound: FC<ProfileNotFoundProps> = ({ username }) => {
   }
 
   return (
-    <>
-      <head>
-        <title>Profile Not Found - Rize</title>
-        <meta name="robots" content="noindex" />
-      </head>
-      <div className="flex flex-col items-center justify-start relative pt-24 h-[96vh] md:h-screen overflow-hidden w-full text-center px-4">
+    <div className="flex flex-col items-center justify-start relative pt-24 h-[96vh] md:h-screen overflow-hidden w-full text-center px-4">
         <Logo className="size-12 md:size-14 rounded-2xl mb-2" />
 
         <span className="text-neutral-500 mb-4 dark:text-neutral-400 mt-4 max-w-md">
@@ -120,7 +115,6 @@ const ProfileNotFound: FC<ProfileNotFoundProps> = ({ username }) => {
           </div>
         </div>
       </div>
-    </>
   )
 }
 
