@@ -1,9 +1,9 @@
-import ExploreFeed from '@/components/explore/explore-feed'
+import ExploreRedesigned from '@/components/explore/explore-redesigned'
 
 const Page = async () => {
   return (
     <div>
-      <ExploreFeed />
+      <ExploreRedesigned />
     </div>
   )
 }

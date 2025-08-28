@@ -239,7 +239,7 @@ export default function OnboardingFlow() {
           formData={formData}
           onNext={(interests: string[]) => {
             setFormData((prev) => ({ ...(prev as any), interests }))
-            setCurrentStep(6)
+            setCurrentStep(5)
           }}
         />
       ),
@@ -253,7 +253,7 @@ export default function OnboardingFlow() {
             if (resumeData) {
               setFormData((prev) => ({ ...(prev as any), resumeData }))
             }
-            setCurrentStep(7)
+            setCurrentStep(6)
           }}
         />
       ),
