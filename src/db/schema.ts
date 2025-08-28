@@ -469,3 +469,82 @@ export const verification = pgTable('verification', {
   createdAt: timestamp('createdAt').defaultNow(),
   updatedAt: timestamp('updatedAt').defaultNow(),
 })
+
+// Analytics tables
+export const profileViews = pgTable('profile_views', {
+  id: uuid('id')
+    .primaryKey()
+    .$defaultFn(() => v4()),
+  profileId: uuid('profile_id')
+    .notNull()
+    .references(() => profile.id, { onDelete: 'cascade' }),
+  viewerProfileId: uuid('viewer_profile_id')
+    .references(() => profile.id, { onDelete: 'cascade' }), // null if anonymous
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  referrer: text('referrer'),
+  country: text('country'),
+  city: text('city'),
+  viewedAt: timestamp('viewed_at').notNull().defaultNow(),
+})
+
+export const engagementMetrics = pgTable('engagement_metrics', {
+  id: uuid('id')
+    .primaryKey()
+    .$defaultFn(() => v4()),
+  profileId: uuid('profile_id')
+    .notNull()
+    .references(() => profile.id, { onDelete: 'cascade' }),
+  date: timestamp('date').notNull().defaultNow(),
+  totalViews: integer('total_views').notNull().default(0),
+  uniqueViews: integer('unique_views').notNull().default(0),
+  totalLikes: integer('total_likes').notNull().default(0),
+  totalComments: integer('total_comments').notNull().default(0),
+  totalBookmarks: integer('total_bookmarks').notNull().default(0),
+  profileClicks: integer('profile_clicks').notNull().default(0), // clicks on social links, projects, etc.
+})
+
+export const clickTracking = pgTable('click_tracking', {
+  id: uuid('id')
+    .primaryKey()
+    .$defaultFn(() => v4()),
+  profileId: uuid('profile_id')
+    .notNull()
+    .references(() => profile.id, { onDelete: 'cascade' }),
+  elementType: varchar('element_type', { length: 50 }).notNull(), // 'social_link', 'project', 'writing', 'email', etc.
+  elementId: uuid('element_id'), // reference to specific element (project, social link, etc.)
+  clickedAt: timestamp('clicked_at').notNull().defaultNow(),
+  clickerProfileId: uuid('clicker_profile_id')
+    .references(() => profile.id, { onDelete: 'cascade' }), // null if anonymous
+  ipAddress: text('ip_address'),
+})
+
+// Analytics relations
+const profileViewsRelations = relations(profileViews, ({ one }) => ({
+  profile: one(profile, {
+    fields: [profileViews.profileId],
+    references: [profile.id],
+  }),
+  viewer: one(profile, {
+    fields: [profileViews.viewerProfileId],
+    references: [profile.id],
+  }),
+}))
+
+const engagementMetricsRelations = relations(engagementMetrics, ({ one }) => ({
+  profile: one(profile, {
+    fields: [engagementMetrics.profileId],
+    references: [profile.id],
+  }),
+}))
+
+const clickTrackingRelations = relations(clickTracking, ({ one }) => ({
+  profile: one(profile, {
+    fields: [clickTracking.profileId],
+    references: [profile.id],
+  }),
+  clicker: one(profile, {
+    fields: [clickTracking.clickerProfileId],
+    references: [profile.id],
+  }),
+}))
