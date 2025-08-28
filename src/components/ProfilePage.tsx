@@ -16,6 +16,7 @@ import UserProfile from './profile/user-profile'
 import Walkthrough from './walkthrough'
 import ScrollFixWrapper from './scroll-fix-wrapper'
 import ProfileNotFound from './profile-not-found'
+import ViewTracker from './analytics/ViewTracker'
 
 type Props = {
   username: string;
@@ -59,6 +60,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
 
   return (
     <ScrollFixWrapper>
+      <ViewTracker username={username} />
       <SectionContextProvider
         isMine={isMine}
         gallery={gallery}

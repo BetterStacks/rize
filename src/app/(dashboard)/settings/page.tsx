@@ -3,8 +3,10 @@ import { ProfileForm } from '@/components/settings/ProfileForm'
 import { StoryElementsForm } from '@/components/settings/StoryElementsForm'
 import { ResumeForm } from '@/components/settings/ResumeForm'
 import { redirect } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, BarChart3 } from 'lucide-react'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const Page = async () => {
   const session = await getServerSession()
@@ -32,6 +34,26 @@ const Page = async () => {
           <p className="text-muted-foreground">Manage your profile, story, and resume</p>
         </div>
         
+        {/* Analytics Card */}
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Analytics Dashboard
+            </CardTitle>
+            <CardDescription>
+              Track your profile views, engagement metrics, and visitor insights
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/settings/analytics">
+              <Button variant="default" className="w-full">
+                View Analytics Dashboard
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
         <ProfileForm />
         <StoryElementsForm />
         <ResumeForm />
