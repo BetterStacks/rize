@@ -17,9 +17,9 @@ export function FormCard({ title, description, children, className }: FormCardPr
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={`px-4 mt-6 ${className || ''}`}
+      className={`px-4 ${className || ''}`}
     >
-      <Card className="bg-white w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
+      <Card className="bg-white w-full mt-6 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl font-medium dark:text-white">
             {title}

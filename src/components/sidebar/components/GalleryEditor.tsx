@@ -183,9 +183,9 @@ export function GalleryEditor() {
   }
 
   return (
-    <div className="h-full overflow-hidden max-w-sm w-full pt-6">
-      <div className="px-2">
-        <Card className="bg-white gallery-editor w-full mb-6 mt-4 shadow-lg dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
+    <div className="h-full overflow-hidden max-w-sm w-full">
+      <div className="px-2 pt-10">
+        <Card className="bg-white gallery-editor w-full mb-6 mt-6 shadow-lg dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl font-medium dark:text-white">
               Add To Gallery
