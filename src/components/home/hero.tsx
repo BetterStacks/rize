@@ -10,7 +10,7 @@ import {
   Variants,
 } from 'framer-motion'
 import { Star } from 'lucide-react'
-import { useSession } from '@/lib/auth-client'
+import { useSession } from '@/hooks/useAuth'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -236,6 +236,7 @@ const HeroSection = () => {
   const imageContainerRef = useRef(null)
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const isLoggedIn = !!session?.data
+  const isSessionLoading = session.isLoading
   const { scrollYProgress } = useScroll({
     axis: 'y',
     // offset: ["start end", "end end"],
@@ -273,24 +274,30 @@ const HeroSection = () => {
   const scrollLenghtPerProfile = 100
   const profileContainerHeight = displayNames?.length * scrollLenghtPerProfile
 
+  console.log("session", session)
+
   return (
     <div
       ref={imageContainerRef}
       className={cn(
         'w-full min-h-screen  flex flex-col items-center justify-center  ',
-        !isDesktop && 'relative overflow-hidden'
+        !isDesktop && 'relative overflow-hidden',
         // isScreen4k && "overflow-auto"
       )}
     >
-      {session?.data?.user ? (
+      {isSessionLoading ? (
+        <div className="absolute top-4 right-4 z-50">
+          <div className="size-10 md:size-12 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
+        </div>
+      ) : session?.data?.user ? (
         <Link
           className="absolute top-4 right-4"
           prefetch
-          href={`/${(session?.data?.user as any)?.username}`}
+          href={`/${session?.data?.user?.username || 'profile'}`}
         >
           <div className="z-50">
             <CreativeAvatar
-              src={(session?.data?.user as any)?.profileImage || session?.data?.user?.image || null}
+              src={session?.data?.user?.profileImage || session?.data?.user?.image || null}
               name={session?.data?.user?.name || 'User'}
               size="md"
               variant="auto"

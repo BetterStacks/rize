@@ -207,6 +207,30 @@ export const getProfileByUserId = async (userId: string) => {
   return userProfile[0]
 }
 
+export const getCurrentUserProfile = async () => {
+  const session = await requireAuth()
+  const { ...rest } = getTableColumns(profile)
+  
+  const userProfile = await db
+    .select({
+      ...rest,
+      email: users.email,
+      image: users.image,
+      name: users.name,
+      isOnboarded: users.isOnboarded,
+    })
+    .from(users)
+    .leftJoin(profile, eq(profile.userId, users.id))
+    .where(eq(users.id, session.user.id))
+    .limit(1)
+
+  if (!userProfile || userProfile.length === 0) {
+    return null
+  }
+
+  return userProfile[0]
+}
+
 const sectionSchema = z.object({
   slug: z.string(),
   enabled: z.boolean(),
