@@ -25,7 +25,7 @@ import Profile from './profile'
 import SocialLinks from './social-links'
 import BottomBanner from '../bottom-banner'
 import { StoryElementsDisplay } from '../story/story-elements-display'
-import { useSession } from '@/lib/auth-client'
+import { useSession } from '@/hooks/useAuth'
 
 type StoryElement = {
   id: string

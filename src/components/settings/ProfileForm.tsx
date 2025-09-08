@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useSession } from '@/lib/auth-client'
+import { useSession } from '@/hooks/useAuth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getProfileByUsername, updateProfile } from '@/actions/profile-actions'
 import { profileSchema } from '@/lib/types'

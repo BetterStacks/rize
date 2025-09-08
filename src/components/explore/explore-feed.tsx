@@ -18,7 +18,7 @@ import {
   Menu,
   User2,
 } from 'lucide-react'
-import { useSession } from '@/lib/auth-client'
+import { useSession } from '@/hooks/useAuth'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Button } from '../ui/button'

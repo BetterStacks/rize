@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { FC, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from '@/lib/auth-client'
+import { useSession } from '@/hooks/useAuth'
 import Link from 'next/link'
 import { useProfileDialog, useSearchDialog, usePostsDialog } from './dialog-provider'
 import Menu from './menu'
@@ -175,16 +175,6 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
             </Button>
           )}
 
-          {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-2xl relative"
-          >
-            <Bell className="size-5" />
-            {/* Notification dot */}
-            <div className="absolute -top-1 -right-1 size-3 bg-red-500 rounded-full border-2 border-white dark:border-dark-bg" />
-          </Button>
 
           {/* Profile Actions */}
           {profile && <ShareCard profile={profile} />}

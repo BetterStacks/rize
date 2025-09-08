@@ -79,7 +79,7 @@ const Sidebar = ({ className }: { className?: string }) => {
     >
       <div className="flex w-full flex-col mt-4 items-center justify-center gap-y-2 ">
         <div className="mb-6">
-          <Link href={(session?.data?.user as any)?.username ? `/${(session?.data?.user as any).username}` : '/'}>
+          <Link href={session?.data?.user?.username ? `/${session?.data?.user?.username}` : '/'}>
             <Image
               width={42}
               height={42}
@@ -143,14 +143,14 @@ const OptionsMenu = () => {
     {
       id: 1,
       name: 'Manage Account',
-      href: `/${(session?.data?.user as any)?.username}`,
+      href: `/${session?.data?.user?.username}`,
       onClick: () => {},
       icon: <UserRound className="opacity-70 size-5" strokeWidth={1.2} />,
     },
     {
       id: 2,
       name: 'Edit Profile',
-      href: `/${(session?.data?.user as any)?.username}`,
+      href: `/${session?.data?.user?.username}`,
       onClick: () => {},
       icon: <Edit3 className="opacity-70 size-5" strokeWidth={1.2} />,
     },

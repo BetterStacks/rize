@@ -13,7 +13,8 @@ import {
   UserRound,
   X,
 } from 'lucide-react'
-import { signOut, useSession } from '@/lib/auth-client'
+import { signOut } from '@/lib/auth-client'
+import { useSession } from '@/hooks/useAuth'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
@@ -25,9 +26,9 @@ import { Separator } from './ui/separator'
 
 const Menu = () => {
   const [open, setOpen] = useState(false)
-  const { data: session } = useSession()
+  const session = useSession()
   const params = useParams()
-  const isMine = (session?.user as any)?.username === params?.username
+  const isMine = session?.data?.user?.username === params?.username
   const setProfileDialogOpen = useProfileDialog()[1]
   const ref = useClickOutside(() => {
     setOpen(false)
@@ -38,7 +39,7 @@ const Menu = () => {
     {
       id: 2,
       name: 'Account',
-      href: `/${(session?.user as any)?.username}`,
+      href: `/${session?.data?.user?.username}`,
       onClick: () => {},
       icon: <UserRound className="opacity-80 size-5" strokeWidth={1.2} />,
     },
@@ -137,8 +138,8 @@ const Menu = () => {
                 {' '}
                 <div className="flex p-4 mt-2 items-center justify-start">
                   <CreativeAvatar
-                    src={(session?.user as any)?.profileImage || session?.user?.image || null}
-                    name={session?.user?.name || 'User'}
+                    src={session?.data?.user?.profileImage || session?.data?.user?.image || null}
+                    name={session?.data?.user?.name || 'User'}
                     size="md"
                     variant="auto"
                     showHoverEffect={false}
@@ -146,10 +147,10 @@ const Menu = () => {
 
                   <div className="ml-2 flex flex-col items-start justify-start ">
                     <h3 className="font-medium leading-tight truncate">
-                      {(session?.user as any)?.displayName}
+                      {session?.data?.user?.displayName}
                     </h3>
                     <span className="opacity-70 text-sm leading-tight truncate">
-                      @{(session?.user as any)?.username}
+                      @{session?.data?.user?.username}
                     </span>
                   </div>
                 </div>
