@@ -271,8 +271,14 @@ const SearchDialog = () => {
               {session?.data && (
                 <CommandItem
                   value="Logout"
-                  onSelect={() => {
-                    signOut()
+                  onSelect={async () => {
+                    try {
+                      await signOut()
+                      // Redirect to home page after successful sign out
+                      window.location.href = '/'
+                    } catch (error) {
+                      console.error('Sign out error:', error)
+                    }
                   }}
                 >
                   <LogOut strokeWidth={1.2} className="mr-2 h-4 w-4" />

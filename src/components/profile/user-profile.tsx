@@ -74,26 +74,32 @@ const UserProfile = ({
   const sectionMap = {
     gallery: {
       enabled: isMine ? true : gallery?.length > 0,
+      hasData: gallery?.length > 0,
       component: <Gallery items={gallery} isMine={isMine} />,
     },
     posts: {
       enabled: isMine ? true : posts?.length > 0,
+      hasData: posts?.length > 0,
       component: <PostSection posts={posts} isMine={isMine} />,
     },
     writings: {
       enabled: isMine ? true : writings?.length > 0,
+      hasData: writings?.length > 0,
       component: <Writings writings={writings} isMine={isMine} />,
     },
     projects: {
       enabled: isMine ? true : projects?.length > 0,
+      hasData: projects?.length > 0,
       component: <Projects projects={projects} isMine={isMine} />,
     },
     education: {
       enabled: isMine ? true : education?.length > 0,
+      hasData: education?.length > 0,
       component: <Education education={education} isMine={isMine} />,
     },
     experience: {
       enabled: isMine ? true : workExperience?.length > 0,
+      hasData: workExperience?.length > 0,
       component: (
         <WorkExperience workExperience={workExperience} isMine={isMine} />
       ),
@@ -104,8 +110,29 @@ const UserProfile = ({
     const updated = sections.filter(
       (section) => sectionMap[section.id as keyof typeof sectionMap]?.enabled
     )
+    
+    // For authenticated users, sort sections to show populated ones first
+    if (isMine) {
+      return updated.sort((a, b) => {
+        const aSectionData = sectionMap[a.id as keyof typeof sectionMap]
+        const bSectionData = sectionMap[b.id as keyof typeof sectionMap]
+        
+        const aHasData = aSectionData?.hasData || false
+        const bHasData = bSectionData?.hasData || false
+        
+        // If both have data or both don't have data, maintain original order
+        if (aHasData === bHasData) {
+          return a.order - b.order
+        }
+        
+        // Sections with data come first
+        return bHasData ? 1 : -1
+      })
+    }
+    
+    // For public users, keep original filtering behavior
     return updated
-  }, [sections])
+  }, [sections, isMine, gallery, posts, writings, projects, education, workExperience])
 
   const areAllSectionsDisabled = filteredSections.every(
     (section) => !section.enabled

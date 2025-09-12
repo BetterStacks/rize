@@ -10,6 +10,7 @@ interface EmptyGalleryStateProps {
   description?: string;
   ctaText?: string;
   onAddImages?: () => void;
+  disabled?: boolean;
 }
 
 export function EmptyGalleryState({
@@ -17,6 +18,7 @@ export function EmptyGalleryState({
   description = 'Add your first images to create a stunning gallery. Share your visual story with the world.',
   ctaText = 'Add Images',
   onAddImages = () => {},
+  disabled = false,
 }: EmptyGalleryStateProps) {
   return (
     <div className="flex h-full min-h-[400px] max-w-2xl border-2 border-neutral-300/60 dark:border-dark-border/80 rounded-3xl border-dashed w-full items-center justify-center">
@@ -49,6 +51,7 @@ export function EmptyGalleryState({
             size="sm"
             className="gap-2 scale-90 bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:from-violet-600 hover:to-indigo-600 dark:from-violet-600 dark:to-indigo-600 dark:hover:from-violet-700 dark:hover:to-indigo-700"
             onClick={onAddImages}
+            disabled={disabled}
           >
             <Plus className="h-4 w-4" />
             {ctaText}

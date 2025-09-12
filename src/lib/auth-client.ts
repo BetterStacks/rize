@@ -4,8 +4,8 @@ import type { auth } from './auth'
 
 // Client-side auth configuration - types are handled by the useAuth hook
 
+// Use same-origin relative requests to avoid cookie domain mismatches across hosts
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
   plugins: [
     inferAdditionalFields<typeof auth>(),
   ],

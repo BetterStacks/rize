@@ -11,9 +11,10 @@ type TGalleryItemProps = {
   item: GalleryItemProps;
   index: number;
   isMine: boolean;
+  onImageClick?: (index: number) => void;
 };
 
-function GalleryItem({ item, isMine }: TGalleryItemProps) {
+function GalleryItem({ item, index, isMine, onImageClick }: TGalleryItemProps) {
   const removeItemFromGallery = async () => {
     if (!item.id) {
       throw new Error('Item not found in gallery')
@@ -28,6 +29,15 @@ function GalleryItem({ item, isMine }: TGalleryItemProps) {
     } catch (error) {
       toast.error((error as Error).message)
     }
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Don't trigger lightbox if clicking on delete button or if no click handler provided
+    if ((e.target as HTMLElement).closest('button') || !onImageClick) return
+    
+    e.preventDefault()
+    e.stopPropagation()
+    onImageClick(index)
   }
 
   return (
@@ -49,18 +59,20 @@ function GalleryItem({ item, isMine }: TGalleryItemProps) {
           src={item?.url}
           alt=""
           fill
-          className="select-none z-10"
+          className="select-none z-10 cursor-pointer"
           style={{ objectFit: 'cover' }}
+          onClick={handleClick}
         />
       ) : (
         <video
           style={{ objectFit: 'cover' }}
-          className="w-full h-full "
+          className="w-full h-full cursor-pointer"
           src={item?.url}
           autoPlay
           loop
           muted
           controls={false}
+          onClick={handleClick}
         />
       )}
     </>
