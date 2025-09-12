@@ -98,7 +98,7 @@ export async function parseResumeContent(file: File): Promise<ExtractedData> {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch('https://stg.letraz.app/api/resume/parse?format=generic', {
+    const response = await fetch(`${process.env.LETRAZ_URL}/api/resume/parse?format=generic`, {
       method: 'POST',
       headers: {
         'x-authentication': process.env.LETRAZ_API_KEY as string,

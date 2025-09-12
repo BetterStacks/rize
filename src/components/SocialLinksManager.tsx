@@ -57,8 +57,14 @@ const SocialLinksManager = () => {
       url: string;
       platform: SocialPlatform;
     }) => addSocialLink(url, platform),
-    onSuccess: () => {
-      toast.success('Social link added')
+    onSuccess: (data, variables) => {
+      if (variables.platform === 'linkedin' && variables.url.includes('linkedin.com/in/')) {
+        toast.success('LinkedIn profile added! We are importing your profile data in the background.', {
+          duration: 5000,
+        })
+      } else {
+        toast.success('Social link added')
+      }
       queryClient.invalidateQueries({ queryKey: ['get-social-links'] })
       setSocialLinksDialogOpen(false)
     },
