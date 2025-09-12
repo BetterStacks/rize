@@ -76,7 +76,8 @@ export function useSession() {
   return {
     ...session,
     data: enrichedSession,
-    isLoading: session.isPending || isLoading,
+    // Consider the state where base session exists but enriched data not ready yet as loading
+    isLoading: session.isPending || isLoading || (!!session?.data?.user && !enrichedSession),
     // Add update method for compatibility with existing code
     update: () => {
       setEnrichedSession(null) // Reset to trigger re-fetch

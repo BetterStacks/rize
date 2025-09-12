@@ -1,11 +1,15 @@
-import { getGalleryItems } from '@/actions/gallery-actions'
+import { getGalleryItems, addGalleryItem } from '@/actions/gallery-actions'
 import { GalleryItemProps } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { motion, Variants } from 'framer-motion'
 import { useParams } from 'next/navigation'
-import { FC, useEffect, useState } from 'react'
+import { FC, useEffect, useState, useRef, useCallback } from 'react'
 import { Skeleton } from '../ui/skeleton'
+import { queryClient } from '@/lib/providers'
+import axios from 'axios'
+import toast from 'react-hot-toast'
+import { GalleryLightbox } from './gallery-lightbox'
 import {
   mansoryGridItemVariants,
   mansoryGridVariants,
@@ -67,6 +71,7 @@ const itemVariants: Variants = {
 
 const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
   const { username } = useParams<{ username: string }>()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['get-gallery-items', username],
@@ -77,18 +82,96 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
     refetchOnMount: false,
   })
   const [sortedItems, setSortedItems] = useState(data || [])
+  
+  // Lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   useEffect(() => {
     setSortedItems(data)
   }, [data])
 
+  // Upload functionality
+  const uploadMediaToAPI = async (formData: FormData) => {
+    const res = await axios.post('/api/upload/files', formData)
+    if (res.status !== 200) throw new Error('Upload failed')
+    return res.data?.data
+  }
+
+  const { mutate: handleUpload, isPending } = useMutation({
+    mutationFn: uploadMediaToAPI,
+    onSuccess: async (data) => {
+      await Promise.all(
+        data.map(async (result: any) => {
+          return await addGalleryItem(result)
+        })
+      )
+      queryClient.invalidateQueries({ queryKey: ['get-gallery-items'] })
+      toast.success(`${data.length} media items added!`)
+    },
+    onError: (error) => {
+      toast.error(error?.message || 'Upload failed')
+    },
+  })
+
+  const handleAddImages = useCallback(() => {
+    if (!isMine) return
+    fileInputRef.current?.click()
+  }, [isMine])
+
+  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    const formData = new FormData()
+    Array.from(files).forEach((file) => {
+      formData.append('files', file)
+    })
+    formData.append('folder', 'fyp-stacks/gallery')
+    
+    handleUpload(formData)
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }, [handleUpload])
+
+  // Lightbox functions
+  const openLightbox = useCallback((index: number) => {
+    setCurrentImageIndex(index)
+    setLightboxOpen(true)
+  }, [])
+
+  const closeLightbox = useCallback(() => {
+    setLightboxOpen(false)
+  }, [])
+
+  const navigateLightbox = useCallback((index: number) => {
+    setCurrentImageIndex(index)
+  }, [])
+
   return (
     <div className="w-full my-12 flex flex-col items-center justify-center">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="image/*,video/*"
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
+      
       <motion.div className="w-full relative max-w-3xl hidden md:flex flex-col  items-center justify-center mt-4">
         {isLoading ? (
           <GallerySkeleton />
         ) : sortedItems?.length === 0 ? (
-          <EmptyGalleryState />
+          <EmptyGalleryState 
+            onAddImages={handleAddImages}
+            ctaText={isPending ? 'Uploading...' : 'Add Images'}
+            disabled={isPending}
+          />
         ) : (
           <motion.div
             variants={imagesContainerVariants}
@@ -103,6 +186,7 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
                   index={i}
                   isMine={isMine}
                   item={item}
+                  onImageClick={openLightbox}
                 />
               )
             })}
@@ -113,7 +197,11 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
         {isLoading ? (
           <GallerySkeleton />
         ) : sortedItems?.length === 0 ? (
-          <EmptyGalleryState />
+          <EmptyGalleryState 
+            onAddImages={handleAddImages}
+            ctaText={isPending ? 'Uploading...' : 'Add Images'}
+            disabled={isPending}
+          />
         ) : (
           <motion.div
             variants={imagesContainerVariants}
@@ -130,13 +218,24 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
                   }}
                   className="relative  object-cover  overflow-hidden"
                 >
-                  <GalleryItem index={i} isMine={isMine} item={item} />
+                  <GalleryItem index={i} isMine={isMine} item={item} onImageClick={openLightbox} />
                 </motion.div>
               )
             })}
           </motion.div>
         )}
       </motion.div>
+
+      {/* Lightbox */}
+      {sortedItems && sortedItems.length > 0 && (
+        <GalleryLightbox
+          items={sortedItems}
+          currentIndex={currentImageIndex}
+          isOpen={lightboxOpen}
+          onClose={closeLightbox}
+          onNavigate={navigateLightbox}
+        />
+      )}
     </div>
   )
 }
@@ -166,7 +265,8 @@ const SortableGalleryItem: FC<{
   item: GalleryItemProps;
   index: number;
   isMine: boolean;
-}> = ({ item, index, isMine }) => {
+  onImageClick?: (index: number) => void;
+}> = ({ item, index, isMine, onImageClick }) => {
   return (
     <motion.div
       style={{ borderRadius: '12%' }}
@@ -182,7 +282,7 @@ const SortableGalleryItem: FC<{
         'group aspect-square w-full h-full -my-4 -mx-8 relative overflow-hidden bg-neutral-100 dark:bg-dark-border cursor-grab size-48 active:cursor-grabbing shadow-2xl '
       )}
     >
-      <GalleryItem index={index} isMine={isMine} item={item} />
+      <GalleryItem index={index} isMine={isMine} item={item} onImageClick={onImageClick} />
     </motion.div>
   )
 }

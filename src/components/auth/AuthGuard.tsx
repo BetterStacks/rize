@@ -15,11 +15,11 @@ export default function AuthGuard({
   authOnly,
   guestOnly,
 }: AuthGuardProps) {
-  const { data: session, isPending } = useSession()
+  const { data: session, isLoading } = useSession()
   const router = useRouter()
 
   useEffect(() => {
-    if (isPending) return
+    if (isLoading) return
 
     if (guestOnly && session) {
       // Check if user is onboarded
@@ -44,13 +44,12 @@ export default function AuthGuard({
       router.push('/login')
       return
     }
-  }, [isPending, session, authOnly, guestOnly, router])
+  }, [isLoading, session, authOnly, guestOnly, router])
 
-  if (
-    (!authOnly && !guestOnly) ||
-    (authOnly && session) ||
-    (guestOnly && !session)
-  ) {
+  // Avoid rendering children while session state is loading to prevent flicker/loops
+  if (isLoading) return null
+
+  if ((!authOnly && !guestOnly) || (authOnly && session) || (guestOnly && !session)) {
     return <>{children}</>
   }
 

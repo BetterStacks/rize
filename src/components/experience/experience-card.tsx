@@ -44,8 +44,9 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
   return (
     <motion.div
       className={cn(
-        'flex relative items-start group ',
-        activeTab?.id === experience?.id && ''
+        'flex relative items-start group p-3 rounded-lg transition-all',
+        activeTab?.id === experience?.id &&
+          'dark:bg-indigo-400/10 border-2 border-dashed bg-indigo-400/15 border-indigo-400/30 dark:border-indigo-400/20'
       )}
     >
       {isMine && (
@@ -58,7 +59,10 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
                 id: experience?.id,
                 tab: 'experience',
               })
-              setOpen(true)
+              // Only open sidebar on mobile devices
+              if (!isDesktop) {
+                setOpen(true)
+              }
             }}
           >
             <Edit2 className="h-4 w-4 opacity-80" />
@@ -99,6 +103,11 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
           <span>•</span>
           <span className="">{experience?.employmentType}</span>
         </div>
+        {experience?.description && (
+          <p className="mt-3 text-sm dark:text-neutral-300 text-neutral-700 leading-relaxed">
+            {experience.description}
+          </p>
+        )}
       </div>
     </motion.div>
   )

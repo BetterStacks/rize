@@ -54,6 +54,29 @@ const Menu = () => {
       icon: <Settings className="opacity-80 size-5" strokeWidth={1.2} />,
     },
   ]
+  const guestOptions = [
+    {
+      id: 1,
+      name: 'Explore',
+      href: '/explore',
+      onClick: () => {
+        router.push('/explore')
+        setOpen(false)
+      },
+      icon: <Compass className="opacity-80 size-5" strokeWidth={1.2} />,
+    },
+    {
+      id: 2,
+      name: 'Login',
+      href: '/login',
+      onClick: () => {
+        router.push('/login')
+        setOpen(false)
+      },
+      icon: <UserRound className="opacity-80 size-5" strokeWidth={1.2} />,
+    },
+  ]
+
   const options = [
     {
       id: 1,
@@ -61,6 +84,7 @@ const Menu = () => {
       href: '/explore',
       onClick: () => {
         router.push('/explore')
+        setOpen(false)
       },
       icon: <Compass className="opacity-80 size-5" strokeWidth={1.2} />,
     },
@@ -133,7 +157,7 @@ const Menu = () => {
               isMine ? 'right-4' : 'right-4'
             )}
           >
-            {session && (
+            {session?.data ? (
               <>
                 {' '}
                 <div className="flex p-4 mt-2 items-center justify-start">
@@ -156,8 +180,22 @@ const Menu = () => {
                 </div>
                 <Separator className="h-[0.5px]" />
               </>
+            ) : (
+              <>
+                <div className="flex p-4 mt-2 items-center justify-center">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <h3 className="font-medium leading-tight text-lg">
+                      Claim your profile
+                    </h3>
+                    <span className="opacity-70 text-sm leading-tight mt-1">
+                      Join the community today
+                    </span>
+                  </div>
+                </div>
+                <Separator className="h-[0.5px]" />
+              </>
             )}
-            {[...options, ...(session ? loggedInOptions : [])].map(
+            {[...(session?.data ? options : guestOptions), ...(session?.data ? loggedInOptions : [])].map(
               (option, i) => (
                 <motion.div
                   key={i}
@@ -207,13 +245,21 @@ const Menu = () => {
                 ))}
               </motion.div>
             </div>
-            {session && (
+            {session?.data && (
               <>
                 {' '}
                 <Separator className="h-[0.5px] " />
                 <motion.div
                   className="flex w-full items-center  pt-1  justify-start gap-x-4 cursor-pointer mt-1 px-4 last:mb-4"
-                  onClick={() => signOut()}
+                  onClick={async () => {
+                    try {
+                      await signOut()
+                      // Redirect to home page after successful sign out
+                      window.location.href = '/'
+                    } catch (error) {
+                      console.error('Sign out error:', error)
+                    }
+                  }}
                 >
                   <LogOut className="opacity-80 size-5" strokeWidth={1.2} />
                   <span className="tracking-tight dark:text-neutral-300 text-neutral-700">

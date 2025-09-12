@@ -12,13 +12,17 @@ export interface LetrazEducation {
   degree: string;
   field: string;
   startDate: string;
+  endDate?: string;
+  gpa?: string;
 }
 
 export interface LetrazExperience {
   company: string;
   position: string;
   startDate: string;
+  endDate?: string;
   description: string;
+  location?: string;
 }
 
 export interface LetrazCertification {
@@ -94,10 +98,10 @@ export async function parseResumeContent(file: File): Promise<ExtractedData> {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch('https://letraz.app/api/resume/parse?format=generic', {
+    const response = await fetch('https://stg.letraz.app/api/resume/parse?format=generic', {
       method: 'POST',
       headers: {
-        'x-authentication': 'dcNI1g9QUK1jCkK5Mag6QMEVnvi3l1xc',
+        'x-authentication': process.env.LETRAZ_API_KEY as string,
       },
       body: formData,
     })
@@ -134,9 +138,11 @@ function convertLetrazToExtractedData(apiResponse: LetrazApiResponse): Extracted
   const experience: ExtractedExperience[] = data.experience.map(exp => ({
     title: exp.position,
     company: exp.company,
+    location: exp.location,
     startDate: exp.startDate,
+    endDate: exp.endDate,
     description: exp.description,
-    currentlyWorking: isCurrentPosition(exp.startDate),
+    currentlyWorking: isCurrentPosition(exp.startDate, exp.endDate),
   }))
 
   // Convert education
@@ -145,6 +151,8 @@ function convertLetrazToExtractedData(apiResponse: LetrazApiResponse): Extracted
     degree: edu.degree,
     fieldOfStudy: edu.field,
     startDate: edu.startDate,
+    endDate: edu.endDate,
+    grade: edu.gpa,
   }))
 
   // Convert projects (if any in the future)
@@ -168,10 +176,9 @@ function convertLetrazToExtractedData(apiResponse: LetrazApiResponse): Extracted
 }
 
 /**
- * Helper function to determine if a position is current based on start date
+ * Helper function to determine if a position is current based on end date
  */
-function isCurrentPosition(startDate: string): boolean {
-  // Simple heuristic: if no end date mentioned and start date is recent, assume current
-  // This could be enhanced with more sophisticated logic
-  return false // Default to false, could be enhanced based on business logic
+function isCurrentPosition(startDate: string, endDate?: string): boolean {
+  // If endDate is "Present" or undefined/empty, it's a current position
+  return !endDate || endDate.toLowerCase() === 'present'
 }
