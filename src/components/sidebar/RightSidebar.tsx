@@ -13,9 +13,16 @@ import { GalleryEditor } from './components/GalleryEditor'
 import { EducationForm } from './forms/EducationForm'
 import { ExperienceForm } from './forms/ExperienceForm'
 import { ProjectForm } from './forms/ProjectForm'
+import { useSession } from '@/hooks/useAuth'
 
 const RightSidebar = ({ className }: { className?: string }) => {
   const [active, setActive] = useActiveSidebarTab()
+  const { data } = useSession()
+
+  const letrazBaseUrl = process.env.NEXT_PUBLIC_LETRAZ_URL
+  const hasLetraz = !!data?.user?.letrazId
+  const authMethod = data?.authMethod || 'email'
+  const rizeUserId = data?.user?.id
 
   const sections = useMemo(() => ({
     gallery: (
@@ -56,8 +63,27 @@ const RightSidebar = ({ className }: { className?: string }) => {
           exit={{ opacity: 0, y: 100 }}
           transition={{ duration: 0.9, ease: [0.075, 0.82, 0.165, 1] }}
           key={active.tab}
-          className="mt-6 mb-20 flex flex-col items-center justify-start relative"
+          className="mt-6 mb-20 flex flex-col items-center justify-start relative w-full"
         >
+          {letrazBaseUrl && rizeUserId && (
+            <div className="w-full flex justify-center">
+              <div className="max-w-sm w-full px-2 pt-10 mt-8">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    const url = hasLetraz
+                      ? `${letrazBaseUrl}/app`
+                      : `${letrazBaseUrl}/signup?userId=${encodeURIComponent(rizeUserId)}&authMethod=${encodeURIComponent(authMethod)}`
+                    window.open(url, '_blank', 'noopener,noreferrer')
+                  }}
+                >
+                  {hasLetraz ? 'Open Letraz' : 'Create Letraz account'}
+                </Button>
+              </div>
+            </div>
+          )}
           {sections[active?.tab as keyof typeof sections]}
         </motion.div>
       </ScrollArea>

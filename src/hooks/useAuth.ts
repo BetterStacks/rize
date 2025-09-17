@@ -17,6 +17,7 @@ export interface EnrichedUser {
   profileImage?: string;
   displayName?: string;
   hasCompletedWalkthrough?: boolean;
+  letrazId?: string | null;
 }
 
 export interface EnrichedSession {
@@ -26,6 +27,7 @@ export interface EnrichedSession {
     expiresAt: Date;
     userId: string;
   };
+  authMethod?: 'google' | 'github' | 'linkedin' | 'email';
 }
 
 export function useSession() {
@@ -56,8 +58,10 @@ export function useSession() {
                 profileImage: profileData.profileImage || undefined,
                 displayName: profileData.displayName || undefined,
                 hasCompletedWalkthrough: profileData.hasCompletedWalkthrough || false,
+                letrazId: profileData.letrazId || null,
               },
               session: session.data.session,
+              authMethod: profileData.authMethod,
             })
           }
         } catch (error) {

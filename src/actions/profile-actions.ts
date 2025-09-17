@@ -4,6 +4,7 @@ import {
   profile,
   profileSections,
   users,
+  accounts,
 } from '@/db/schema'
 import { requireAuth, requireAuthWithProfile, requireProfile } from '@/lib/auth'
 import db from '@/lib/db'
@@ -218,6 +219,7 @@ export const getCurrentUserProfile = async () => {
       image: users.image,
       name: users.name,
       isOnboarded: users.isOnboarded,
+      letrazId: users.letrazId,
     })
     .from(users)
     .leftJoin(profile, eq(profile.userId, users.id))
@@ -228,7 +230,25 @@ export const getCurrentUserProfile = async () => {
     return null
   }
 
-  return userProfile[0]
+  const base = userProfile[0]
+
+  // Determine auth method from connected accounts; fallback to 'email'
+  let authMethod: 'google' | 'github' | 'linkedin' | 'email' = 'email'
+  try {
+    const userAccounts = await db
+      .select({ providerId: accounts.providerId })
+      .from(accounts)
+      .where(eq(accounts.userId, session.user.id))
+
+    const providers = userAccounts.map(a => a.providerId)
+    if (providers.includes('google')) authMethod = 'google'
+    else if (providers.includes('github')) authMethod = 'github'
+    else if (providers.includes('linkedin')) authMethod = 'linkedin'
+  } catch (e) {
+    // ignore
+  }
+
+  return { ...base, authMethod }
 }
 
 const sectionSchema = z.object({

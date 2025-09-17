@@ -55,6 +55,7 @@ export const users = pgTable('user', {
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),
   isOnboarded: boolean('is_onboarded').notNull().default(false),
+  letrazId: text('letraz_id'),
 })
 
 export const profile = pgTable('profile', {

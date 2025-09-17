@@ -71,11 +71,11 @@ function parseDate(dateString: string | undefined): Date | undefined {
 
 async function processLinkedInData(profileId: string, linkedinUrl: string) {
   try {
-    const letrazUrl = process.env.LETRAZ_URL
+    const letrazUrl = process.env.NEXT_PUBLIC_LETRAZ_URL
     const apiKey = process.env.LETRAZ_API_KEY
 
     if (!letrazUrl || !apiKey) {
-      console.error('Missing LETRAZ_URL or LETRAZ_API_KEY environment variables')
+      console.error('Missing NEXT_PUBLIC_LETRAZ_URL or LETRAZ_API_KEY environment variables')
       return
     }
 
