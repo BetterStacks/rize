@@ -5,7 +5,7 @@ import { eq, inArray } from 'drizzle-orm'
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const adminKeyHeader = request.headers.get('x-admin-api-key')
@@ -15,7 +15,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const userId = context.params.id
+    const params = await context.params
+    const userId = params.id
     const { searchParams } = new URL(request.url)
     const letrazId = searchParams.get('letrazId') || undefined
 
