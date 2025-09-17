@@ -15,6 +15,20 @@
       "when": 1755942873543,
       "tag": "0001_chunky_liz_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1756386665084,
+      "tag": "0002_dashing_scarecrow",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1757315952193,
+      "tag": "0003_cold_zarda",
+      "breakpoints": true
     }
   ]
 }
