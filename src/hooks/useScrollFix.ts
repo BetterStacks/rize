@@ -77,7 +77,35 @@ export function useScrollFix() {
  */
 export function useEnsureScroll() {
   useEffect(() => {
+    // Clean up any Lenis instances that might be interfering
+    const cleanupLenis = () => {
+      // Check if Lenis is defined on window
+      const lenis = (window as any).lenis
+      if (lenis && typeof lenis.destroy === 'function') {
+        lenis.destroy()
+        delete (window as any).lenis
+      }
+      
+      // Also check for any global Lenis instances
+      if (typeof window !== 'undefined') {
+        const scripts = document.querySelectorAll('script')
+        scripts.forEach(script => {
+          if (script.textContent?.includes('lenis')) {
+            // Reset any transform styles that Lenis might have applied
+            document.documentElement.style.transform = ''
+            document.body.style.transform = ''
+          }
+        })
+      }
+    }
+
+    // Run Lenis cleanup immediately
+    cleanupLenis()
+    
     const timer = setTimeout(() => {
+      // Additional cleanup after timeout
+      cleanupLenis()
+      
       // Force scroll check
       if (document.body.scrollHeight > window.innerHeight) {
         // There's content to scroll, make sure scrolling works
@@ -97,6 +125,13 @@ export function useEnsureScroll() {
       setTimeout(() => {
         document.body.style.overflow = ''
         document.documentElement.style.overflow = ''
+        
+        // Additional Lenis cleanup on focus
+        const lenis = (window as any).lenis
+        if (lenis && typeof lenis.destroy === 'function') {
+          lenis.destroy()
+          delete (window as any).lenis
+        }
       }, 100)
     }
 

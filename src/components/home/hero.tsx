@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { useMediaQuery } from '@mantine/hooks'
+import { useMediaQuery, useHotkeys } from '@mantine/hooks'
 import { setCookie } from 'cookies-next'
 import {
   motion,
@@ -243,7 +243,7 @@ const HeroSection = () => {
   })
 
   const [scrolledPastHalf, setScrolledPastHalf] = useState(false)
-  const [hasReachedBottom, setHasReachedBottom] = useState<boolean | null>(
+  const [hasReachedBottom] = useState<boolean | null>(
     null
   )
   const isScreen4k = useMediaQuery('(min-width: 2560px)')
@@ -271,6 +271,13 @@ const HeroSection = () => {
     setCookie('username', data)
     router.push('/signup')
   }
+
+  const handleGoToDashboard = () => {
+    router.push(`/${session?.data?.user?.username || 'profile'}`)
+  }
+
+  // Add hotkey for logged-in users to go to dashboard
+  useHotkeys([['Enter', handleGoToDashboard]], [], !isLoggedIn)
   const scrollLenghtPerProfile = 100
   const profileContainerHeight = displayNames?.length * scrollLenghtPerProfile
 
@@ -291,7 +298,7 @@ const HeroSection = () => {
         </div>
       ) : session?.data?.user ? (
         <Link
-          className="absolute top-4 right-4"
+          className="absolute top-4 right-4 z-50"
           prefetch
           href={`/${session?.data?.user?.username || 'profile'}`}
         >
@@ -341,7 +348,6 @@ const HeroSection = () => {
             className="text-4xl font-inter text-black dark:text-white md:text-5xl space-x-2  text-center font-semibold md:font-bold tracking-tighter leading-none relative "
           >
             {heading.split(' ').map((line, index) => {
-              const isLast = index === heading.split(' ').length - 1
               return (
                 <motion.span key={index} variants={headingVariants}>
                   {line}
@@ -388,13 +394,35 @@ const HeroSection = () => {
                   : { position: 'static', zIndex: 10, y: 0 }
               }
             >
-              <ClaimUsernameForm
-                onSubmit={handleSubmit}
-                className={cn(
-                  hideClaimUsernameNavbar &&
-                    'shadow-2xl w-fit shadow-black/50  border border-neutral-300/60 dark:border-dark-border/80'
-                )}
-              />
+              {isLoggedIn ? (
+                <div
+                  className={cn(
+                    'w-full border mt-2 border-neutral-400/60 overflow-hidden dark:border-none rounded-3xl text-lg md:text-xl p-1 flex items-center justify-center bg-white dark:bg-neutral-900',
+                    hideClaimUsernameNavbar &&
+                      'shadow-2xl w-fit shadow-black/50 border border-neutral-300/60 dark:border-dark-border/80'
+                  )}
+                >
+                  <div className="px-4 ml-0.5 border border-neutral-300 dark:border-none py-1 bg-white dark:bg-dark-border rounded-3xl shadow-lg">
+                    <button 
+                      onClick={handleGoToDashboard}
+                      className="tracking-tight text-neutral-700 dark:text-neutral-300 text-base flex items-center gap-2 py-1"
+                    > 
+                      Go to Dashboard
+                      <kbd className="px-2 py-0.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-700 rounded border border-neutral-300 dark:border-neutral-600">
+                      Enter
+                      </kbd>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <ClaimUsernameForm
+                  onSubmit={handleSubmit}
+                  className={cn(
+                    hideClaimUsernameNavbar &&
+                      'shadow-2xl w-fit shadow-black/50  border border-neutral-300/60 dark:border-dark-border/80'
+                  )}
+                />
+              )}
             </motion.div>
             <div className="w-full flex items-center z-10 justify-center mt-8  ">
               <motion.div

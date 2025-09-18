@@ -176,7 +176,7 @@ const UserProfile = ({
           </React.Fragment>
         ))}
 
-      {!session?.data && <BottomBanner />}
+      {!session?.data && !session?.isLoading && <BottomBanner />}
     </div>
   )
 }
