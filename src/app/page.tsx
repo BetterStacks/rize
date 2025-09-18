@@ -12,29 +12,30 @@ import { setCookie } from 'cookies-next'
 import { motion } from 'framer-motion'
 import Lenis from 'lenis'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 export default function Home() {
   useEffect(() => {
     const lenis = new Lenis()
+    
+    // Store lenis instance globally for cleanup
+    ;(window as any).lenis = lenis
 
     function raf(time: number) {
       lenis.raf(time)
       requestAnimationFrame(raf)
     }
 
-    requestAnimationFrame(raf)
+    const rafId = requestAnimationFrame(raf)
+    
+    // Cleanup function
+    return () => {
+      cancelAnimationFrame(rafId)
+      lenis.destroy()
+      delete (window as any).lenis
+    }
   }, [])
 
-  const titles = [
-    'Designers',
-    'Developers',
-    'Creators',
-    'Founders',
-    'Individuals',
-  ]
-
-  const [activeTitle, setActiveTitle] = useState(titles[0])
 
   return (
     <div className="w-full flex flex-col ">
