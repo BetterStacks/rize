@@ -18,6 +18,8 @@ const ProfileNotFound: FC<ProfileNotFoundProps> = ({ username }) => {
   const session = useSession()
   const router = useRouter()
   const isMyProfile = (session?.data?.user as any)?.username === username
+  const isLoggedIn = !!session?.data?.user
+  
 
   const handleClaimProfile = () => {
     setCookie('username', username)
@@ -42,6 +44,11 @@ const ProfileNotFound: FC<ProfileNotFoundProps> = ({ username }) => {
                 rize.so
               </Link>
             </>
+          ) : isLoggedIn ? (
+            <>
+              This profile could not be found. <br />
+              The username might not exist or the profile may be private.
+            </>
           ) : (
             <>
               This username is available! <br />
@@ -62,7 +69,7 @@ const ProfileNotFound: FC<ProfileNotFoundProps> = ({ username }) => {
           <div className="text-neutral-400">rize.so/</div>
           <div>{username?.toLowerCase()}</div>
 
-          {!isMyProfile && (
+          {!isMyProfile && !isLoggedIn && (
             <div className="absolute -right-3 -top-2 rotate-3">
               <AvailableBadge />
             </div>
@@ -80,7 +87,7 @@ const ProfileNotFound: FC<ProfileNotFoundProps> = ({ username }) => {
           </div>
         )}
 
-        {!isMyProfile && (
+        {!isMyProfile && !isLoggedIn && (
           <div className="mb-6">
             <button
               onClick={handleClaimProfile}

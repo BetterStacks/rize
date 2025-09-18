@@ -299,13 +299,24 @@ export function generateUsername(profile: ImportedProfile, fallbackName?: string
   const name = profile.displayName || fallbackName || 'user'
   
   // Clean the name and create username
-  const cleanName = name
+  let cleanName = name
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '')
     .slice(0, 15)
   
-  // Add random number to avoid conflicts
-  const randomSuffix = Math.floor(Math.random() * 999) + 1
+  // Check if base name is reserved and modify if needed
+  const { isUsernameReserved } = require('./reserved-usernames')
+  if (isUsernameReserved(cleanName)) {
+    cleanName = `${cleanName}user`
+  }
   
-  return `${cleanName}${randomSuffix}`
+  // Add random number to avoid conflicts
+  let username = `${cleanName}${Math.floor(Math.random() * 999) + 1}`
+  
+  // Extra safety check - if generated username is still reserved, add more randomness
+  while (isUsernameReserved(username)) {
+    username = `${cleanName}${Math.floor(Math.random() * 9999) + 1000}`
+  }
+  
+  return username
 }

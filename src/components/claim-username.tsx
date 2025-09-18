@@ -49,12 +49,17 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({
     const check = await isUsernameAvailable(username)
     if (!check.available) {
       toast.dismiss()
-      toast.error('Username already taken')
+      const errorMessage = check.reason === 'reserved' 
+        ? 'This username is reserved and cannot be claimed'
+        : 'Username already taken'
+      toast.error(errorMessage)
+      setError(errorMessage)
       setIsSearching(false)
       setIsAvailable(false)
     } else {
       toast.dismiss()
       toast.success('Username is available')
+      setError(null)
       setIsSearching(false)
       setIsAvailable(true)
     }

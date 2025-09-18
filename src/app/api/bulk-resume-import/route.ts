@@ -105,13 +105,24 @@ export async function POST(request: NextRequest) {
  * Create a complete user profile from extracted resume data
  */
 async function createProfileFromExtractedData(data: ExtractedData) {
-  // Generate username from name
-  const baseUsername = data.name!
+  // Generate username from name, ensuring it's not reserved
+  const { isUsernameReserved } = await import('@/lib/reserved-usernames')
+  let baseUsername = data.name!
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '')
     .substring(0, 15)
   
-  const username = `${baseUsername}${Math.floor(Math.random() * 999) + 1}`
+  // If base username is reserved, modify it
+  if (isUsernameReserved(baseUsername)) {
+    baseUsername = `${baseUsername}user`
+  }
+  
+  let username = `${baseUsername}${Math.floor(Math.random() * 999) + 1}`
+  
+  // Extra safety check - if generated username is still reserved, add more randomness
+  while (isUsernameReserved(username)) {
+    username = `${baseUsername}${Math.floor(Math.random() * 9999) + 1000}`
+  }
   
   // Create user first
   const userId = `resume-import-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
