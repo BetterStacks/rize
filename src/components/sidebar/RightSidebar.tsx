@@ -14,6 +14,10 @@ import { EducationForm } from './forms/EducationForm'
 import { ExperienceForm } from './forms/ExperienceForm'
 import { ProjectForm } from './forms/ProjectForm'
 import { useSession } from '@/hooks/useAuth'
+import {Card, CardContent, CardDescription, CardHeader} from '@/components/ui/card'
+import letrazLogo from '@/../public/letraz-logo.svg'
+import letrazBanner from '@/../public/letraz-banner.png'
+import Image from 'next/image'
 
 const RightSidebar = ({ className }: { className?: string }) => {
   const [active, setActive] = useActiveSidebarTab()
@@ -67,21 +71,32 @@ const RightSidebar = ({ className }: { className?: string }) => {
         >
           {letrazBaseUrl && rizeUserId && (
             <div className="w-full flex justify-center">
-              <div className="max-w-sm w-full px-2 pt-10 mt-8">
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => {
-                    const url = hasLetraz
-                      ? `${letrazBaseUrl}/app`
-                      : `${letrazBaseUrl}/signup?userId=${encodeURIComponent(rizeUserId)}&authMethod=${encodeURIComponent(authMethod)}`
-                    window.open(url, '_blank', 'noopener,noreferrer')
-                  }}
-                >
-                  {hasLetraz ? 'Open Letraz' : 'Create Letraz account'}
-                </Button>
-              </div>
+              <Card className="max-w-sm w-full mt-16 shadow-lg dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
+                <CardHeader>
+                  <Image src={letrazLogo} alt="Letraz Logo" className="w-[40%]" />
+                  <CardDescription className="text-left leading-snug">
+                    Letraz helps you easily build unique resumes for each job you apply for. Give it a try.
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent>
+                  <Image src={letrazBanner} alt="Letraz Banner" className="w-full rounded-xl mb-4" />
+
+                  <Button
+                      variant="secondary"
+                      className="w-full bg-[#F4421F]"
+                      style={{color: 'white'}}
+                      onClick={() => {
+                        const url = hasLetraz
+                            ? `${letrazBaseUrl}/app`
+                            : `${letrazBaseUrl}/signup?userId=${encodeURIComponent(rizeUserId)}&authMethod=${encodeURIComponent(authMethod)}`
+                        window.open(url, '_blank', 'noopener,noreferrer')
+                      }}
+                  >
+                    {hasLetraz ? 'Open Letraz' : 'Create Letraz account'}
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           )}
           {sections[active?.tab as keyof typeof sections]}
