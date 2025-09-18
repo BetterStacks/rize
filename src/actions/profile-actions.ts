@@ -95,6 +95,12 @@ export const getProfileByUsername = async (username: string) => {
 
 export const createProfile = async (username: string) => {
   const session = await requireAuth()
+  
+  // Check if username is reserved
+  const { isUsernameReserved } = await import('@/lib/reserved-usernames')
+  if (isUsernameReserved(username)) {
+    throw new Error('This username is reserved and cannot be claimed')
+  }
 
   // Check if user already has a profile
   const existingProfile = await db
@@ -134,6 +140,12 @@ export const createProfile = async (username: string) => {
 }
 
 export const isUsernameAvailable = async (username: string) => {
+  // First check if username is reserved
+  const { isUsernameReserved } = await import('@/lib/reserved-usernames')
+  if (isUsernameReserved(username)) {
+    return { available: false, reason: 'reserved' }
+  }
+
   // Public endpoint - no authentication required
   const [user] = await db
     .select()
@@ -147,7 +159,7 @@ export const isUsernameAvailable = async (username: string) => {
   }
 
   // Username is taken by someone else
-  return { available: false }
+  return { available: false, reason: 'taken' }
 }
 
 export const searchProfiles = async (query: string) => {

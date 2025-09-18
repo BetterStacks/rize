@@ -11,6 +11,8 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import { getServerSession } from '@/lib/auth'
 import SectionContextProvider from '@/lib/section-context'
 import { cn } from '@/lib/utils'
+import { isUsernameReserved } from '@/lib/reserved-usernames'
+import { notFound } from 'next/navigation'
 import { FC } from 'react'
 import UserProfile from './profile/user-profile'
 import Walkthrough from './walkthrough'
@@ -23,6 +25,11 @@ type Props = {
 };
 
 const ProfilePage: FC<Props> = async ({ username }) => {
+  // Check if username is reserved - if so, show 404
+  if (isUsernameReserved(username)) {
+    notFound()
+  }
+
   const session = await getServerSession()
   const user = await getProfileByUsername(username)
   

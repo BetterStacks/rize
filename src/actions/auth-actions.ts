@@ -37,27 +37,74 @@ export async function createProfileAfterOAuth(
     // Generate final username
     let finalUsername: string
     
+    // Check if username is reserved (needed for both claimed and generated usernames)
+    const { isUsernameReserved } = await import('@/lib/reserved-usernames')
+    
     if (claimedUsername) {
-      // Check if claimed username is available
-      const existingUser = await db
-        .select()
-        .from(profile)
-        .where(eq(profile.username, claimedUsername.toLowerCase()))
-        .limit(1)
       
-      if (existingUser.length === 0) {
-        finalUsername = claimedUsername.toLowerCase()
-        console.log(`Using claimed username: ${finalUsername}`)
-      } else {
-        // Username taken, generate alternative
-        const baseUsername = claimedUsername.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15)
+      if (isUsernameReserved(claimedUsername)) {
+        // Username is reserved, generate alternative
+        let baseUsername = claimedUsername.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15)
+        
+        // If base username is still reserved, modify it
+        if (isUsernameReserved(baseUsername)) {
+          baseUsername = `${baseUsername}user`
+        }
+        
         finalUsername = `${baseUsername}${Math.floor(Math.random() * 999) + 1}`
-        console.log(`Claimed username taken, using: ${finalUsername}`)
+        
+        // Extra safety check
+        while (isUsernameReserved(finalUsername)) {
+          finalUsername = `${baseUsername}${Math.floor(Math.random() * 9999) + 1000}`
+        }
+        
+        console.log(`Claimed username is reserved, using: ${finalUsername}`)
+      } else {
+        // Check if claimed username is available
+        const existingUser = await db
+          .select()
+          .from(profile)
+          .where(eq(profile.username, claimedUsername.toLowerCase()))
+          .limit(1)
+        
+        if (existingUser.length === 0) {
+          finalUsername = claimedUsername.toLowerCase()
+          console.log(`Using claimed username: ${finalUsername}`)
+        } else {
+          // Username taken, generate alternative
+          let baseUsername = claimedUsername.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15)
+          
+          // If base username is reserved, modify it
+          if (isUsernameReserved(baseUsername)) {
+            baseUsername = `${baseUsername}user`
+          }
+          
+          finalUsername = `${baseUsername}${Math.floor(Math.random() * 999) + 1}`
+          
+          // Extra safety check
+          while (isUsernameReserved(finalUsername)) {
+            finalUsername = `${baseUsername}${Math.floor(Math.random() * 9999) + 1000}`
+          }
+          
+          console.log(`Claimed username taken, using: ${finalUsername}`)
+        }
       }
     } else {
-      // Generate username from user info
-      const baseUsername = userInfo.name?.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15) || 'user'
+      // Generate username from user info, ensuring it's not reserved
+      let baseUsername = userInfo.name?.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15) || 'user'
+      
+      // If base username is reserved, modify it
+      if (isUsernameReserved(baseUsername)) {
+        baseUsername = `${baseUsername}user`
+      }
+      
       finalUsername = `${baseUsername}${Math.floor(Math.random() * 999) + 1}`
+      
+      // Extra safety check - if generated username is still reserved, add more randomness
+      while (isUsernameReserved(finalUsername)) {
+        finalUsername = `${baseUsername}${Math.floor(Math.random() * 9999) + 1000}`
+      }
+      
       console.log(`No claimed username, generated: ${finalUsername}`)
     }
 
