@@ -16,12 +16,16 @@ import { ProjectForm } from './forms/ProjectForm'
 import { useSession } from '@/hooks/useAuth'
 import {Card, CardContent, CardDescription, CardHeader} from '@/components/ui/card'
 import letrazLogo from '@/../public/letraz-logo.svg'
+import letrazLogoLight from '@/../public/letraz-logo-light.svg'
 import letrazBanner from '@/../public/letraz-banner.png'
 import Image from 'next/image'
+import {useTheme} from 'next-themes'
 
 const RightSidebar = ({ className }: { className?: string }) => {
   const [active, setActive] = useActiveSidebarTab()
   const { data } = useSession()
+
+  const {theme} = useTheme()
 
   const letrazBaseUrl = process.env.NEXT_PUBLIC_LETRAZ_URL
   const hasLetraz = !!data?.user?.letrazId
@@ -69,11 +73,11 @@ const RightSidebar = ({ className }: { className?: string }) => {
           key={active.tab}
           className="mt-6 mb-20 flex flex-col items-center justify-start relative w-full"
         >
-          {letrazBaseUrl && rizeUserId && (
+          {process.env.NEXT_PUBLIC_LETRAZ_CONNECTION === 'true' && letrazBaseUrl && rizeUserId && (
             <div className="w-full flex justify-center">
               <Card className="max-w-sm w-full mt-16 shadow-lg dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
                 <CardHeader>
-                  <Image src={letrazLogo} alt="Letraz Logo" className="w-[40%]" />
+                  <Image src={theme === 'dark' ? letrazLogo : letrazLogoLight} alt="Letraz Logo" className="w-[40%]" />
                   <CardDescription className="text-left leading-snug">
                     Letraz helps you easily build unique resumes for each job you apply for. Give it a try.
                   </CardDescription>
