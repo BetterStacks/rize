@@ -89,7 +89,7 @@ const RightSidebar = ({ className }: { className?: string }) => {
                       onClick={() => {
                         const url = hasLetraz
                             ? `${letrazBaseUrl}/app`
-                            : `${letrazBaseUrl}/signup?userId=${encodeURIComponent(rizeUserId)}&authMethod=${encodeURIComponent(authMethod)}`
+                            : `${letrazBaseUrl}/signup?integrate=rize&userId=${encodeURIComponent(rizeUserId)}&authMethod=${encodeURIComponent(authMethod)}`
                         window.open(url, '_blank', 'noopener,noreferrer')
                       }}
                   >
