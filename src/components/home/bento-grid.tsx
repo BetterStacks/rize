@@ -183,7 +183,7 @@ const GetUniqueLink = () => {
             <>
               <Link2 strokeWidth={1.8} className="size-6 stroke-pink-950 " />
               <span className="text-xl opacity-80 text-pink-950 font-medium tracking-tight ">
-                rise.so/katyohara
+                rize.so/katyohara
               </span>
             </>
           )}

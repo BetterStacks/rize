@@ -322,7 +322,7 @@ const EditProfile = () => {
         </div>
         <span className="text-sm mx-2 mt-1 text-neutral-500 dark:text-neutral-400">
           {' '}
-          rise.so/{usernameValue}
+          rize.so/{usernameValue}
         </span>
       </div>
       <div className="space-y-2 w-full">

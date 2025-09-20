@@ -531,7 +531,7 @@ const ScrollableProfileSectionHeader = () => {
   return (
     <div className="max-w-5xl flex flex-col items-center justify-center  w-full mx-auto px-4 mb-10">
       <h3 className="text-2xl md:text-3xl font-medium tracking-tight leading-tight">
-        Rise is for{' '}
+        Rize is for{' '}
         <span className="font-instrument font-thin text-3xl md:text-4xl italic">
           Everyone
         </span>
