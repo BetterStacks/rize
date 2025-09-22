@@ -1,6 +1,7 @@
 import Dialogs from '@/components/dialogs'
 import { BottomNav } from '@/components/ui/bottom-nav'
 import Providers from '@/lib/providers'
+import { PostHogProvider } from '@/lib/PostHogProvider'
 import { cn } from '@/lib/utils'
 import type { Metadata } from 'next'
 import { Instrument_Serif, Inter } from 'next/font/google'
@@ -38,13 +39,15 @@ export default function RootLayout({
           instrument?.variable
         )}
       >
-        <Providers>
-          <Suspense fallback={null}>
-            <Dialogs />
-          </Suspense>
-          {children}
-          <BottomNav />
-        </Providers>
+        <PostHogProvider>
+          <Providers>
+            <Suspense fallback={null}>
+              <Dialogs />
+            </Suspense>
+            {children}
+            <BottomNav />
+          </Providers>
+        </PostHogProvider>
       </body>
     </html>
   )
