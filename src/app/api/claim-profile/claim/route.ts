@@ -4,7 +4,6 @@ import { Pool } from 'pg'
 import { users, accounts, profile } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
-import { v4 as uuidv4 } from 'uuid'
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -89,15 +88,14 @@ export async function POST(request: NextRequest) {
 
     // Create the credential account record that Better Auth expects for email/password login
     // Store password in accounts table where Better Auth looks for it
-    await db.insert(accounts).values({
-      id: uuidv4(),
-      accountId: userData.email,
-      providerId: 'credential',
-      userId: userData.id,
-      password: hashedPassword, // Store password in accounts table
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
+    if (userData.email) {
+      await db.insert(accounts).values({
+        accountId: userData.email,
+        providerId: 'credential',
+        userId: userData.id,
+        password: hashedPassword, // Store password in accounts table
+      })
+    }
 
     return NextResponse.json({
       message: 'Profile claimed successfully',

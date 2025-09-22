@@ -5,7 +5,6 @@ import db from '@/lib/db'
 import { TUser } from '@/lib/types'
 import { hashSync } from 'bcryptjs'
 import { eq } from 'drizzle-orm'
-import { v4 as uuidv4 } from 'uuid'
 
 export const userExists = async (email: string) => {
   try {
@@ -46,13 +45,10 @@ export const register = async (
   // Create the credential account record that Better Auth expects
   // Store password in accounts table where Better Auth looks for it
   await db.insert(accounts).values({
-    id: uuidv4(),
     accountId: user.email!,
     providerId: 'credential',
     userId: user.id,
     password: hashedPassword, // Store password in accounts table
-    createdAt: new Date(),
-    updatedAt: new Date(),
   })
 
   return user

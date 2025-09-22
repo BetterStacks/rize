@@ -3,7 +3,7 @@ import { getServerSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
 interface OnboardingPageProps {
-  searchParams: { resumeId?: string }
+  searchParams: Promise<{ resumeId?: string }>
 }
 
 export default async function OnboardingPage({ searchParams }: OnboardingPageProps) {
@@ -17,6 +17,9 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
     redirect(`/${session?.user?.username}`)
   }
 
+  // Await the searchParams promise
+  const params = await searchParams
+
   // Allow access to onboarding if user is authenticated but missing profile
-  return <OnboardingFlow resumeId={searchParams.resumeId} />
+  return <OnboardingFlow resumeId={params.resumeId} />
 }
