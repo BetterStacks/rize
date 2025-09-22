@@ -55,6 +55,9 @@ export const users = pgTable('user', {
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),
   isOnboarded: boolean('is_onboarded').notNull().default(false),
+  isClaimed: boolean('is_claimed').notNull().default(true),
+  resumeFileId: text('resume_file_id'),
+  claimToken: text('claim_token'),
   letrazId: text('letraz_id'),
 })
 

@@ -2,7 +2,11 @@ import OnboardingFlow from '@/components/onboarding/OnboardingFlow'
 import { getServerSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
-export default async function OnboardingPage() {
+interface OnboardingPageProps {
+  searchParams: Promise<{ resumeId?: string }>
+}
+
+export default async function OnboardingPage({ searchParams }: OnboardingPageProps) {
   const session = await getServerSession()
   // If unauthenticated, redirect on the server to avoid client-side loops
   if (!session) {
@@ -13,6 +17,9 @@ export default async function OnboardingPage() {
     redirect(`/${session?.user?.username}`)
   }
 
+  // Await the searchParams promise
+  const params = await searchParams
+
   // Allow access to onboarding if user is authenticated but missing profile
-  return <OnboardingFlow />
+  return <OnboardingFlow resumeId={params.resumeId} />
 }

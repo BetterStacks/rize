@@ -1,6 +1,6 @@
 'use server'
 
-import { users } from '@/db/schema'
+import { users, accounts } from '@/db/schema'
 import db from '@/lib/db'
 import { TUser } from '@/lib/types'
 import { hashSync } from 'bcryptjs'
@@ -41,6 +41,15 @@ export const register = async (
   if (!user) {
     throw new Error('Error creating user')
   }
+
+  // Create the credential account record that Better Auth expects
+  // Store password in accounts table where Better Auth looks for it
+  await db.insert(accounts).values({
+    accountId: user.email!,
+    providerId: 'credential',
+    userId: user.id,
+    password: hashedPassword, // Store password in accounts table
+  })
 
   return user
 }

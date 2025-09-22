@@ -20,7 +20,11 @@ import { WelcomeStep } from './steps/WelcomeStep'
 import { bulkInsertSections } from '@/actions/general-actions'
 import { processResumeData } from '@/actions/resume-actions'
 
-export default function OnboardingFlow() {
+interface OnboardingFlowProps {
+  resumeId?: string
+}
+
+export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
   const router = useRouter()
   const session = useSession()
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
@@ -33,8 +37,16 @@ export default function OnboardingFlow() {
       profileImage: session?.data?.user?.image || '',
       interests: [],
       resumeData: null,
+      resumeId: resumeId || null,
     },
   })
+
+  // Update resumeId in formData if provided
+  useEffect(() => {
+    if (resumeId && formData.resumeId !== resumeId) {
+      setFormData((prev) => ({ ...prev, resumeId }))
+    }
+  }, [resumeId, formData.resumeId, setFormData])
 
   // Auto-create profile for OAuth users who don't have one yet
   useEffect(() => {
@@ -161,13 +173,34 @@ export default function OnboardingFlow() {
     try {
       await bulkInsertSections()
       
-      // Process resume data if available
+      // Process resume data if available (either uploaded during onboarding or from claim)
       if (formData?.resumeData) {
         const result = await processResumeData(formData.resumeData)
         if (result.success) {
           toast.success(`Resume data imported: ${result.stats?.experience || 0} experiences, ${result.stats?.education || 0} education entries`)
         } else {
           toast.error('Failed to import resume data, but profile was created successfully')
+        }
+      } else if (formData?.resumeId) {
+        // Process resume from claim link using Cloudinary file ID
+        try {
+          // You'll need to implement this function to fetch and parse resume from Cloudinary
+          const result = await fetch('/api/resume/parse-from-cloudinary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ resumeFileId: formData.resumeId }),
+          })
+          
+          if (result.ok) {
+            const parseResult = await result.json()
+            if (parseResult.success) {
+              toast.success(`Resume parsed: ${parseResult.stats?.experience || 0} experiences, ${parseResult.stats?.education || 0} education entries`)
+            }
+          } else {
+            console.warn('Failed to parse pre-uploaded resume')
+          }
+        } catch (error) {
+          console.warn('Error parsing pre-uploaded resume:', error)
         }
       }
       

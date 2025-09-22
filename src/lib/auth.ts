@@ -3,7 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { profile, users, accounts, sessions, verification } from '@/db/schema'
 import db from './db'
 import { eq } from 'drizzle-orm'
-import { compareSync } from 'bcryptjs'
+import { compareSync, hashSync } from 'bcryptjs'
 import { userExists } from '@/actions/user-actions'
 
 export const auth = betterAuth({
@@ -22,6 +22,14 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
+    password: {
+      hash: async (password) => {
+        return hashSync(password, 10); // Use bcrypt for hashing
+      },
+      verify: async ({ password, hash }) => {
+        return compareSync(password, hash); // Use bcrypt for verification
+      },
+    },
   },
   socialProviders: {
     google: {
