@@ -5,9 +5,10 @@ import { cn } from '@/lib/utils'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { FileText, Upload, X, CheckCircle, AlertCircle } from 'lucide-react'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
+import { useSearchParams } from 'next/navigation'
 import type { ResumeData } from '@/types/onboarding'
 
 interface ResumeStepProps {
@@ -17,9 +18,14 @@ interface ResumeStepProps {
 }
 
 export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
+  const searchParams = useSearchParams()
+  const resumeId = searchParams.get('resumeId')
+  
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'success' | 'error'>('idle')
   const [extractedData, setExtractedData] = useState<any>(null)
+  const [preloadedResume, setPreloadedResume] = useState<{ name: string; url: string } | null>(null)
+  const [hasUserReplaced, setHasUserReplaced] = useState(false)
 
   const { mutate: uploadResume, isPending: isUploading } = useMutation({
     mutationFn: async (file: File) => {
@@ -49,6 +55,48 @@ export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
     },
   })
 
+  const { mutate: processPreloadedResume, isPending: isProcessingPreloaded } = useMutation({
+    mutationFn: async (cloudinaryFileId: string) => {
+      const response = await fetch('/api/process-resume', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cloudinaryFileId }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to process preloaded resume')
+      }
+
+      return response.json()
+    },
+    onSuccess: (data) => {
+      setExtractedData(data)
+      setUploadStatus('success')
+      toast.success('Resume loaded and processed successfully!')
+    },
+    onError: (error) => {
+      setUploadStatus('error')
+      toast.error('Failed to process preloaded resume: ' + error.message)
+    },
+  })
+
+  // Auto-load resume if resumeId is present in URL (only once, unless user hasn't replaced)
+  useEffect(() => {
+    if (resumeId && !preloadedResume && !uploadedFile && !hasUserReplaced) {
+      const cloudinaryUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload/${resumeId}`
+      const fileName = resumeId.split('/').pop()?.replace(/^resume_\d+_/, '') || 'Resume'
+      
+      setPreloadedResume({
+        name: fileName,
+        url: cloudinaryUrl
+      })
+      setUploadStatus('processing')
+      processPreloadedResume(resumeId)
+    }
+  }, [resumeId, preloadedResume, uploadedFile, hasUserReplaced, processPreloadedResume])
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
     if (file) {
@@ -71,8 +119,15 @@ export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
 
   const removeFile = () => {
     setUploadedFile(null)
+    setPreloadedResume(null)
     setUploadStatus('idle')
     setExtractedData(null)
+  }
+
+  const replaceResume = () => {
+    setHasUserReplaced(true)
+    removeFile()
+    // This will show the upload area again
   }
 
   const handleSkip = () => {
@@ -127,7 +182,33 @@ export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
         </p>
       </div>
 
-      {!uploadedFile ? (
+      {(uploadedFile || preloadedResume) ? (
+        <Card className="p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {getStatusIcon()}
+              <div>
+                <p className="font-medium text-sm">
+                  {uploadedFile?.name || preloadedResume?.name || 'Resume'}
+                </p>
+                <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                  {preloadedResume ? 'Auto-loaded from your profile • ' : ''}{getStatusText()}
+                </p>
+              </div>
+            </div>
+            {uploadStatus !== 'uploading' && uploadStatus !== 'processing' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={removeFile}
+                className="h-8 w-8 p-0"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </Card>
+      ) : (
         <Card
           {...getRootProps()}
           className={cn(
@@ -149,30 +230,6 @@ export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
             <p className="text-xs text-neutral-500">
               Supports PDF, DOC, DOCX (max 10MB)
             </p>
-          </div>
-        </Card>
-      ) : (
-        <Card className="p-4 mb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {getStatusIcon()}
-              <div>
-                <p className="font-medium text-sm">{uploadedFile.name}</p>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                  {getStatusText()}
-                </p>
-              </div>
-            </div>
-            {uploadStatus !== 'uploading' && uploadStatus !== 'processing' && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={removeFile}
-                className="h-8 w-8 p-0"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
           </div>
         </Card>
       )}
@@ -201,19 +258,44 @@ export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
         </Card>
       )}
 
+      {preloadedResume && (
+        <Card className="p-4 mb-4 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <p className="font-medium text-blue-800 dark:text-blue-200 text-sm">
+                Resume auto-loaded from your profile
+              </p>
+            </div>
+            <p className="text-blue-700 dark:text-blue-300 text-sm">
+              We've automatically loaded your previously uploaded resume. You can continue with this resume or upload a different one.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={replaceResume}
+              disabled={uploadStatus === 'processing'}
+              className="w-full sm:w-auto"
+            >
+              Upload Different Resume
+            </Button>
+          </div>
+        </Card>
+      )}
+
       <div className="flex mt-8 gap-3">
         <Button
           variant="outline"
           onClick={handleSkip}
           className="flex-1"
-          disabled={isPending || isUploading}
+          disabled={isPending || isUploading || isProcessingPreloaded}
         >
           Skip for now
         </Button>
         <Button
           variant="secondary"
           onClick={uploadStatus === 'success' ? handleContinue : handleSkip}
-          disabled={isPending || isUploading || (uploadedFile != null && uploadStatus !== 'success')}
+          disabled={isPending || isUploading || isProcessingPreloaded || ((uploadedFile != null || preloadedResume != null) && uploadStatus !== 'success')}
           className="flex-1"
         >
           {uploadStatus === 'success' ? 'Continue with data' : 'Continue'}
