@@ -199,7 +199,7 @@ const SignUp = () => {
         <span className="text-sm w-full text-center font-medium opacity-80">
           {' '}
           Already have a account?{' '}
-          <Link href={'/login'} className="text-indigo-500">
+          <Link href={'/login'} className="text-amber-500">
             Login
           </Link>
         </span>

@@ -33,7 +33,7 @@ const faqItems = [
 export default function FAQSection() {
   return (
     <section className=" flex flex-col relative my-10  items-center justify-center  w-full px-4 py-12">
-      {/* <div className="size-[350px]  absolute blur-[120px] top-[30%] -z-10  bg-indigo-400 dark:bg-indigo-500"></div> */}
+      {/* <div className="size-[350px]  absolute blur-[120px] top-[30%] -z-10  bg-amber-400 dark:bg-amber-500"></div> */}
       <div className="max-w-5xl w-full relative">
         <div className="px-4 mb-6">
           <h3 className="text-2xl md:text-3xl font-medium tracking-tight ">

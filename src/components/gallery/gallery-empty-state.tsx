@@ -31,12 +31,12 @@ export function EmptyGalleryState({
         <div className="relative mb-8">
           {/* Main icon */}
           <motion.div
-            className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/20 dark:to-indigo-900/20"
+            className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/20 dark:to-amber-900/20"
             whileHover={{ scale: 1.05 }}
             transition={{ type: 'spring', stiffness: 300, damping: 15 }}
           >
             <Camera
-              className="size-6 text-violet-500 dark:text-violet-400"
+              className="size-6 text-yellow-500 dark:text-yellow-400"
               strokeWidth={1.5}
             />
           </motion.div>
@@ -49,7 +49,7 @@ export function EmptyGalleryState({
         <div className="flex gap-3">
           <Button
             size="sm"
-            className="gap-2 scale-90 bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:from-violet-600 hover:to-indigo-600 dark:from-violet-600 dark:to-indigo-600 dark:hover:from-violet-700 dark:hover:to-indigo-700"
+            className="gap-2 scale-90 !bg-main-yellow text-black"
             onClick={onAddImages}
             disabled={disabled}
           >

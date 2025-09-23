@@ -92,14 +92,14 @@ export function EmptyWritingState({
         transition={{ duration: 0.5 }}
         className="flex max-w-md flex-col items-center text-center"
       >
-        <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/20 dark:to-indigo-900/20">
+        <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/20 dark:to-amber-900/20">
           <motion.div
             animate={{ rotate: isHovering ? 15 : 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 15 }}
           >
             <div className="relative">
               <Mail
-                className="size-6 text-violet-500 dark:text-violet-400"
+                className="size-6 text-yellow-500 dark:text-yellow-400"
                 strokeWidth={1.5}
               />
               {/* <motion.div
@@ -109,7 +109,7 @@ export function EmptyWritingState({
                 className="absolute -right-1 -top-1"
               >
                 <PenLine
-                  className="h-5 w-5 text-indigo-500 dark:text-indigo-400"
+                  className="h-5 w-5 text-amber-500 dark:text-amber-400"
                   strokeWidth={1.5}
                 />
               </motion.div> */}
@@ -122,7 +122,7 @@ export function EmptyWritingState({
         </p>
         <Button
           size="sm"
-          className="gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:from-violet-600 hover:to-indigo-600 dark:from-violet-600 dark:to-indigo-600 dark:hover:from-violet-700 dark:hover:to-indigo-700 rounded-lg scale-90"
+          className="gap-2 !bg-main-yellow text-black rounded-lg scale-90"
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
           onClick={onCreateNew}

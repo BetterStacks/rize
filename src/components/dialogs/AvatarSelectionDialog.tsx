@@ -229,7 +229,7 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
             whileTap={{ scale: 0.98 }}
           >
             <div className="flex flex-col items-center space-y-2">
-              <div className="p-3 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/20 dark:to-indigo-900/20 group-hover:from-purple-200 group-hover:to-indigo-200 dark:group-hover:from-purple-800/30 dark:group-hover:to-indigo-800/30 transition-colors">
+              <div className="p-3 rounded-full bg-gradient-to-br from-purple-100 to-amber-100 dark:from-purple-900/20 dark:to-amber-900/20 group-hover:from-purple-200 group-hover:to-amber-200 dark:group-hover:from-purple-800/30 dark:group-hover:to-amber-800/30 transition-colors">
                 <Palette className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
               <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Creative Avatar</span>
@@ -285,7 +285,7 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
         <Button
           onClick={handleUploadAvatar}
           disabled={isUploading}
-          className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+          className="w-full bg-gradient-to-r from-purple-500 to-amber-500 hover:from-purple-600 hover:to-amber-600"
         >
           {isUploading && <Loader className="w-4 h-4 mr-2 animate-spin" />}
           Save Profile Picture
@@ -357,7 +357,7 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
         <Button
           onClick={handleSaveCreativeAvatar}
           disabled={isUploading}
-          className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+          className="w-full bg-gradient-to-r from-purple-500 to-amber-500 hover:from-purple-600 hover:to-amber-600"
         >
           {isUploading && <Loader className="w-4 h-4 mr-2 animate-spin" />}
           Save Creative Avatar

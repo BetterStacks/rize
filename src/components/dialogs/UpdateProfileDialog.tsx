@@ -163,7 +163,7 @@ const DialogSidebar = ({ options, active, setActive }: DialogSidebarProps) => {
             <span className={cn('text-sm ')}>{option.label}</span>
             {active === option.id && (
               <motion.div
-                className="h-9 flex items-center justify-end w-full -z-10 bg-indigo-50 dark:bg-indigo-400/20  absolute right-0"
+                className="h-9 flex items-center justify-end w-full -z-10 bg-amber-50 dark:bg-amber-400/20  absolute right-0"
                 transition={{
                   layout: {
                     duration: 0.2,
@@ -172,7 +172,7 @@ const DialogSidebar = ({ options, active, setActive }: DialogSidebarProps) => {
                 }}
                 layoutId={'active-line'}
               >
-                <div className="w-1 h-9 bg-indigo-600 rounded-full" />
+                <div className="w-1 h-9 bg-amber-600 rounded-full" />
               </motion.div>
             )}
           </div>

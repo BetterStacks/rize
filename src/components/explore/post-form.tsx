@@ -137,7 +137,7 @@ const PostForm = () => {
         {...getRootProps()}
         className={cn(
           'flex flex-col overflow-hidden dark:bg-dark-bg max-w-xs rounded-3xl sm:max-w-lg bg-white drop-shadow-2xl sm:rounded-3xl  w-full border border-neutral-300/60 dark:border-dark-border px-2 py-3  ',
-          isDragActive && 'border-dashed border-indigo-600/60 bg-indigo-500/40'
+          isDragActive && 'border-dashed border-amber-600/60 bg-amber-500/40'
           //   focus && "h-fit"
         )}
       >

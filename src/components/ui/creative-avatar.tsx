@@ -59,10 +59,10 @@ const gradients = [
   'bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500', // Cotton candy
   'bg-gradient-to-br from-green-400 via-blue-500 to-purple-600', // Ocean waves
   'bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500', // Fire energy
-  'bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-500', // Galaxy dreams
+  'bg-gradient-to-br from-pink-400 via-purple-500 to-amber-500', // Galaxy dreams
   'bg-gradient-to-br from-teal-400 via-green-500 to-blue-500', // Tropical paradise
   'bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600', // Neon sunset
-  'bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500', // Cosmic energy
+  'bg-gradient-to-br from-amber-400 via-purple-500 to-pink-500', // Cosmic energy
 ]
 
 // Fun emojis that Gen Z/Alpha love
@@ -232,7 +232,7 @@ export function CreativeAvatar({
           'bg-stone-500', 'bg-red-500', 'bg-orange-500', 'bg-amber-500',
           'bg-yellow-500', 'bg-lime-500', 'bg-green-500', 'bg-emerald-500',
           'bg-teal-500', 'bg-cyan-500', 'bg-sky-500', 'bg-blue-500',
-          'bg-indigo-500', 'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500',
+          'bg-amber-500', 'bg-yellow-500', 'bg-purple-500', 'bg-fuchsia-500',
           'bg-pink-500', 'bg-rose-500'
         ]
         const color = colors[hash % colors.length]

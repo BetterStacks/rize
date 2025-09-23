@@ -134,7 +134,7 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
                       onClick={item.action}
                       className={cn(
                         'relative px-4 py-2 rounded-xl transition-all',
-                        item.special && 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600'
+                        item.special && 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black font-semibold hover:from-yellow-600 hover:to-amber-600'
                       )}
                     >
                       <item.icon className="size-4 mr-2" />

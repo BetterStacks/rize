@@ -145,7 +145,7 @@ const ClaimProfileForm = () => {
     return (
       <div className="w-full shadow-2xl bg-white dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 space-y-4 rounded-3xl p-6">
         <div className="flex flex-col items-center justify-center py-8">
-          <Loader className="h-8 w-8 animate-spin text-indigo-500 mb-4" />
+          <Loader className="h-8 w-8 animate-spin text-amber-500 mb-4" />
           <h2 className="text-xl font-medium text-center">
             Validating claim token...
           </h2>
@@ -208,8 +208,8 @@ const ClaimProfileForm = () => {
       >
         <div className="flex items-center space-x-3">
           <div className="flex-shrink-0">
-            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+              <User className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             </div>
           </div>
           <div className="flex-1 min-w-0">

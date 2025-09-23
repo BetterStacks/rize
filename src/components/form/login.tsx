@@ -185,7 +185,7 @@ const Login = () => {
         <span className="text-sm w-full text-center font-medium opacity-80">
           {' '}
           Dont have a account yet?{' '}
-          <Link href={'/signup'} className="text-indigo-500">
+          <Link href={'/signup'} className="text-amber-500">
             Register
           </Link>
         </span>

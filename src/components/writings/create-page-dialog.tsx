@@ -65,8 +65,8 @@ export function CreatePageDialog({ open, onOpenChange }: CreatePageDialogProps) 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/20 dark:to-indigo-900/20">
-              <FileText className="w-4 h-4 text-violet-500 dark:text-violet-400" />
+            <div className="p-2 rounded-lg bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/20 dark:to-amber-900/20">
+              <FileText className="w-4 h-4 text-yellow-500 dark:text-yellow-400" />
             </div>
             Create New Page
           </DialogTitle>
@@ -104,7 +104,7 @@ export function CreatePageDialog({ open, onOpenChange }: CreatePageDialogProps) 
             <Button
               type="submit"
               disabled={isCreating}
-              className="bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600"
+              className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600"
             >
               {isCreating ? (
                 <>

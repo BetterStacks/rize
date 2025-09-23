@@ -12,7 +12,7 @@ const UpgradeCard = () => {
         <p className=" mb-2 opacity-70 leading-tight">
           It's the most popular plan for content creators and businesses.
         </p>
-        <Button className="bg-indigo-700 w-full rounded-3xl  mt-3 text-white">
+        <Button className="bg-amber-700 w-full rounded-3xl  mt-3 text-white">
           <Zap className="size-4 fill-white" /> <span>Upgrade</span>
         </Button>
       </CardContent>

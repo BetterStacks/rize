@@ -46,7 +46,7 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
       className={cn(
         'flex relative items-start group p-3 rounded-lg transition-all',
         activeTab?.id === experience?.id &&
-          'dark:bg-indigo-400/10 border-2 border-dashed bg-indigo-400/15 border-indigo-400/30 dark:border-indigo-400/20'
+          'dark:bg-amber-400/10 border-2 border-dashed bg-amber-400/15 border-amber-400/30 dark:border-amber-400/20'
       )}
     >
       {isMine && (

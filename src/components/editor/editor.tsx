@@ -340,7 +340,7 @@ const SlateImage = (props: any) => {
       {...attributes}
       contentEditable={false}
       className={cn(
-        selected && focused && 'border-dashed border-[3px] border-indigo-700',
+        selected && focused && 'border-dashed border-[3px] border-amber-700',
         'rounded-2xl group my-2 transition-all select-none border border-neutral-300 dark:border-dark-border flex relative aspect-auto w-fit h-fit'
       )}
     >
@@ -389,7 +389,7 @@ const SlateVideo = (props: any) => {
       style={style}
       {...attributes}
       className={cn(
-        selected && focused && 'border-dashed border-[3px] border-indigo-700',
+        selected && focused && 'border-dashed border-[3px] border-amber-700',
         'rounded-2xl group my-2 w-fit aspect-auto  border border-neutral-300 dark:border-dark-border flex cursor-pointer  overflow-hidden relative'
       )}
     >

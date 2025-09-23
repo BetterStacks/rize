@@ -25,7 +25,7 @@ const GalleryLimit: FC<GalleryLimitProps> = ({ itemCount }) => {
           animate={{
             width: `${limit}%`,
           }}
-          className={cn('bg-green-400 z-10 h-4', limit > 60 && 'bg-red-500')}
+          className={cn('bg-main-yellow z-10 h-4', limit > 60 && 'bg-red-500')}
           // style={{ width: Math.floor(items.length / 12) }}
         />
       </motion.div>

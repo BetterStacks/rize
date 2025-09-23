@@ -46,11 +46,11 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
         cn(
           'flex flex-col relative group',
           tab?.id === education?.id &&
-            'dark:bg-indigo-400/10 border-2 border-dashed bg-indigo-400/15 border-indigo-400/30 dark:border-indigo-400/20'
+            'dark:bg-amber-400/10 border-2 border-dashed bg-amber-400/15 border-amber-400/30 dark:border-amber-400/20'
         )
         // "flex flex-col w-full bg-neutral-100 dark:bg-neutral-800 transition-all  rounded-2xl border border-neutral-300/60 dark:border-dark-border p-4 md:p-6 ",
         // tab?.id === education?.id &&
-        //   "dark:bg-indigo-400/10 border-2 border-dashed bg-indigo-400/15 border-indigo-400/30 dark:border-indigo-400/20"
+        //   "dark:bg-amber-400/10 border-2 border-dashed bg-amber-400/15 border-amber-400/30 dark:border-amber-400/20"
       }
     >
       <h3 className="md:text-lg font-medium tracking-tight">

@@ -1,49 +1,50 @@
-import type { Config } from "tailwindcss";
-import scrollbarHide from "tailwind-scrollbar-hide";
+import type { Config } from 'tailwindcss'
+import scrollbarHide from 'tailwind-scrollbar-hide'
 export default {
-  darkMode: ["class"],
+  darkMode: ['class'],
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
       colors: {
-        "dark-border": "#363636",
-        "dark-bg": "#222222",
-        "light-bg": "#ffffff",
+        'dark-border': '#363636',
+        'dark-bg': '#222222',
+        'light-bg': '#ffffff',
+        'main-yellow': '#FFD936'
       },
       screens: {
-        "4k": "2560px", // or '3840px' for true 4K
+        '4k': '2560px', // or '3840px' for true 4K
       },
       fontFamily: {
-        inter: ["var(--font-inter)", "sans-serif"],
-        instrument: ["var(--font-instrument)", "serif"],
+        inter: ['var(--font-inter)', 'sans-serif'],
+        instrument: ['var(--font-instrument)', 'serif'],
       },
       keyframes: {
-        "accordion-down": {
+        'accordion-down': {
           from: {
-            height: "0",
+            height: '0',
           },
           to: {
-            height: "var(--radix-accordion-content-height)",
+            height: 'var(--radix-accordion-content-height)',
           },
         },
-        "accordion-up": {
+        'accordion-up': {
           from: {
-            height: "var(--radix-accordion-content-height)",
+            height: 'var(--radix-accordion-content-height)',
           },
           to: {
-            height: "0",
+            height: '0',
           },
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), scrollbarHide],
-} satisfies Config;
+  plugins: [require('tailwindcss-animate'), scrollbarHide],
+} satisfies Config
