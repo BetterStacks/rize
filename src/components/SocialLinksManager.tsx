@@ -85,7 +85,7 @@ const SocialLinksManager = () => {
     setEditLinkDialogOpen(true)
   }
   return (
-    <div className="w-full max-w-sm px-2 flex flex-col items-center justify-center mb-6">
+    <div className="w-full max-w-sm px-2 flex flex-col items-center justify-center">
       <Card className="bg-white social-links-manager w-full mt-4 shadow-xl dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl font-medium dark:text-white">
