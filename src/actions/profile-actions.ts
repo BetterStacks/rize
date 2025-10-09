@@ -1,63 +1,54 @@
-'use server'
+"use server";
 
+import { accounts, profile, profileSections, users } from "@/db/schema";
 import {
-  profile,
-  profileSections,
-  users,
-  accounts,
-} from '@/db/schema'
-import { requireAuth, requireAuthWithProfile, requireProfile } from '@/lib/auth'
-import db from '@/lib/db'
-import { GetProfileByUsername, profileSchema } from '@/lib/types'
-import {
-  and,
-  desc,
-  eq,
-  getTableColumns,
-  ilike,
-  not,
-  // or,
-  sql,
-} from 'drizzle-orm'
-import { cache } from 'react'
-import { z } from 'zod'
+  requireAuth,
+  requireAuthWithProfile,
+  requireProfile,
+} from "@/lib/auth";
+import db from "@/lib/db";
+import { GetProfileByUsername, profileSchema } from "@/lib/types";
+import { and, desc, eq, getTableColumns, not, sql } from "drizzle-orm";
+import { cache } from "react";
+import { z } from "zod";
 
 export async function updateProfile(data: z.infer<typeof profileSchema>) {
   try {
-    const { session, profileId, userId } = await requireAuthWithProfile()
+    const { session, profileId, userId } = await requireAuthWithProfile();
 
-    const validatedFields = profileSchema.safeParse(data)
+    const validatedFields = profileSchema.safeParse(data);
     if (!validatedFields.success) {
-      return { success: false, error: 'Invalid profile data' }
+      return { success: false, error: "Invalid profile data" };
     }
 
-    const { email, isOnboarded, ...profileData } = validatedFields.data
-    const userUpdates = { email, isOnboarded }
-    
+    const { email, isOnboarded, ...profileData } = validatedFields.data;
+    const userUpdates = { email, isOnboarded };
+
     // Update users table if there are user-related updates
     if (userUpdates?.email || userUpdates?.isOnboarded !== undefined) {
-      await db
-        .update(users)
-        .set(userUpdates)
-        .where(eq(users.id, userId))
+      await db.update(users).set(userUpdates).where(eq(users.id, userId));
     }
-    
+
     // Update profile table if there are profile-related updates
     if (Object.keys(profileData).length > 0) {
       await db
         .update(profile)
         .set(profileData)
-        .where(eq(profile.id, profileId))
+        .where(eq(profile.id, profileId));
     }
 
-    return { success: true, error: null }
+    return { success: true, error: null };
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Failed to update profile' }
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to update profile",
+    };
   }
 }
 
 export const getProfileById = async (id: string) => {
-  const { ...rest } = getTableColumns(profile)
+  const { ...rest } = getTableColumns(profile);
   const p = await db
     .select({
       ...rest,
@@ -67,15 +58,15 @@ export const getProfileById = async (id: string) => {
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
     .where(eq(profile.id, id))
-    .limit(1)
+    .limit(1);
   if (!p || p.length === 0) {
-    throw new Error('Profile not found')
+    throw new Error("Profile not found");
   }
-  return p[0]
-}
+  return p[0];
+};
 
 export const getProfileByUsername = async (username: string) => {
-  const { ...rest } = getTableColumns(profile)
+  const { ...rest } = getTableColumns(profile);
   const p = await db
     .select({
       ...rest,
@@ -84,22 +75,22 @@ export const getProfileByUsername = async (username: string) => {
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
     .where(eq(profile.username, username.toLowerCase()))
-    .limit(1)
+    .limit(1);
 
   if (!p || p.length === 0) {
-    return null
+    return null;
   }
 
-  return p[0] as GetProfileByUsername
-}
+  return p[0] as GetProfileByUsername;
+};
 
 export const createProfile = async (username: string) => {
-  const session = await requireAuth()
-  
+  const session = await requireAuth();
+
   // Check if username is reserved
-  const { isUsernameReserved } = await import('@/lib/reserved-usernames')
+  const { isUsernameReserved } = await import("@/lib/reserved-usernames");
   if (isUsernameReserved(username)) {
-    throw new Error('This username is reserved and cannot be claimed')
+    throw new Error("This username is reserved and cannot be claimed");
   }
 
   // Check if user already has a profile
@@ -107,7 +98,7 @@ export const createProfile = async (username: string) => {
     .select()
     .from(profile)
     .where(eq(profile.userId, session.user.id))
-    .limit(1)
+    .limit(1);
 
   if (existingProfile.length > 0) {
     // User already has a profile, update the username instead of creating new
@@ -115,13 +106,13 @@ export const createProfile = async (username: string) => {
       .update(profile)
       .set({ username: username.toLowerCase() })
       .where(eq(profile.userId, session.user.id))
-      .returning()
-    
+      .returning();
+
     if (updatedProfile.length === 0) {
-      throw new Error('Error updating profile')
+      throw new Error("Error updating profile");
     }
-    
-    return updatedProfile[0]
+
+    return updatedProfile[0];
   }
 
   // Create new profile if none exists
@@ -131,19 +122,19 @@ export const createProfile = async (username: string) => {
       userId: session.user.id,
       username: username.toLowerCase(),
     })
-    .returning()
+    .returning();
   if (p.length === 0) {
-    throw new Error('Error creating profile')
+    throw new Error("Error creating profile");
   }
 
-  return p[0]
-}
+  return p[0];
+};
 
 export const isUsernameAvailable = async (username: string) => {
   // First check if username is reserved
-  const { isUsernameReserved } = await import('@/lib/reserved-usernames')
+  const { isUsernameReserved } = await import("@/lib/reserved-usernames");
   if (isUsernameReserved(username)) {
-    return { available: false, reason: 'reserved' }
+    return { available: false, reason: "reserved" };
   }
 
   // Public endpoint - no authentication required
@@ -151,16 +142,16 @@ export const isUsernameAvailable = async (username: string) => {
     .select()
     .from(profile)
     .where(eq(profile.username, username.toLowerCase()))
-    .limit(1)
+    .limit(1);
 
   // If no user found with this username, it's available
   if (!user) {
-    return { available: true }
+    return { available: true };
   }
 
   // Username is taken by someone else
-  return { available: false, reason: 'taken' }
-}
+  return { available: false, reason: "taken" };
+};
 
 export const searchProfiles = async (query: string) => {
   // return await db
@@ -196,34 +187,34 @@ export const searchProfiles = async (query: string) => {
         coalesce(${profile.bio}, '')
       ) @@ websearch_to_tsquery('english', ${query})
     `
-    )
-}
+    );
+};
 
 export const getProfileIdByUsername = async (username: string) => {
   const profileId = await db
     .select({ id: profile.id })
     .from(profile)
-    .where(eq(profile.username, username.toLowerCase()))
+    .where(eq(profile.username, username?.toLowerCase()));
   if (profileId.length === 0) {
-    throw new Error('Profile not found')
+    throw new Error("Profile not found");
   }
-  return profileId[0]
-}
+  return profileId[0];
+};
 export const getProfileByUserId = async (userId: string) => {
   const userProfile = await db
     .select({ id: profile.id })
     .from(profile)
-    .where(eq(profile.userId, userId))
+    .where(eq(profile.userId, userId));
   if (userProfile.length === 0) {
-    throw new Error('Profile not found')
+    throw new Error("Profile not found");
   }
-  return userProfile[0]
-}
+  return userProfile[0];
+};
 
 export const getCurrentUserProfile = async () => {
-  const session = await requireAuth()
-  const { ...rest } = getTableColumns(profile)
-  
+  const session = await requireAuth();
+  const { ...rest } = getTableColumns(profile);
+
   const userProfile = await db
     .select({
       ...rest,
@@ -236,43 +227,43 @@ export const getCurrentUserProfile = async () => {
     .from(users)
     .leftJoin(profile, eq(profile.userId, users.id))
     .where(eq(users.id, session.user.id))
-    .limit(1)
+    .limit(1);
 
   if (!userProfile || userProfile.length === 0) {
-    return null
+    return null;
   }
 
-  const base = userProfile[0]
+  const base = userProfile[0];
 
   // Determine auth method from connected accounts; fallback to 'email'
-  let authMethod: 'google' | 'github' | 'linkedin' | 'email' = 'email'
+  let authMethod: "google" | "github" | "linkedin" | "email" = "email";
   try {
     const userAccounts = await db
       .select({ providerId: accounts.providerId })
       .from(accounts)
-      .where(eq(accounts.userId, session.user.id))
+      .where(eq(accounts.userId, session.user.id));
 
-    const providers = userAccounts.map(a => a.providerId)
-    if (providers.includes('google')) authMethod = 'google'
-    else if (providers.includes('github')) authMethod = 'github'
-    else if (providers.includes('linkedin')) authMethod = 'linkedin'
+    const providers = userAccounts.map((a) => a.providerId);
+    if (providers.includes("google")) authMethod = "google";
+    else if (providers.includes("github")) authMethod = "github";
+    else if (providers.includes("linkedin")) authMethod = "linkedin";
   } catch (e) {
     // ignore
   }
 
-  return { ...base, authMethod }
-}
+  return { ...base, authMethod };
+};
 
 const sectionSchema = z.object({
   slug: z.string(),
   enabled: z.boolean(),
   order: z.number(),
-})
+});
 
 export async function updateSectionsAction(
   sections: z.infer<typeof sectionSchema>[]
 ) {
-  const profileId = await requireProfile()
+  const profileId = await requireProfile();
 
   await Promise.all(
     sections.map((section, index) =>
@@ -289,7 +280,7 @@ export async function updateSectionsAction(
           )
         )
     )
-  )
+  );
 }
 
 export const getRecentlyJoinedProfiles = async (limit: number = 5) => {
@@ -304,12 +295,12 @@ export const getRecentlyJoinedProfiles = async (limit: number = 5) => {
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
     .orderBy(desc(profile.createdAt))
-    .limit(limit)
-}
+    .limit(limit);
+};
 
 export const getRecentlyJoinedProfilesCached = cache(
   async (limit: number = 5) => {
-    const session = await requireAuth()
+    const session = await requireAuth();
 
     return await db
       .select({
@@ -322,11 +313,11 @@ export const getRecentlyJoinedProfilesCached = cache(
       .from(profile)
       .innerJoin(users, eq(profile.userId, users.id))
       .where(
-        session && session.user.username 
-          ? not(eq(profile.username, session.user.username)) 
+        session && session.user.username
+          ? not(eq(profile.username, session.user.username))
           : undefined
       )
       .orderBy(desc(profile.createdAt))
-      .limit(limit)
+      .limit(limit);
   }
-)
+);

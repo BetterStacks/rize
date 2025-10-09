@@ -1,16 +1,16 @@
-'use client'
-import { getAllProjects } from '@/actions/project-actions'
-import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
-import { GetAllProjects } from '@/lib/types'
-import { useMediaQuery } from '@mantine/hooks'
-import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
-import { Brain, Plus } from 'lucide-react'
-import { useParams } from 'next/navigation'
-import { useState } from 'react'
-import { Button } from '../ui/button'
-import { Skeleton } from '../ui/skeleton'
-import ProjectCard from './project-card'
+"use client";
+import { getAllProjects } from "@/actions/project-actions";
+import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
+import { GetAllProjects } from "@/lib/types";
+import { useMediaQuery } from "@mantine/hooks";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { Brain, Plus } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { Skeleton } from "../ui/skeleton";
+import ProjectCard from "./project-card";
 
 type ProjectsProps = {
   isMine: boolean;
@@ -18,19 +18,19 @@ type ProjectsProps = {
 };
 
 const Projects = ({ isMine, projects }: ProjectsProps) => {
-  const { username } = useParams<{ username: string }>()
-  const isDesktop = useMediaQuery('(min-width: 1024px)')
-  const setOpen = useRightSidebar()[1]
+  const { username } = useParams<{ username: string }>();
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const setOpen = useRightSidebar()[1];
   const { data, isFetching } = useQuery({
-    queryKey: ['get-projects', username],
+    queryKey: ["get-projects", username],
     initialData: projects,
     queryFn: () => getAllProjects(username),
-    // refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false,
     refetchOnMount: false,
-    // staleTime: Infinity,
-  })
-
-  const setActiveTab = useActiveSidebarTab()[1]
+    staleTime: Infinity,
+  });
+  console.log(data);
+  const setActiveTab = useActiveSidebarTab()[1];
 
   return (
     <div
@@ -41,13 +41,13 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
         <h2 className="text-lg md:text-xl font-medium">Projects</h2>
         {isMine && (
           <Button
-            variant={'outline'}
+            variant={"outline"}
             className="  rounded-lg scale-90 text-sm"
-            size={'sm'}
+            size={"sm"}
             onClick={() => {
-              setActiveTab({ id: null, tab: 'projects' })
+              setActiveTab({ id: null, tab: "projects" });
               if (!isDesktop) {
-                setOpen(true)
+                setOpen(true);
               }
             }}
           >
@@ -66,17 +66,17 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
           ))
         ) : data?.length === 0 ? (
           <EmptyWritingState
-            onCreateNew={() => setActiveTab({ id: null, tab: 'projects' })}
+            onCreateNew={() => setActiveTab({ id: null, tab: "projects" })}
           />
         ) : (
           data?.map((project, i) => {
-            return <ProjectCard key={i} project={project} isMine={isMine} />
+            return <ProjectCard key={i} project={project} isMine={isMine} />;
           })
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
 interface EmptyProjectStateProps {
   title?: string;
@@ -86,12 +86,12 @@ interface EmptyProjectStateProps {
 }
 
 export function EmptyWritingState({
-  title = 'Start Sharing your Projects Journey',
-  description = 'Your ideas deserve to be shared. Create your first piece and let your words flow.',
-  ctaText = 'Add New Project',
+  title = "Start Sharing your Projects Journey",
+  description = "Your ideas deserve to be shared. Create your first piece and let your words flow.",
+  ctaText = "Add New Project",
   onCreateNew = () => {},
 }: EmptyProjectStateProps) {
-  const [isHovering, setIsHovering] = useState(false)
+  const [isHovering, setIsHovering] = useState(false);
 
   return (
     <div className="flex h-full min-h-[400px] border-2 border-neutral-300/60 dark:border-dark-border/80 rounded-3xl border-dashed w-full items-center justify-center">
@@ -104,7 +104,7 @@ export function EmptyWritingState({
         <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/20 dark:to-amber-900/20">
           <motion.div
             animate={{ rotate: isHovering ? 15 : 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+            transition={{ type: "spring", stiffness: 300, damping: 15 }}
           >
             <div className="relative">
               <Brain
@@ -130,7 +130,7 @@ export function EmptyWritingState({
         </Button>
       </motion.div>
     </div>
-  )
+  );
 }
 
-export default Projects
+export default Projects;

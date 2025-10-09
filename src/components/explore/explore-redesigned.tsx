@@ -48,8 +48,6 @@ const ExploreRedesigned = () => {
   });
 
   const topPosts = postsData ?? [];
-
-  console.log(topPosts);
   const profiles = profilesData ?? [];
 
   return (
