@@ -8,7 +8,7 @@ import {
 } from "@/lib/auth";
 import db from "@/lib/db";
 import { GetProfileByUsername, profileSchema } from "@/lib/types";
-import { and, desc, eq, getTableColumns, not, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, not, sql, lt } from "drizzle-orm";
 import { cache } from "react";
 import { z } from "zod";
 
@@ -321,3 +321,65 @@ export const getRecentlyJoinedProfilesCached = cache(
       .limit(limit);
   }
 );
+
+/**
+ * Fetch profiles for infinite (cursor) pagination.
+ * Returns up to `limit` profiles ordered by createdAt desc and a `nextCursor` (ISO string)
+ * if there are more profiles. Each profile will include a `media` field which is either
+ * an array of media items (excluding the profileImage) or null when none exist.
+ */
+export const getProfiles = async ({
+  limit = 20,
+  cursor,
+}: {
+  limit?: number;
+  // cursor should be an ISO date string representing the last seen profile.createdAt
+  cursor?: string | null;
+} = {}) => {
+  const { ...rest } = getTableColumns(profile);
+
+  // fetch one extra row to determine if there is a next page
+  const rows = await db
+    .select({
+      ...rest,
+      image: users.image,
+      name: users.name,
+      media: sql`
+        (
+          SELECT
+            CASE WHEN COUNT(*) = 0 THEN NULL
+            ELSE json_agg(json_build_object(
+              'id', m.id,
+              'url', m.url,
+              'type', m.type,
+              'width', m.width,
+              'height', m.height
+            ))
+            END
+          FROM media m
+          WHERE m.profile_id = profile.id
+            AND m.url IS NOT NULL
+            AND (profile.profile_image IS NULL OR m.url != profile.profile_image)
+        )
+      `.as("media"),
+    })
+    .from(profile)
+    .innerJoin(users, eq(profile.userId, users.id))
+    .where(cursor ? lt(profile.createdAt, new Date(cursor)) : undefined)
+    .orderBy(desc(profile.createdAt))
+    .limit(limit + 1);
+
+  if (!rows || rows.length === 0) {
+    return { profiles: [], nextCursor: null };
+  }
+
+  let nextCursor: string | null = null;
+  const resultRows = rows.slice(0, limit);
+  if (rows.length > limit) {
+    const last = resultRows[resultRows.length - 1];
+    // createdAt may be Date object
+    nextCursor = last.createdAt ? new Date(last.createdAt).toISOString() : null;
+  }
+
+  return { profiles: resultRows, nextCursor };
+};

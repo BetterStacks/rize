@@ -81,7 +81,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
   useEffect(() => {
     if (mode === "edit" && defaultValues) {
       // populate existing attachments and clear removals
-      setExistingAttachments(defaultValues?.attachments || []);
+      // setExistingAttachments(defaultValues?.attachments || []);
       setRemoveMediaIds([]);
       form.reset({
         name: defaultValues.name,
@@ -370,6 +370,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
             queryClient.invalidateQueries({ queryKey: ["get-projects"] });
             resetForm();
           })
+
           .catch((err) => {
             console.error(err);
             toast.error(err?.message || "Upload failed");

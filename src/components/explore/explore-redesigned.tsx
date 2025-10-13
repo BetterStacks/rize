@@ -2,17 +2,17 @@
 
 import { getExploreFeed } from "@/actions/post-actions";
 import { getRecentlyJoinedProfiles } from "@/actions/profile-actions";
-import { cn } from "@/lib/utils";
-import { useMediaQuery, useMounted } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Loader, Users, TrendingUp } from "lucide-react";
+import { TrendingUp, Users } from "lucide-react";
+import Link from "next/link";
+import { Button } from "../ui/button";
 import PostCard from "./post-card";
 import ProfileCard from "./profile-card";
 import {
-  ProfileCardSkeleton,
   PostCardSkeleton,
   PostCardSkeletonWithImage,
+  ProfileCardSkeleton,
 } from "./skeletons";
 
 const ExploreRedesigned = () => {
@@ -87,9 +87,14 @@ const ExploreRedesigned = () => {
             <h2 className="text-2xl md:text-3xl font-instrument text-neutral-900 dark:text-white mb-1">
               New faces
             </h2>
-            <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl font-light tracking-tight">
-              People who just joined the community
-            </p>
+            <div className="flex items-center justify-between ">
+              <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl font-light tracking-tight">
+                People who just joined the community
+              </p>
+              <Link href={"/explore/profiles"}>
+                <Button variant={"outline"}>View All</Button>
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -138,9 +143,14 @@ const ExploreRedesigned = () => {
             <h2 className="text-2xl md:text-3xl font-instrument tracking-wide text-neutral-900 dark:text-white mb-1">
               Popular posts
             </h2>
-            <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl font-light tracking-tight">
-              Posts with the most engagement from the community
-            </p>
+            <div className="flex items-center justify-between ">
+              <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl font-light tracking-tight">
+                Posts with the most engagement from the community
+              </p>
+              <Link href={"/explore/posts"}>
+                <Button variant={"outline"}>View All</Button>
+              </Link>
+            </div>
           </div>
 
           <motion.div

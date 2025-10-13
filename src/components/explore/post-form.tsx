@@ -1,56 +1,56 @@
-'use client'
-import { createPost } from '@/actions/post-actions'
-import { queryClient } from '@/lib/providers'
-import { TUploadFilesResponse } from '@/lib/types'
-import { capitalizeFirstLetter, cn, isValidUrl } from '@/lib/utils'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import axios from 'axios'
-import { Link2, Loader, X } from 'lucide-react'
-import { useSession } from '@/hooks/useAuth'
-import Image from 'next/image'
-import React, { useEffect, useState } from 'react'
-import { useDropzone } from 'react-dropzone'
-import toast from 'react-hot-toast'
-import TextArea from 'react-textarea-autosize'
-import { v4 } from 'uuid'
-import { usePostsDialog } from '../dialog-provider'
-import { Button } from '../ui/button'
+"use client";
+import { createPost } from "@/actions/post-actions";
+import { queryClient } from "@/lib/providers";
+import { TUploadFilesResponse } from "@/lib/types";
+import { capitalizeFirstLetter, cn, isValidUrl } from "@/lib/utils";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { Link2, Loader, X } from "lucide-react";
+import { useSession } from "@/hooks/useAuth";
+import Image from "next/image";
+import React, { useEffect, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import toast from "react-hot-toast";
+import TextArea from "react-textarea-autosize";
+import { v4 } from "uuid";
+import { usePostsDialog } from "../dialog-provider";
+import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog'
-import { Skeleton } from '../ui/skeleton'
-import { CreativeAvatar } from '../ui/creative-avatar'
-import { PostLinkCard } from './post-interactions'
+} from "../ui/dialog";
+import { Skeleton } from "../ui/skeleton";
+import { CreativeAvatar } from "../ui/creative-avatar";
+import { PostLinkCard } from "./post-interactions";
 
 type MediaFile = {
   id: string;
   url: string;
-  type: 'image' | 'video';
+  type: "image" | "video";
   file: File;
 };
-const MAX_WORD_COUNT = 500
+const MAX_WORD_COUNT = 500;
 
 const PostForm = () => {
-  const [file, setFile] = useState<MediaFile | undefined>()
-  const [content, setContent] = React.useState<string>('')
-  const session = useSession()
-  const [open, setOpen] = usePostsDialog()
-  const [link, setLink] = useState<string | null>()
-  const data = session?.data?.user
+  const [file, setFile] = useState<MediaFile | undefined>();
+  const [content, setContent] = React.useState<string>("");
+  const session = useSession();
+  const [open, setOpen] = usePostsDialog();
+  const [link, setLink] = useState<string | null>();
+  const data = session?.data?.user;
 
   const onDrop = (acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map((file) => ({
       id: v4(),
       url: URL.createObjectURL(file),
-      type: file.type.startsWith('image') ? 'image' : 'video',
+      type: file.type.startsWith("image") ? "image" : "video",
       file: file,
-    }))
-    setFile(newFiles[0] as MediaFile)
-  }
+    }));
+    setFile(newFiles[0] as MediaFile);
+  };
 
   const {
     getRootProps,
@@ -63,81 +63,103 @@ const PostForm = () => {
     noClick: true,
     noKeyboard: true,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg'],
-      'video/*': ['.mp4', '.webm', '.mov'],
+      "image/*": [".png", ".jpg", ".jpeg"],
+      "video/*": [".mp4", ".webm", ".mov"],
     },
-  })
+  });
 
   const handlePost = async () => {
-    let media: TUploadFilesResponse | undefined = undefined
+    let media: TUploadFilesResponse | undefined = undefined;
+
+    // client-side validation: cannot have both file and link
+    if (file && link) {
+      throw new Error("Cannot attach both media and a link");
+    }
 
     if (file) {
-      const formData = new FormData()
-      formData.append('files', file?.file as File)
-      formData.append('folder', 'fyp-stacks/posts')
+      const formData = new FormData();
+      formData.append("files", file?.file as File);
+      formData.append("folder", "fyp-stacks/posts");
 
-      const res = await axios.post('/api/upload/files', formData)
-      if (res.status !== 200) throw new Error('Upload failed')
-      const [resp] = res.data?.data as TUploadFilesResponse[]
+      const res = await axios.post("/api/upload/files", formData);
+      if (res.status !== 200) throw new Error("Upload failed");
+      const [resp] = res.data?.data as TUploadFilesResponse[];
       media = {
         url: resp?.url,
         height: resp?.height,
         width: resp?.width,
-      }
+      };
     }
     await createPost({
       content: content || undefined,
       file: media || undefined,
       link: link || undefined,
-    })
-  }
+    });
+  };
   const { isPending, mutate } = useMutation({
     mutationFn: handlePost,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['get-user-posts'] })
-      queryClient.invalidateQueries({ queryKey: ['explore-feed'] })
-      toast.success('Post created successfully')
-      setContent('')
-      setFile(undefined)
-      setLink(undefined)
-      setOpen(false)
-      queryClient.setQueryData(['get-link-metadata'], null)
+      queryClient.invalidateQueries({ queryKey: ["get-user-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
+      toast.success("Post created successfully");
+      setContent("");
+      setFile(undefined);
+      setLink(undefined);
+      setOpen(false);
+      queryClient.setQueryData(["get-link-metadata"], null);
     },
     onError: (error) => {
-      toast.error('Error creating post')
+      toast.error("Error creating post");
     },
-    mutationKey: ['create-post'],
-  })
+    mutationKey: ["create-post"],
+  });
+
+  const canPublish = () => {
+    const hasFile = !!file;
+    const hasLink = !!link;
+    const contentLen = content ? content.trim().length : 0;
+
+    // cannot have both file and link
+    if (hasFile && hasLink) return false;
+
+    // if neither file nor link, content must be > 5 chars
+    if (!hasFile && !hasLink) {
+      return contentLen > 5;
+    }
+
+    // otherwise allowed (file OR link present). content optionally allowed
+    return true;
+  };
 
   const { data: linkMetadata } = useQuery({
-    queryKey: ['get-link-metadata'],
+    queryKey: ["get-link-metadata"],
     enabled: !!link,
     queryFn: async () => {
-      const data = await axios('/api/url', {
+      const data = await axios("/api/url", {
         params: {
           url: link,
         },
-      })
-      return data
+      });
+      return data;
     },
-  })
+  });
 
   useEffect(() => {
     if (open) {
-      setContent('')
-      setFile(undefined)
-      setLink(undefined)
-      queryClient.setQueryData(['get-link-metadata'], null)
+      setContent("");
+      setFile(undefined);
+      setLink(undefined);
+      queryClient.setQueryData(["get-link-metadata"], null);
     }
-  }, [open])
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         {...getRootProps()}
         className={cn(
-          'flex flex-col overflow-hidden dark:bg-dark-bg max-w-xs rounded-3xl sm:max-w-lg bg-white drop-shadow-2xl sm:rounded-3xl  w-full border border-neutral-300/60 dark:border-dark-border px-2 py-3  ',
-          isDragActive && 'border-dashed border-amber-600/60 bg-amber-500/40'
+          "flex flex-col overflow-hidden dark:bg-dark-bg max-w-xs rounded-3xl sm:max-w-lg bg-white drop-shadow-2xl sm:rounded-3xl  w-full border border-neutral-300/60 dark:border-dark-border px-2 py-3  ",
+          isDragActive && "border-dashed border-amber-600/60 bg-amber-500/40"
           //   focus && "h-fit"
         )}
       >
@@ -154,10 +176,10 @@ const PostForm = () => {
             value={content.substring(0, MAX_WORD_COUNT)}
             minRows={1}
             onChange={(e) => {
-              setContent(e.target.value)
+              setContent(e.target.value);
             }}
             placeholder={`What's on your mind, ${capitalizeFirstLetter(
-              data?.name?.split(' ')[0] as string
+              data?.name?.split(" ")[0] as string
             )}?`}
           />
           {link && !linkMetadata?.data?.metadata && (
@@ -173,8 +195,8 @@ const PostForm = () => {
               data={linkMetadata?.data?.metadata}
               hasRemove
               onRemove={() => {
-                setLink(null)
-                queryClient.setQueryData(['get-link-metadata'], null)
+                setLink(null);
+                queryClient.setQueryData(["get-link-metadata"], null);
               }}
             />
           )}
@@ -188,13 +210,13 @@ const PostForm = () => {
                 <div
                   className="absolute top-2 right-2 opacity-0 z-30 group-hover:opacity-100 transition-all duration-200"
                   onClick={() => {
-                    setFile(undefined)
+                    setFile(undefined);
                   }}
                 >
                   <button
                     onClick={() => {
-                      setLink(null)
-                      queryClient.setQueryData(['get-link-metadata'], null)
+                      setLink(null);
+                      queryClient.setQueryData(["get-link-metadata"], null);
                     }}
                     className="border border-neutral-200 dark:bg-dark-bg bg-white dark:border-dark-border rounded-full p-2"
                   >
@@ -202,7 +224,7 @@ const PostForm = () => {
                   </button>
                 </div>
                 <div className="size-40 relative rounded-lg overflow-hidden">
-                  {file.type === 'image' ? (
+                  {file.type === "image" ? (
                     <Image
                       fill
                       src={file.url}
@@ -225,16 +247,16 @@ const PostForm = () => {
             <div className="flex items-center justify-center gap-x-2">
               <CreativeAvatar
                 src={(data as any)?.profileImage || data?.image}
-                name={data?.name || 'You'}
+                name={data?.name || "You"}
                 size="sm"
                 variant="auto"
                 className="mr-2"
                 showHoverEffect={false}
               />
               <Button
-                size={'icon'}
+                size={"icon"}
                 className="rounded-full"
-                variant={'ghost'}
+                variant={"ghost"}
                 disabled={!!link || isPending}
                 onClick={openDropZone}
               >
@@ -245,19 +267,19 @@ const PostForm = () => {
               </Button>
 
               <Button
-                size={'icon'}
+                size={"icon"}
                 className="rounded-full"
-                variant={'ghost'}
+                variant={"ghost"}
                 disabled={!!link || !!file || isPending}
                 onClick={async () => {
-                  const url = prompt('Enter a link:')
-                  if (!url) return
+                  const url = prompt("Enter a link:");
+                  if (!url) return;
                   if (!isValidUrl(url)) {
-                    toast.error('Invalid URL')
-                    return
+                    toast.error("Invalid URL");
+                    return;
                   }
 
-                  setLink(url)
+                  setLink(url);
                 }}
               >
                 <Link2 strokeWidth={1.4} className="-rotate-45 opacity-80" />
@@ -265,26 +287,34 @@ const PostForm = () => {
             </div>
             <div>
               <Button
-                size={'sm'}
-                variant={'ghost'}
+                size={"sm"}
+                variant={"ghost"}
                 className=" px-4 rounded-full"
                 onClick={() => setOpen(false)}
               >
                 Cancel
               </Button>
               <Button
-                size={'sm'}
+                size={"sm"}
                 className="ml-2 px-4 rounded-full"
                 disabled={isPending}
-                variant={'outline'}
-                onClick={() => mutate()}
+                variant={"outline"}
+                onClick={() => {
+                  if (!canPublish()) {
+                    toast.error(
+                      "Add at least 6 characters of content or attach a single media/link"
+                    );
+                    return;
+                  }
+                  mutate();
+                }}
               >
                 {isPending && (
                   <Loader
                     strokeWidth={1.6}
                     className="mr-2 animate-spin size-4 opacity-80"
                   />
-                )}{' '}
+                )}{" "}
                 Publish
               </Button>
             </div>
@@ -292,8 +322,8 @@ const PostForm = () => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 export const GalleryIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -301,7 +331,7 @@ export const GalleryIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 24 24"
     width={32}
     height={32}
-    fill={'none'}
+    fill={"none"}
     {...props}
   >
     <path
@@ -329,9 +359,9 @@ export const GalleryIcon = (props: React.SVGProps<SVGSVGElement>) => (
       strokeLinejoin="round"
     />
   </svg>
-)
+);
 
-export default PostForm
+export default PostForm;
 
 {
   /* <div className={cn("relative", "")}>

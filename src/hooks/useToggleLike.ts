@@ -14,9 +14,11 @@ export const useToggleLikePost = ({ postId, liked }: ToggleLikePostOptions) => {
 
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["explore-top-posts"] });
+      await queryClient.cancelQueries({ queryKey: ["explore-feed"] });
       await queryClient.cancelQueries({ queryKey: ["get-post-by-id", postId] });
 
       const previousPosts = queryClient.getQueryData(["explore-top-posts"]);
+      const previousExploreFeed = queryClient.getQueryData(["explore-feed"]);
       const previousPost = queryClient.getQueryData(["get-post-by-id", postId]);
 
       //   const delta = liked ? -1 : 1;
@@ -49,7 +51,34 @@ export const useToggleLikePost = ({ postId, liked }: ToggleLikePostOptions) => {
         );
       });
 
-      return { previousPost, previousPosts };
+      // Optimistically update explore-feed which uses useInfiniteQuery (pages -> posts)
+      queryClient.setQueryData(["explore-feed"], (old: any) => {
+        if (!old) return old;
+        try {
+          return {
+            ...old,
+            pages: old.pages.map((page: any) => ({
+              ...page,
+              posts: page.posts.map((post: any) =>
+                post.id === postId
+                  ? {
+                      ...post,
+                      liked: !liked,
+                      likeCount: liked
+                        ? Number(post?.likeCount) - 1
+                        : Number(post?.likeCount) + 1,
+                    }
+                  : post
+              ),
+            })),
+          };
+        } catch (e) {
+          // If the structure is unexpected, don't crash the optimistic update
+          return old;
+        }
+      });
+
+      return { previousPost, previousPosts, previousExploreFeed };
     },
 
     onError: (_err, _vars, context) => {
@@ -62,12 +91,16 @@ export const useToggleLikePost = ({ postId, liked }: ToggleLikePostOptions) => {
       if (context?.previousPosts) {
         queryClient.setQueryData(["explore-top-posts"], context.previousPosts);
       }
+      if (context?.previousExploreFeed) {
+        queryClient.setQueryData(["explore-feed"], context.previousExploreFeed);
+      }
     },
 
     onSettled: () => {
       // Refetch for consistency
       queryClient.invalidateQueries({ queryKey: ["get-post-by-id", postId] });
       queryClient.invalidateQueries({ queryKey: ["explore-top-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
     },
   });
 
