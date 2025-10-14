@@ -26,6 +26,7 @@ import SocialLinks from './social-links'
 import BottomBanner from '../bottom-banner'
 import { StoryElementsDisplay } from '../story/story-elements-display'
 import { useSession } from '@/hooks/useAuth'
+import ResumeRoaster from './ResumeRoaster'
 
 type StoryElement = {
   id: string
@@ -142,6 +143,8 @@ const UserProfile = ({
     <div className="w-full flex flex-col items-center justify-start">
       <Profile isMine={isMine} data={profileData} isLoading={isLoading} />
       <SocialLinks isMine={isMine} />
+      
+      <ResumeRoaster />
 
       {/* Story Elements Section */}
       {storyElements && storyElements.length > 0 && (
