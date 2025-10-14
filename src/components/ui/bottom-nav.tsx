@@ -71,7 +71,7 @@ export function BottomNav() {
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
     >
       {/* Background blur effect */}
-      <div className="absolute inset-0 bg-white/80 dark:bg-dark-bg/80 backdrop-blur-xl border-t border-neutral-200 dark:border-dark-border" />
+      <div className="absolute inset-0 bg-white/80 dark:bg-dark-bg/80 backdrop-blur border-t border-neutral-200 dark:border-dark-border" />
       
       {/* Navigation items */}
       <div className="relative px-4 py-2">
@@ -85,21 +85,21 @@ export function BottomNav() {
                 key={item.id}
                 className={cn(
                   'relative flex flex-col items-center justify-center p-2 rounded-2xl transition-all',
-                  active ? 'text-purple-600 dark:text-purple-400' : 'text-neutral-600 dark:text-neutral-400',
-                  item.special && 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
+                  active ? 'text-purple-600 dark:text-main-yellow' : 'text-neutral-600 dark:text-neutral-100'
                 )}
                 onClick={item.action}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.2 }}
               >
                 {/* Icon with background for special items */}
                 <div className={cn(
-                  'relative p-2 rounded-xl',
-                  item.special && 'bg-white/20 backdrop-blur-sm'
+                  'relative p-2 rounded-full',
+                  item.special && 'bg-[#FFDA37] backdrop-blur-sm'
                 )}>
                   <Icon className={cn(
                     'w-5 h-5',
-                    item.special ? 'text-white' : ''
+                    item.special ? 'text-black w-7 h-7' : ''
                   )} />
                   
                   {/* Badge */}
@@ -115,18 +115,20 @@ export function BottomNav() {
                 </div>
                 
                 {/* Label */}
+                {!item.special && (
                 <span className={cn(
                   'text-xs font-medium mt-1',
-                  item.special ? 'text-white' : active ? 'text-purple-600 dark:text-purple-400' : 'text-neutral-600 dark:text-neutral-400'
+                  item.special ? 'text-white' : active ? 'text-purple-600 dark:text-main-yellow' : 'text-neutral-600 dark:text-neutral-400'
                 )}>
                   {item.label}
                 </span>
+                )}
                 
                 {/* Active indicator */}
                 {active && !item.special && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-purple-100 dark:bg-purple-900/30 rounded-2xl -z-10"
+                    className="absolute bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-xl p-8 -z-10"
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
                 )}
@@ -136,13 +138,13 @@ export function BottomNav() {
             // Wrap with Link if href is provided
             if (item.href && !item.action) {
               return (
-                <Link key={item.id} href={item.href} className="flex-1">
+                <Link key={item.id} href={item.href}>
                   {NavButton}
                 </Link>
               )
             }
 
-            return <div key={item.id} className="flex-1">{NavButton}</div>
+            return <div key={item.id}>{NavButton}</div>
           })}
         </div>
       </div>

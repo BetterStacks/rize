@@ -346,7 +346,7 @@ export function isValidUrl(str: string): boolean {
   }
 }
 export function bytesToMB(bytes: number, decimals = 2): number {
-  if (bytes === 0) return 0;
-  const mb = bytes / (1024 * 1024);
-  return parseFloat(mb.toFixed(decimals));
+  if (bytes === 0) return 0
+  const mb = bytes / (1024 * 1024)
+  return parseFloat(mb.toFixed(decimals))
 }

@@ -9,23 +9,24 @@ import {
   GetProfileByUsername,
   TEducation,
   TExperience,
-} from "@/lib/types";
-import { capitalizeFirstLetter } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
-import React, { useMemo } from "react";
-import Education from "../education/education";
-import WorkExperience from "../experience/experience";
-import Gallery from "../gallery/gallery";
-import PostSection from "../posts-section";
-import Projects from "../projects/projects";
-import { Separator } from "../ui/separator";
-import Writings from "../writings/writings";
-import Profile from "./profile";
-import SocialLinks from "./social-links";
-import BottomBanner from "../bottom-banner";
-import { StoryElementsDisplay } from "../story/story-elements-display";
-import { useSession } from "@/hooks/useAuth";
+} from '@/lib/types'
+import { capitalizeFirstLetter } from '@/lib/utils'
+import { useQuery } from '@tanstack/react-query'
+import { useParams } from 'next/navigation'
+import React, { useMemo } from 'react'
+import Education from '../education/education'
+import WorkExperience from '../experience/experience'
+import Gallery from '../gallery/gallery'
+import PostSection from '../posts-section'
+import Projects from '../projects/projects'
+import { Separator } from '../ui/separator'
+import Writings from '../writings/writings'
+import Profile from './profile'
+import SocialLinks from './social-links'
+import BottomBanner from '../bottom-banner'
+import { StoryElementsDisplay } from '../story/story-elements-display'
+import { useSession } from '@/hooks/useAuth'
+import ResumeRoaster from './ResumeRoaster'
 
 type StoryElement = {
   id: string;
@@ -149,8 +150,12 @@ const UserProfile = ({
 
   return (
     <div className="w-full flex flex-col items-center justify-start">
-      <Profile isMine={isMine} data={profileData} isLoading={isLoading} />
+      <Profile isMine={isMine} data={profileData} isLoading={isLoading} username={profileData?.username || params.username} />
       <SocialLinks isMine={isMine} />
+      
+      <div className='w-full max-w-2xl'>
+        <ResumeRoaster />
+      </div>
 
       {/* Story Elements Section */}
       {storyElements && storyElements.length > 0 && (

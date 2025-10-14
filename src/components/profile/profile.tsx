@@ -1,12 +1,14 @@
 import { GetProfileByUsername } from '@/lib/types'
 import UserAvatar from '../user-avatar'
 import { cn } from '@/lib/utils'
+import QRcode from './QRcode'
 
 type ProfileProps = {
   data: GetProfileByUsername;
   isLoading: boolean;
   isMine: boolean;
   bioContainerClassName?: string;
+  username?: string;
 };
 
 export const defaultBio = `I’m still setting up, but this is where it all starts 🌱.\n
@@ -17,11 +19,12 @@ const Profile = ({
   isMine,
   isLoading,
   bioContainerClassName,
+  username,
 }: ProfileProps) => {
   return (
     <div className=" w-full flex flex-col items-center justify-start   mb-2">
       <div className=" max-w-2xl w-full flex flex-col items-start justify-start">
-        <div className="mb-6 user-avatar  self-start">
+        <div className="mb-6 user-avatar  self-start flex justify-between items-center w-full max-w-2xl">
           <UserAvatar
             isMyProfile={isMine}
             isLoading={isLoading}
@@ -29,6 +32,10 @@ const Profile = ({
               image: data?.profileImage as string,
               name: data?.displayName as string,
             }}
+          />
+          <QRcode 
+            username={username}
+            profileImage={data?.profileImage as string}
           />
         </div>
         <h1 className="  profile-displayName self-start text-xl font-medium md:text-xl lg:text-2xl    tracking-tight">

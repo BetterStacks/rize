@@ -1,3 +1,5 @@
+'use client'
+
 import { getSocialLinks } from '@/actions/social-links-actions'
 import { capitalizeFirstLetter, cn, getIcon } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
@@ -6,8 +8,13 @@ import NextLink from 'next/link'
 import { useParams } from 'next/navigation'
 import { Button } from '../ui/button'
 import { Skeleton } from '../ui/skeleton'
+import { toast } from 'sonner'
+import type { SocialPlatform } from '@/lib/types'
+import { useState } from 'react'
+import { Edit2 } from 'lucide-react'
+import { SocialLinksForm } from '../SocialLinksForm'
 
-export const dummyLinks = [
+export const dummyLinks: { platform: SocialPlatform; url: string }[] = [
   {
     platform: 'reddit',
     url: 'https://github.com/',
@@ -36,6 +43,7 @@ export const dummyLinks = [
 
 const SocialLinks = ({ isMine }: { isMine: boolean }) => {
   const params = useParams<{ username: string }>()
+  const [showEditDialog, setShowEditDialog] = useState(false)
 
   const { data: links = [], isLoading } = useQuery({
     enabled: !!params?.username,
@@ -51,6 +59,7 @@ const SocialLinks = ({ isMine }: { isMine: boolean }) => {
   }
 
   return (
+    <>
     <div className="w-full  flex items-center justify-center ">
       <div className="max-w-2xl social-links w-full gap-x-0.5 gap-y-1.5  text-sm md:text-base flex flex-wrap  mt-4 items-center justify-start">
         {isLoading ? (
@@ -61,21 +70,50 @@ const SocialLinks = ({ isMine }: { isMine: boolean }) => {
               key={i}
               platform={link?.platform}
               url={link?.url}
+              hasLink={false}
               className="opacity-70"
             />
           ))
         ) : (
-          links?.map((link, i) => (
-            <SocialLinkButton
-              key={i}
-              platform={link?.platform}
-              url={link?.url}
-            />
-          ))
+          dummyLinks?.map((dummyLink, i) => {
+            const userLink = links.find(l => l.platform === dummyLink.platform)
+            return (
+              <SocialLinkButton
+                key={i}
+                platform={dummyLink?.platform}
+                url={userLink?.url || dummyLink?.url}
+                hasLink={!!userLink}  // Add this
+                className={!userLink ? 'opacity-70' : ''}
+              />
+            )
+          })
         )}
+
+        {isMine && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowEditDialog(true)}
+            className='px-4 py-2.5 h-fit rounded-full'
+          >
+            <Edit2 className="size-3.5 mr-2" />
+            Edit Links
+          </Button>
+        )}
+
       </div>
     </div>
-  )
+
+    {showEditDialog && (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-1 sm:p-4">
+        <div className="bg-white dark:bg-dark-bg rounded-3xl max-w-lg w-full border border-neutral-300/60 dark:border-dark-border sm:p-3 sm:py-6 py-6 mb-4 max-h-[90vh] overflow-y-auto">
+          <SocialLinksForm onClose={() => setShowEditDialog(false)} />
+        </div>
+      </div>
+    )}
+  </>
+
+  )   
 }
 
 export default SocialLinks
@@ -92,16 +130,29 @@ const SocialLinkSkeleton = () => {
 export const SocialLinkButton = ({
   platform,
   url,
+  hasLink = true,
   className,
   buttonClassName,
 }: {
   platform: string;
   url: string;
+  hasLink?: boolean;
   className?: string;
   buttonClassName?: string;
 }) => {
+  const handleClick = (e: React.MouseEvent) => {
+    if (!hasLink) {
+      e.preventDefault()
+      toast.error(`Please add your ${capitalizeFirstLetter(platform)} link first`)
+    }
+  }
   return (
-    <NextLink className={cn('scale-95', className)} href={url} target="_blank">
+    <NextLink 
+      className={cn('scale-95', className)} 
+      href={hasLink ? url : '#'} 
+      target={hasLink ? '_blank' : undefined} 
+      onClick={handleClick}
+    >
       <Button
         variant={'outline'}
         className={cn('bg-white shadow-lg', buttonClassName)}
