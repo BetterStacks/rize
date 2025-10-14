@@ -254,3 +254,60 @@ export const removeSocialLink = async (id: string) => {
   }
   return link[0]
 }
+
+export const upsertSocialLinks = async (linksData: Record<string, string>) => {
+  const { profileId } = await requireAuthWithProfile()
+
+  // Get existing links
+  const existingLinks = await db
+    .select()
+    .from(socialLinks)
+    .where(eq(socialLinks.profileId, profileId))
+
+  // Process each platform
+  for (const [platform, url] of Object.entries(linksData) as [SocialPlatform, string][]) {
+    // Skip empty URLs
+    if (!url || url.trim() === '') {
+      // If exists, delete it
+      const existing = existingLinks.find(l => l.platform === platform)
+      if (existing) {
+        await db
+          .delete(socialLinks)
+          .where(eq(socialLinks.id, existing.id))
+      }
+      continue
+    }
+
+    // Validate URL
+    try {
+      new URL(url)
+    } catch {
+      throw new Error(`Invalid URL for ${platform}`)
+    }
+
+    // Check if link exists
+    const existing = existingLinks.find(l => l.platform === platform)
+
+    if (existing) {
+      // Update existing
+      await db
+        .update(socialLinks)
+        .set({ url, updatedAt: new Date() })
+        .where(eq(socialLinks.id, existing.id))
+    } else {
+      // Insert new
+      await db.insert(socialLinks).values({
+        profileId,
+        platform,
+        url,
+      })
+
+      // Trigger LinkedIn import if applicable
+      if (platform === 'linkedin' && url.includes('linkedin.com/in/')) {
+        after(() => processLinkedInData(profileId, url))
+      }
+    }
+  }
+
+  return { success: true }
+}

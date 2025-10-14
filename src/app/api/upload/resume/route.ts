@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { parseResumeContent } from '@/lib/resume-parser'
 // import { cleanupOldResumeFiles } from '@/actions/resume-actions'
 import { v2 as cloudinary, UploadApiOptions } from 'cloudinary'
+import { eq } from 'drizzle-orm'
+import db from '@/lib/db'
+import { users } from '@/db/schema'
 
 cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -72,7 +75,8 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
-
+    
+    
     if (!cloudinaryUpload || !cloudinaryUpload.secure_url) {
       console.error('Cloudinary upload failed')
       return NextResponse.json(
@@ -80,6 +84,12 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+    
+    await db.update(users)
+      .set({ 
+        resumeFileId: cloudinaryUpload.secure_url 
+      })
+    .where(eq(users.id, session.user.id))
 
     // Parse resume content using Letraz API
     const extractedData = await parseResumeContent(file)
