@@ -6,6 +6,24 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import RoastCard from '@/components/RoastCard'
 import { Spinner } from '@/components/ui/spinner'
+import { Skeleton } from '@/components/ui/skeleton'
+
+
+function ResumeRoasterSkeleton() {
+  return (
+    <div className="min-h-screen overflow-x-hidden w-full dark:bg-neutral-900 bg-white flex flex-col items-center justify-center py-20">
+      {/* FileUpload Skeleton */}
+      <div className="mx-2 w-full max-w-2xl px-4">
+        <Skeleton className="w-full h-[280px] sm:h-[320px] rounded-lg" />
+      </div>
+
+      {/* Button Skeleton */}
+      <div className="mt-10">
+        <Skeleton className="h-9 w-[120px] rounded-lg" />
+      </div>
+    </div>
+  )
+}
 
 
 export default function Home() {
@@ -74,18 +92,14 @@ export default function Home() {
   }
 
   if (fetchingResume) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center dark:bg-neutral-900 bg-white">
-        <Spinner className="w-8 h-8" />
-      </div>
-    )
+    return <ResumeRoasterSkeleton />
   }
 
   
   return (
     <div className="min-h-screen overflow-x-hidden w-full dark:bg-neutral-900 bg-white flex flex-col items-center justify-center py-20">
       {!existingResumeUrl && (
-        <div className="mx-2 sm:w-2xl">
+        <div className="mx-2 w-full max-w-2xl px-4">
           <FileUpload onChange={(files) => setSelectedFiles(files)} />
         </div>
       )}
