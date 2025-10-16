@@ -37,10 +37,10 @@ export function DateRangePicker<T extends FieldValues>({
         name={startName}
         render={({ field }) => (
           <div className="flex flex-col mb-2">
-            <label className="text-sm mb-2">
+            <Label className="mb-1 dark:text-neutral-300 text-neutral-700">
               {startLabel}
-              <span className="text-red-500 ml-1">*</span>
-            </label>
+              {/* <span className="text-red-500 ml-1">*</span> */}
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -60,8 +60,9 @@ export function DateRangePicker<T extends FieldValues>({
                   </span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-2 dark:bg-dark-bg dark:border-dark-border rounded-2xl mt-2 border-neutral-200">
                 <Calendar
+                  className="dark:bg-dark"
                   mode="single"
                   selected={field.value ? new Date(field.value) : undefined}
                   onSelect={(date) => field.onChange(date)}
@@ -78,11 +79,9 @@ export function DateRangePicker<T extends FieldValues>({
         name={endName}
         render={({ field, fieldState }) => (
           <div className="flex flex-col ">
-            <label className="text-sm mb-2">
+            <Label className="mb-1 dark:text-neutral-300 text-neutral-700">
               {endLabel}
-
-              <span className="text-red-500 ml-1">*</span>
-            </label>
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -102,7 +101,7 @@ export function DateRangePicker<T extends FieldValues>({
                   </span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-2 dark:bg-dark-bg dark:border-dark-border rounded-2xl mt-2 border-neutral-200">
                 <Calendar
                   mode="single"
                   selected={field.value ? new Date(field.value) : undefined}

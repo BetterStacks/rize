@@ -139,34 +139,42 @@ const ExploreFeed = () => {
         transition={{ duration: 0.3, type: "tween" }}
         className="columns-1 max-w-7xl md:px-4 mb-16  sm:columns-2 lg:columns-3  gap-4 space-y-4"
       >
-        {isPostsLoading
-          ? Array.from({ length: 12 }).map((_, i) => (
-              <motion.div
-                key={`post-skeleton-${i}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: i * 0.03 }}
-                className="break-inside-avoid"
-              >
-                {/* Mix different skeleton types for variety */}
-                {i % 3 === 0 ? (
-                  <PostCardSkeletonWithImage />
-                ) : (
-                  <PostCardSkeleton />
-                )}
-              </motion.div>
-            ))
-          : posts.map((post, i) => (
-              <motion.div
-                key={`post-${i}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 + i * 0.02 }}
-                className="break-inside-avoid"
-              >
-                <PostCard post={post} />
-              </motion.div>
-            ))}
+        {isPostsLoading ? (
+          <div className="mt-4 flex items-center justify-center w-full">
+            <Loader
+              strokeWidth={1.4}
+              className="size-5 mb-10 opacity-80 animate-spin"
+            />
+          </div>
+        ) : (
+          // Array.from({ length: 12 }).map((_, i) => (
+          //     <motion.div
+          //       key={`post-skeleton-${i}`}
+          //       initial={{ opacity: 0, y: 20 }}
+          //       animate={{ opacity: 1, y: 0 }}
+          //       transition={{ duration: 0.4, delay: i * 0.03 }}
+          //       className="break-inside-avoid"
+          //     >
+          //       {/* Mix different skeleton types for variety */}
+          //       {i % 3 === 0 ? (
+          //         <PostCardSkeletonWithImage />
+          //       ) : (
+          //         <PostCardSkeleton />
+          //       )}
+          //     </motion.div>
+          //   ))
+          posts.map((post, i) => (
+            <motion.div
+              key={`post-${i}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 + i * 0.02 }}
+              className="break-inside-avoid"
+            >
+              <PostCard post={post} />
+            </motion.div>
+          ))
+        )}
       </motion.div>
       <div ref={ref} className="h-10" />
       {isFetchingNextPage && (

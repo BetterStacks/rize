@@ -3,12 +3,12 @@
 import { media, projectMedia, projects } from "@/db/schema";
 import { requireProfile } from "@/lib/auth";
 import db from "@/lib/db";
-import { GetAllProjects, TProject } from "@/lib/types";
+import { GetAllProjects, newProjectSchema, TProject } from "@/lib/types";
+import { getPublicIdFromUrl } from "@/lib/utils";
+import { v2 as cloudinary } from "cloudinary";
 import { eq, getTableColumns, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
-import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
-import { getPublicIdFromUrl } from "@/lib/utils";
 cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
@@ -85,26 +85,6 @@ export const getProjectByID = async (id: string) => {
     .limit(1);
   return allProjects[0] as GetAllProjects;
 };
-
-const fileSchema = z.object({
-  url: z.string().url(),
-  height: z.number(),
-  width: z.number(),
-  type: z.string().optional(),
-});
-
-const newProjectSchema = z.object({
-  name: z.string().min(1, "Project name is required"),
-  url: z.string(),
-  description: z.string(),
-  startDate: z.string(),
-  endDate: z.string().optional(),
-  // logo is optional now
-  logo: z.string().url("Invalid URL").optional(),
-  width: z.string().optional(),
-  height: z.string().optional(),
-  media: z.array(fileSchema).optional(),
-});
 
 export const createProject = async (data: z.infer<typeof newProjectSchema>) => {
   const profileId = await requireProfile();
@@ -253,7 +233,16 @@ export const updateProject = async (
 
     const p = await db
       .update(projects)
-      .set(updatedPayload)
+      .set({
+        // Ensure date fields are JS Date objects when passed to the DB layer.
+        ...(updatedPayload as any),
+        startDate: updatedPayload.startDate
+          ? new Date(updatedPayload.startDate as unknown as string)
+          : undefined,
+        endDate: updatedPayload.endDate
+          ? new Date(updatedPayload.endDate as unknown as string)
+          : undefined,
+      })
       .where(eq(projects.id, payload.id!))
       .returning();
 

@@ -8,11 +8,13 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
 });
 
+type UploadFilesWithTypeResponse = TUploadFilesResponse & { type: string };
+
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const files = formData.getAll("files") as File[];
   const folder = formData.get("folder") as string;
-  const results: TUploadFilesResponse[] = [];
+  const results: UploadFilesWithTypeResponse[] = [];
   for (const file of files) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -40,6 +42,7 @@ export async function POST(req: NextRequest) {
         width: result.width,
         height: result.height,
         url: result.secure_url,
+        type: result?.resource_type,
       });
     } catch (uploadError) {
       console.error("Error uploading ", uploadError);

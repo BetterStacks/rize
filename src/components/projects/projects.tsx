@@ -7,10 +7,13 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Brain, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import ProjectCard from "./project-card";
+import ProjectDetailsDialog from "./ProjectDetailsDialog";
+import ProjectDrawer from "./ProjectDrawer";
 
 type ProjectsProps = {
   isMine: boolean;
@@ -19,8 +22,7 @@ type ProjectsProps = {
 
 const Projects = ({ isMine, projects }: ProjectsProps) => {
   const { username } = useParams<{ username: string }>();
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const setOpen = useRightSidebar()[1];
+  const setActiveTab = useActiveSidebarTab()[1];
   const { data, isFetching } = useQuery({
     queryKey: ["get-projects", username],
     initialData: projects,
@@ -29,14 +31,27 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
     refetchOnMount: false,
     staleTime: Infinity,
   });
-  console.log(data);
-  const setActiveTab = useActiveSidebarTab()[1];
+  const [selectedProject, setSelectedProject] = useState<GetAllProjects | null>(
+    null
+  );
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const openProject = (project: GetAllProjects) => {
+    setSelectedProject(project);
+    setIsDialogOpen(true);
+  };
 
   return (
     <div
       id="projects"
       className="w-full my-12 px-2 md:px-4 flex flex-col items-center justify-start"
     >
+      <ProjectDetailsDialog
+        open={isDialogOpen}
+        onOpenChange={() => setIsDialogOpen(false)}
+        project={selectedProject}
+      />
+      <ProjectDrawer />
       <div className="w-full max-w-2xl mb-4 flex items-center justify-between">
         <h2 className="text-lg md:text-xl font-medium">Projects</h2>
         {isMine && (
@@ -46,9 +61,6 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
             size={"sm"}
             onClick={() => {
               setActiveTab({ id: null, tab: "projects" });
-              if (!isDesktop) {
-                setOpen(true);
-              }
             }}
           >
             <Plus className="opacity-80 mr-2 size-4" />
@@ -70,7 +82,17 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
           />
         ) : (
           data?.map((project, i) => {
-            return <ProjectCard key={i} project={project} isMine={isMine} />;
+            return (
+              <ProjectCard
+                onOpenProject={openProject}
+                onEditProject={(project) => {
+                  setActiveTab({ id: project, tab: "projects" });
+                }}
+                key={i}
+                project={project}
+                isMine={isMine}
+              />
+            );
           })
         )}
       </div>

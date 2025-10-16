@@ -87,11 +87,13 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
                     status: "wip",
                     thumbnail: "",
                     logo: "",
-                    tagLine: "",
+                    tagline: "",
                     url: project.link,
                     id: "",
                     profileId: "",
                   }}
+                  onOpenProject={() => {}}
+                  onEditProject={() => {}}
                 />
               );
             })}

@@ -331,3 +331,26 @@ export type Item = {
   resizeHandles?: Array<"s" | "w" | "e" | "n" | "sw" | "nw" | "se" | "ne">;
   isBounded?: boolean;
 };
+
+export const fileSchema = z.object({
+  url: z.string().url(),
+  height: z.number(),
+  width: z.number(),
+  type: z.string().optional(),
+});
+export const newProjectSchema = z.object({
+  name: z.string().min(1, "Project name is required"),
+  url: z.string(),
+  description: z.string(),
+  startDate: z.string(),
+  tagline: z
+    .string()
+    .min(1, "Tagline is required")
+    .max(60, "Tagline must not exceed 60 characters"),
+  endDate: z.string().optional(),
+  // logo is optional now
+  logo: z.string().url("Invalid URL").optional(),
+  width: z.string().optional(),
+  height: z.string().optional(),
+  media: z.array(fileSchema).optional(),
+});

@@ -277,7 +277,7 @@ export const projects = pgTable("projects", {
     .primaryKey()
     .$defaultFn(() => gen_uuid()),
   name: varchar("name", { length: 120 }).notNull(),
-  tagLine: varchar("tagline", { length: 60 }).notNull().default(""),
+  tagline: varchar("tagline", { length: 60 }).notNull().default(""),
   description: text("description").notNull(),
   profileId: uuid("profileId").references(() => profile.id, {
     onDelete: "cascade",
