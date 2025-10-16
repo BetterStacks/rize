@@ -1,20 +1,20 @@
-import { useMediaQuery } from '@mantine/hooks'
-import { motion, useTransform } from 'framer-motion'
-import Image from 'next/image'
-import { FC } from 'react'
-import { CreativeAvatar } from './ui/creative-avatar'
-import { initialValue } from './editor/utils'
-import { dummyLinks, SocialLinkButton } from './profile/social-links'
-import ProjectCard from './projects/project-card'
-import { Separator } from './ui/separator'
-import WritingCard from './writings/writing-card'
+import { useMediaQuery } from "@mantine/hooks";
+import { motion, useTransform } from "framer-motion";
+import Image from "next/image";
+import { FC } from "react";
+import { CreativeAvatar } from "./ui/creative-avatar";
+import { initialValue } from "./editor/utils";
+import { dummyLinks, SocialLinkButton } from "./profile/social-links";
+import ProjectCard from "./projects/project-card";
+import { Separator } from "./ui/separator";
+import WritingCard from "./writings/writing-card";
 const positions = [
   { x: 960, y: -1300, scale: 0.9, z: 1, rotate: -6 }, // latte
   { x: -620, y: -1300, scale: 0.9, z: 1, rotate: 6 }, //dog
   { x: -620, y: -1100, scale: 0.9, z: 1, rotate: -6 }, //drake
   { x: 380, y: -1100, scale: 0.9, z: 6, rotate: 6 }, //cliff
   { x: 450, y: -900, scale: 0.9, z: 4, rotate: -6 }, //plane
-]
+];
 
 type ProfileContainerProps = {
   avatar: string;
@@ -66,7 +66,7 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
                 platform={link.platform}
                 url={link.url}
               />
-            )
+            );
           })}
         </div>
       </div>
@@ -84,15 +84,18 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
                     name: project.name,
                     endDate: new Date(),
                     startDate: new Date(),
-                    status: 'wip',
-                    thumbnail: '',
-                    logo: '',
+                    status: "wip",
+                    thumbnail: "",
+                    logo: "",
+                    tagline: "",
                     url: project.link,
-                    id: '',
-                    profileId: '',
+                    id: "",
+                    profileId: "",
                   }}
+                  onOpenProject={() => {}}
+                  onEditProject={() => {}}
                 />
-              )
+              );
             })}
           </div>
         </>
@@ -106,16 +109,16 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
                 <WritingCard
                   key={index}
                   data={{
-                    id: '',
+                    id: "",
                     title: writing.title,
                     content: JSON.stringify(initialValue),
-                    profileId: '',
-                    status: 'published',
+                    profileId: "",
+                    status: "published",
                     thumbnail: writing.thumbnail,
                     createdAt: new Date(),
                   }}
                 />
-              )
+              );
             })}
           </div>
         </>
@@ -137,16 +140,16 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
                   scrollYProgress={scrollYProgress}
                   rotate={positions[index]?.rotate ?? 0}
                 />
-              )
+              );
             })}
           </div>
         </>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ProfileContainer
+export default ProfileContainer;
 
 type GalleryItemProps = {
   item: string;
@@ -169,22 +172,22 @@ const GalleryItem: FC<GalleryItemProps> = ({
   isFirst,
   rotate,
 }) => {
-  const isScreen4k = useMediaQuery('(min-width: 2560px)')
+  const isScreen4k = useMediaQuery("(min-width: 2560px)");
   const x = useTransform(
     scrollYProgress,
     [0, isScreen4k ? 0.04 : 0.1],
     [xPos, 0]
-  )
+  );
   const y = useTransform(
     scrollYProgress,
     [0, isScreen4k ? 0.04 : 0.1],
     [yPos, 0]
-  )
+  );
   const scale = useTransform(
     scrollYProgress,
     [0, 0.06, 0.1],
     [initalScale, 1, 1]
-  )
+  );
   return (
     <motion.div
       key={index}
@@ -212,9 +215,9 @@ const GalleryItem: FC<GalleryItemProps> = ({
           alt=""
           draggable={false}
           fill
-          style={{ objectFit: 'cover' }}
+          style={{ objectFit: "cover" }}
         />
       </motion.div>
     </motion.div>
-  )
-}
+  );
+};

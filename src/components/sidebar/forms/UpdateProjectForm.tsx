@@ -16,23 +16,26 @@ import { queryClient } from "@/lib/providers";
 import { Plus, X, Loader } from "lucide-react";
 import toast from "react-hot-toast";
 import Image from "next/image";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { DateRangePicker } from "../components/DateRangePicker";
 import { toIsoString } from "@/lib/date";
 import { useQueryState } from "nuqs";
+import { useActiveSidebarTab } from "@/lib/context";
 
-type ProjectFormData = z.infer<typeof newProjectSchema>;
+type TUpdateProjectForm = z.infer<typeof newProjectSchema>;
 
 interface ProjectFormProps {
+  username: string;
   id: string;
 }
 
-export const ProjectForm: FC<ProjectFormProps> = ({}) => {
+export const UpdateProjectForm: FC<ProjectFormProps> = ({ username, id }) => {
   const [logoFile, setLogoFile] = useState<File | undefined>();
-  const [id, setProject] = useQueryState("project");
+  const projectId = Array.isArray(id) ? id[0] : id;
+  const setActiveTab = useActiveSidebarTab()[1];
   const [attachments, setAttachments] = useState<File[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<
     Array<{
@@ -48,14 +51,21 @@ export const ProjectForm: FC<ProjectFormProps> = ({}) => {
   >([]);
 
   // Fetch existing project data
-  const { data: defaultValues, isLoading: isFetchingValues } = useQuery({
-    queryKey: ["get-project-by-id", id],
-    // enabled: !!id,
-    queryFn: () => getProjectByID(id as string),
+  const { data: defaultValues, isLoading: isFetchingValues } = useQuery<any>({
+    queryKey: ["get-project-by-id", projectId],
+    enabled: Boolean(projectId),
+    queryFn: () => getProjectByID(projectId as string),
   });
-  console.log(defaultValues);
+  // Helpful debug logs when troubleshooting why defaultValues can be undefined.
+  console.log("project param:", id, "normalized projectId:", projectId);
+  console.log(
+    "project fetch loading:",
+    isFetchingValues,
+    "defaultValues:",
+    defaultValues
+  );
 
-  const form = useForm<ProjectFormData>({
+  const form = useForm<TUpdateProjectForm>({
     resolver: zodResolver(newProjectSchema),
   });
 
@@ -63,7 +73,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({}) => {
   const existingLogo = form.watch("logo");
 
   // handle submit: upload new media and call updateProject
-  async function onSubmit(values: ProjectFormData) {
+  async function onSubmit(values: TUpdateProjectForm) {
     try {
       // disable double submits handled via button disabled state
 
@@ -98,15 +108,14 @@ export const ProjectForm: FC<ProjectFormProps> = ({}) => {
 
       // build payload for updateProject
       const payload: any = {
-        id,
+        id: projectId,
         name: values.name,
+        tagline: values.tagline || "",
         description: values.description || "",
         url: values.url,
-        startDate: toIsoString(values.startDate),
-        endDate: toIsoString(values.endDate),
+        startDate: values.startDate,
+        endDate: values.endDate,
       };
-
-      if (values.tagline) payload.tagline = values.tagline;
 
       if (logoUrl) {
         payload.logo = logoUrl;
@@ -127,32 +136,18 @@ export const ProjectForm: FC<ProjectFormProps> = ({}) => {
         payload.removeMediaPayload = [...removeMediaIds];
       }
 
-      // debug payload before submitting
-      console.log("ProjectForm payload:", payload);
-      console.log(
-        "startDate type/value:",
-        typeof payload.startDate,
-        payload.startDate
-      );
-      console.log(
-        "endDate type/value:",
-        typeof payload.endDate,
-        payload.endDate
-      );
-
-      // call updateProject server action
       setIsUpdating(true);
-      const res = await mutateUpdate(payload, {
-        onSuccess: () => {
-          setProject(null);
-          // queryClient.invalidateQueries({ queryKey: ["get-project-by-id", id] });
-          queryClient.invalidateQueries({ queryKey: ["get-projects"] });
-        },
-      });
+      const res = await mutateUpdate(payload as any);
       setIsUpdating(false);
+
       if (res?.ok) {
         toast.success("Project updated");
-        setProject(null);
+        // // ensure we refresh the canonical project data and project lists
+        queryClient.invalidateQueries({
+          queryKey: ["get-project-by-id", projectId],
+        });
+        queryClient.invalidateQueries({ queryKey: ["get-projects", username] });
+        setActiveTab({ id: null, tab: "gallery" });
       } else {
         throw new Error(res?.error || "Update failed");
       }
@@ -162,29 +157,60 @@ export const ProjectForm: FC<ProjectFormProps> = ({}) => {
     }
   }
 
-  // When the project data is fetched, populate the form defaults and existing media
+  // Initialize the form defaults only once per project load.
+  // Prevents the form from resetting while the user is editing if React Query
+  // refetches the same data or updates slightly.
+  const initializedRef = useRef(false);
+  const lastProjectIdRef = useRef<string | undefined>(undefined);
+
   useEffect(() => {
     if (!defaultValues) return;
 
-    try {
-      form.reset({
-        name: defaultValues.name ?? "",
-        // DB may use tagLine (camelCase) while schema uses 'tagline'
-        tagline: defaultValues.tagline ?? "",
-        url: defaultValues.url ?? "",
-        description: defaultValues.description ?? "",
-        logo: defaultValues.logo ?? "",
-        startDate: toIsoString(defaultValues.startDate),
-        endDate: toIsoString(defaultValues.endDate),
-      } as any);
+    // If project changed (navigated to a different project id), re-initialize
+    if (lastProjectIdRef.current !== projectId) {
+      try {
+        form.reset({
+          name: defaultValues.name ?? "",
+          // DB may use tagLine (camelCase) while schema uses 'tagline'
+          tagline: defaultValues.tagline ?? "",
+          url: defaultValues.url ?? "",
+          description: defaultValues.description ?? "",
+          logo: defaultValues.logo ?? "",
+          startDate: toIsoString(defaultValues.startDate),
+          endDate: toIsoString(defaultValues.endDate),
+        } as any);
 
-      // populate existing attachments (query returns `attachments`)
-      setExistingAttachments((defaultValues.attachments as any) ?? []);
-    } catch (err) {
-      // ignore reset errors
-      console.error("Error populating project form defaults", err);
+        // populate existing attachments (query returns `attachments`)
+        setExistingAttachments((defaultValues.attachments as any) ?? []);
+      } catch (err) {
+        console.error("Error populating project form defaults", err);
+      }
+
+      initializedRef.current = true;
+      lastProjectIdRef.current = projectId;
+      return;
     }
-  }, [defaultValues, form]);
+
+    // Otherwise, if we haven't initialized yet (first successful fetch), do it once
+    if (!initializedRef.current) {
+      try {
+        form.reset({
+          name: defaultValues.name ?? "",
+          tagline: defaultValues.tagline ?? "",
+          url: defaultValues.url ?? "",
+          description: defaultValues.description ?? "",
+          logo: defaultValues.logo ?? "",
+          startDate: toIsoString(defaultValues.startDate),
+          endDate: toIsoString(defaultValues.endDate),
+        } as any);
+        setExistingAttachments((defaultValues.attachments as any) ?? []);
+      } catch (err) {
+        console.error("Error populating project form defaults", err);
+      }
+
+      initializedRef.current = true;
+    }
+  }, [defaultValues, projectId, form]);
 
   // File upload handlers
   const onDrop = useCallback(
@@ -246,11 +272,9 @@ export const ProjectForm: FC<ProjectFormProps> = ({}) => {
 
   return (
     <div className="max-w-xl mx-auto p-6">
-      <h2 className="text-xl mt-8 tracking-tight font-medium ">
-        Tell us more about your project.
-      </h2>
-      <span className=" text-neutral-300 text-sm">
-        We’ll need its name, tagline, links, launch tags, and description.
+      <h2 className="text-xl mt-8 tracking-tight font-medium ">Edit Project</h2>
+      <span className=" text-neutral-700 dark:text-neutral-300 text-sm">
+        Update your project details below.
       </span>
       <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-4">
         <div className="mt-2 flex items-center justify-start">
@@ -297,6 +321,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({}) => {
                     unoptimized
                   />
                 </div>
+                {/* keep the hidden input present so clicking the area opens file picker */}
                 <input {...getInputProps()} />
               </>
             ) : (
@@ -367,21 +392,23 @@ export const ProjectForm: FC<ProjectFormProps> = ({}) => {
 
         <div>
           <Separator className="my-6" />
-          <div
-            {...getAttachRoot()}
-            className="border-dashed h-[250px] dark:bg-dark-bg dark:border-dark-border bg-neutral-50 flex flex-col items-center justify-center border-2 p-4 rounded-lg "
-          >
-            {/* <Button variant="outline" className="mb-2 rounded-lg">
+          {existingAttachments.length <= 4 && (
+            <div
+              {...getAttachRoot()}
+              className="border-dashed h-[250px] dark:bg-dark-bg dark:border-dark-border bg-neutral-50 border-neutral-200 flex flex-col items-center justify-center border-2 p-4 rounded-lg "
+            >
+              {/* <Button variant="outline" className="mb-2 rounded-lg">
                   <Upload className="size-4 opacity-80 mr-2" /> Upload
                 </Button> */}
-            <h3 className="dark:text-neutral-200">
-              Choose Images & Video drag & drop files here
-            </h3>
-            <span className="text-sm dark:text-neutral-400">
-              JPG, PNG, GIF, MP4 up to 10MB each
-            </span>
-            <input {...getAttachInput()} />
-          </div>
+              <h3 className="dark:text-neutral-200">
+                Choose Images & Video drag & drop files here
+              </h3>
+              <span className="text-sm text-neutral-700 dark:text-neutral-400">
+                JPG, PNG, GIF, MP4 up to 10MB each
+              </span>
+              <input {...getAttachInput()} />
+            </div>
+          )}
           <div className="w-full flex flex-row items-center justify-start gap-4 mt-4 overflow-x-auto">
             {existingAttachments.map((f, i) => (
               <div

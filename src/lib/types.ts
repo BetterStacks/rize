@@ -10,20 +10,20 @@ import {
   projects,
   socialLinks,
   users,
-} from '@/db/schema'
-import { ReactNode } from 'react'
-import { BaseEditor, BaseRange, Descendant, Element, Range } from 'slate'
-import { HistoryEditor } from 'slate-history'
-import { ReactEditor } from 'slate-react'
-import { Result } from 'url-metadata'
-import { z } from 'zod'
+} from "@/db/schema";
+import { ReactNode } from "react";
+import { BaseEditor, BaseRange, Descendant, Element, Range } from "slate";
+import { HistoryEditor } from "slate-history";
+import { ReactEditor } from "slate-react";
+import { Result } from "url-metadata";
+import { z } from "zod";
 
-export const TUser = users.$inferSelect
-export const TPage = page.$inferInsert
+export const TUser = users.$inferSelect;
+export const TPage = page.$inferInsert;
 export type TProfile = typeof profile.$inferSelect;
-export const TGalleryItem = galleryMedia.$inferSelect
-export const NewProfile = profile.$inferInsert
-export const TMedia = media.$inferSelect
+export const TGalleryItem = galleryMedia.$inferSelect;
+export const NewProfile = profile.$inferInsert;
+export const TMedia = media.$inferSelect;
 export type TComment = typeof comments.$inferSelect;
 export type TNewComment = typeof comments.$inferInsert;
 export type TSocialLink = typeof socialLinks.$inferSelect;
@@ -34,7 +34,7 @@ export type TNewEducation = typeof education.$inferInsert;
 export type TExperience = typeof experience.$inferSelect;
 export type TNewExperience = typeof experience.$inferInsert;
 
-export type WordType = 'email' | 'link' | 'word' | 'newline';
+export type WordType = "email" | "link" | "word" | "newline";
 
 export interface ClassifiedWord {
   type: WordType;
@@ -50,7 +50,7 @@ export type TUploadFilesResponse = {
 export type TPostMedia = {
   id: string;
   url: string;
-  type: 'image' | 'video';
+  type: "image" | "video";
   height: number;
   width: number;
 };
@@ -106,83 +106,92 @@ export type GetAllWritings = typeof TPage & {
   avatar: string;
   thumbnail: string;
 };
-export type GetAllProjects = TProject & { thumbnail: string };
+export type GetAllProjects = TProject & {
+  thumbnail: string;
+  attachments?: Array<{
+    id: string;
+    url: string;
+    type: "image" | "video";
+    width: number;
+    height: number;
+  }> | null;
+};
 
 export type SocialPlatform =
-  | 'facebook'
-  | 'twitter'
-  | 'instagram'
-  | 'linkedin'
-  | 'github'
-  | 'youtube'
-  | 'reddit'
-  | 'discord'
-  | 'snapchat'
-  | 'spotify'
-  | 'pinterest'
-  | 'other';
+  | "facebook"
+  | "twitter"
+  | "instagram"
+  | "linkedin"
+  | "github"
+  | "youtube"
+  | "reddit"
+  | "discord"
+  | "snapchat"
+  | "spotify"
+  | "pinterest"
+  | "other";
 
 export type GalleryConfigProps = {
-  layout: 'messy-grid' | 'masonry-grid';
+  layout: "messy-grid" | "masonry-grid";
 };
 
 export type BlockQuoteElement = {
-  type: 'block-quote';
+  type: "block-quote";
   align?: string;
   children: Descendant[];
 };
 
 export type BulletedListElement = {
-  type: 'bulleted-list';
+  type: "bulleted-list";
   align?: string;
   children: Descendant[];
 };
 
 export type CheckListItemElement = {
-  type: 'check-list-item';
+  type: "check-list-item";
   checked: boolean;
   children: Descendant[];
 };
 
 export type EditableVoidElement = {
-  type: 'editable-void';
+  type: "editable-void";
   children: EmptyText[];
 };
 
 export type HeadingElement = {
-  type: 'heading';
+  type: "heading";
   align?: string;
   children: Descendant[];
 };
 
 export type HeadingTwoElement = {
-  type: 'heading-two';
+  type: "heading-two";
   align?: string;
   children: Descendant[];
 };
 
 export type ImageElement = {
-  type: 'image';
+  type: "image";
   url: string;
   children: EmptyText[];
 };
 
-export type LinkElement = { type: 'link'; url: string; children: Descendant[] };
+export type LinkElement = { type: "link"; url: string; children: Descendant[] };
 
-export type ButtonElement = { type: 'button'; children: Descendant[] };
+export type ButtonElement = { type: "button"; children: Descendant[] };
 
-export type BadgeElement = { type: 'badge'; children: Descendant[] };
+export type BadgeElement = { type: "badge"; children: Descendant[] };
 
-export type ListItemElement = { type: 'list-item'; children: Descendant[] };
+export type ListItemElement = { type: "list-item"; children: Descendant[] };
 
 export type MentionElement = {
-  type: 'mention';
+  type: "mention";
   character: string;
   children: CustomText[];
 };
 
 export type ParagraphElement = {
-  type: 'paragraph';
+  type: "paragraph";
   align?: string;
   children: Descendant[];
 };
@@ -193,22 +202,22 @@ export type ParagraphElement = {
 
 // export type TableRowElement = { type: "table-row"; children: TableCell[] };
 
-export type TitleElement = { type: 'title'; children: Descendant[] };
+export type TitleElement = { type: "title"; children: Descendant[] };
 
 export type VideoElement = {
-  type: 'video';
+  type: "video";
   url: string;
   children: EmptyText[];
 };
 
 export type CodeBlockElement = {
-  type: 'code-block';
+  type: "code-block";
   language: string;
   children: Descendant[];
 };
 
 export type CodeLineElement = {
-  type: 'code-line';
+  type: "code-line";
   children: Descendant[];
 };
 
@@ -251,7 +260,7 @@ export type CustomEditor = BaseEditor &
     nodeToDecorations?: Map<Element, Range[]>;
   };
 
-declare module 'slate' {
+declare module "slate" {
   interface CustomTypes {
     Editor: CustomEditor;
     Element: CustomElement;
@@ -265,13 +274,13 @@ declare module 'slate' {
 export const usernameSchema = z.object({
   username: z
     .string()
-    .min(3, 'Username must be at least 3 characters long')
-    .max(15, 'Username must not exceed 15 characters')
+    .min(3, "Username must be at least 3 characters long")
+    .max(15, "Username must not exceed 15 characters")
     .regex(
       /^[a-zA-Z0-9_-]+$/,
-      'Username can only contain letters, numbers, underscores, and hyphens'
+      "Username can only contain letters, numbers, underscores, and hyphens"
     ),
-})
+});
 
 export const profileSchema = z.object({
   email: z.string().email().optional(),
@@ -281,11 +290,11 @@ export const profileSchema = z.object({
   username: z.string().min(5).max(20).optional(),
 
   profileImage: z.string().optional(),
-  bio: z.string().max(200, 'Bio must be 200 characters or less').optional(),
+  bio: z.string().max(200, "Bio must be 200 characters or less").optional(),
   hasCompletedWalkthrough: z.boolean().optional(),
   isLive: z.boolean().optional(),
   website: z.string().url().optional(),
-})
+});
 
 export const AddCommentPayload = z.object({
   content: z.string().min(2).max(1200),
@@ -300,7 +309,7 @@ export const AddCommentPayload = z.object({
     })
     .optional(),
   postId: z.string().uuid(),
-})
+});
 
 export type TAddNewComment = z.infer<typeof AddCommentPayload>;
 
@@ -319,6 +328,29 @@ export type Item = {
   static?: boolean;
   isDraggable?: boolean;
   isResizable?: boolean;
-  resizeHandles?: Array<'s' | 'w' | 'e' | 'n' | 'sw' | 'nw' | 'se' | 'ne'>;
+  resizeHandles?: Array<"s" | "w" | "e" | "n" | "sw" | "nw" | "se" | "ne">;
   isBounded?: boolean;
 };
+
+export const fileSchema = z.object({
+  url: z.string().url(),
+  height: z.number(),
+  width: z.number(),
+  type: z.string().optional(),
+});
+export const newProjectSchema = z.object({
+  name: z.string().min(1, "Project name is required"),
+  url: z.string(),
+  description: z.string(),
+  startDate: z.string(),
+  tagline: z
+    .string()
+    .min(1, "Tagline is required")
+    .max(60, "Tagline must not exceed 60 characters"),
+  endDate: z.string().optional(),
+  // logo is optional now
+  logo: z.string().url("Invalid URL").optional(),
+  width: z.string().optional(),
+  height: z.string().optional(),
+  media: z.array(fileSchema).optional(),
+});

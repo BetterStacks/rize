@@ -1,21 +1,20 @@
-import { betterAuth } from 'better-auth'
-import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { profile, users, accounts, sessions, verification } from '@/db/schema'
-import db from './db'
-import { eq } from 'drizzle-orm'
-import { compareSync, hashSync } from 'bcryptjs'
-import { userExists } from '@/actions/user-actions'
+import { accounts, profile, sessions, users, verification } from "@/db/schema";
+import { compareSync, hashSync } from "bcryptjs";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { eq } from "drizzle-orm";
+import db from "./db";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: 'pg', 
+    provider: "pg",
     usePlural: false,
     schema: {
       user: users,
-      account: accounts, 
+      account: accounts,
       session: sessions,
       verification: verification,
-    }
+    },
   }),
   telemetry: {
     enabled: false,
@@ -36,10 +35,10 @@ export const auth = betterAuth({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
     },
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    },
+    // github: {
+    //   clientId: process.env.GITHUB_CLIENT_ID!,
+    //   clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    // },
     // Proper LinkedIn configuration
     linkedin: {
       clientId: process.env.LINKEDIN_CLIENT_ID!,
@@ -53,7 +52,7 @@ export const auth = betterAuth({
   user: {
     additionalFields: {
       isOnboarded: {
-        type: 'boolean',
+        type: "boolean",
         defaultValue: false,
       },
     },
@@ -61,24 +60,27 @@ export const auth = betterAuth({
   advanced: {
     database: {
       generateId: () => crypto.randomUUID(),
-    }
+    },
   },
   // Remove hooks temporarily to fix OAuth flow
   // We'll implement profile creation differently
-  trustedOrigins: [process.env.NEXT_PUBLIC_BASE_URL!, process.env.BASE_URL!].filter(Boolean),
+  trustedOrigins: [
+    process.env.NEXT_PUBLIC_BASE_URL!,
+    process.env.BASE_URL!,
+  ].filter(Boolean),
   secret: process.env.AUTH_SECRET!,
-})
+});
 
 // Export the auth handlers for API routes
-export const authHandler = auth.handler
-export const GET = authHandler
-export const POST = authHandler
+export const authHandler = auth.handler;
+export const GET = authHandler;
+export const POST = authHandler;
 
 // Types are handled by our custom useSession hook in /hooks/useAuth.ts
 
-// Define types for better type safety - use the Session type from better-auth  
+// Define types for better type safety - use the Session type from better-auth
 export type BetterAuthSession = Awaited<ReturnType<typeof auth.api.getSession>>;
-export type BetterAuthUser = NonNullable<BetterAuthSession>['user'];
+export type BetterAuthUser = NonNullable<BetterAuthSession>["user"];
 
 // Enhanced session type with profile data
 export type EnrichedSession = {
@@ -100,12 +102,12 @@ export type EnrichedSession = {
 
 // Export server-side session helper with enriched user data
 export const getServerSession = async (): Promise<EnrichedSession | null> => {
-  const { headers } = await import('next/headers')
+  const { headers } = await import("next/headers");
   const session = await auth.api.getSession({
     headers: await headers(),
-  })
+  });
 
-  if (!session) return null
+  if (!session) return null;
 
   // Enrich user data with profile information
   try {
@@ -121,9 +123,9 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
       .from(users)
       .leftJoin(profile, eq(profile.userId, users.id))
       .where(eq(users.id, session.user.id))
-      .limit(1)
+      .limit(1);
 
-    const userInfo = userData[0] || {}
+    const userInfo = userData[0] || {};
 
     return {
       ...session,
@@ -135,10 +137,10 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
         profileImage: userInfo.profileImage || undefined,
         displayName: userInfo.displayName || undefined,
         hasCompletedWalkthrough: userInfo.hasCompletedWalkthrough || false,
-      }
-    }
+      },
+    };
   } catch (error) {
-    console.error('Error enriching session:', error)
+    console.error("Error enriching session:", error);
     // Return basic session if enrichment fails
     return {
       ...session,
@@ -150,61 +152,61 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
         profileImage: undefined,
         displayName: undefined,
         hasCompletedWalkthrough: false,
-      }
-    }
+      },
+    };
   }
-}
+};
 
 // Helper function to get profileId from session with proper error handling
 export const getProfileIdFromSession = async (): Promise<string> => {
-  const session = await getServerSession()
+  const session = await getServerSession();
   if (!session) {
-    throw new Error('Unauthorized')
+    throw new Error("Unauthorized");
   }
-  
-  const profileId = session.user.profileId
+
+  const profileId = session.user.profileId;
   if (!profileId) {
-    throw new Error('Profile not found. Please complete onboarding first.')
+    throw new Error("Profile not found. Please complete onboarding first.");
   }
-  
-  return profileId
-}
+
+  return profileId;
+};
 
 // Legacy compatibility - alias for consistency
 export type Session = EnrichedSession;
 
 // Standardized authentication helpers for server actions
 export const requireAuth = async (): Promise<EnrichedSession> => {
-  const session = await getServerSession()
+  const session = await getServerSession();
   if (!session) {
-    throw new Error('Authentication required')
+    throw new Error("Authentication required");
   }
-  return session
-}
+  return session;
+};
 
 export const requireProfile = async (): Promise<string> => {
-  const session = await requireAuth()
-  const profileId = session.user.profileId
+  const session = await requireAuth();
+  const profileId = session.user.profileId;
   if (!profileId) {
-    throw new Error('Profile not found. Please complete onboarding first.')
+    throw new Error("Profile not found. Please complete onboarding first.");
   }
-  return profileId
-}
+  return profileId;
+};
 
 // Helper that returns both session and profileId for convenience
-export const requireAuthWithProfile = async (): Promise<{ 
-  session: EnrichedSession; 
-  profileId: string; 
-  userId: string; 
+export const requireAuthWithProfile = async (): Promise<{
+  session: EnrichedSession;
+  profileId: string;
+  userId: string;
 }> => {
-  const session = await requireAuth()
-  const profileId = session.user.profileId
+  const session = await requireAuth();
+  const profileId = session.user.profileId;
   if (!profileId) {
-    throw new Error('Profile not found. Please complete onboarding first.')
+    throw new Error("Profile not found. Please complete onboarding first.");
   }
   return {
     session,
     profileId,
     userId: session.user.id,
-  }
-}
+  };
+};

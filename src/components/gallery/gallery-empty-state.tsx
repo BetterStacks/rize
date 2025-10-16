@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { motion } from 'framer-motion'
-import { Camera, Plus } from 'lucide-react'
+import { motion } from "framer-motion";
+import { Camera, Plus } from "lucide-react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 
 interface EmptyGalleryStateProps {
   title?: string;
@@ -11,17 +11,21 @@ interface EmptyGalleryStateProps {
   ctaText?: string;
   onAddImages?: () => void;
   disabled?: boolean;
+  className?: string;
 }
 
 export function EmptyGalleryState({
-  title = 'Your Gallery Awaits',
-  description = 'Add your first images to create a stunning gallery. Share your visual story with the world.',
-  ctaText = 'Add Images',
+  title = "Your Gallery Awaits",
+  description = "Add your first images to create a stunning gallery. Share your visual story with the world.",
+  ctaText = "Add Images",
   onAddImages = () => {},
   disabled = false,
+  className,
 }: EmptyGalleryStateProps) {
   return (
-    <div className="flex h-full min-h-[400px] max-w-2xl border-2 border-neutral-300/60 dark:border-dark-border/80 rounded-3xl border-dashed w-full items-center justify-center">
+    <div
+      className={`flex h-full min-h-[400px] max-w-2xl border-2 border-neutral-300/60 dark:border-dark-border/80 rounded-3xl border-dashed w-full items-center justify-center ${className}`}
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -33,7 +37,7 @@ export function EmptyGalleryState({
           <motion.div
             className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/20 dark:to-amber-900/20"
             whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+            transition={{ type: "spring", stiffness: 300, damping: 15 }}
           >
             <Camera
               className="size-6 text-yellow-500 dark:text-yellow-400"
@@ -59,5 +63,5 @@ export function EmptyGalleryState({
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

@@ -1,7 +1,7 @@
-import { deletePost } from '@/actions/post-actions'
-import { TPostMedia } from '@/lib/types'
-import { cn } from '@/lib/utils'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { deletePost } from "@/actions/post-actions";
+import { TPostMedia } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Bookmark,
   Globe,
@@ -10,23 +10,23 @@ import {
   MoreHorizontalIcon,
   Trash2,
   X,
-} from 'lucide-react'
-import moment from 'moment'
-import { useSession } from '@/lib/auth-client'
-import Image from 'next/image'
-import Link from 'next/link'
-import { FC } from 'react'
-import toast from 'react-hot-toast'
-import { Result } from 'url-metadata'
-import { CreativeAvatar } from '../ui/creative-avatar'
-import { useAlertDialog, useAuthDialog } from '../dialog-provider'
-import { Button } from '../ui/button'
+} from "lucide-react";
+import moment from "moment";
+import { useSession } from "@/lib/auth-client";
+import Image from "next/image";
+import Link from "next/link";
+import { FC } from "react";
+import toast from "react-hot-toast";
+import { Result } from "url-metadata";
+import { CreativeAvatar } from "../ui/creative-avatar";
+import { useAlertDialog, useAuthDialog } from "../dialog-provider";
+import { Button } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu'
+} from "../ui/dropdown-menu";
 
 type PostInteractionsProps = {
   likeCount: number;
@@ -45,31 +45,31 @@ const PostInteractions: FC<PostInteractionsProps> = ({
   hasCommented,
   handleLikeClick,
 }) => {
-  const [open, setOpen] = useAuthDialog()
-  const session = useSession()
+  const [open, setOpen] = useAuthDialog();
+  const session = useSession();
   return (
     <div className=" mb-4  flex justify-start w-full gap-x-2 p-4">
       <div
         onClick={(e) => {
-          e.stopPropagation()
+          e.stopPropagation();
           if (!session?.data) {
-            setOpen(true)
-            return
+            setOpen(true);
+            return;
           }
-          handleLikeClick()
+          handleLikeClick();
         }}
         className={cn(
-          ' flex border dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 py-1.5 px-3 rounded-3xl items-center justify-center gap-x-2',
-          isLiked && 'bg-red-400/10'
+          " flex border dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 py-1.5 px-3 rounded-3xl items-center justify-center gap-x-2",
+          isLiked && "bg-red-400/10"
         )}
       >
         <HeartIcon
           strokeWidth={1.2}
           className={cn(
-            'size-5',
+            "size-5",
             isLiked
-              ? 'stroke-red-600 fill-red-600'
-              : 'stroke-neutral-500 dark:stroke-neutral-400'
+              ? "stroke-red-600 fill-red-600"
+              : "stroke-neutral-500 dark:stroke-neutral-400"
           )}
         />
         <span className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -79,21 +79,21 @@ const PostInteractions: FC<PostInteractionsProps> = ({
 
       <div
         onClick={(e) => {
-          e.stopPropagation()
-          handleCommentClick!()
+          e.stopPropagation();
+          handleCommentClick!();
         }}
         className={cn(
-          'flex border  dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 py-1 px-3 rounded-3xl items-center justify-center gap-x-2',
-          hasCommented && 'bg-blue-400/10'
+          "flex border  dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 py-1 px-3 rounded-3xl items-center justify-center gap-x-2",
+          hasCommented && "bg-blue-400/10"
         )}
       >
         <MessageIcon
           strokeWidth={1.2}
           className={cn(
-            'size-5',
+            "size-5",
             hasCommented
-              ? 'stroke-blue-500 fill-blue-500'
-              : 'stroke-neutral-500 dark:stroke-neutral-400'
+              ? "stroke-blue-500 fill-blue-500"
+              : "stroke-neutral-500 dark:stroke-neutral-400"
           )}
         />
         <span className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -101,8 +101,8 @@ const PostInteractions: FC<PostInteractionsProps> = ({
         </span>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export const MessageIcon = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -118,8 +118,8 @@ export const MessageIcon = (props: React.SVGProps<SVGSVGElement>) => {
         d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z"
       />
     </svg>
-  )
-}
+  );
+};
 export const HeartIcon = (props: React.SVGProps<SVGSVGElement>) => {
   return (
     <svg
@@ -134,8 +134,8 @@ export const HeartIcon = (props: React.SVGProps<SVGSVGElement>) => {
         d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
       />
     </svg>
-  )
-}
+  );
+};
 
 type PostMediaContainerProps = {
   media: TPostMedia[];
@@ -163,8 +163,8 @@ export const PostAvatar: FC<PostaAvatarProps> = ({
       className={className}
       showHoverEffect={false}
     />
-  )
-}
+  );
+};
 
 type PostCardHeaderProps = {
   avatar: string;
@@ -188,13 +188,13 @@ export const PostCardHeader: FC<PostCardHeaderProps> = ({
   return (
     <div
       className={cn(
-        'flex items-center text-white px-4 justify-between w-full',
-        hasContentAndMedia && 'absolute   top-3 z-[2]',
-        onlyMedia && 'absolute   top-3 z-[8]'
+        "flex items-center text-white px-4 justify-between w-full",
+        hasContentAndMedia && "absolute   top-3 z-[2]",
+        onlyMedia && "absolute   top-3 z-[8]"
       )}
     >
       <PostAvatar avatar={avatar} name={name} />
-      <div className={cn(' flex flex-col', onlyContent && 'ml-4')}>
+      <div className={cn(" flex flex-col", onlyContent && "ml-4")}>
         <h2
         // className={cn(
         //   " text-sm text-black  ",
@@ -205,25 +205,25 @@ export const PostCardHeader: FC<PostCardHeaderProps> = ({
         </h2>
         <div
           className={cn(
-            'flex items-center justify-center dark:text-neutral-400 text-sm font-light leading-snug text-neutral-400 '
+            "flex items-center justify-center dark:text-neutral-400 text-sm font-light leading-snug text-neutral-400 "
           )}
         >
           <p
             className={
-              cn('mr-1')
+              cn("mr-1")
               // "text-sm font-light leading-tight text-neutral-600 ",
               // addDarkStyles && "dark:text-neutral-400"
             }
           >
             @{username}
           </p>
-          {'•'}
+          {"•"}
           <span className="ml-1">{moment(createdAt).fromNow()}</span>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 type PostCardOptionsProps = {
   profileId: string;
@@ -234,21 +234,21 @@ export const PostCardOptions: FC<PostCardOptionsProps> = ({
   postId,
   profileId,
 }) => {
-  const queryClient = useQueryClient()
-  const session = useSession()
-  const isMine = (session?.data?.user as any)?.profileId === profileId
+  const queryClient = useQueryClient();
+  const session = useSession();
+  const isMine = (session?.data?.user as any)?.profileId === profileId;
   const { mutate, isPending } = useMutation({
     mutationFn: deletePost,
     onSuccess: () => {
-      toast.success('Post deleted successfully')
-      queryClient.invalidateQueries({ queryKey: ['explore-feed'] })
-      queryClient.invalidateQueries({ queryKey: ['get-user-posts'] })
+      toast.success("Post deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["get-user-posts"] });
     },
     onError: (error) => {
-      console.error('Error deleting post:', error)
+      console.error("Error deleting post:", error);
     },
-  })
-  const [open, setOpen] = useAlertDialog()
+  });
+  const [open, setOpen] = useAlertDialog();
 
   return (
     <>
@@ -258,18 +258,18 @@ export const PostCardOptions: FC<PostCardOptionsProps> = ({
           className="z-[6]  transition-all duration-200 ease-in"
         >
           <Button
-            size={'smallIcon'}
+            size={"smallIcon"}
             className="rounded-full aspect-square "
-            variant={'outline'}
+            variant={"outline"}
           >
             <MoreHorizontalIcon
               className={cn(
-                'text-neutral-500 size-4 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
+                "text-neutral-500 size-4 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
               )}
             />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="shadow-2xl shadow-black/40 dark:shadow-black rounded-xl dark:bg-dark-bg border dark:border-dark-border border-neutral-300/60 bg-white p-0">
+        <DropdownMenuContent className="shadow-md shadow-black/20 dark:shadow-black/20 rounded-xl dark:bg-dark-bg border dark:border-dark-border border-neutral-300/60 bg-white p-0">
           <DropdownMenuItem className="px-4 py-1.5 ">
             <Link2 className="opacity-80 -rotate-45 size-4" />
             <span>Copy Link</span>
@@ -294,8 +294,8 @@ export const PostCardOptions: FC<PostCardOptionsProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
     </>
-  )
-}
+  );
+};
 
 type PostCardContainerProps = {
   children: React.ReactNode;
@@ -313,15 +313,15 @@ export const PostCardContainer: FC<PostCardContainerProps> = ({
     <div
       onClick={handlePostClick}
       className={cn(
-        ' first:mt-0 mt-4 shadow-xl bg-white w-full border cursor-pointer overflow-hidden break-inside-avoid  border-neutral-200   rounded-3xl ',
-        'dark:bg-neutral-800 dark:border-dark-border',
+        " first:mt-0 mt-4 shadow-xl bg-white w-full border cursor-pointer overflow-hidden break-inside-avoid  border-neutral-200   rounded-3xl ",
+        "dark:bg-neutral-800 dark:border-dark-border",
         className
       )}
     >
       {children}
     </div>
-  )
-}
+  );
+};
 
 type PostLinkCardProps = {
   data: Result;
@@ -339,9 +339,9 @@ export const PostLinkCard: FC<PostLinkCardProps> = ({
   return (
     <div
       className={cn(
-        !hasRemove && 'mx-4',
-        hasRemove && 'max-w-xs',
-        ' rounded-2xl z-[6] relative overflow-hidden  border border-neutral-300/80 dark:border-dark-border',
+        !hasRemove && "mx-4",
+        hasRemove && "max-w-xs",
+        " rounded-2xl z-[6] mt-4 relative overflow-hidden  border border-neutral-300/80 dark:border-dark-border",
         className
       )}
     >
@@ -354,12 +354,12 @@ export const PostLinkCard: FC<PostLinkCardProps> = ({
             <X className="size-4 opacity-80  " />
           </button>
         )}
-        {data['og:image'] ? (
+        {data["og:image"] ? (
           <Image
             alt={data?.title}
             fill
-            style={{ objectFit: 'cover' }}
-            src={data['og:image']}
+            style={{ objectFit: "cover" }}
+            src={data["og:image"]}
             draggable={false}
             loading="lazy"
           />
@@ -373,18 +373,18 @@ export const PostLinkCard: FC<PostLinkCardProps> = ({
         <Link
           href={data?.url}
           onClick={(e) => {
-            e.stopPropagation() // prevent handleViewPost from firing
+            e.stopPropagation(); // prevent handleViewPost from firing
           }}
           target="_blank"
           className="w-full "
         >
-          <h4 className="font-medium dark:text-neutral-300 text-neutral-600 leading-tight tracking-tight">
+          <h4 className="font-medium line-clamp-2 dark:text-neutral-300 text-neutral-600 leading-tight tracking-tight">
             {data?.title}
           </h4>
         </Link>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PostInteractions
+export default PostInteractions;
