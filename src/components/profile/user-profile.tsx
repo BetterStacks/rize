@@ -141,10 +141,12 @@ const UserProfile = ({
 
   return (
     <div className="w-full flex flex-col items-center justify-start">
-      <Profile isMine={isMine} data={profileData} isLoading={isLoading} />
+      <Profile isMine={isMine} data={profileData} isLoading={isLoading} username={profileData?.username || params.username} />
       <SocialLinks isMine={isMine} />
       
-      <ResumeRoaster />
+      <div className='w-full max-w-2xl'>
+        <ResumeRoaster />
+      </div>
 
       {/* Story Elements Section */}
       {storyElements && storyElements.length > 0 && (

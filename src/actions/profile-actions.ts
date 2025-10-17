@@ -80,6 +80,8 @@ export const getProfileByUsername = async (username: string) => {
     .select({
       ...rest,
       email: users.email,
+      image: users.image,
+      name: users.name, 
     })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
