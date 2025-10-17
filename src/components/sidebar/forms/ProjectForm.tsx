@@ -171,7 +171,6 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
         toast.error(res.error || 'Failed to update project')
       }
     } catch (err) {
-      console.error(err)
       toast.error('An unexpected error occurred')
     }
   }, [logo, defaultValues, logoFile, tab?.id])

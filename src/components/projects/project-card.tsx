@@ -9,8 +9,8 @@ import { Edit2, Globe, Loader, Trash } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { FC } from 'react'
-import toast from 'react-hot-toast'
+import { FC, useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '../ui/button'
 import { useMediaQuery } from '@mantine/hooks'
 
@@ -24,6 +24,7 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, isMine }) => {
   const { username } = useParams<{ username: string }>()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const setOpen = useRightSidebar()[1]
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const { mutate: handleDeleteProject, isPending } = useMutation({
     mutationFn: deleteProject,
@@ -98,7 +99,7 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, isMine }) => {
             variant={'outline'}
             className="rounded-lg  text-sm"
             size={'smallIcon'}
-            onClick={() => handleDeleteProject(project.id)}
+            onClick={() => setShowDeleteConfirm(true)}
             disabled={isPending}
           >
             {isPending ? (
@@ -107,6 +108,37 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, isMine }) => {
               <Trash className="size-4 opacity-80" />
             )}
           </Button>
+        </div>
+      )}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-dark-bg rounded-3xl max-w-sm w-full border border-neutral-300/60 dark:border-dark-border p-6">
+            <h3 className="text-lg font-semibold mb-2 text-neutral-900 dark:text-white">Delete Project?</h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
+              Are you sure you want to delete "{project.name}"? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="ghost"
+                className="rounded-full px-4"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="outline"
+                className="rounded-full px-4 text-red-600 dark:text-red-500 hover:text-red-700 dark:hover:text-red-400"
+                onClick={() => {
+                  handleDeleteProject(project.id)
+                  setShowDeleteConfirm(false)
+                }}
+                disabled={isPending}
+              >
+                {isPending ? <Loader className="size-4 animate-spin mr-2" /> : null}
+                Delete
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </motion.div>
