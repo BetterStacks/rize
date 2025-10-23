@@ -46,11 +46,11 @@ const Page = async () => {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<Link href="/settings/analytics">
-							<Button variant="default" className="w-full">
+						<Button asChild variant="default" className="w-full">
+							<Link href="/settings/analytics">
 								View Analytics Dashboard
-							</Button>
-						</Link>
+							</Link>
+						</Button>
 					</CardContent>
 				</Card>
 
