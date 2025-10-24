@@ -10,7 +10,7 @@ import { useSession } from "@/hooks/useAuth";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import TextArea from "react-textarea-autosize";
 import { v4 } from "uuid";
 import { usePostsDialog } from "../dialog-provider";
@@ -37,6 +37,8 @@ const MAX_WORD_COUNT = 500;
 const PostForm = () => {
   const [file, setFile] = useState<MediaFile | undefined>();
   const [content, setContent] = React.useState<string>("");
+  const [showLinkInput, setShowLinkInput] = useState(false)
+  const [linkInput, setLinkInput] = useState("")
   const session = useSession();
   const [open, setOpen] = usePostsDialog();
   const [link, setLink] = useState<string | null>();
@@ -149,6 +151,8 @@ const PostForm = () => {
       setContent("");
       setFile(undefined);
       setLink(undefined);
+      setShowLinkInput(false)
+      setLinkInput("")  
       queryClient.setQueryData(["get-link-metadata"], null);
     }
   }, [open]);
@@ -182,6 +186,44 @@ const PostForm = () => {
               data?.name?.split(" ")[0] as string
             )}?`}
           />
+
+          {showLinkInput && !link && (
+            <div className="mt-3 flex gap-2 items-center">
+              <input
+                type="url"
+                value={linkInput}
+                onChange={(e) => setLinkInput(e.target.value)}
+                placeholder="Paste your link here..."
+                className="flex-1 px-3 py-2 rounded-lg border border-neutral-300 dark:border-dark-border bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                autoFocus
+              />
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (!isValidUrl(linkInput)) {
+                    toast.error("Invalid URL")
+                    return
+                  }
+                  setLink(linkInput)
+                  setShowLinkInput(false)
+                  setLinkInput("")
+                }}
+              >
+                Add
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setShowLinkInput(false)
+                  setLinkInput("")
+                }}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+          )}
+
           {link && !linkMetadata?.data?.metadata && (
             <div className="max-w-xs w-full mt-4 rounded-2xl relative overflow-hidden  border border-neutral-300/80 dark:border-dark-border">
               <Skeleton className="h-[180px] bg-neutral-200/80 rounded-b-none dark:bg-dark-border " />
@@ -271,16 +313,7 @@ const PostForm = () => {
                 className="rounded-full"
                 variant={"ghost"}
                 disabled={!!link || !!file || isPending}
-                onClick={async () => {
-                  const url = prompt("Enter a link:");
-                  if (!url) return;
-                  if (!isValidUrl(url)) {
-                    toast.error("Invalid URL");
-                    return;
-                  }
-
-                  setLink(url);
-                }}
+                onClick={() => setShowLinkInput(true)}
               >
                 <Link2 strokeWidth={1.4} className="-rotate-45 opacity-80" />
               </Button>
@@ -302,7 +335,7 @@ const PostForm = () => {
                 onClick={() => {
                   if (!canPublish()) {
                     toast.error(
-                      "Add at least 6 characters of content or attach a single media/link"
+                      "Your post needs at least 6 characters or media/link"
                     );
                     return;
                   }

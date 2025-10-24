@@ -11,7 +11,7 @@ import { Skeleton } from '../ui/skeleton'
 import { toast } from 'sonner'
 import type { SocialPlatform } from '@/lib/types'
 import { useState } from 'react'
-import { Edit2 } from 'lucide-react'
+import { EllipsisVertical } from 'lucide-react'
 import { SocialLinksForm } from '../SocialLinksForm'
 
 export const dummyLinks: { platform: SocialPlatform; url: string }[] = [
@@ -94,10 +94,9 @@ const SocialLinks = ({ isMine }: { isMine: boolean }) => {
             variant="outline"
             size="sm"
             onClick={() => setShowEditDialog(true)}
-            className='px-4 py-2.5 h-fit rounded-full'
+            className='p-2 h-fit rounded-full'
           >
-            <Edit2 className="size-3.5 mr-2" />
-            Edit Links
+            <EllipsisVertical className="size-3.5" />
           </Button>
         )}
 
