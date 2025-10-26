@@ -4,8 +4,10 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { eq } from "drizzle-orm";
 import db from "./db";
+import { expo } from "@better-auth/expo";
 
 export const auth = betterAuth({
+  plugins: [expo()],
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: false,
@@ -21,6 +23,7 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
+
     password: {
       hash: async (password) => {
         return hashSync(password, 10); // Use bcrypt for hashing
@@ -34,6 +37,7 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+      redirectURI: "rizemobile://auth",
     },
     // github: {
     //   clientId: process.env.GITHUB_CLIENT_ID!,
@@ -58,17 +62,23 @@ export const auth = betterAuth({
     },
   },
   advanced: {
+    disableCSRFCheck: true,
     database: {
       generateId: () => crypto.randomUUID(),
     },
   },
   // Remove hooks temporarily to fix OAuth flow
   // We'll implement profile creation differently
+  // "rizemobile://",
+  // "rizemobile-prod://",
+  // "rizemobile-staging://",
   trustedOrigins: [
-    process.env.NEXT_PUBLIC_BASE_URL!,
-    process.env.BASE_URL!,
+    "rizemobile://*",
+    "http://localhost:3000",
+    "https://fogbound-humiliatedly-judi.ngrok-free.dev",
   ].filter(Boolean),
-  secret: process.env.AUTH_SECRET!,
+
+  secret: process.env.BETTER_AUTH_SECRET!,
 });
 
 // Export the auth handlers for API routes
