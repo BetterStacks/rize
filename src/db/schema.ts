@@ -648,3 +648,28 @@ const clickTrackingRelations = relations(clickTracking, ({ one }) => ({
     references: [profile.id],
   }),
 }));
+
+// Roast Analytics tables
+export const roastAnalytics = pgTable("roast_analytics", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => v4()),
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => profile.id, { onDelete: "cascade" }),
+  totalRoasts: integer("total_roasts").notNull().default(0),
+  firstRoastAt: timestamp("first_roast_at"),
+  lastRoastAt: timestamp("last_roast_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
+});
+
+export const roastHistory = pgTable("roast_history", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => v4()),
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => profile.id, { onDelete: "cascade" }),
+  roastedAt: timestamp("roasted_at").notNull().defaultNow(),
+});

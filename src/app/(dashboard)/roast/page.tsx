@@ -8,6 +8,8 @@ import RoastCard from '@/components/RoastCard'
 import { Spinner } from '@/components/ui/spinner'
 import { Skeleton } from '@/components/ui/skeleton'
 import Back from '@/components/Back'
+import RoastAnalytics from '@/components/analytics/RoastAnalytics'
+import { useSession } from '@/lib/auth-client'
 
 
 function ResumeRoasterSkeleton() {
@@ -33,6 +35,8 @@ export default function Home() {
   const [roast, setRoast] = useState<string>('')
   const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null)
   const [fetchingResume, setFetchingResume] = useState(true)
+
+  const { data: session } = useSession()
 
   useEffect(() => {
     const fetchExistingResume = async () => {
@@ -104,19 +108,32 @@ export default function Home() {
         <Back />
       </div>
 
-      {!existingResumeUrl && (
-        <div className="mx-2 w-full max-w-2xl px-4">
-          <FileUpload onChange={(files) => setSelectedFiles(files)} />
-        </div>
-      )}
+      <div className="max-w-6xl mx-auto w-fit lg:w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:px-6 items-start py-10 lg:py-0">
+          {/* Left Side - Upload & Roast */}
+          <div className="flex flex-col items-center lg:col-span-2">
+            {!existingResumeUrl && (
+              <div className="w-full max-w-2xl">
+                <FileUpload onChange={(files) => setSelectedFiles(files)} />
+              </div>
+            )}
 
-      <div className="mt-10">
-        <button onClick={handleRoast} disabled={loading} className="flex items-center justify-center gap-2 border dark:bg-[#E6E6E6] bg-[#FFDA37] hover:bg-[#FFDA37]/85 dark:hover:bg-[#F6F6F6] h-9 px-8 text-black tracking-wide rounded-lg font-medium text-sm cursor-pointer disabled:opacity-50 disabled:cursor-default">
-          {loading && <Spinner className="w-4 h-4" />}
-          Roast Me
-        </button>
+            <div className="mt-10">
+              <button onClick={handleRoast} disabled={loading} className="flex items-center justify-center gap-2 border dark:bg-[#E6E6E6] bg-[#FFDA37] hover:bg-[#FFDA37]/85 dark:hover:bg-[#F6F6F6] h-9 px-8 text-black tracking-wide rounded-lg font-medium text-sm cursor-pointer disabled:opacity-50 disabled:cursor-default">
+                {loading && <Spinner className="w-4 h-4" />}
+                Roast Me
+              </button>
+            </div>
+            {roast && <RoastCard roast={roast} />}
+          </div>
+      
+          {session?.user?.username && (
+            <div className="lg:sticky lg:top-6">
+              <RoastAnalytics username={session.user.username} key={roast} />
+            </div>
+          )}
+        </div>
       </div>
-      {roast && <RoastCard roast={roast} />}
     </div>
   )
 }
