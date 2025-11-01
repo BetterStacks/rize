@@ -153,9 +153,11 @@ const UserProfile = ({
       <Profile isMine={isMine} data={profileData} isLoading={isLoading} username={profileData?.username || params.username} />
       <SocialLinks isMine={isMine} />
       
-      <div className='w-full max-w-2xl'>
-        <ResumeRoaster />
-      </div>
+      {isMine && (
+        <div className='w-full max-w-2xl'>
+          <ResumeRoaster />
+        </div>
+      )}
 
       {/* Story Elements Section */}
       {storyElements && storyElements.length > 0 && (

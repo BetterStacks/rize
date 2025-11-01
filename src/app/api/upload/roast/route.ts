@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { PDFDocument } from 'pdf-lib'
+import { getServerSession } from '@/lib/auth'
+import { trackRoast } from '@/actions/roast-analytics'
 
 // Ensures Node APIs are available for pdf-parse
 export const runtime = 'nodejs'
@@ -9,6 +11,16 @@ export async function POST(req: Request) {
     try {
         // Step 1: Read file from form data
         const formData = await req.formData()
+
+        // Get current user session
+        const session = await getServerSession()
+        if (!session?.user?.username) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
+            )
+        }
+
         const file = formData.get('file')
 
         if (!file || !(file instanceof Blob)) {
@@ -67,7 +79,10 @@ export async function POST(req: Request) {
 
         const roast = completion.choices[0].message?.content || 'No roast generated.'
 
-        // Step 6: Return roast text
+        // Step 6: Track roast analytics
+        await trackRoast(session.user.username)
+
+        // Step 7: Return roast text
         return NextResponse.json({ roast })
     } catch (err: any) {
         console.error('Error roasting resume:', err)
