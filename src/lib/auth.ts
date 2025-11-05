@@ -142,6 +142,9 @@ export type EnrichedSession = {
     profileImage?: string;
     displayName?: string;
     hasCompletedWalkthrough?: boolean;
+    phoneNumberCollected?: boolean;
+    phoneNumber?: string;
+    onboardingCallId?: string;
   };
   session: {
     id: string;
@@ -170,6 +173,9 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
         profileImage: profile.profileImage,
         displayName: profile.displayName,
         hasCompletedWalkthrough: profile.hasCompletedWalkthrough,
+        phoneNumberCollected: users.phoneNumberCollected,
+        phoneNumber: users.phoneNumber,
+        onboardingCallId: users.onboardingCallId,
       })
       .from(users)
       .leftJoin(profile, eq(profile.userId, users.id))
@@ -188,6 +194,9 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
         profileImage: userInfo.profileImage || undefined,
         displayName: userInfo.displayName || undefined,
         hasCompletedWalkthrough: userInfo.hasCompletedWalkthrough || false,
+        phoneNumberCollected: userInfo.phoneNumberCollected || false,
+        phoneNumber: userInfo.phoneNumber || undefined,
+        onboardingCallId: userInfo.onboardingCallId || undefined,
       },
     };
   } catch (error) {
@@ -203,6 +212,9 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
         profileImage: undefined,
         displayName: undefined,
         hasCompletedWalkthrough: false,
+        phoneNumberCollected: false,
+        phoneNumber: undefined,
+        onboardingCallId: undefined,
       },
     };
   }

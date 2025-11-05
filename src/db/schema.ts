@@ -61,6 +61,7 @@ export const users = pgTable("user", {
   letrazId: text("letraz_id"),
   phoneNumber: text("phoneNumber").unique(),
   phoneNumberVerified: boolean("phoneNumberVerified").notNull().default(false),
+  onboardingCallId: text("onboarding_call_id"),
 });
 
 export const profile = pgTable("profile", {
