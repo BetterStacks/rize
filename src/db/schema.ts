@@ -59,6 +59,9 @@ export const users = pgTable("user", {
   resumeFileId: text("resume_file_id"),
   claimToken: text("claim_token"),
   letrazId: text("letraz_id"),
+  phoneNumber: text("phone_number"),
+  phoneNumberCollected: boolean("phone_number_collected").notNull().default(false),
+  onboardingCallId: text("onboarding_call_id"),
 });
 
 export const profile = pgTable("profile", {
