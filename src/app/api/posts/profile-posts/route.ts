@@ -1,5 +1,3 @@
-import { NextRequest, NextResponse } from "next/server";
-
 import {
   comments,
   likes,
@@ -11,22 +9,25 @@ import {
 } from "@/db/schema";
 import db from "@/lib/db";
 import { desc, eq, sql } from "drizzle-orm";
+import { NextRequest, NextResponse } from "next/server";
 
-const PAGE_SIZE = 10;
-
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest
+  // { params }: { params: Promise<{ profileId: string }> }
+) {
+  const { searchParams } = new URL(req.url);
+  const userProfileId = searchParams.get("profileId");
+  console.log(userProfileId);
+  if (!userProfileId)
+    return NextResponse.json(
+      { data: null, error: "Profile ID is required" },
+      { status: 400 }
+    );
   try {
-    const { searchParams } = new URL(req.url);
-    const pageParam = searchParams.get("page") || "1";
-    // normalize page to a positive integer (defaults to 1)
-    const parsed = parseInt(pageParam, 10);
-    const page = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-    const offset = Math.max(0, (page - 1) * PAGE_SIZE);
-    const userProfileId = searchParams.get("profileId");
-
-    const query = db
+    const profilePosts = await db
       .select({
         id: posts.id,
+        profileId: profile.id,
         content: posts.content,
         createdAt: posts.createdAt,
         username: profile.username,
@@ -83,31 +84,27 @@ export async function GET(req: NextRequest) {
       .leftJoin(comments, eq(posts.id, comments.postId))
       .leftJoin(media, eq(postMedia.mediaId, media.id))
       .leftJoin(postLinks, eq(posts.id, postLinks.postId))
+      .where(eq(posts.profileId, userProfileId))
       .groupBy(
         posts.id,
         profile.username,
         profile.displayName,
+        profile.id,
+
         profile.profileImage,
         media.id,
         postLinks.id
       )
-      .orderBy(desc(posts.createdAt))
-      .limit(PAGE_SIZE)
-      .offset(offset);
+      .orderBy(desc(posts.createdAt));
 
-    const results = await query;
-
-    // Pagination metadata
-    const nextPage = results.length === PAGE_SIZE ? page + 1 : null;
-    console.log(results);
-    return NextResponse.json({
-      data: { posts: results, nextPage },
-      error: null,
-    });
-  } catch (error) {
-    console.error("[EXPLORE_API_ERROR]", error);
     return NextResponse.json(
-      { data: null, error: "Failed to fetch explore feed" },
+      { data: profilePosts, error: null },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("[PROFILE_API_ERROR]", error);
+    return NextResponse.json(
+      { data: null, error: "Failed to fetch profile" },
       { status: 500 }
     );
   }

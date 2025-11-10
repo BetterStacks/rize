@@ -20,6 +20,7 @@ import {
   AddCommentPayload,
   GetCommentWithProfile,
   GetExplorePosts,
+  newPostSchema,
   TAddNewComment,
 } from "@/lib/types";
 import { isImageUrl } from "@/lib/utils";
@@ -296,43 +297,6 @@ export const getPostById = async (id: string) => {
   }
   return query[0] as GetExplorePosts;
 };
-
-const newPostSchema = z
-  .object({
-    content: z.string().max(500).optional(),
-    link: z.string().url().optional(),
-    file: z
-      .object({
-        url: z.string().url(),
-        height: z.number(),
-        width: z.number(),
-      })
-      .optional(),
-  })
-  .superRefine((data, ctx) => {
-    const hasFile = !!data.file;
-    const hasLink = !!data.link;
-    const contentLen = data.content ? data.content.trim().length : 0;
-
-    // cannot include both file and link
-    if (hasFile && hasLink) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Cannot include both a media file and a link",
-      });
-    }
-
-    // if neither link nor file provided, content must be > 5 characters
-    if (!hasFile && !hasLink) {
-      if (contentLen <= 5) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message:
-            "Content must be at least 6 characters when no media or link is provided",
-        });
-      }
-    }
-  });
 
 export const createPost = async (payload: z.infer<typeof newPostSchema>) => {
   const userProfileId = await requireProfile();

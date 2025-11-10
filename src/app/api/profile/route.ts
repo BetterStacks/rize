@@ -1,16 +1,8 @@
-import { getAllEducation } from "@/actions/education-actions";
-import { getAllExperience } from "@/actions/experience-actions";
-import { getGalleryItems } from "@/actions/gallery-actions";
-import { bulkInsertSections, getSections } from "@/actions/general-actions";
-import { getAllPages } from "@/actions/page-actions";
-import { getUserPosts } from "@/actions/post-actions";
-import { getAllProjects } from "@/actions/project-actions";
-import { getSocialLinks } from "@/actions/social-links-actions";
-import { getStoryElementsByUsername } from "@/actions/story-actions";
+import { bulkInsertSections } from "@/actions/general-actions";
 import { profile, users } from "@/db/schema";
 import db from "@/lib/db";
 import { v2 as cloudinary } from "cloudinary";
-import { eq } from "drizzle-orm";
+import { desc, eq, not } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 cloudinary.config({
@@ -22,7 +14,6 @@ cloudinary.config({
 type TProfilePayload = {
   displayName: string;
   username: string;
-  // profileImage: string;
   userId: string;
 };
 
@@ -42,6 +33,7 @@ export async function POST(req: Request) {
       throw new Error("Profile creation failed");
     }
 
+    // Ensure we pass a real profile id to bulkInsertSections
     await bulkInsertSections(newProfile.id);
 
     await db
@@ -67,69 +59,30 @@ export async function POST(req: Request) {
     );
   }
 }
+
+const PAGE_SIZE = 10;
+
 export async function GET(req: NextRequest) {
   try {
-    const username = req.nextUrl.searchParams.get("username");
+    const { searchParams } = new URL(req.url);
+    const pageParam = searchParams.get("page") || "1";
+    // normalize page to a positive integer (defaults to 1)
+    const parsed = parseInt(pageParam, 10);
+    const page = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+    const offset = Math.max(0, (page - 1) * PAGE_SIZE);
+    const profileId = searchParams.get("profileId");
 
-    if (!username) {
-      return NextResponse.json(
-        { data: null, error: "Username is required" },
-        { status: 400 }
-      );
-    }
-
-    const [newProfile] = await db
+    const query = await db
       .select()
       .from(profile)
-      .where(eq(profile.username, username));
-    if (!newProfile) {
-      return NextResponse.json(
-        { data: null, error: "Profile not found" },
-        { status: 404 }
-      );
-    }
-
-    const [
-      socialLinks,
-      gallery,
-      writings,
-      projects,
-      education,
-      workExperience,
-      posts,
-      sections,
-      storyElements,
-    ] = await Promise.all([
-      getSocialLinks(username),
-      getGalleryItems(username),
-      getAllPages(username).then((pages) =>
-        pages.map((page) => ({
-          ...page,
-          avatar: page.thumbnail || "", // Provide a default or derived avatar value
-        }))
-      ),
-      getAllProjects(username),
-      getAllEducation(username),
-      getAllExperience(username),
-      getUserPosts(username),
-      getSections(username),
-      getStoryElementsByUsername(username),
-    ]);
-
+      .orderBy(desc(profile.createdAt))
+      .limit(PAGE_SIZE)
+      .offset(offset);
+    console.log(query);
+    const nextPage = query.length === PAGE_SIZE ? page + 1 : null;
     return NextResponse.json(
       {
-        data: {
-          profile: newProfile,
-          socialLinks,
-          gallery,
-          writings,
-          projects,
-          education,
-          workExperience,
-          posts,
-          sections,
-          storyElements,
-        },
+        data: { profiles: query, nextPage },
         error: null,
       },
       {

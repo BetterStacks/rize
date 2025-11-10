@@ -1,68 +1,71 @@
-import { deletePage } from '@/actions/page-actions'
-import { TPage } from '@/lib/types'
-import { cn } from '@/lib/utils'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { MoreHorizontal, Trash2, Edit, FileText } from 'lucide-react'
-import { useSession } from '@/hooks/useAuth'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
-import { FC, useMemo } from 'react'
-import toast from 'react-hot-toast'
-import readingTime from 'reading-time'
-import { Node } from 'slate'
-import { Button } from '../ui/button'
+import { deletePage } from "@/actions/page-actions";
+import { useSession } from "@/hooks/useAuth";
+import { TPage } from "@/lib/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Edit, FileText, MoreHorizontal, Trash2 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { FC, useMemo } from "react";
+import toast from "react-hot-toast";
+import readingTime from "reading-time";
+import { Node } from "slate";
+import { Button } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu'
+} from "../ui/dropdown-menu";
 
 type WrtingCardProps = {
   data: typeof TPage & { thumbnail: string };
 };
 
 const WritingCard: FC<WrtingCardProps> = ({ data }) => {
-  const session = useSession()
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const { username } = useParams<{ username: string }>()
-  
-  const isMine = session?.data?.user?.username === username
+  const session = useSession();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { username } = useParams<{ username: string }>();
+
+  const isMine = session?.data?.user?.username === username;
 
   const time = useMemo(() => {
     try {
-      const editorContent = JSON.parse(data?.content || '[]')
+      const editorContent = JSON.parse(data?.content || "[]");
       const stringifiedContent = editorContent
         .map((node: Node) => Node.string(node))
-        .join('\n')
-      return readingTime(stringifiedContent)
+        .join("\n");
+      return readingTime(stringifiedContent);
     } catch {
-      return { text: '1 min read' }
+      return { text: "1 min read" };
     }
-  }, [data?.content])
+  }, [data?.content]);
 
   const { mutate: handleDelete, isPending: isDeleting } = useMutation({
     mutationFn: () => deletePage(data.id!),
     onSuccess: (result) => {
       if (result.success) {
-        toast.success('Page deleted successfully')
-        queryClient.invalidateQueries({ queryKey: ['get-writings', username] })
+        toast.success("Page deleted successfully");
+        queryClient.invalidateQueries({ queryKey: ["get-writings", username] });
       } else {
-        toast.error(result.error || 'Failed to delete page')
+        toast.error(result.error || "Failed to delete page");
       }
     },
     onError: () => {
-      toast.error('Failed to delete page')
+      toast.error("Failed to delete page");
     },
-  })
+  });
 
   const confirmDelete = () => {
-    if (window.confirm('Are you sure you want to delete this page? This action cannot be undone.')) {
-      handleDelete()
+    if (
+      window.confirm(
+        "Are you sure you want to delete this page? This action cannot be undone."
+      )
+    ) {
+      handleDelete();
     }
-  }
+  };
 
   return (
     <article className="flex w-full group bg-white shadow-lg relative dark:bg-neutral-800 transition-all rounded-2xl border border-neutral-300/60 dark:border-dark-border overflow-hidden hover:shadow-xl hover:border-neutral-400 dark:hover:border-dark-border/80">
@@ -87,19 +90,23 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
         <Link href={`/page/${data.id}`} className="flex-1">
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors leading-tight line-clamp-2">
-              {data?.title || 'Untitled'}
+              {data?.title || "Untitled"}
             </h3>
-            
+
             <div className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
               <span>{time?.text}</span>
               {data?.createdAt && (
                 <>
                   <span>•</span>
                   <span>
-                    {new Date(data.createdAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: data.createdAt.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                    {new Date(data.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year:
+                        data.createdAt.getFullYear() !==
+                        new Date().getFullYear()
+                          ? "numeric"
+                          : undefined,
                     })}
                   </span>
                 </>
@@ -136,7 +143,7 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
                   className="flex items-center gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                 >
                   <Trash2 className="h-4 w-4" />
-                  {isDeleting ? 'Deleting...' : 'Delete Page'}
+                  {isDeleting ? "Deleting..." : "Delete Page"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -144,7 +151,7 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
         )}
       </div>
     </article>
-  )
-}
+  );
+};
 
-export default WritingCard
+export default WritingCard;
