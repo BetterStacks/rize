@@ -126,11 +126,11 @@ export async function DELETE(
       const publicIds = mediaToDelete
         .map((media) => getPublicIdFromUrl(media?.media?.url as string))
         .filter(Boolean) as string[];
-
       if (publicIds.length > 0) {
         await cloudinary.api.delete_resources(publicIds);
+        const ids = mediaToDelete.map((m) => m.media?.id);
         await db.transaction(async (tx) => {
-          await tx.delete(media).where(inArray(media.id, publicIds));
+          await tx.delete(media).where(inArray(media.id, ids as string[]));
         });
       }
     }
@@ -145,6 +145,7 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (err) {
+    console.log((err as Error)?.message);
     return NextResponse.json(
       { data: null, error: "Failed to delete post" },
       { status: 500 }
