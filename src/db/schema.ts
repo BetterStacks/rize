@@ -507,6 +507,7 @@ export const storyElementsRelations = relations(storyElements, ({ one }) => ({
 }));
 export const usersRelations = relations(users, ({ many }) => ({
   profiles: many(profile),
+  organizations: many(organizations),
 }));
 export const postsRelations = relations(posts, ({ one, many }) => ({
   profile: one(profile, {
@@ -676,3 +677,35 @@ export const roastHistory = pgTable("roast_history", {
     .references(() => profile.id, { onDelete: "cascade" }),
   roastedAt: timestamp("roasted_at").notNull().defaultNow(),
 });
+
+export const organizations = pgTable("organizations", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => v4()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 120 }).notNull(),
+  slug: varchar("slug", { length: 50 }).notNull().unique(),
+  type: text("type").notNull(),
+  logo: uuid("logo").notNull().references(() => media.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  address: text("address").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  website: text("website").notNull(),
+  foundedYear: integer("founded_year").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
+});
+
+export const organizationsRelations = relations(organizations, ({ one }) => ({
+  user: one(users, {
+    fields: [organizations.userId],
+    references: [users.id],
+  }),
+  logo: one(media, {
+    fields: [organizations.logo],
+    references: [media.id],
+  }),
+}));

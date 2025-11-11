@@ -10,10 +10,10 @@ import {
   TEducation,
   TExperience,
 } from '@/lib/types'
-import { capitalizeFirstLetter } from '@/lib/utils'
+import { capitalizeFirstLetter, cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import Education from '../education/education'
 import WorkExperience from '../experience/experience'
 import Gallery from '../gallery/gallery'
@@ -27,6 +27,7 @@ import BottomBanner from '../bottom-banner'
 import { StoryElementsDisplay } from '../story/story-elements-display'
 import { useSession } from '@/hooks/useAuth'
 import ResumeRoaster from './ResumeRoaster'
+import OrganizationSection from "./organization-section";
 
 type StoryElement = {
   id: string;
@@ -148,10 +149,48 @@ const UserProfile = ({
     (section) => !section.enabled
   );
 
+  const [activeTab, setActiveTab] = useState<'social' | 'organization'>('social')
+
   return (
     <div className="w-full flex flex-col items-center justify-start">
       <Profile isMine={isMine} data={profileData} isLoading={isLoading} username={profileData?.username || params.username} />
-      <SocialLinks isMine={isMine} />
+      
+      {/* Tab Switcher */}
+      <div className="w-full max-w-2xl mt-4">
+      <div className="bg-neutral-100 dark:bg-neutral-800 p-[3px] rounded-2xl border border-neutral-200 dark:border-neutral-700 w-fit">
+        <button 
+          onClick={() => setActiveTab('social')} 
+          className={cn('cursor-pointer tracking-wide px-3.5 py-1.5 text-sm font-medium rounded-md transition-colors',
+            activeTab === 'social' 
+            ? 'bg-white dark:bg-neutral-700 shadow-sm rounded-xl'
+            : 'hover:bg-white/50 dark:hover:bg-neutral-700/50 rounded-xl'
+          )}
+        >
+          Social Media
+        </button>
+        <button 
+          onClick={() => setActiveTab('organization')} 
+          className={cn('cursor-pointer tracking-wide px-3.5 py-1.5 text-sm font-medium rounded-md transition-colors',
+            activeTab === 'organization' 
+            ? 'bg-white dark:bg-neutral-700 shadow-sm rounded-xl'
+            : 'hover:bg-white/50 dark:hover:bg-neutral-700/50 rounded-xl'
+          )}
+        >
+          Organizations
+        </button>
+      </div>
+      </div>
+      
+      {activeTab === 'social' ? (
+        <SocialLinks isMine={isMine} />
+      ) : (
+        <OrganizationSection 
+          isMine={isMine}
+          isEmailVerified={session?.data?.user?.emailVerified || false}
+          userEmail={session?.data?.user?.email || ''}
+          username={data?.username || params.username}
+        />
+      )}
       
       {isMine && (
         <div className='w-full max-w-2xl'>

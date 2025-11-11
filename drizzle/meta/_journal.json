@@ -29,6 +29,13 @@
       "when": 1762182073380,
       "tag": "0005_dear_edwin_jarvis",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1762763366667,
+      "tag": "0006_blue_fenris",
+      "breakpoints": true
     }
   ]
 }
