@@ -7,9 +7,10 @@ const pool = new Pool({
 })
 
 async function dropDatabase() {
+  throw new Error('You can\'t delete the production database')
+
   try {
-    console.log('🗑️  Dropping entire database...')
-    console.log('⚠️  This will delete ALL data permanently!')
+    console.log('🗑️  Dropping entire production database...')
     
     // Drop all tables with CASCADE to handle foreign key dependencies
     await pool.query(`
