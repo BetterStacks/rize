@@ -114,8 +114,9 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins: [
-    process.env.NEXT_PUBLIC_BASE_URL!,
-    process.env.BASE_URL!,
+    "http://localhost:3000",
+    // process.env.NEXT_PUBLIC_BASE_URL!,
+    // process.env.BASE_URL!,
   ].filter(Boolean),
   secret: process.env.AUTH_SECRET!,
 
