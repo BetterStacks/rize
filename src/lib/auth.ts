@@ -35,15 +35,11 @@ export const auth = betterAuth({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
     },
-    // github: {
-    //   clientId: process.env.GITHUB_CLIENT_ID!,
-    //   clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    // },
-    // Proper LinkedIn configuration
     linkedin: {
       clientId: process.env.LINKEDIN_CLIENT_ID!,
       clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
     },
+
   },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
@@ -62,14 +58,14 @@ export const auth = betterAuth({
       generateId: () => crypto.randomUUID(),
     },
   },
-  // Remove hooks temporarily to fix OAuth flow
-  // We'll implement profile creation differently
   trustedOrigins: [
     process.env.NEXT_PUBLIC_BASE_URL!,
     process.env.BASE_URL!,
+    "http://localhost:3000"
   ].filter(Boolean),
   secret: process.env.AUTH_SECRET!,
 });
+
 
 // Export the auth handlers for API routes
 export const authHandler = auth.handler;
