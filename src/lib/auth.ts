@@ -5,6 +5,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { eq } from "drizzle-orm";
 import db from "./db";
 
+import { phoneNumber } from "better-auth/plugins";
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -16,6 +18,14 @@ export const auth = betterAuth({
       verification: verification,
     },
   }),
+  plugins: [
+    phoneNumber({
+      sendOTP: async ({ phoneNumber, code }, request) => {
+        // TODO: Integrate with a real SMS provider (e.g., Twilio, SNS)
+        console.log(`[DEV] Sending OTP ${code} to ${phoneNumber}`);
+      },
+    }),
+  ],
   telemetry: {
     enabled: false,
   },

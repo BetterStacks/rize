@@ -59,6 +59,8 @@ export const users = pgTable("user", {
   resumeFileId: text("resume_file_id"),
   claimToken: text("claim_token"),
   letrazId: text("letraz_id"),
+  phoneNumber: text("phoneNumber").unique(),
+  phoneNumberVerified: boolean("phoneNumberVerified").notNull().default(false),
 });
 
 export const profile = pgTable("profile", {
