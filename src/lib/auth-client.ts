@@ -1,3 +1,4 @@
+"use client"
 import { createAuthClient } from "better-auth/react";
 import { inferAdditionalFields, phoneNumberClient } from "better-auth/client/plugins";
 import type { auth } from "./auth";
@@ -91,14 +92,5 @@ export const signInWithCredentials = async (
   });
 };
 
-export const signInWithPhoneNumber = async (
-  phoneNumber: string,
-  code?: string
-) => {
-  return signIn.phoneNumber({
-    phoneNumber,
-    code,
-  } as any);
-};
 
 export type Session = typeof authClient.$Infer.Session;
