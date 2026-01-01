@@ -5,6 +5,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { eq } from "drizzle-orm";
 import db from "./db";
 
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -45,14 +46,14 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // 24 hours
   },
-  user: {
-    additionalFields: {
-      isOnboarded: {
-        type: "boolean",
-        defaultValue: false,
-      },
-    },
-  },
+  // user: {
+  //   additionalFields: {
+  //     isOnboarded: {
+  //       type: "boolean",
+  //       defaultValue: false,
+  //     },
+  //   },
+  // },
   advanced: {
     database: {
       generateId: () => crypto.randomUUID(),

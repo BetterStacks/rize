@@ -281,7 +281,7 @@ const HeroSection = () => {
   const scrollLenghtPerProfile = 100
   const profileContainerHeight = displayNames?.length * scrollLenghtPerProfile
 
-  console.log("session", session)
+
 
   return (
     <div
@@ -337,7 +337,7 @@ const HeroSection = () => {
             variants={imageVariants}
             initial="initial"
             animate="animate"
-            // animate={logoControls}
+          // animate={logoControls}
           >
             <Logo className="size-12 md:size-14" />
           </motion.div>
@@ -387,10 +387,10 @@ const HeroSection = () => {
               animate={
                 hideClaimUsernameNavbar
                   ? {
-                      position: 'fixed',
-                      top: '0.5rem',
-                      zIndex: 50,
-                    }
+                    position: 'fixed',
+                    top: '0.5rem',
+                    zIndex: 50,
+                  }
                   : { position: 'static', zIndex: 10, y: 0 }
               }
             >
@@ -399,17 +399,17 @@ const HeroSection = () => {
                   className={cn(
                     'w-full border mt-2 border-neutral-400/60 overflow-hidden dark:border-none rounded-3xl text-lg md:text-xl p-1 flex items-center justify-center bg-white dark:bg-neutral-900',
                     hideClaimUsernameNavbar &&
-                      'shadow-2xl w-fit shadow-black/50 border border-neutral-300/60 dark:border-dark-border/80'
+                    'shadow-2xl w-fit shadow-black/50 border border-neutral-300/60 dark:border-dark-border/80'
                   )}
                 >
                   <div className="px-4 ml-0.5 border border-neutral-300 dark:border-none py-1 bg-white dark:bg-dark-border rounded-3xl shadow-lg">
-                    <button 
+                    <button
                       onClick={handleGoToDashboard}
                       className="tracking-tight text-neutral-700 dark:text-neutral-300 text-base flex items-center gap-2 py-1"
-                    > 
+                    >
                       Go to Dashboard
                       <kbd className="px-2 py-0.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-700 rounded border border-neutral-300 dark:border-neutral-600">
-                      Enter
+                        Enter
                       </kbd>
                     </button>
                   </div>
@@ -419,7 +419,7 @@ const HeroSection = () => {
                   onSubmit={handleSubmit}
                   className={cn(
                     hideClaimUsernameNavbar &&
-                      'shadow-2xl w-fit shadow-black/50  border border-neutral-300/60 dark:border-dark-border/80'
+                    'shadow-2xl w-fit shadow-black/50  border border-neutral-300/60 dark:border-dark-border/80'
                   )}
                 />
               )}
