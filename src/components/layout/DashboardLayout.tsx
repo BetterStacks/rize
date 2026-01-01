@@ -58,7 +58,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
   const [rightSidebarOpen, setRightSidebarOpen] = useRightSidebar()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const isMobile = useMediaQuery('(max-width: 768px)')
-  
+
   // Ensure scroll works properly
   useEnsureScroll()
 
@@ -178,7 +178,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
 
           {/* Scrollable Content */}
           <ScrollArea className="h-screen overflow-y-auto relative w-full">
-            <motion.div 
+            <motion.div
               className={cn(
                 'w-full flex flex-col items-center justify-center',
                 showNavbar ? 'mt-20 md:mt-24' : 'mt-0',

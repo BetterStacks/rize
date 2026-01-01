@@ -4,7 +4,14 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { eq } from "drizzle-orm";
 import db from "./db";
+import { phoneNumber } from "better-auth/plugins";
+import twilio from "twilio";
 
+
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID!,
+  process.env.TWILIO_AUTH_TOKEN!
+);
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -17,6 +24,53 @@ export const auth = betterAuth({
       verification: verification,
     },
   }),
+  plugins: [
+    phoneNumber({
+
+      signUpOnVerification: {
+        getTempEmail: (phoneNumber) => {
+          return `${phoneNumber}@phone.rize`
+        },
+      },
+      verifyOTP: async ({ phoneNumber, code }) => {
+        try {
+          const response = await twilioClient.verify.v2
+            .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
+            .verificationChecks.create({
+              to: phoneNumber,
+              code,
+            });
+          const status = response?.status
+          console.log(`[Twilio] OTP verified for ${phoneNumber}: Status:${status}`);
+          return status === "approved"
+
+        } catch (error: any) {
+          console.error(`[Twilio] Error verifying OTP for ${phoneNumber}:`, {
+            code: error.code,
+            message: error.message,
+          });
+          return false
+        }
+      },
+      sendOTP: async ({ phoneNumber, code }, ctx) => {
+        try {
+          await twilioClient.verify.v2.services(process.env.TWILIO_VERIFY_SERVICE_SID!).verifications.create({
+            to: phoneNumber,
+            channel: "sms",
+          })
+
+          console.log(`[Twilio] OTP sent successfully to ${phoneNumber}`);
+        } catch (error: any) {
+          console.error(`[Twilio] Error sending OTP to ${phoneNumber}:`, {
+            code: error.code,
+            message: error.message,
+            status: error.status,
+          });
+
+        }
+      },
+    }),
+  ],
   telemetry: {
     enabled: false,
   },
@@ -64,6 +118,7 @@ export const auth = betterAuth({
     process.env.BASE_URL!,
   ].filter(Boolean),
   secret: process.env.AUTH_SECRET!,
+
 });
 
 

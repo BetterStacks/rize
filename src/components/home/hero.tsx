@@ -281,8 +281,6 @@ const HeroSection = () => {
   const scrollLenghtPerProfile = 100
   const profileContainerHeight = displayNames?.length * scrollLenghtPerProfile
 
-
-
   return (
     <div
       ref={imageContainerRef}

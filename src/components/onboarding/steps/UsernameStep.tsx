@@ -14,7 +14,7 @@ export function UsernameStep({
   isPending,
   formData,
 }: {
-  formData: { username: string; displayName: string };
+  formData: { username: string; displayName: string | null | undefined };
   isPending: boolean;
   onNext: (username: string) => void;
 }) {

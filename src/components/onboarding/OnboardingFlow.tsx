@@ -8,7 +8,7 @@ import { deleteCookie, hasCookie, getCookie } from 'cookies-next'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useSession } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { FinishStep } from './steps/FinishStep'
 import { InterestsStep } from './steps/Interests'
@@ -29,12 +29,13 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
   const session = useSession()
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
   const [profileCreated, setProfileCreated] = useState(false)
+  const isPhoneAuthUser = useMemo(() => session?.data?.user?.email?.endsWith("@phone.rize"), [session]);
   const [formData, setFormData] = useLocalStorage({
     key: 'onboarding-data',
     defaultValue: {
       username: '',
-      displayName: session?.data?.user?.name || '',
-      profileImage: session?.data?.user?.image || '',
+      displayName: session?.data?.user?.name && !isPhoneAuthUser ? session?.data?.user?.name : "",
+      profileImage: session?.data?.user?.image || "",
       interests: [],
       resumeData: null,
       resumeId: resumeId || null,
@@ -55,14 +56,14 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
       if (session?.data?.user && !session?.data?.user?.profileId && !isCreatingProfile && !profileCreated) {
         console.log('🔧 Auto-creating profile for OAuth user...')
         setIsCreatingProfile(true)
-        
+
         try {
           // Get claimed username from client-side cookie
           const claimedUsername = getCookie('username') as string | undefined
           console.log('🔍 Claimed username from client cookie:', claimedUsername)
-          
+
           const result = await createProfileAfterOAuth(
-            session.data.user.id, 
+            session.data.user.id,
             {
               name: session.data.user.name,
               email: session.data.user.email,
@@ -70,33 +71,33 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
             },
             claimedUsername
           )
-          
+
           if (result.success) {
             console.log('✅ Profile auto-created:', result.username)
             toast.success(`Welcome! Your username is ${result.username}`)
-            
+
             // Clear the username cookie after successful profile creation
             if (claimedUsername) {
               deleteCookie('username')
               console.log('🔧 Cleared username cookie')
             }
-            
+
             // Update form data with created username
-            setFormData(prev => ({ 
-              ...prev, 
-              username: result.username || '' 
+            setFormData(prev => ({
+              ...prev,
+              username: result.username || ''
             }))
-            
+
             // Mark as profile created to prevent re-runs
             setProfileCreated(true)
-            
+
             // Refresh session to get new profile data (but don't depend on it)
             setTimeout(() => {
               session.refetch()
               // Skip to profile details step since username is already set
               setCurrentStep(2)
             }, 200)
-            
+
           } else {
             console.error('❌ Failed to auto-create profile:', result.error)
             toast.error('Failed to create profile. Please try again.')
@@ -109,9 +110,11 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
         }
       }
     }
+    if (!isPhoneAuthUser) {
 
-    autoCreateProfile()
-  }, [session?.data?.user?.id, session?.data?.user?.profileId, isCreatingProfile, profileCreated])
+      autoCreateProfile()
+    }
+  }, [session?.data?.user?.id, session?.data?.user?.profileId, isCreatingProfile, profileCreated, isPhoneAuthUser])
 
   const { mutate, isPending } = useMutation({
     mutationFn: createProfile,
@@ -172,7 +175,7 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
   const onComplete = async () => {
     try {
       await bulkInsertSections()
-      
+
       // Process resume data if available (either uploaded during onboarding or from claim)
       if (formData?.resumeData) {
         const result = await processResumeData(formData.resumeData)
@@ -190,7 +193,7 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ resumeFileId: formData.resumeId }),
           })
-          
+
           if (result.ok) {
             const parseResult = await result.json()
             if (parseResult.success) {
@@ -203,13 +206,13 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
           console.warn('Error parsing pre-uploaded resume:', error)
         }
       }
-      
+
       // Mark onboarding as completed
       await updateProfile({
         isOnboarded: true,
       })
       // Session will update automatically with better-auth
-      
+
       router.push(`/${formData?.username}`)
       localStorage.removeItem('onboarding-data')
     } catch (error) {
@@ -242,6 +245,7 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
       id: 'profile-details',
       component: (
         <ProfileStep
+          isPhoneAuthUser={!!isPhoneAuthUser}
           isPending={isProfileUpdatePending}
           formData={formData}
           onNext={async ({ displayName, profileImage }) => {
@@ -326,8 +330,8 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
               currentStep === index
                 ? 'w-8 bg-neutral-400 dark:bg-dark-border'
                 : currentStep > index
-                ? 'bg-neutral-300 dark:bg-neutral-800'
-                : 'bg-neutral-300 dark:bg-neutral-800'
+                  ? 'bg-neutral-300 dark:bg-neutral-800'
+                  : 'bg-neutral-300 dark:bg-neutral-800'
             )}
           />
         ))}

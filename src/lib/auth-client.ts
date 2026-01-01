@@ -1,12 +1,16 @@
+"use client"
 import { createAuthClient } from "better-auth/react";
-import { inferAdditionalFields } from "better-auth/client/plugins";
+import { inferAdditionalFields, phoneNumberClient } from "better-auth/client/plugins";
 import type { auth } from "./auth";
 
 // Client-side auth configuration - types are handled by the useAuth hook
 
 // Use same-origin relative requests to avoid cookie domain mismatches across hosts
 export const authClient = createAuthClient({
-  plugins: [inferAdditionalFields<typeof auth>()],
+  plugins: [
+    inferAdditionalFields<typeof auth>(),
+    phoneNumberClient(),
+  ],
 });
 
 export const {
@@ -44,9 +48,9 @@ export const useEnrichedSession = () => {
   // Merge: prefer enriched for additional fields
   const merged = client.data
     ? {
-        ...client.data,
-        user: { ...client.data.user, ...(enriched?.user || {}) },
-      }
+      ...client.data,
+      user: { ...client.data.user, ...(enriched?.user || {}) },
+    }
     : enriched || null;
 
   return {
@@ -87,5 +91,6 @@ export const signInWithCredentials = async (
     password,
   });
 };
+
 
 export type Session = typeof authClient.$Infer.Session;
