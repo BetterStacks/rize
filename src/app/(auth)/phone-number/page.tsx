@@ -60,7 +60,7 @@ type OtpFormValues = z.infer<typeof otpSchema>;
 export default function PhoneAuth() {
     const [step, setStep] = useState<Step>("phone");
     const [country, setCountry] = useState<Country>(COUNTRIES[0]);
-    const [number, setNumber] = useState("8989412055");
+    const [number, setNumber] = useState("");
     const [otp, setOtp] = useState("");
     const router = useRouter();
 
