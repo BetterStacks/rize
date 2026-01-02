@@ -22,9 +22,10 @@ const ProfileStep = ({
   formData,
 }: {
   formData: {
-    profileImage: string;
-    displayName: string;
+    profileImage: string | null | undefined;
+    displayName: string | null | undefined;
   };
+  isPhoneAuthUser: boolean;
   isPending: boolean;
   onNext: ({
     displayName,
@@ -35,7 +36,7 @@ const ProfileStep = ({
   }) => void;
 }) => {
   const { data } = useSession()
-  const [displayName, setDisplayName] = React.useState(data?.user?.name || '')
+  const [displayName, setDisplayName] = React.useState(formData?.displayName || "")
   const [file, setFile] = React.useState<File | null>(null)
   const [profileImage, setProfileImage] = React.useState(
     data?.user?.image || ''

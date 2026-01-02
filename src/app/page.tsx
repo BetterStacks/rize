@@ -17,9 +17,9 @@ import { useEffect, useRef } from 'react'
 export default function Home() {
   useEffect(() => {
     const lenis = new Lenis()
-    
-    // Store lenis instance globally for cleanup
-    ;(window as any).lenis = lenis
+
+      // Store lenis instance globally for cleanup
+      ; (window as any).lenis = lenis
 
     function raf(time: number) {
       lenis.raf(time)
@@ -27,7 +27,7 @@ export default function Home() {
     }
 
     const rafId = requestAnimationFrame(raf)
-    
+
     // Cleanup function
     return () => {
       cancelAnimationFrame(rafId)
@@ -41,14 +41,7 @@ export default function Home() {
     <div className="w-full flex flex-col ">
       <div className="max-w-screen-2xl w-full min-h-screen  mx-auto">
         <HeroSection />
-
-        {/* <div className="w-full h-[2000px] bg-red-200 "> */}
         <Join />
-        {/* </div> */}
-        {/* </section> */}
-
-        {/* <Window /> */}
-
         <TextReveal />
         <BentoGrid />
         <UserReviews />

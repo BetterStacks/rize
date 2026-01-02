@@ -4,6 +4,14 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { eq } from "drizzle-orm";
 import db from "./db";
+import { phoneNumber } from "better-auth/plugins";
+import twilio from "twilio";
+
+
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID!,
+  process.env.TWILIO_AUTH_TOKEN!
+);
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -16,6 +24,53 @@ export const auth = betterAuth({
       verification: verification,
     },
   }),
+  plugins: [
+    phoneNumber({
+
+      signUpOnVerification: {
+        getTempEmail: (phoneNumber) => {
+          return `${phoneNumber}@phone.rize`
+        },
+      },
+      verifyOTP: async ({ phoneNumber, code }) => {
+        try {
+          const response = await twilioClient.verify.v2
+            .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
+            .verificationChecks.create({
+              to: phoneNumber,
+              code,
+            });
+          const status = response?.status
+          console.log(`[Twilio] OTP verified for ${phoneNumber}: Status:${status}`);
+          return status === "approved"
+
+        } catch (error: any) {
+          console.error(`[Twilio] Error verifying OTP for ${phoneNumber}:`, {
+            code: error.code,
+            message: error.message,
+          });
+          return false
+        }
+      },
+      sendOTP: async ({ phoneNumber, code }, ctx) => {
+        try {
+          await twilioClient.verify.v2.services(process.env.TWILIO_VERIFY_SERVICE_SID!).verifications.create({
+            to: phoneNumber,
+            channel: "sms",
+          })
+
+          console.log(`[Twilio] OTP sent successfully to ${phoneNumber}`);
+        } catch (error: any) {
+          console.error(`[Twilio] Error sending OTP to ${phoneNumber}:`, {
+            code: error.code,
+            message: error.message,
+            status: error.status,
+          });
+
+        }
+      },
+    }),
+  ],
   telemetry: {
     enabled: false,
   },
@@ -35,41 +90,37 @@ export const auth = betterAuth({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
     },
-    // github: {
-    //   clientId: process.env.GITHUB_CLIENT_ID!,
-    //   clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    // },
-    // Proper LinkedIn configuration
     linkedin: {
       clientId: process.env.LINKEDIN_CLIENT_ID!,
       clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
     },
+
   },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // 24 hours
   },
-  user: {
-    additionalFields: {
-      isOnboarded: {
-        type: "boolean",
-        defaultValue: false,
-      },
-    },
-  },
+  // user: {
+  //   additionalFields: {
+  //     isOnboarded: {
+  //       type: "boolean",
+  //       defaultValue: false,
+  //     },
+  //   },
+  // },
   advanced: {
     database: {
       generateId: () => crypto.randomUUID(),
     },
   },
-  // Remove hooks temporarily to fix OAuth flow
-  // We'll implement profile creation differently
   trustedOrigins: [
     process.env.NEXT_PUBLIC_BASE_URL!,
     process.env.BASE_URL!,
   ].filter(Boolean),
   secret: process.env.AUTH_SECRET!,
+
 });
+
 
 // Export the auth handlers for API routes
 export const authHandler = auth.handler;

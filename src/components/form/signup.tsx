@@ -2,7 +2,7 @@
 import { register } from '@/actions/user-actions'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { Loader } from 'lucide-react'
+import { Loader, Phone } from 'lucide-react'
 import { signInWithGoogle, signInWithLinkedIn, signInWithCredentials } from '@/lib/auth-client'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -15,6 +15,7 @@ import Logo from '../logo'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
+import { useRouter } from 'next/navigation'
 
 const RegisterSchema = z.object({
   name: z.string().min(3, { message: 'Name must be at least 3 characters.' }),
@@ -27,8 +28,9 @@ const RegisterSchema = z.object({
 type TLoginValues = z.infer<typeof RegisterSchema>;
 const SignUp = () => {
   const [isSocialLoading, setIsSocialLoading] = useState<
-    'google' | 'github' |  'linkedin' | null
+    'google' | 'github' | 'linkedin' | null
   >(null)
+  const router = useRouter()
 
   // Log claimed username for debugging
   useEffect(() => {
@@ -135,6 +137,20 @@ const SignUp = () => {
             />
           )}
           Sign in with LinkedIn
+        </Button>
+        <Button
+          variant={'outline'}
+          onClick={() => router.push('/phone-number')}
+          className="rounded-lg px-6"
+        >
+
+          <Phone
+            width={25}
+            height={25}
+            className="size-6 mr-2"
+          />
+
+          Sign in with Phone
         </Button>
       </div>
 

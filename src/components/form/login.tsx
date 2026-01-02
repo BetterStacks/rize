@@ -1,7 +1,11 @@
 'use client'
+import {
+  signInWithCredentials,
+  signInWithGoogle,
+  signInWithLinkedIn,
+} from '@/lib/auth-client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader } from 'lucide-react'
-import { signInWithGoogle, signInWithLinkedIn, signInWithCredentials } from '@/lib/auth-client'
+import { Loader, Phone } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -12,6 +16,7 @@ import Logo from '../logo'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
+import { useRouter } from 'next/navigation'
 
 const LoginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -57,8 +62,9 @@ const Login = () => {
       toast.error(error.message || 'Sign in failed')
       setIsSocialLoading(null)
     }
-    // Note: setIsSocialLoading(null) not called on success because the page will redirect
   }
+
+  const router = useRouter()
 
   return (
     <div className=" w-full shadow-2xl bg-white dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 space-y-4 rounded-3xl p-6">
@@ -71,7 +77,7 @@ const Login = () => {
           Please enter your details to login
         </span>
       </div>
-      <div className="flex flex-col space-y-2">
+      <div className="flex flex-col w-full space-y-2">
         <Button
           variant={'outline'}
           disabled={!!isSocialLoading}
@@ -110,30 +116,29 @@ const Login = () => {
           )}
           Sign in with LinkedIn
         </Button>
-        {/* <Button
-          disabled={!!isSocialLoading}
-          onClick={() => handleSocialSignIn("github")}
+        <Button
+          variant={'outline'}
+          onClick={() => router.push('/phone-number')}
           className="rounded-lg px-6"
         >
-          {isSocialLoading === "github" ? (
-            <Loader className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Image
-              width={25}
-              height={25}
-              src="/github.svg"
-              alt="Github Logo"
-              className="size-6 mr-1"
-            />
-          )}
-          Sign in with Github
-        </Button> */}
+
+          <Phone
+            width={25}
+            height={25}
+            className="size-6 mr-2"
+          />
+
+          Sign in with Phone
+        </Button>
       </div>
       <div className="flex items-center justify-center max-w-xs w-full gap-x-2 mt-4 mb-2">
         <div className="w-full bg-neutral-200 dark:bg-dark-border/80 h-[0.5px]" />
         <span className="text-xs opacity-60">OR</span>
         <div className="w-full bg-neutral-200 dark:bg-dark-border/80 h-[0.5px]" />
       </div>
+
+
+
       <form
         onSubmit={form.handleSubmit(async (values) => {
           try {
@@ -181,16 +186,17 @@ const Login = () => {
           Sign in with Email
         </Button>
       </form>
+
       <div className="w-full mt-6 mb-10 flex items-center justify-center">
         <span className="text-sm w-full text-center font-medium opacity-80">
           {' '}
           Dont have a account yet?{' '}
-          <Link href={'/signup'} className="text-amber-500">
+          <Link href={'/signup'} className="text-main-yellow">
             Register
           </Link>
         </span>
       </div>
-    </div>
+    </div >
   )
 }
 
