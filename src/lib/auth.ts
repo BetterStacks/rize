@@ -100,23 +100,14 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // 24 hours
   },
-  // user: {
-  //   additionalFields: {
-  //     isOnboarded: {
-  //       type: "boolean",
-  //       defaultValue: false,
-  //     },
-  //   },
-  // },
   advanced: {
     database: {
       generateId: () => crypto.randomUUID(),
     },
   },
   trustedOrigins: [
-    "http://localhost:3000",
-    // process.env.NEXT_PUBLIC_BASE_URL!,
-    // process.env.BASE_URL!,
+    process.env.NEXT_PUBLIC_BASE_URL!,
+    process.env.BASE_URL!,
   ].filter(Boolean),
   secret: process.env.AUTH_SECRET!,
 

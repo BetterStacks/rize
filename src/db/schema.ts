@@ -161,9 +161,6 @@ export const posts = pgTable("posts", {
   profileId: uuid("profileId").references(() => profile.id, {
     onDelete: "cascade",
   }),
-  parentPostId: uuid("parent_post_id").references((): any => posts.id, {
-    onDelete: "cascade",
-  }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -515,14 +512,6 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
   profile: one(profile, {
     fields: [posts.profileId],
     references: [profile.id],
-  }),
-  parentPost: one(posts, {
-    fields: [posts.parentPostId],
-    references: [posts.id],
-    relationName: "post_replies",
-  }),
-  replies: many(posts, {
-    relationName: "post_replies",
   }),
   media: many(postMedia),
 }));
