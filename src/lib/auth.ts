@@ -100,14 +100,6 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // 24 hours
   },
-  // user: {
-  //   additionalFields: {
-  //     isOnboarded: {
-  //       type: "boolean",
-  //       defaultValue: false,
-  //     },
-  //   },
-  // },
   advanced: {
     database: {
       generateId: () => crypto.randomUUID(),
@@ -142,6 +134,9 @@ export type EnrichedSession = {
     profileImage?: string;
     displayName?: string;
     hasCompletedWalkthrough?: boolean;
+    phoneNumberVerified?: boolean;
+    phoneNumber?: string;
+    onboardingCallId?: string;
   };
   session: {
     id: string;
@@ -170,6 +165,9 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
         profileImage: profile.profileImage,
         displayName: profile.displayName,
         hasCompletedWalkthrough: profile.hasCompletedWalkthrough,
+        phoneNumberVerified: users.phoneNumberVerified,
+        phoneNumber: users.phoneNumber,
+        onboardingCallId: users.onboardingCallId,
       })
       .from(users)
       .leftJoin(profile, eq(profile.userId, users.id))
@@ -188,6 +186,9 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
         profileImage: userInfo.profileImage || undefined,
         displayName: userInfo.displayName || undefined,
         hasCompletedWalkthrough: userInfo.hasCompletedWalkthrough || false,
+        phoneNumberVerified: userInfo.phoneNumberVerified || false,
+        phoneNumber: userInfo.phoneNumber || undefined,
+        onboardingCallId: userInfo.onboardingCallId || undefined,
       },
     };
   } catch (error) {
@@ -203,6 +204,9 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
         profileImage: undefined,
         displayName: undefined,
         hasCompletedWalkthrough: false,
+        phoneNumberVerified: false,
+        phoneNumber: undefined,
+        onboardingCallId: undefined,
       },
     };
   }

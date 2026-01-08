@@ -19,6 +19,7 @@ import Walkthrough from "./walkthrough";
 import ScrollFixWrapper from "./scroll-fix-wrapper";
 import ProfileNotFound from "./profile-not-found";
 import ViewTracker from "./analytics/ViewTracker";
+import PhoneCollectionModal from "./onboarding/phone-collection-modal";
 
 type Props = {
   username: string;
@@ -66,9 +67,27 @@ const ProfilePage: FC<Props> = async ({ username }) => {
   const shouldStartWalkthrough =
     isMine && !session?.user?.hasCompletedWalkthrough;
 
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  const hasSkipped = session?.session?.token
+    ? cookieStore.get(`phone_skipped_${session.session.token}`)
+    : null;
+
+  const shouldShowPhoneModal =
+    isMine && session?.user && !hasSkipped
+    && !session.user.phoneNumberVerified && !session.user.onboardingCallId
+
   return (
     <ScrollFixWrapper>
       <ViewTracker username={username} />
+
+      {shouldShowPhoneModal && (
+        <PhoneCollectionModal
+          isOpen={true}
+          userName={session?.user?.name || "there"}
+        />
+      )}
+
       <SectionContextProvider
         isMine={isMine}
         gallery={gallery}
