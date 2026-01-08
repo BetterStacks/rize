@@ -75,7 +75,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
 
   const shouldShowPhoneModal =
     isMine && session?.user && !hasSkipped
-  // && !session.user.phoneNumberVerified && !session.user.onboardingCallId
+    && !session.user.phoneNumberVerified && !session.user.onboardingCallId
 
   return (
     <ScrollFixWrapper>

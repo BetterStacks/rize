@@ -7,17 +7,16 @@ import { eq } from 'drizzle-orm'
 export async function POST(req: Request) {
     try {
         const body = await req.json()
+        const { call, transcript, type } = body?.message
 
-        // Vapi sends call status and transcript
-        const { call, transcript, status } = body
-
-        if (status !== 'ended') {
+        if (type !== 'end-of-call-report') {
+            console.log("Type:", type)
             return NextResponse.json({ received: true })
         }
 
         // Find user by onboardingCallId
         const user = await db.query.users.findFirst({
-            where: eq(users.onboardingCallId, call.id),
+            where: eq(users.onboardingCallId, call?.id),
         })
 
         if (!user) {
