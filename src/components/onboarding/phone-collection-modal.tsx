@@ -1,22 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import {
+  initiateOnboardingCall,
+  skipOnboarding,
+} from "@/actions/onboarding-actions";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import {
-  initiateOnboardingCall,
-  skipOnboarding,
-} from "@/actions/onboarding-actions";
-import { toast } from "sonner";
-import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
-import axios from "axios";
-import { VAPI_ASSISTANT_CONFIG } from "@/lib/vapi-config";
 import { useSession } from "@/lib/auth-client";
+import { useState } from "react";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import { toast } from "sonner";
 
 type Props = {
   isOpen: boolean;
@@ -29,9 +27,9 @@ export default function PhoneCollectionModal({
   userName,
   onClose,
 }: Props) {
-  const [phone, setPhone] = useState<string>("");
+  const { data: session } = useSession()
+  const [phone, setPhone] = useState<string>(session?.user?.phoneNumber || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: session } = useSession();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -43,37 +41,12 @@ export default function PhoneCollectionModal({
     setIsSubmitting(true);
 
     try {
-      //   const result = await initiateOnboardingCall(phone);
-      const vapiResponse = await axios.post(
-        "https://api.vapi.ai/call",
-        {
-          phoneNumberId: "1622de54-b23a-4e05-88db-cff2cee4b15c",
-          customer: { number: phone },
-          assistant: {
-            ...VAPI_ASSISTANT_CONFIG,
-            firstMessage: VAPI_ASSISTANT_CONFIG.firstMessage.replace(
-              "{userName}",
-              session?.user?.displayName || "there"
-            ),
-          },
-          metadata: {
-            userId: session?.user?.id,
-            userName: session?.user?.name,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer 3a6eb457-3e67-450d-a5cf-0e0d0b5db882`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      console.log(vapiResponse);
-      if (vapiResponse.status === 200) {
+      const result = await initiateOnboardingCall(phone);
+      if (!result.error && result.success) {
         toast.success("Phone number saved! You will receive a call shortly.");
         onClose?.();
       } else {
-        toast.error("Failed to save phone number");
+        toast.error(result.error || "Failed to save phone number");
       }
     } catch (error) {
       toast.error("Something went wrong. Please try again.");

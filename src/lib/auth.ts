@@ -143,7 +143,7 @@ export type EnrichedSession = {
     profileImage?: string;
     displayName?: string;
     hasCompletedWalkthrough?: boolean;
-    phoneNumberCollected?: boolean;
+    phoneNumberVerified?: boolean;
     phoneNumber?: string;
     onboardingCallId?: string;
   };
@@ -174,7 +174,7 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
         profileImage: profile.profileImage,
         displayName: profile.displayName,
         hasCompletedWalkthrough: profile.hasCompletedWalkthrough,
-        phoneNumberCollected: users.phoneNumberCollected,
+        phoneNumberVerified: users.phoneNumberVerified,
         phoneNumber: users.phoneNumber,
         onboardingCallId: users.onboardingCallId,
       })
@@ -195,7 +195,7 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
         profileImage: userInfo.profileImage || undefined,
         displayName: userInfo.displayName || undefined,
         hasCompletedWalkthrough: userInfo.hasCompletedWalkthrough || false,
-        phoneNumberCollected: userInfo.phoneNumberCollected || false,
+        phoneNumberVerified: userInfo.phoneNumberVerified || false,
         phoneNumber: userInfo.phoneNumber || undefined,
         onboardingCallId: userInfo.onboardingCallId || undefined,
       },
@@ -213,7 +213,7 @@ export const getServerSession = async (): Promise<EnrichedSession | null> => {
         profileImage: undefined,
         displayName: undefined,
         hasCompletedWalkthrough: false,
-        phoneNumberCollected: false,
+        phoneNumberVerified: false,
         phoneNumber: undefined,
         onboardingCallId: undefined,
       },

@@ -29,6 +29,41 @@
       "when": 1767261066437,
       "tag": "0005_overjoyed_leopardon",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1767779057904,
+      "tag": "0006_flowery_sersi",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1767779374812,
+      "tag": "0007_wonderful_sersi",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1767787933828,
+      "tag": "0008_careless_gladiator",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1767857319376,
+      "tag": "0009_known_the_fury",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1767857637763,
+      "tag": "0010_nebulous_the_captain",
+      "breakpoints": true
     }
   ]
 }

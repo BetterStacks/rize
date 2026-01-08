@@ -74,19 +74,19 @@ const ProfilePage: FC<Props> = async ({ username }) => {
     : null;
 
   const shouldShowPhoneModal =
-    isMine && session?.user && !session.user.phoneNumberCollected;
-  // !hasSkipped
+    isMine && session?.user && !hasSkipped
+  // && !session.user.phoneNumberVerified && !session.user.onboardingCallId
 
   return (
     <ScrollFixWrapper>
       <ViewTracker username={username} />
 
-      {/* {shouldShowPhoneModal && session?.user && ( */}
-      <PhoneCollectionModal
-        isOpen={true}
-        userName={session?.user?.name || "there"}
-      />
-      {/* )} */}
+      {shouldShowPhoneModal && (
+        <PhoneCollectionModal
+          isOpen={true}
+          userName={session?.user?.name || "there"}
+        />
+      )}
 
       <SectionContextProvider
         isMine={isMine}

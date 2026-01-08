@@ -1,0 +1,1 @@
+DROP TABLE "vapi_calls" CASCADE;

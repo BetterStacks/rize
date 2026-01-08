@@ -7,10 +7,10 @@ import { eq } from 'drizzle-orm'
 export async function POST(req: Request) {
     try {
         const body = await req.json()
-    
+
         // Vapi sends call status and transcript
         const { call, transcript, status } = body
-    
+
         if (status !== 'ended') {
             return NextResponse.json({ received: true })
         }
@@ -92,16 +92,16 @@ export async function POST(req: Request) {
             const translationPrompt = `Translate this Hindi conversation data to English while preserving meaning:
             ${JSON.stringify(extractedData)}
             Return the same JSON structure but with English text.`
-    
+
             const translation = await openai.chat.completions.create({
                 model: 'gpt-4o-mini',
-                messages: [{ 
-                    role: 'user', 
-                    content: translationPrompt 
+                messages: [{
+                    role: 'user',
+                    content: translationPrompt
                 }],
                 response_format: { type: 'json_object' }
             })
-    
+
             processedData = JSON.parse(translation.choices[0].message?.content || '{}')
         }
 
@@ -114,7 +114,7 @@ export async function POST(req: Request) {
         const existingExp = await db.query.experience.findFirst({
             where: eq(experience.profileId, userProfile.id)
         })
-        
+
         if (!existingExp && extractedData.experience?.length > 0) {
             for (const exp of extractedData.experience) {
                 await db.insert(experience).values({
