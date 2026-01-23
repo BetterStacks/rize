@@ -1,10 +1,11 @@
 'use client'
 
-import { createContext, useContext, useRef, ReactNode } from 'react'
+import { createContext, useContext, useRef, ReactNode, useState } from 'react'
 import { ImperativePanelHandle } from 'react-resizable-panels'
 
 type PanelContextType = {
-    rightPanelRef: React.RefObject<ImperativePanelHandle> | null
+    rightPanelRef: React.RefObject<ImperativePanelHandle | null>
+    isRightPanelExpanded: boolean
     collapseRightPanel: () => void
     expandRightPanel: () => void
     toggleRightPanel: () => void
@@ -14,13 +15,16 @@ const PanelContext = createContext<PanelContextType | null>(null)
 
 export function PanelProvider({ children }: { children: ReactNode }) {
     const rightPanelRef = useRef<ImperativePanelHandle>(null)
+    const [isRightPanelExpanded, setIsRightPanelExpanded] = useState(true)
 
     const collapseRightPanel = () => {
         rightPanelRef.current?.collapse()
+        setIsRightPanelExpanded(false)
     }
 
     const expandRightPanel = () => {
         rightPanelRef.current?.expand()
+        setIsRightPanelExpanded(true)
     }
 
     const toggleRightPanel = () => {
@@ -28,8 +32,10 @@ export function PanelProvider({ children }: { children: ReactNode }) {
         if (panel) {
             if (panel.isCollapsed()) {
                 panel.expand()
+                setIsRightPanelExpanded(true)
             } else {
                 panel.collapse()
+                setIsRightPanelExpanded(false)
             }
         }
     }
@@ -38,6 +44,7 @@ export function PanelProvider({ children }: { children: ReactNode }) {
         <PanelContext.Provider
             value={{
                 rightPanelRef,
+                isRightPanelExpanded,
                 collapseRightPanel,
                 expandRightPanel,
                 toggleRightPanel,

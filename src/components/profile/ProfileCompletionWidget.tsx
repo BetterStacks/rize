@@ -31,7 +31,7 @@ export function ProfileCompletionWidget({
 }: ProfileCompletionWidgetProps) {
     const [isExpanded, setIsExpanded] = useState(false)
     const [isDismissed, setIsDismissed] = useState(false)
-    const { rightPanelRef } = usePanel()
+    const { isRightPanelExpanded } = usePanel()
     const completedCount = tasks.filter(task => task.completed).length
     const totalCount = tasks.length
     const progress = (completedCount / totalCount) * 100
@@ -49,10 +49,14 @@ export function ProfileCompletionWidget({
     return (
         <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            animate={{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                right: isRightPanelExpanded ? 'calc(26% + 1.5rem)' : '4rem'
+            }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3 }}
-            style={{ right: rightPanelRef?.current?.isExpanded ? 'calc(26% + 1.5rem)' : '4rem' }}
             className={cn(
                 'fixed bottom-6 z-40',
                 // On mobile and tablet, position from right edge

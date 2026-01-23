@@ -32,6 +32,7 @@ import { useProfileCompletion } from '@/hooks/useProfileCompletion'
 import { getSocialLinks } from '@/actions/social-links-actions'
 import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
 import { usePanel } from "@/lib/panel-context";
+import { useEnrichedSession } from "@/lib/auth-client";
 
 type StoryElement = {
   id: string;
@@ -69,9 +70,10 @@ const UserProfile = ({
   storyElements,
 }: UserProfileProps) => {
   const params = useParams<{ username: string }>();
-  const session = useSession();
+  const session = useEnrichedSession();
   const [, setActiveSidebarTab] = useActiveSidebarTab();
   const { toggleRightPanel } = usePanel()
+
 
   const { data: profileData, isLoading } = useQuery({
     queryKey: ["get-profile-by-username", params.username],
@@ -238,7 +240,7 @@ const UserProfile = ({
           </React.Fragment>
         ))}
 
-      {!session?.data && !session?.isLoading && <BottomBanner />}
+      {!session?.data && !session?.isPending && <BottomBanner />}
 
       {/* Profile Completion Widget - Only show for own profile */}
       {isMine && !isComplete && !isWidgetDismissed && (
