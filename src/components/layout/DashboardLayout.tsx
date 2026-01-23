@@ -16,6 +16,7 @@ import {
 import { ScrollArea } from '../ui/scroll-area'
 import { Sheet, SheetContent } from '../ui/sheet'
 import { cn } from '@/lib/utils'
+import { PanelProvider, usePanel } from '@/lib/panel-context'
 
 type LayoutVariant = 'profile' | 'explore' | 'post' | 'writing' | 'default'
 
@@ -44,7 +45,7 @@ type DashboardLayoutProps = {
   contentPadding?: string;
 };
 
-const DashboardLayout: FC<DashboardLayoutProps> = ({
+const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
   children,
   variant = 'default',
   isMine = false,
@@ -58,6 +59,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
   const [rightSidebarOpen, setRightSidebarOpen] = useRightSidebar()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const isMobile = useMediaQuery('(max-width: 768px)')
+  const { rightPanelRef } = usePanel()
 
   // Ensure scroll works properly
   useEnsureScroll()
@@ -201,15 +203,20 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
           <>
             {finalSidebarConfig.left?.show && <ResizableHandle />}
             <ResizablePanel
+              ref={rightPanelRef}
               defaultSize={26}
               maxSize={30}
               minSize={20}
+              collapsible
+              collapsedSize={0}
               className={cn(
-                'border-l flex flex-col items-center justify-center dark:border-dark-border',
+                'border-l flex flex-col items-center justify-center dark:border-dark-border h-screen',
                 finalSidebarConfig.right.className
               )}
             >
-              {finalSidebarConfig.right.component}
+              <ScrollArea className="relative h-screen w-full overflow-y-auto flex flex-col items-center justify-start">
+                {finalSidebarConfig.right.component}
+              </ScrollArea>
             </ResizablePanel>
           </>
         )}
@@ -224,6 +231,14 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
         )}
       </GalleryContextProvider>
     </ResizablePanelGroup>
+  )
+}
+
+const DashboardLayout: FC<DashboardLayoutProps> = (props) => {
+  return (
+    <PanelProvider>
+      <DashboardLayoutInner {...props} />
+    </PanelProvider>
   )
 }
 

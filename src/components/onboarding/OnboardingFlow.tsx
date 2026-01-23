@@ -172,7 +172,7 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
       },
     })
 
-  const onComplete = async () => {
+  const onComplete = async (redirectToAi = false) => {
     try {
       await bulkInsertSections()
 
@@ -213,7 +213,11 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
       })
       // Session will update automatically with better-auth
 
-      router.push(`/${formData?.username}`)
+      if (redirectToAi) {
+        router.push('/ai-profile-builder')
+      } else {
+        router.push(`/${formData?.username}`)
+      }
       localStorage.removeItem('onboarding-data')
     } catch (error) {
       console.error('Failed to save profile:', error)
@@ -298,7 +302,10 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
     {
       id: 'finish',
       component: (
-        <FinishStep formData={formData} onComplete={() => onComplete()} />
+        <FinishStep
+          formData={formData}
+          onComplete={(redirectToAi?: boolean) => onComplete(redirectToAi)}
+        />
       ),
     },
   ]

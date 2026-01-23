@@ -2,11 +2,11 @@ import { useRightSidebar } from '@/lib/context'
 import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@mantine/hooks'
 import { motion } from 'framer-motion'
-import { 
-  Edit3, 
-  Sidebar, 
-  Search, 
-  Bell, 
+import {
+  Edit3,
+  Sidebar,
+  Search,
+  Bell,
   Compass,
   Home,
   Sparkles,
@@ -58,39 +58,39 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
 
   // Navigation items for Gen Z/Alpha users
   const navItems = [
-    { 
-      id: 'home', 
-      icon: Home, 
-      label: 'Home', 
+    {
+      id: 'home',
+      icon: Home,
+      label: 'Home',
       href: '/',
-      active: variant === 'default' 
+      active: variant === 'default'
     },
-    { 
-      id: 'explore', 
-      icon: Compass, 
-      label: 'Explore', 
+    {
+      id: 'explore',
+      icon: Compass,
+      label: 'Explore',
       href: '/explore',
       active: variant === 'explore',
       badge: 'new'
     },
-    { 
-      id: 'create', 
-      icon: Plus, 
-      label: 'Create', 
+    {
+      id: 'create',
+      icon: Plus,
+      label: 'Create',
       action: () => setCreateOpen(true),
       special: true
     }
   ]
 
   return (
-    <motion.nav 
-      className='fixed top-0 w-full flex items-center justify-center z-50 backdrop-blur-xl bg-white/80 dark:bg-dark-bg/80 border-b border-neutral-200/50 dark:border-dark-border/50'
+    <motion.nav
+      className='sticky top-0 w-full flex items-center justify-center z-50 backdrop-blur-xl bg-white/80 dark:bg-dark-bg/80 border-b border-neutral-200/50 dark:border-dark-border/50'
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
       <div className="w-full max-w-7xl flex items-center justify-between px-4 py-3">
-        
+
         {/* Left Section - Logo + Navigation */}
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
@@ -112,8 +112,8 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
                         size="sm"
                         className={cn(
                           'relative px-4 py-2 rounded-xl transition-all',
-                          item.active 
-                            ? 'bg-white dark:bg-dark-bg shadow-sm' 
+                          item.active
+                            ? 'bg-white dark:bg-dark-bg shadow-sm'
                             : 'hover:bg-white/50 dark:hover:bg-dark-bg/50',
                           item.special && 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600'
                         )}
@@ -178,7 +178,7 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
 
           {/* Profile Actions */}
           {profile && <ShareCard profile={profile} />}
-          
+
           {isMine && (
             <Button
               variant="outline"

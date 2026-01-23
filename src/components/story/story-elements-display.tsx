@@ -12,35 +12,46 @@ interface StoryElementsDisplayProps {
 }
 
 const typeConfig = {
-  mission: { 
-    label: 'Mission', 
-    emoji: '🎯', 
+  mission: {
+    label: 'Mission',
+    emoji: '🎯',
     color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   },
-  value: { 
-    label: 'Value', 
-    emoji: '💎', 
+  value: {
+    label: 'Value',
+    emoji: '💎',
     color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
   },
-  milestone: { 
-    label: 'Milestone', 
-    emoji: '🏆', 
+  milestone: {
+    label: 'Milestone',
+    emoji: '🏆',
     color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
   },
-  dream: { 
-    label: 'Dream', 
-    emoji: '✨', 
+  dream: {
+    label: 'Dream',
+    emoji: '✨',
     color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
   },
-  superpower: { 
-    label: 'Superpower', 
-    emoji: '⚡', 
+  superpower: {
+    label: 'Superpower',
+    emoji: '⚡',
     color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
   },
 }
 
 function StoryElementCard({ element }: { element: StoryElement }) {
+  // Guard against undefined element or invalid type
+  if (!element || !element.type) {
+    return null
+  }
+
   const config = typeConfig[element.type]
+
+  // Guard against unknown type
+  if (!config) {
+    console.warn(`Unknown story element type: ${element.type}`)
+    return null
+  }
 
   return (
     <motion.div
@@ -68,9 +79,9 @@ function StoryElementCard({ element }: { element: StoryElement }) {
   )
 }
 
-export function StoryElementsDisplay({ 
-  elements, 
-  showTitle = true 
+export function StoryElementsDisplay({
+  elements,
+  showTitle = true
 }: StoryElementsDisplayProps) {
   if (!elements || elements.length === 0) {
     return null
@@ -91,16 +102,18 @@ export function StoryElementsDisplay({
       )}
 
       <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
-        {elements.map((element, index) => (
-          <motion.div
-            key={element.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-          >
-            <StoryElementCard element={element} />
-          </motion.div>
-        ))}
+        {elements
+          .filter(element => element && element.type && typeConfig[element.type])
+          .map((element, index) => (
+            <motion.div
+              key={element.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              <StoryElementCard element={element} />
+            </motion.div>
+          ))}
       </div>
 
       {elements.length === 1 && (

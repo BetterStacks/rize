@@ -14,11 +14,11 @@ type TAppContext = {
 
 const AppContext = createContext<TAppContext>({
   activeSidebarTab: { id: null, tab: 'gallery' },
-  setActiveSidebarTab: () => {},
+  setActiveSidebarTab: () => { },
   isRightSidebarOpen: false,
-  setIsRightSidebarOpen: () => {},
+  setIsRightSidebarOpen: () => { },
   isPageSidebarOpen: false,
-  setIsPageSidebarOpen: () => {},
+  setIsPageSidebarOpen: () => { },
 })
 
 export const useRightSidebar = () => {
@@ -45,7 +45,7 @@ const Context = ({ children }: { children: ReactNode }) => {
     tab: string;
   }>({
     id: null,
-    tab: 'gallery',
+    tab: 'chat',
   })
 
   return (

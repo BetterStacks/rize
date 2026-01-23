@@ -13,7 +13,7 @@ import {
 import { capitalizeFirstLetter } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import Education from '../education/education'
 import WorkExperience from '../experience/experience'
 import Gallery from '../gallery/gallery'
@@ -27,6 +27,11 @@ import BottomBanner from '../bottom-banner'
 import { StoryElementsDisplay } from '../story/story-elements-display'
 import { useSession } from '@/hooks/useAuth'
 import ResumeRoaster from './ResumeRoaster'
+import { ProfileCompletionWidget } from './ProfileCompletionWidget'
+import { useProfileCompletion } from '@/hooks/useProfileCompletion'
+import { getSocialLinks } from '@/actions/social-links-actions'
+import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
+import { usePanel } from "@/lib/panel-context";
 
 type StoryElement = {
   id: string;
@@ -65,12 +70,53 @@ const UserProfile = ({
 }: UserProfileProps) => {
   const params = useParams<{ username: string }>();
   const session = useSession();
+  const [, setActiveSidebarTab] = useActiveSidebarTab();
+  const { toggleRightPanel } = usePanel()
+
   const { data: profileData, isLoading } = useQuery({
     queryKey: ["get-profile-by-username", params.username],
     initialData: data,
     queryFn: () => getProfileByUsername(params.username),
   });
+
+  const { data: socialLinks = [] } = useQuery({
+    queryKey: ['get-social-links', params.username],
+    queryFn: () => getSocialLinks(params.username),
+    enabled: !!params.username,
+  });
+
   const { sections } = useSections();
+
+  // Profile completion tracking
+  const [isWidgetDismissed, setIsWidgetDismissed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('profile-completion-dismissed') === 'true'
+    }
+    return false
+  })
+
+  const { tasks, isComplete, hasBasicInfo } = useProfileCompletion({
+    profile: profileData,
+    gallery,
+    writings,
+    projects,
+    education,
+    workExperience,
+    posts,
+    storyElements,
+    socialLinks,
+    onOpenChat: () => {
+      setActiveSidebarTab({ id: null, tab: 'chat' })
+      toggleRightPanel()
+    }
+  })
+
+  const handleDismissWidget = () => {
+    setIsWidgetDismissed(true)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('profile-completion-dismissed', 'true')
+    }
+  }
 
   const sectionMap = {
     gallery: {
@@ -149,10 +195,10 @@ const UserProfile = ({
   );
 
   return (
-    <div className="w-full flex flex-col items-center justify-start">
+    <div className="w-full flex relative flex-col items-center justify-start">
       <Profile isMine={isMine} data={profileData} isLoading={isLoading} username={profileData?.username || params.username} />
       <SocialLinks isMine={isMine} />
-      
+
       {isMine && (
         <div className='w-full max-w-2xl'>
           <ResumeRoaster />
@@ -160,14 +206,14 @@ const UserProfile = ({
       )}
 
       {/* Story Elements Section */}
-      {storyElements && storyElements.length > 0 && (
+      {/* {storyElements && storyElements.length > 0 && (
         <>
           <div className="w-full mt-8 mb-6 max-w-2xl">
             <StoryElementsDisplay elements={storyElements} />
           </div>
           <Separator className="w-full max-w-2xl" />
         </>
-      )}
+      )} */}
 
       <Separator className="w-full mt-6 max-w-2xl" />
       {areAllSectionsDisabled && !isLoading && (
@@ -193,6 +239,16 @@ const UserProfile = ({
         ))}
 
       {!session?.data && !session?.isLoading && <BottomBanner />}
+
+      {/* Profile Completion Widget - Only show for own profile */}
+      {isMine && !isComplete && !isWidgetDismissed && (
+
+        <ProfileCompletionWidget
+          tasks={tasks}
+          onDismiss={handleDismissWidget}
+          hasBasicInfo={hasBasicInfo}
+        />
+      )}
     </div>
   );
 };

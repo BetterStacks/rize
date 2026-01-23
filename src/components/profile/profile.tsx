@@ -33,7 +33,7 @@ const Profile = ({
               name: data?.displayName as string,
             }}
           />
-          <QRcode 
+          <QRcode
             username={username}
             profileImage={data?.profileImage as string}
           />

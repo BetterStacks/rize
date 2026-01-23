@@ -1,3 +1,5 @@
+"use client"
+
 import { useSession as useBetterAuthSession } from '@/lib/auth-client'
 import { getCurrentUserProfile } from '@/actions/profile-actions'
 import { useEffect, useState } from 'react'
@@ -41,7 +43,7 @@ export function useSession() {
         setIsLoading(true)
         try {
           const profileData = await getCurrentUserProfile()
-          
+
           if (profileData) {
             setEnrichedSession({
               user: {

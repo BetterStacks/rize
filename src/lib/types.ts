@@ -16,7 +16,9 @@ import { BaseEditor, BaseRange, Descendant, Element, Range } from "slate";
 import { HistoryEditor } from "slate-history";
 import { ReactEditor } from "slate-react";
 import { Result } from "url-metadata";
+import { InferUITool, UIMessage } from "ai";
 import { z } from "zod";
+import { ProfileTools } from "@/app/api/chat/profile/tools";
 
 export const TUser = users.$inferSelect;
 export const TPage = page.$inferInsert;
@@ -91,10 +93,10 @@ export type GetCommentWithProfile = TComment & {
 
 export type GetProfileByUsername =
   | (typeof profile.$inferSelect & {
-      image: string;
-      name: string;
-      email: string;
-    })
+    image: string;
+    name: string;
+    email: string;
+  })
   | null;
 export type GalleryItemProps = typeof TMedia & {
   galleryMediaId: string | null;
@@ -294,6 +296,10 @@ export const profileSchema = z.object({
   hasCompletedWalkthrough: z.boolean().optional(),
   isLive: z.boolean().optional(),
   website: z.string().url().optional(),
+  location: z.string().optional(),
+  personalMission: z.string().optional(),
+  lifePhilosophy: z.string().optional(),
+  age: z.number().int().min(0).max(120).optional(),
 });
 
 export const AddCommentPayload = z.object({
@@ -354,3 +360,59 @@ export const newProjectSchema = z.object({
   height: z.string().optional(),
   media: z.array(fileSchema).optional(),
 });
+
+
+
+export const updateBasicInfoSchema = z.object({
+  displayName: z.string().optional(),
+  bio: z.string().optional(),
+  location: z.string().optional(),
+  personalMission: z.string().optional(),
+  lifePhilosophy: z.string().optional(),
+  age: z.number().optional(),
+});
+
+export const addExperienceSchema = z.object({
+  title: z.string(),
+  company: z.string(),
+  location: z.string().optional(),
+  employmentType: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  currentlyWorking: z.boolean().default(false),
+  description: z.string().optional(),
+});
+
+export const addEducationSchema = z.object({
+  school: z.string(),
+  degree: z.string().optional(),
+  fieldOfStudy: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  grade: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export const addStoryElementSchema = z.object({
+  type: z.enum(['mission', 'value', 'milestone', 'dream', 'superpower', 'skill']),
+  title: z.string(),
+  content: z.string(),
+});
+
+export const addProjectSchema = z.object({
+  name: z.string(),
+  tagline: z.string().optional(),
+  description: z.string(),
+  url: z.string().optional(),
+  status: z.enum(['wip', 'completed', 'archived']).default('completed'),
+});
+
+export type Tool<TArgs> = {
+  args: TArgs;
+};
+
+export type Metadata = {
+  isWelcomeMessage?: boolean;
+};
+
+export type ChatMessage = UIMessage<Metadata, never, ProfileTools>;
