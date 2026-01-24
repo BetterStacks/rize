@@ -5,13 +5,14 @@ import { ChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { ChevronDown, ChevronUp, Copy, PanelRight, RefreshCcw, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, PanelRight, Plus, RefreshCcw, Sparkles } from 'lucide-react';
 import { FormEvent, Fragment, useEffect, useRef, useState } from 'react';
 import { Conversation, ConversationContent, ConversationEmptyState } from '../ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '../ai-elements/message';
 import { PromptInput, PromptInputFooter, PromptInputMessage, PromptInputSubmit, PromptInputTextarea } from '../ai-elements/prompt-input';
 import { usePanel } from '@/lib/panel-context';
 import { ProfileTask } from '@/hooks/useProfileCompletion';
+import { v4 } from 'uuid';
 
 interface ProfileChatProps {
     profileName?: string;
@@ -22,13 +23,20 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
     const [input, setInput] = useState('');
     const hasLoadedWelcomeRef = useRef(false);
     const { toggleRightPanel } = usePanel()
+    const [chatId, setChatId] = useState<string>(v4());
 
-    const { messages, status, sendMessage, setMessages, regenerate, } = useChat<ChatMessage>({
+    const { messages, status, sendMessage, regenerate, } = useChat<ChatMessage>({
+        id: chatId,
         transport: new DefaultChatTransport({
             api: '/api/chat/profile',
         }),
     });
     const isLoading = status === 'streaming';
+
+    const handleNewChat = () => {
+        setChatId(v4());
+        hasLoadedWelcomeRef.current = false;
+    };
 
     // Trigger initial welcome message when chat is empty
     useEffect(() => {
@@ -74,92 +82,24 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
 
     return (
         <div className="flex flex-col h-full w-full overflow-hidden font-inter">
-
-            {/* Messages */}
-            {/* <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-                <div className="space-y-6 pb-4">
-                    <AnimatePresence initial={false}>
-                        {messages.map((m) => (
-                            <motion.div
-                                key={m.id}
-                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                className={cn(
-                                    "flex gap-3 max-w-[90%]",
-                                    m.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
-                                )}
-                            >
-                                <CreativeAvatar
-                                    name={m.role === 'user' ? 'You' : 'AI Profile Builder'}
-                                    src={undefined}
-                                    className={cn(
-                                        "size-8 border flex-shrink-0",
-                                        m.role === 'user' ? "bg-neutral-100 dark:bg-neutral-800" : "bg-indigo-50 dark:bg-indigo-900/30"
-                                    )} />
-                                <div className="flex flex-col gap-2 flex-1 min-w-0">
-                                    {m.parts.map((part, i) => {
-                                        if (part.type === 'text') {
-                                            return (
-                                                <div
-                                                    key={`${m.id}-text-${i}`}
-                                                    className={cn(
-                                                        "p-3 rounded-2xl text-sm leading-relaxed break-words",
-                                                        m.role === 'user'
-                                                            ? "bg-indigo-600 text-white rounded-tr-none shadow-lg shadow-indigo-200 dark:shadow-none"
-                                                            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 rounded-tl-none border border-neutral-200 dark:border-neutral-700"
-                                                    )}
-                                                >
-                                                    {part.text}
-                                                </div>
-                                            );
-                                        }
-
-                                        if (part.type === 'reasoning') {
-                                            return (
-                                                <details key={`${m.id}-reasoning-${i}`} className="group">
-                                                    <summary className="cursor-pointer text-xs text-neutral-500 dark:text-neutral-400 font-medium flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                                                        <ChevronDown className="size-3 group-open:hidden" />
-                                                        <ChevronUp className="size-3 hidden group-open:block" />
-                                                        View AI Reasoning
-                                                    </summary>
-                                                    <div className="mt-2 p-3 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs italic text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                                                        {part.text}
-                                                    </div>
-                                                </details>
-                                            );
-                                        }
-
-                                        if (part?.type === "tool-addEducation" || part?.type === "tool-addExperience" || part?.type === "tool-addStoryElement" || part?.type === "tool-addProject" || part?.type === "tool-updateBasicInfo") {
-
-                                            return (
-                                                <div
-                                                    key={`${m.id}-tool-${i}`}
-                                                    className="flex items-center gap-2 p-2 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium"
-                                                >
-                                                    <Sparkles className="size-3" />
-                                                    {part?.state === 'output-available'
-                                                        ? `Successfully executed ${part.type}`
-                                                        : `Executing ${part.type}...`}
-                                                </div>
-                                            );
-                                        }
-
-                                        return null;
-                                    })}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </div>
-            </ScrollArea> */}
-            <Button
-                size={'smallIcon'}
-                variant={'ghost'}
-                onClick={toggleRightPanel}
-                className="absolute rounded-md top-3 right-3 z-50"
-            >
-                <PanelRight className='size-4' />
-            </Button>
+            <div className='w-full flex items-center justify-between absolute top-0 inset-x-0 p-3'>
+                <Button
+                    size={'smallIcon'}
+                    variant={'ghost'}
+                    onClick={toggleRightPanel}
+                    className="rounded-md "
+                >
+                    <PanelRight className='size-4' />
+                </Button>
+                <Button
+                    size={'smallIcon'}
+                    variant={'ghost'}
+                    onClick={handleNewChat}
+                    className="rounded-md "
+                >
+                    <Plus className='size-4' />
+                </Button>
+            </div>
             <Conversation className="w-full h-full">
                 <ConversationContent className="w-full ">
                     <div className="w-full px-2">
@@ -334,3 +274,80 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                         <Send className="size-4" />
                     </Button>
                 </form> */}
+{/* Messages */ }
+{/* <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+                <div className="space-y-6 pb-4">
+                    <AnimatePresence initial={false}>
+                        {messages.map((m) => (
+                            <motion.div
+                                key={m.id}
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                className={cn(
+                                    "flex gap-3 max-w-[90%]",
+                                    m.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
+                                )}
+                            >
+                                <CreativeAvatar
+                                    name={m.role === 'user' ? 'You' : 'AI Profile Builder'}
+                                    src={undefined}
+                                    className={cn(
+                                        "size-8 border flex-shrink-0",
+                                        m.role === 'user' ? "bg-neutral-100 dark:bg-neutral-800" : "bg-indigo-50 dark:bg-indigo-900/30"
+                                    )} />
+                                <div className="flex flex-col gap-2 flex-1 min-w-0">
+                                    {m.parts.map((part, i) => {
+                                        if (part.type === 'text') {
+                                            return (
+                                                <div
+                                                    key={`${m.id}-text-${i}`}
+                                                    className={cn(
+                                                        "p-3 rounded-2xl text-sm leading-relaxed break-words",
+                                                        m.role === 'user'
+                                                            ? "bg-indigo-600 text-white rounded-tr-none shadow-lg shadow-indigo-200 dark:shadow-none"
+                                                            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 rounded-tl-none border border-neutral-200 dark:border-neutral-700"
+                                                    )}
+                                                >
+                                                    {part.text}
+                                                </div>
+                                            );
+                                        }
+
+                                        if (part.type === 'reasoning') {
+                                            return (
+                                                <details key={`${m.id}-reasoning-${i}`} className="group">
+                                                    <summary className="cursor-pointer text-xs text-neutral-500 dark:text-neutral-400 font-medium flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                                        <ChevronDown className="size-3 group-open:hidden" />
+                                                        <ChevronUp className="size-3 hidden group-open:block" />
+                                                        View AI Reasoning
+                                                    </summary>
+                                                    <div className="mt-2 p-3 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs italic text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                                        {part.text}
+                                                    </div>
+                                                </details>
+                                            );
+                                        }
+
+                                        if (part?.type === "tool-addEducation" || part?.type === "tool-addExperience" || part?.type === "tool-addStoryElement" || part?.type === "tool-addProject" || part?.type === "tool-updateBasicInfo") {
+
+                                            return (
+                                                <div
+                                                    key={`${m.id}-tool-${i}`}
+                                                    className="flex items-center gap-2 p-2 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium"
+                                                >
+                                                    <Sparkles className="size-3" />
+                                                    {part?.state === 'output-available'
+                                                        ? `Successfully executed ${part.type}`
+                                                        : `Executing ${part.type}...`}
+                                                </div>
+                                            );
+                                        }
+
+                                        return null;
+                                    })}
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </div>
+            </ScrollArea> */}

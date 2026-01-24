@@ -77,7 +77,7 @@ const RightSidebar = ({ className }: { className?: string }) => {
     >
 
 
-      {active?.tab !== 'gallery' && (
+      {/* {active?.tab !== 'gallery' && (
         <Button
           onClick={() => {
             setActive({ id: null, tab: 'gallery' })
@@ -88,7 +88,7 @@ const RightSidebar = ({ className }: { className?: string }) => {
         >
           <ChevronLeft className="size-4 opacity-80" />
         </Button>
-      )}
+      )} */}
       {active?.tab === 'gallery' && <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
