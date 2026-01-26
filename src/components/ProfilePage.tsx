@@ -20,6 +20,7 @@ import ScrollFixWrapper from "./scroll-fix-wrapper";
 import ProfileNotFound from "./profile-not-found";
 import ViewTracker from "./analytics/ViewTracker";
 import PhoneCollectionModal from "./onboarding/phone-collection-modal";
+import { TStoryElement } from "@/lib/types";
 
 type Props = {
   username: string;
@@ -110,7 +111,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
             workExperience={workExperience}
             posts={posts}
             storyElements={
-              (storyElements?.success ? storyElements.data || [] : []) as any[]
+              (storyElements?.success ? storyElements.data || [] : []) as TStoryElement[]
             }
           />
         </DashboardLayout>

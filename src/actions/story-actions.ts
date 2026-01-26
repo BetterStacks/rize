@@ -7,6 +7,7 @@ import { eq, and, desc, asc, sql } from 'drizzle-orm'
 import { cache } from 'react'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
+import { TStoryElement } from '@/lib/types'
 
 // Validation schemas
 const storyElementSchema = z.object({
@@ -44,7 +45,7 @@ export const getStoryElementsByUsername = cache(async (username: string) => {
       ))
       .orderBy(asc(storyElements.order), asc(storyElements.createdAt))
 
-    return { success: true, data: elements }
+    return { success: true, data: elements as unknown as TStoryElement[] }
   } catch (error) {
     console.error('Error fetching story elements:', error)
     return { success: false, error: 'Failed to fetch story elements' }
@@ -84,7 +85,7 @@ export const getMyStoryElements = cache(async () => {
       .where(eq(storyElements.profileId, userProfile[0].id))
       .orderBy(asc(storyElements.order), asc(storyElements.createdAt))
 
-    return { success: true, data: elements }
+    return { success: true, data: elements as unknown as TStoryElement[] }
   } catch (error) {
     console.error('Error fetching my story elements:', error)
     return { success: false, error: 'Failed to fetch story elements' }
@@ -171,9 +172,9 @@ export async function updateStoryElement(data: z.infer<typeof updateStoryElement
 
     // Verify ownership
     const existingElement = await db
-      .select({ 
+      .select({
         id: storyElements.id,
-        profileId: storyElements.profileId 
+        profileId: storyElements.profileId
       })
       .from(storyElements)
       .where(and(
@@ -222,10 +223,10 @@ export async function deleteStoryElement(elementId: string) {
 
     // Verify ownership
     const existingElement = await db
-      .select({ 
+      .select({
         id: storyElements.id,
         profileId: storyElements.profileId,
-        order: storyElements.order 
+        order: storyElements.order
       })
       .from(storyElements)
       .where(and(
@@ -281,27 +282,27 @@ export async function reorderStoryElements(elementIds: string[]) {
 
     // Verify all elements belong to the user
     const userElements = await db
-      .select({ 
+      .select({
         id: storyElements.id,
-        profileId: storyElements.profileId 
+        profileId: storyElements.profileId
       })
       .from(storyElements)
       .where(eq(storyElements.profileId, profileId))
 
     const userElementIds = userElements.map(el => el.id)
     const hasUnauthorized = elementIds.some(id => !userElementIds.includes(id))
-    
+
     if (hasUnauthorized) {
       return { success: false, error: 'Access denied to some elements' }
     }
 
     // Update order for each element
-    const updatePromises = elementIds.map((id, index) => 
+    const updatePromises = elementIds.map((id, index) =>
       db
         .update(storyElements)
-        .set({ 
+        .set({
           order: index,
-          updatedAt: new Date() 
+          updatedAt: new Date()
         })
         .where(eq(storyElements.id, id))
     )
@@ -337,9 +338,9 @@ export async function toggleStoryElementVisibility(elementId: string, isPublic: 
     // Verify ownership and update
     const result = await db
       .update(storyElements)
-      .set({ 
+      .set({
         isPublic,
-        updatedAt: new Date() 
+        updatedAt: new Date()
       })
       .from(profile)
       .where(and(

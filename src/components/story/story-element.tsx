@@ -9,17 +9,9 @@ import { Trash2, Edit3, GripVertical, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export interface StoryElement {
-  id: string
-  profileId: string
-  type: 'mission' | 'value' | 'milestone' | 'dream' | 'superpower'
-  title: string
-  content: string
-  order: number
-  isPublic: boolean
-  createdAt: Date
-  updatedAt: Date
-}
+import { TStoryElement } from '@/lib/types'
+
+export type StoryElement = TStoryElement;
 
 interface StoryElementProps {
   element: StoryElement

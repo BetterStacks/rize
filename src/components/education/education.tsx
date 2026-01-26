@@ -26,7 +26,7 @@ const Education = ({ isMine, education }: EducationProps) => {
     queryKey: ["get-education", username],
     initialData: education,
     queryFn: () => getAllEducation(username),
-    refetchOnMount: false,
+    // refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
 
@@ -98,7 +98,7 @@ export function EmptyWritingState({
   title = "Share about your Education ",
   description = "Your ideas deserve to be shared. Create your first piece and let your words flow.",
   ctaText = "Add Education",
-  onCreateNew = () => {},
+  onCreateNew = () => { },
 }: EmptyEducationStateProps) {
   const [isHovering, setIsHovering] = useState(false);
 

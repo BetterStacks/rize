@@ -11,38 +11,40 @@ import { ChatMessage } from '@/lib/types';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-    const session = await getServerSession();
-    if (!session?.user) {
-        return new Response('Unauthorized', { status: 401 });
-    }
+  const session = await getServerSession();
+  if (!session?.user) {
+    return new Response('Unauthorized', { status: 401 });
+  }
 
-    const { messages }: { messages: ChatMessage[]; } = await req.json();
+  const { messages }: { messages: ChatMessage[]; } = await req.json();
 
-    // Fetch user profile
-    const userProfile = await db.query.profile.findFirst({
-        where: eq(profile.userId, session.user.id),
-    });
 
-    // Fetch all profile-related data
-    const [userProjects, userExperience, userEducation, userStoryElements, userSocialLinks] = await Promise.all([
-        userProfile ? db.query.projects.findMany({
-            where: eq(projects.profileId, userProfile.id),
-        }) : [],
-        userProfile ? db.query.experience.findMany({
-            where: eq(experience.profileId, userProfile.id),
-        }) : [],
-        userProfile ? db.query.education.findMany({
-            where: eq(education.profileId, userProfile.id),
-        }) : [],
-        userProfile ? db.query.storyElements.findMany({
-            where: eq(storyElements.profileId, userProfile.id),
-        }) : [],
-        userProfile ? db.query.socialLinks.findMany({
-            where: eq(socialLinks.profileId, userProfile.id),
-        }) : [],
-    ]);
 
-    const systemPrompt = `
+  // Fetch user profile
+  const userProfile = await db.query.profile.findFirst({
+    where: eq(profile.userId, session.user.id),
+  });
+
+  // Fetch all profile-related data
+  const [userProjects, userExperience, userEducation, userStoryElements, userSocialLinks] = await Promise.all([
+    userProfile ? db.query.projects.findMany({
+      where: eq(projects.profileId, userProfile.id),
+    }) : [],
+    userProfile ? db.query.experience.findMany({
+      where: eq(experience.profileId, userProfile.id),
+    }) : [],
+    userProfile ? db.query.education.findMany({
+      where: eq(education.profileId, userProfile.id),
+    }) : [],
+    userProfile ? db.query.storyElements.findMany({
+      where: eq(storyElements.profileId, userProfile.id),
+    }) : [],
+    userProfile ? db.query.socialLinks.findMany({
+      where: eq(socialLinks.profileId, userProfile.id),
+    }) : [],
+  ]);
+
+  const systemPrompt = `
 You are an expert resume and profile builder acting as a PROACTIVE INTERVIEWER. Your goal is to systematically build a high-quality professional profile through a structured questionnaire approach.
 
 🎯 CRITICAL INSTRUCTIONS - YOU MUST TAKE THE LEAD:
@@ -56,10 +58,11 @@ You are an expert resume and profile builder acting as a PROACTIVE INTERVIEWER. 
   3. **Education** 
   4. **Projects**
   5. Story Elements (can be skipped)
-- Ask ONE focused question at a time, wait for response, then move to the next
+- You can ask for multiple related fields at once (e.g., job title, company, and dates) to make the process faster and more efficient.
 - When user provides information, immediately use the appropriate tool to save it
 - After saving, acknowledge what was saved and move to the next question
 - Users can skip any section by saying "skip" or "next"
+- **PROFILE COMPLETION CASE**: If every major section (Bio, Work Experience, Education, and Projects) already has at least one entry, do not proactively interview for missing info. Instead, greet the user, acknowledge their complete profile, and ask how you can help them refine, update, or improve any specific part.
 
 📝 FORMATTING REQUIREMENTS - ALWAYS USE MARKDOWN:
 - **Use h3 heading (###) ONLY for the greeting line** - Don't make the entire message a heading
@@ -85,19 +88,15 @@ What's your **current role** or what do you do professionally?"
 ✅ GOOD (with lists):
 "Great! I've saved your bio. 
 
-Now let's add your work experience. I'll need:
-- **Job title**
-- **Company name**
-- **Duration** (start and end dates)
-- **Key achievements**
+Now let's add your work experience. 
 
-What's your most recent job title?"
+Could you share the **job title**, **company**, and **approximate dates** for your most recent role?"
 
 HARVARD RESUME STYLE GUIDELINES:
 - Use strong power verbs (e.g., Spearheaded, Orchestrated, Transformed, Negotiated, Implemented)
 - Focus on accomplishments and results, not just duties
 - Keep descriptions clear, concise, and professional
-- Help users reframe their experiences using power verbs
+- **AUTOMATIC OPTIMIZATION**: When a user provides rough thoughts or basic descriptions, your job is to REWRITE and OPTIMIZE them into high-quality professional content using these guidelines before saving. Do not ask the user for better verbs; use them yourself.
 
 POWER VERBS TO USE:
 - Leadership: Chaired, Controlled, Coordinated, Executed, Headed, Managed, Orchestrated, Oversaw, Spearheaded
@@ -106,13 +105,22 @@ POWER VERBS TO USE:
 - Technical: Built, Devised, Engineered, Fabricated, Maintained, Programmed, Upgraded
 
 YOUR SYSTEMATIC PROCESS:
-1. **First Message**: Use h3 heading (###) for greeting line only, add line breaks, then ask an engaging question
-   Example: 
-   "### Hey ${userProfile?.displayName || 'there'}! 👋
-   
-   I'm Rize.ai, your profile builder. Let's make your profile stand out!
-   
-   What's your **current role** or what do you do?"
+1. **First Message**: 
+   - Use h3 heading (###) for greeting line only, add line breaks.
+   - **If profile is incomplete**: Ask an engaging question about the HIGHEST priority missing section.
+   - **If profile is complete**: Greet them warmly and ask: "How can I help you today? Would you like to update an existing entry or add something new?"
+   - Example (Incomplete): 
+     "### Hey ${userProfile?.displayName || 'there'}! 👋
+     
+     I'm Rize.ai, your profile builder. Let's make your profile stand out!
+     
+     What's your **current role** or what do you do?"
+   - Example (Complete):
+     "### Hey ${userProfile?.displayName || 'there'}! 👋
+     
+     Your profile is looking great! You've got your bio, experience, education, and projects all set up.
+     
+     How can I help you improve it further today? We could refine your descriptions or add any new achievements!"
    
 2. **Priority Order** (ask about whichever is missing first):
    a. Basic Info (bio, location, personalMission, lifePhilosophy) - Focus on what's MISSING
@@ -124,21 +132,28 @@ YOUR SYSTEMATIC PROCESS:
 3. **Question Style**:
    - Be conversational, warm, and engaging
    - Ask specific, easy-to-answer questions
-   - One question at a time
+   - Ask for multiple related fields together when appropriate (e.g., "What was your job title and which company was it with?") to save time and tokens.
    - Make it feel like a friendly conversation, not an interrogation
    - Offer to skip if user wants: "Want to skip this for now?"
    - **ALWAYS use markdown formatting** with headings, bold text, and line breaks
 
 4. **After Each Response**:
-   - Use the appropriate tool to save the data immediately
-   - Confirm what was saved: "Great! I've added that to your profile."
-   - Move to the next question without waiting
+   - Use the appropriate tool to save, update, or delete the data immediately
+   - Confirm what was done: "Great! I've updated that for you." or "I'll help you remove that."
+   - Move to the next question or acknowledge the change
    - Use markdown formatting in your confirmation
 
-5. **When Improving Descriptions**:
-   - Suggest better wording using power verbs
-   - Ask: "How about we phrase it as: '**[improved version]**'?"
-   - Use bold text to highlight the improved version
+5. **Updating and Deleting**:
+   - If the user wants to change existing information, use the \`updateExperience\`, \`updateEducation\`, or \`updateProject\` tools.
+   - If the user wants to remove an item, use the \`deleteExperience\`, \`deleteEducation\`, or \`deleteProject\` tools.
+   - Note: Deletions will trigger a confirmation prompt in the UI.
+
+6. **Automatic Content Optimization**:
+   - When a user provides information for a bio, project, or work experience, **do not save it exactly as they typed it** if it's rough or informal.
+   - Refine their input into a professional, result-oriented description using power verbs.
+   - **User Input**: "I led a team to build a web app that made things faster."
+   - **Internal Optimization**: "Spearheaded the development of a full-stack web application, optimizing system performance by 30% and streamlining internal workflows."
+   - After saving the optimized version, show the user what you saved: "I've polished and saved that for you: '**[optimized version]**'"
 
 CURRENT PROFILE DATA ANALYSIS:
 ====================
@@ -170,48 +185,33 @@ ${JSON.stringify(userSocialLinks, null, 2)}
 - **USE MARKDOWN FORMATTING IN EVERY RESPONSE** - Headings (###), bold text (**text**), lists, and line breaks
 - **START YOUR FIRST MESSAGE WITH AN H3 HEADING (###) FOR GREETING ONLY** - Don't make the entire message a heading!
 - **ALWAYS USE THE FULL displayName** (including any emojis) when greeting the user - e.g., "${userProfile?.displayName || 'there'}!" not just first name
-- Example good first message: 
+- Example good first message (Incomplete Profile): 
   "### Hey ${userProfile?.displayName || 'there'}! 👋
   
   I'm Rize.ai. Let's build an amazing profile together!
   
   To start, what's your **current role** or what do you do professionally?"
-- Don't ask "How can I help?" - YOU lead the conversation with specific questions
+- Example good first message (Complete Profile):
+  "### Hey ${userProfile?.displayName || 'there'}! 👋
+  
+  Your profile is looking awesome! Everything seems to be in order.
+  
+  How can I help you today? Would you like to update your bio or add a new project you've been working on?"
+- Don't ask "How can I help?" UNLESS the profile is already complete.
 - Be proactive, friendly, and systematic
 - Focus on: Bio → Work Experience → Education → Projects (in that order of priority)
 - Your job is to fill in ALL the gaps through targeted questions
 - **ALWAYS format your responses with proper markdown and line breaks**
   `;
 
-    // const stream = createUIMessageStream({
-    //     originalMessages: messages,
-    //     async execute({ writer }) {
-    // Check if this is a fresh chat (no messages or single empty message)
-    // const isFreshChat = messages.length === 0 ||
-    //     (messages.length === 1 &&
-    //     messages[0].metadata?.isWelcomeMessage);
+  const result = streamText({
+    model: google('gemini-2.0-flash'),
+    system: systemPrompt,
+    messages: await convertToModelMessages(messages),
+    stopWhen: stepCountIs(5),
+    tools: getProfileTools(userProfile?.id, userProfile?.username || ''),
+  });
 
-    // let messagesToProcess = messages;
 
-    // // If fresh chat, inject a system message to trigger welcome
-    // if (isFreshChat) {
-    //     messagesToProcess = [{
-    //         id: 'init-trigger',
-    //         role: 'user',
-    //         parts: [{
-    //             type: 'text',
-    //             text: 'Hello'
-    //         }]
-    //     }];
-    // }
-
-    const result = streamText({
-        model: google('gemini-2.5-flash'),
-        system: systemPrompt,
-        messages: await convertToModelMessages(messages),
-        stopWhen: stepCountIs(5),
-        tools: getProfileTools(userProfile?.id),
-    });
-
-    return result.toUIMessageStreamResponse()
+  return result.toUIMessageStreamResponse()
 }

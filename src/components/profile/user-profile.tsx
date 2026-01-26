@@ -9,9 +9,10 @@ import {
   GetProfileByUsername,
   TEducation,
   TExperience,
+  TStoryElement,
 } from '@/lib/types'
 import { capitalizeFirstLetter } from '@/lib/utils'
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
 import React, { useMemo, useState } from 'react'
 import Education from '../education/education'
@@ -33,18 +34,16 @@ import { getSocialLinks } from '@/actions/social-links-actions'
 import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
 import { usePanel } from "@/lib/panel-context";
 import { useEnrichedSession } from "@/lib/auth-client";
-
-type StoryElement = {
-  id: string;
-  profileId: string;
-  type: "mission" | "value" | "milestone" | "dream" | "superpower";
-  title: string;
-  content: string;
-  order: number;
-  isPublic: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import { getGalleryItems } from "@/actions/gallery-actions";
+import { getAllPages } from "@/actions/page-actions";
+import { getAllProjects } from "@/actions/project-actions";
+import { getAllEducation } from "@/actions/education-actions";
+import { getAllExperience } from "@/actions/experience-actions";
+import { getUserPosts } from "@/actions/post-actions";
+import { getStoryElementsByUsername } from "@/actions/story-actions";
+import { getSections } from "@/actions/general-actions";
+import { profileSections } from "@/db/schema";
+import { useLocalStorage } from "@mantine/hooks";
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -55,7 +54,7 @@ type UserProfileProps = {
   education: TEducation[];
   workExperience: TExperience[];
   posts: GetExplorePosts[];
-  storyElements: StoryElement[];
+  storyElements: TStoryElement[];
 };
 
 const UserProfile = ({
@@ -76,10 +75,10 @@ const UserProfile = ({
 
 
   const { data: profileData, isLoading } = useQuery({
-    queryKey: ["get-profile-by-username", params.username],
-    initialData: data,
+    queryKey: ['get-profile', params.username],
     queryFn: () => getProfileByUsername(params.username),
-  });
+    enabled: !!params.username,
+  })
 
   const { data: socialLinks = [] } = useQuery({
     queryKey: ['get-social-links', params.username],
@@ -90,22 +89,21 @@ const UserProfile = ({
   const { sections } = useSections();
 
   // Profile completion tracking
-  const [isWidgetDismissed, setIsWidgetDismissed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('profile-completion-dismissed') === 'true'
-    }
-    return false
+  const [isWidgetDismissed, setIsWidgetDismissed] = useLocalStorage<boolean>({
+    key: 'profile-completion-dismissed',
+    defaultValue: false,
   })
 
+
   const { tasks, isComplete, hasBasicInfo } = useProfileCompletion({
-    profile: profileData,
+    profile: data,
     gallery,
     writings,
     projects,
     education,
     workExperience,
     posts,
-    storyElements,
+    storyElements: storyElements,
     socialLinks,
     onOpenChat: () => {
       setActiveSidebarTab({ id: null, tab: 'chat' })
@@ -115,9 +113,6 @@ const UserProfile = ({
 
   const handleDismissWidget = () => {
     setIsWidgetDismissed(true)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('profile-completion-dismissed', 'true')
-    }
   }
 
   const sectionMap = {
@@ -198,7 +193,7 @@ const UserProfile = ({
 
   return (
     <div className="w-full flex relative flex-col items-center justify-start">
-      <Profile isMine={isMine} data={profileData} isLoading={isLoading} username={profileData?.username || params.username} />
+      <Profile isMine={isMine} data={profileData!} isLoading={isLoading} username={profileData?.username || params.username} />
       <SocialLinks isMine={isMine} />
 
       {isMine && (
@@ -244,7 +239,6 @@ const UserProfile = ({
 
       {/* Profile Completion Widget - Only show for own profile */}
       {isMine && !isComplete && !isWidgetDismissed && (
-
         <ProfileCompletionWidget
           tasks={tasks}
           onDismiss={handleDismissWidget}

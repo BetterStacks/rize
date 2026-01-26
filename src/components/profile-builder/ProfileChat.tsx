@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { ChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
-import { ChevronDown, ChevronUp, Copy, PanelRight, Plus, RefreshCcw, Sparkles } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
+import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
+import { CheckIcon, ChevronDown, ChevronUp, Copy, PanelRight, Plus, RefreshCcw, Sparkles, Trash2, XIcon } from 'lucide-react';
 import { FormEvent, Fragment, useEffect, useRef, useState } from 'react';
 import { Conversation, ConversationContent, ConversationEmptyState } from '../ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '../ai-elements/message';
@@ -13,6 +15,12 @@ import { PromptInput, PromptInputFooter, PromptInputMessage, PromptInputSubmit, 
 import { usePanel } from '@/lib/panel-context';
 import { ProfileTask } from '@/hooks/useProfileCompletion';
 import { v4 } from 'uuid';
+import { Skeleton } from '../ui/skeleton';
+import { deleteEducation } from '@/actions/education-actions';
+import { deleteExperience } from '@/actions/experience-actions';
+import { deleteProject } from '@/actions/project-actions';
+import { Confirmation, ConfirmationAccepted, ConfirmationAction, ConfirmationActions, ConfirmationRejected, ConfirmationRequest } from '../ai-elements/confirmation';
+
 
 interface ProfileChatProps {
     profileName?: string;
@@ -23,14 +31,18 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
     const [input, setInput] = useState('');
     const hasLoadedWelcomeRef = useRef(false);
     const { toggleRightPanel } = usePanel()
+    const { username } = useParams<{ username: string }>()
     const [chatId, setChatId] = useState<string>(v4());
+    const router = useRouter();
+    const queryClient = useQueryClient();
 
-    const { messages, status, sendMessage, regenerate, } = useChat<ChatMessage>({
+    const { messages, status, sendMessage, regenerate, addToolApprovalResponse } = useChat<ChatMessage>({
         id: chatId,
         transport: new DefaultChatTransport({
             api: '/api/chat/profile',
         }),
     });
+
     const isLoading = status === 'streaming';
 
     const handleNewChat = () => {
@@ -79,6 +91,65 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
             text: currentInput,
         });
     };
+
+    const processedToolCalls = useRef<Set<string>>(new Set());
+
+    useEffect(() => {
+        if (messages?.length === 0) return;
+        const latestMessage = messages[messages.length - 1];
+
+        if (latestMessage.role !== 'assistant' || !latestMessage.parts) return;
+
+        // All profile tools that trigger a refetch:
+
+
+        const toolNames: string[] = ["tool-updateBasicInfo", "tool-addExperience", "tool-updateExperience", "tool-deleteExperience", "tool-addEducation", "tool-updateEducation", "tool-deleteEducation", "tool-addProject", "tool-updateProject", "tool-deleteProject", "tool-addStoryElement"];
+        const completedTools = latestMessage.parts.filter(
+            (part) =>
+                part.type.startsWith("tool-") &&
+                (part as any).state === "output-available" &&
+                (part as any).toolCallId &&
+                !processedToolCalls.current.has((part as any).toolCallId)
+        );
+
+        if (completedTools.length > 0) {
+            let needsRefresh = false;
+
+            completedTools.forEach((part) => {
+                const toolCallId = (part as any).toolCallId;
+                processedToolCalls.current.add(toolCallId);
+
+                const toolName = part.type.replace("tool-", "");
+                toolNames.push(toolName);
+                console.log(`[ProfileChat] Processing completed tool: ${toolName} (${toolCallId})`);
+
+                const lowerToolName = toolName.toLowerCase();
+                if (lowerToolName.includes("experience")) {
+                    queryClient.invalidateQueries({ queryKey: ["get-all-experience", username] });
+                    needsRefresh = true;
+                } else if (lowerToolName.includes("education")) {
+                    queryClient.invalidateQueries({ queryKey: ["get-education", username] });
+                    needsRefresh = true;
+                } else if (lowerToolName.includes("project")) {
+                    queryClient.invalidateQueries({ queryKey: ["get-projects", username] });
+                    needsRefresh = true;
+                } else if (lowerToolName.includes("basicinfo")) {
+                    queryClient.invalidateQueries({ queryKey: ["get-profile", username] });
+                    queryClient.invalidateQueries({ queryKey: ["get-profile-by-username", username] });
+                    needsRefresh = true;
+                } else if (lowerToolName.includes("storyelement")) {
+                    queryClient.invalidateQueries({ queryKey: ["my-story-elements"] });
+                    needsRefresh = true;
+                }
+            });
+
+            console.log("Tools triggered:", toolNames);
+
+            if (needsRefresh) {
+                router.refresh();
+            }
+        }
+    }, [messages, username, queryClient, router]);
 
     return (
         <div className="flex flex-col h-full w-full overflow-hidden font-inter">
@@ -153,24 +224,115 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                         </details>
                                                     );
 
+                                                case "tool-deleteEducation":
+                                                case "tool-deleteExperience":
+                                                case "tool-deleteProject":
+                                                    if ((part as any).state === "approval-requested" || (part as any).state === "approval-responded") {
+                                                        const isEducation = part.type === "tool-deleteEducation";
+                                                        const isExperience = part.type === "tool-deleteExperience";
+                                                        const isProject = part.type === "tool-deleteProject";
+                                                        const toolArgs = (part as any).input as any;
 
-                                                case "tool-addEducation":
-                                                case "tool-addExperience":
-                                                case "tool-addStoryElement":
-                                                case "tool-addProject":
-                                                case "tool-updateBasicInfo":
+                                                        let itemName = "this item";
+                                                        let itemType = "item";
+
+                                                        if (isEducation) {
+                                                            itemName = toolArgs.school;
+                                                            itemType = "education";
+                                                        } else if (isExperience) {
+                                                            itemName = `${toolArgs.title} at ${toolArgs.company}`;
+                                                            itemType = "experience";
+                                                        } else if (isProject) {
+                                                            itemName = toolArgs.name;
+                                                            itemType = "project";
+                                                        }
+
+                                                        return (
+                                                            <Confirmation approval={(part as any).approval} state={(part as any).state} key={`${message.id}-${i}`}>
+                                                                <ConfirmationRequest>
+                                                                    Are you sure you want to delete {itemType}: <strong>"{itemName || 'this item'}"</strong>?
+                                                                    <br />
+                                                                    Do you approve this action?
+                                                                </ConfirmationRequest>
+                                                                <ConfirmationAccepted>
+                                                                    <CheckIcon className="size-4" />
+                                                                    <span>You approved this tool execution. Processing...</span>
+                                                                </ConfirmationAccepted>
+                                                                <ConfirmationRejected>
+                                                                    <XIcon className="size-4" />
+                                                                    <span>You rejected this tool execution.</span>
+                                                                </ConfirmationRejected>
+                                                                {part.state === "approval-requested" && (
+                                                                    <ConfirmationActions>
+                                                                        <ConfirmationAction
+                                                                            variant="outline"
+                                                                            onClick={() => {
+                                                                                console.log('Rejecting tool:', (part as any).approval?.id);
+                                                                                addToolApprovalResponse({
+                                                                                    id: (part as any)?.approval?.id as string,
+                                                                                    approved: false,
+                                                                                });
+                                                                            }}
+                                                                        >
+                                                                            Reject
+                                                                        </ConfirmationAction>
+                                                                        <ConfirmationAction
+                                                                            variant="default"
+                                                                            onClick={() => {
+                                                                                console.log('Approving tool:', (part as any).approval?.id);
+                                                                                addToolApprovalResponse({
+                                                                                    id: (part as any)?.approval?.id as string,
+                                                                                    approved: true,
+                                                                                });
+                                                                                sendMessage()
+                                                                            }}
+                                                                        >
+                                                                            Approve
+                                                                        </ConfirmationAction>
+                                                                    </ConfirmationActions>
+                                                                )}
+                                                            </Confirmation>
+                                                        )
+                                                    }
                                                     return (
                                                         <div
                                                             key={`${message?.id}-tool-${i}`}
                                                             className="flex items-center gap-2 p-2 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium"
                                                         >
                                                             <Sparkles className="size-3" />
-                                                            {part?.state === 'output-available'
+                                                            {(part as any)?.state === 'output-available'
+                                                                ? `Successfully deleted ${part.type.replace('tool-delete', '')}`
+                                                                : `Processing deletion...`}
+
+
+                                                        </div>
+                                                    );
+
+
+
+
+
+
+                                                case "tool-addEducation":
+                                                case "tool-addExperience":
+                                                case "tool-addStoryElement":
+                                                case "tool-addProject":
+                                                case "tool-updateBasicInfo":
+                                                case "tool-updateEducation":
+                                                case "tool-updateExperience":
+                                                case "tool-updateProject":
+
+                                                    return (
+                                                        <div
+                                                            key={`${message?.id}-tool-${i}`}
+                                                            className="flex items-center gap-2 p-2 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium"
+                                                        >
+                                                            <Sparkles className="size-3" />
+                                                            {(part as any)?.state === 'output-available'
                                                                 ? `Successfully executed ${part.type}`
                                                                 : `Executing ${part.type}...`}
                                                         </div>
                                                     );
-
                                                 default:
                                                     return null;
                                             }
@@ -206,6 +368,18 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                 </Message>
                             )
                         })}
+                        {status === "submitted" && (
+                            <div className={cn('flex w-[90%] flex-col gap-2 items-start justify-start', messages.length > 0 ? 'mt-4' : '')}>
+                                <div className='flex-row flex items-center justify-start gap-2'>
+
+                                    <Skeleton className='size-4 dark:bg-dark-border rounded-full' />
+                                    <Skeleton className='h-4 dark:bg-dark-border w-16 ' />
+                                </div>
+                                <Skeleton className='h-12 dark:bg-dark-border w-full' />
+                                <Skeleton className='h-12 dark:bg-dark-border w-full' />
+                                <Skeleton className='h-24 dark:bg-dark-border w-full' />
+                            </div>
+                        )}
                         <div ref={scrollRef} />
                     </div>
                 </ConversationContent>
@@ -233,6 +407,14 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
 
         </div>
     );
+}
+
+const MessageLoadingState = (msg: ChatMessage) => {
+    return (msg.role === "assistant" ? <div className='flex w-[75%] flex-col gap-2 items-start justify-start'>
+        <Skeleton className='h-24 w-full' />
+    </div> : <div className='flex w-[25%] flex-col gap-2 items-start justify-start'>
+        <Skeleton className='h-24 w-full' />
+    </div>)
 }
 
 {/* <div className="flex gap-2 mb-3">

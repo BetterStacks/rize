@@ -25,8 +25,8 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
   const formatDate = (date?: string) =>
     date
       ? new Date(date).toLocaleDateString(undefined, {
-          year: 'numeric',
-        })
+        year: 'numeric',
+      })
       : '—'
   const { mutate: handleDeleteEducation, isPending } = useMutation({
     mutationFn: deleteEducation,
@@ -46,7 +46,7 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
         cn(
           'flex flex-col relative group',
           tab?.id === education?.id &&
-            'dark:bg-amber-400/10 border-2 border-dashed bg-amber-400/15 border-amber-400/30 dark:border-amber-400/20'
+          'dark:bg-amber-400/10 border-2 border-dashed bg-amber-400/15 border-amber-400/30 dark:border-amber-400/20'
         )
         // "flex flex-col w-full bg-neutral-100 dark:bg-neutral-800 transition-all  rounded-2xl border border-neutral-300/60 dark:border-dark-border p-4 md:p-6 ",
         // tab?.id === education?.id &&
@@ -97,6 +97,9 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
         {' '}
         {formatDate(education?.startDate?.toString())} –{' '}
         {formatDate(education?.endDate?.toString())}
+      </span>
+      <span className="text-sm mt-3 ">
+        {education?.description}
       </span>
     </motion.div>
   )
