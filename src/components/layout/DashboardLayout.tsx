@@ -1,8 +1,9 @@
 'use client'
+import * as React from 'react'
 import { useRightSidebar } from '@/lib/context'
 import { useMediaQuery } from '@mantine/hooks'
 import { motion } from 'framer-motion'
-import { FC, ReactNode } from 'react'
+import { FC, ReactNode, useState, useEffect } from 'react'
 import { useEnsureScroll } from '@/hooks/useScrollFix'
 import GalleryContextProvider from '../gallery/gallery-context'
 import Navbar from '../navbar'
@@ -60,6 +61,11 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const isMobile = useMediaQuery('(max-width: 768px)')
   const { rightPanelRef } = usePanel()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Ensure scroll works properly
   useEnsureScroll()
@@ -144,15 +150,20 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
 
   const contentStyles = getContentStyling()
 
+  if (!mounted) return null
+
   return (
     <ResizablePanelGroup
       className="w-full h-full flex items-center justify-center"
       direction="horizontal"
+      id="dashboard-layout-group"
+      autoSaveId="dashboard-layout-persistence"
     >
       <GalleryContextProvider>
         {/* Left Sidebar */}
         {finalSidebarConfig.left?.show && (
           <ResizablePanel
+            id="dashboard-left-sidebar"
             defaultSize={20}
             maxSize={25}
             minSize={15}
@@ -167,6 +178,7 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
 
         {/* Main Content Area */}
         <ResizablePanel
+          id="dashboard-main-content"
           className={cn(
             'w-full h-screen relative overflow-hidden',
             contentStyles.className,
@@ -204,13 +216,14 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
             {finalSidebarConfig.left?.show && <ResizableHandle />}
             <ResizablePanel
               ref={rightPanelRef}
+              id="dashboard-right-sidebar"
               defaultSize={26}
               maxSize={30}
               minSize={20}
               collapsible
               collapsedSize={0}
               className={cn(
-                'border-l flex flex-col items-center justify-center dark:border-dark-border h-screen',
+                'border-l border-neutral-200/80 dark:border-dark-border flex flex-col items-center justify-center h-screen',
                 finalSidebarConfig.right.className
               )}
             >

@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import sharp from 'sharp'
 
 // Initialize S3 client
 const s3Client = new S3Client({
@@ -23,6 +24,8 @@ export interface UploadResult {
     url: string
     key: string
     bucket: string
+    width?: number
+    height?: number
 }
 
 /**
@@ -42,26 +45,41 @@ export async function uploadToS3(
         isPublic = true,
     } = options
 
-    const key = folder ? `${folder}/${fileName}` : fileName
+    const sanitizedFileName = sanitizeFileName(fileName)
+    const key = folder ? `${folder}/${sanitizedFileName}` : sanitizedFileName
+
+    // Detect dimensions
+    let width: number | undefined;
+    let height: number | undefined;
+
+    try {
+        if (contentType.startsWith('image/')) {
+            const dims = await getImageDimensions(fileBuffer);
+            width = dims.width;
+            height = dims.height;
+        } else if (contentType.startsWith('video/')) {
+            const dims = getVideoDimensions(fileBuffer);
+            width = dims.width;
+            height = dims.height;
+        }
+    } catch (error) {
+        console.warn('Failed to detect dimensions:', error);
+    }
 
     const command = new PutObjectCommand({
         Bucket: BUCKET_NAME,
         Key: key,
         Body: fileBuffer,
         ContentType: contentType,
-        // ACL: 'public-read' removed because bucket does not allow ACLs
     })
 
     try {
         await s3Client.send(command)
     } catch (error: any) {
         console.error('S3 Upload Error:', error)
-        // If this fails with "AccessControlListNotSupported", it means the bucket 
-        // has disabled ACLs. In that case, the employer must set a Bucket Policy.
         throw new Error(`S3 upload failed: ${error.message}`)
     }
 
-    // Use AWS_REGION if available, otherwise fallback to AWS_S3_REGION or us-west-2
     const region = process.env.AWS_S3_REGION || 'us-west-2'
     const url = `https://${BUCKET_NAME}.s3.${region}.amazonaws.com/${key}`
 
@@ -69,6 +87,54 @@ export async function uploadToS3(
         url,
         key,
         bucket: BUCKET_NAME,
+        width,
+        height,
+    }
+}
+
+/**
+ * Get image dimensions using sharp
+ */
+async function getImageDimensions(buffer: Buffer): Promise<{ width?: number, height?: number }> {
+    try {
+        const metadata = await sharp(buffer).metadata();
+        return { width: metadata.width, height: metadata.height };
+    } catch (error) {
+        console.error('Error getting image dimensions:', error);
+        return {};
+    }
+}
+
+/**
+ * Get video dimensions (MP4/MOV) by parsing atoms in pure JS
+ */
+function getVideoDimensions(buffer: Buffer): { width?: number, height?: number } {
+    try {
+        // Look for 'tkhd' atom in MP4/MOV
+        const tkhdOffset = buffer.indexOf(Buffer.from('tkhd'));
+        if (tkhdOffset === -1) return {};
+
+        // Version is at tkhdOffset + 4
+        // Flags are at tkhdOffset + 5 (3 bytes)
+        // Creation time, modification time...
+        // The width and height are at the end of the tkhd atom.
+        // For version 0: width starts at offset + 76, height at offset + 80
+        // For version 1: width starts at offset + 88, height at offset + 92
+
+        const version = buffer[tkhdOffset + 4];
+        let widthOffset = tkhdOffset + (version === 0 ? 76 : 88);
+        let heightOffset = tkhdOffset + (version === 0 ? 80 : 92);
+
+        if (widthOffset + 4 > buffer.length || heightOffset + 4 > buffer.length) return {};
+
+        // Width and height are 32-bit fixed-point (16.16)
+        const width = buffer.readUInt32BE(widthOffset) >> 16;
+        const height = buffer.readUInt32BE(heightOffset) >> 16;
+
+        return { width, height };
+    } catch (error) {
+        console.error('Error parsing video dimensions:', error);
+        return {};
     }
 }
 
@@ -144,6 +210,34 @@ export function getFileExtension(fileName: string, contentType?: string): string
     }
 
     return contentType ? contentTypeMap[contentType] || 'bin' : 'bin'
+}
+
+/**
+ * Extract the S3 key from a full S3 URL.
+ * Example: https://bucket.s3.region.amazonaws.com/folder/file.jpg -> folder/file.jpg
+ */
+export function getS3KeyFromUrl(url: string): string {
+    try {
+        const urlObj = new URL(url)
+        // Pathname starts with /, so we slice(1) to get the key
+        return decodeURIComponent(urlObj.pathname.slice(1))
+    } catch (error) {
+        console.error('Error parsing S3 URL:', error)
+        return ''
+    }
+}
+
+/**
+ * Sanitize filename to be URL-safe by removing or replacing special characters.
+ * S3 keys with characters like '#' or '?' can break direct URL access in browsers.
+ */
+export function sanitizeFileName(fileName: string): string {
+    return fileName
+        .replace(/\s+/g, '_')           // Replace spaces with underscores
+        .replace(/[#?%&]/g, '')         // Remove characters that have special meaning in URLs
+        .replace(/[^\w.-]/g, '_')       // Replace any other non-word characters (except . and -) with underscores
+        .replace(/_{2,}/g, '_')         // Replace multiple underscores with a single one
+        .trim()
 }
 
 export { s3Client }

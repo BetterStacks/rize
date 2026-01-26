@@ -23,7 +23,8 @@ import {
   TAddNewComment,
 } from "@/lib/types";
 import { isImageUrl } from "@/lib/utils";
-import { and, asc, desc, eq, getTableColumns, SQL, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, SQL, sql, inArray } from "drizzle-orm";
+import { deleteFromS3, getS3KeyFromUrl } from "@/lib/s3";
 import { Result } from "url-metadata";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
@@ -55,15 +56,15 @@ export const getExploreFeed = async (pageParam: number = 0) => {
       liked:
         session && userProfileId
           ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${userProfileId}), false)`.as(
-              "liked"
-            )
+            "liked"
+          )
           : sql<boolean>`false`.as("liked"),
 
       commented:
         session && userProfileId
           ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${userProfileId}), false)`.as(
-              "commented"
-            )
+            "commented"
+          )
           : sql<boolean>`false`.as("commented"),
       media: sql`
       CASE 
@@ -148,15 +149,15 @@ export const getUserPosts = async (username: string) => {
       liked:
         session && currentUserProfileId
           ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${currentUserProfileId}), false)`.as(
-              "liked"
-            )
+            "liked"
+          )
           : sql<boolean>`false`.as("liked"),
 
       commented:
         session && currentUserProfileId
           ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${currentUserProfileId}), false)`.as(
-              "commented"
-            )
+            "commented"
+          )
           : sql<boolean>`false`.as("commented"),
       media: sql`
       CASE 
@@ -212,9 +213,40 @@ export const getUserPosts = async (username: string) => {
 
 export const deletePost = async (postId: string) => {
   const userProfileId = await requireProfile();
-  await db
-    .delete(posts)
-    .where(and(eq(posts.id, postId), eq(posts.profileId, userProfileId)));
+
+  // Find associated media before deleting the post
+  const associatedMedia = await db
+    .select({ url: media.url })
+    .from(postMedia)
+    .innerJoin(media, eq(postMedia.mediaId, media.id))
+    .where(eq(postMedia.postId, postId));
+
+  if (associatedMedia.length > 0) {
+    const deletePromises = associatedMedia.map(item => {
+      const key = getS3KeyFromUrl(item.url);
+      return deleteFromS3(key);
+    });
+    await Promise.allSettled(deletePromises);
+  }
+
+  // Related media rows should ideally be deleted via cascade or manual cleanup
+  // To be safe, let's also delete the media records
+  await db.transaction(async (tx) => {
+    const mediaIdsQuery = tx
+      .select({ mediaId: postMedia.mediaId })
+      .from(postMedia)
+      .where(eq(postMedia.postId, postId));
+
+    const mediaIds = (await mediaIdsQuery).map(m => m.mediaId) as string[];
+
+    if (mediaIds.length > 0) {
+      await tx.delete(media).where(inArray(media.id, mediaIds));
+    }
+
+    await tx
+      .delete(posts)
+      .where(and(eq(posts.id, postId), eq(posts.profileId, userProfileId)));
+  });
 };
 
 export const getPostById = async (id: string) => {
@@ -240,15 +272,15 @@ export const getPostById = async (id: string) => {
       liked:
         session && currentUserProfileId
           ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${currentUserProfileId}), false)`.as(
-              "liked"
-            )
+            "liked"
+          )
           : sql<boolean>`false`.as("liked"),
 
       commented:
         session && currentUserProfileId
           ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${currentUserProfileId}), false)`.as(
-              "commented"
-            )
+            "commented"
+          )
           : sql<boolean>`false`.as("commented"),
       media: sql`
         CASE 
@@ -495,7 +527,26 @@ export const addComment = async (payload: TAddNewComment) => {
 
 export const deleteComment = async (id: string) => {
   const userProfileId = await requireProfile();
-  await db
-    .delete(comments)
-    .where(and(eq(comments.id, id), eq(comments.profileId, userProfileId)));
+
+  // Find associated media
+  const [commentItem] = await db
+    .select({ mediaUrl: media.url, mediaId: media.id })
+    .from(comments)
+    .leftJoin(media, eq(comments.mediaId, media.id))
+    .where(and(eq(comments.id, id), eq(comments.profileId, userProfileId)))
+    .limit(1);
+
+  if (commentItem?.mediaUrl) {
+    const key = getS3KeyFromUrl(commentItem.mediaUrl);
+    await deleteFromS3(key);
+  }
+
+  await db.transaction(async (tx) => {
+    if (commentItem?.mediaId) {
+      await tx.delete(media).where(eq(media.id, commentItem.mediaId));
+    }
+    await tx
+      .delete(comments)
+      .where(and(eq(comments.id, id), eq(comments.profileId, userProfileId)));
+  });
 };

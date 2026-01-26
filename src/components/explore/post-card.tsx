@@ -117,9 +117,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
               mediaContainerClassName
             )}
             style={{
-              aspectRatio:
-                (post?.media as TPostMedia).width /
-                (post?.media as TPostMedia).height,
+              aspectRatio: 1 / 1,
               objectFit: "cover",
             }}
           >
@@ -160,7 +158,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
               <>
                 <video
                   style={{ objectFit: "cover" }}
-                  className="w-full h-full select-none  "
+                  className="size-full select-none  "
                   src={(post?.media as TPostMedia).url}
                   autoPlay
                   draggable={false}
@@ -261,7 +259,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
         handleLikeClick={handleLikeClick}
         commentCount={Number(post?.commentCount)}
         hasCommented={Boolean(post?.commented)}
-        handleCommentClick={() => {}}
+        handleCommentClick={() => { }}
       />
     </PostCardContainer>
   );
@@ -396,9 +394,7 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
       </div>
       <div
         style={{
-          aspectRatio:
-            (post?.media as TPostMedia).width /
-            (post?.media as TPostMedia).height,
+          aspectRatio: 9 / 16
         }}
         className={cn("relative  overflow-hidden ")}
       >

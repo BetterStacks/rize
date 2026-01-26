@@ -4,16 +4,10 @@ import { media, projectMedia, projects } from "@/db/schema";
 import { requireProfile } from "@/lib/auth";
 import db from "@/lib/db";
 import { GetAllProjects, newProjectSchema, TProject } from "@/lib/types";
-import { getPublicIdFromUrl } from "@/lib/utils";
-import { v2 as cloudinary } from "cloudinary";
 import { eq, getTableColumns, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
-cloudinary.config({
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-});
+import { deleteFromS3, getS3KeyFromUrl } from "@/lib/s3";
 
 export const getAllProjects = async (username: string) => {
   const profileId = await getProfileIdByUsername(username);
@@ -215,18 +209,17 @@ export const updateProject = async (
       });
     }
 
-    // If payload includes removeMediaIds, delete project_media links and media rows
+    // If payload includes removeMediaIds, delete from S3 and media table
     if (payload?.removeMediaPayload && payload.removeMediaPayload.length > 0) {
       const ids = payload.removeMediaPayload.map((item) => item.id);
 
-      const publicIds = payload.removeMediaPayload.map(
-        (item) => getPublicIdFromUrl(item.url) as string
-      );
+      const deletePromises = payload.removeMediaPayload.map((item) => {
+        const key = getS3KeyFromUrl(item.url); // Extract key from S3 URL
+        return deleteFromS3(key);
+      });
 
-      await cloudinary.api.delete_resources(publicIds);
+      await Promise.allSettled(deletePromises);
       await db.transaction(async (tx) => {
-        //
-        // await tx.delete(projectMedia).where(inArray(projectMedia.mediaId, ids));
         await tx.delete(media).where(inArray(media.id, ids));
       });
     }

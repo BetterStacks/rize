@@ -1,22 +1,15 @@
 import { requireAuth } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { parseResumeContent } from '@/lib/resume-parser'
-// import { cleanupOldResumeFiles } from '@/actions/resume-actions'
-import { v2 as cloudinary, UploadApiOptions } from 'cloudinary'
 import { eq } from 'drizzle-orm'
 import db from '@/lib/db'
 import { users } from '@/db/schema'
-
-cloudinary.config({
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-})
+import { uploadToS3 } from '@/lib/s3'
 
 export async function POST(request: NextRequest) {
   try {
     const session = await requireAuth()
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -50,55 +43,48 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Convert file to base64 for Cloudinary upload
+    // Convert file to buffer for S3 upload
     const fileBuffer = await file.arrayBuffer()
-    const mimeType = file.type
-    const encoding = 'base64'
-    const base64Data = Buffer.from(fileBuffer).toString('base64')
-    const fileUri = 'data:' + mimeType + ';' + encoding + ',' + base64Data
+    const buffer = Buffer.from(fileBuffer)
 
-    // Upload file to Cloudinary
-    const uploadOptions: UploadApiOptions = {
-      folder: 'fyp-stacks/resumes',
-      resource_type: 'raw', // Important for non-image files like PDFs
-      public_id: `resume_${session.user.id}_${Date.now()}`,
-      overwrite: true,
-    }
-
-    let cloudinaryUpload
+    // Upload file to S3
+    let s3Upload
     try {
-      cloudinaryUpload = await cloudinary.uploader.upload(fileUri, uploadOptions)
-    } catch (cloudinaryError) {
-      console.error('Cloudinary upload error:', cloudinaryError)
-      return NextResponse.json(
-        { error: 'Failed to upload file to Cloudinary' },
-        { status: 500 }
-      )
-    }
-    
-    
-    if (!cloudinaryUpload || !cloudinaryUpload.secure_url) {
-      console.error('Cloudinary upload failed')
-      return NextResponse.json(
-        { error: 'Failed to upload file to Cloudinary' },
-        { status: 500 }
-      )
-    }
-    
-    await db.update(users)
-      .set({ 
-        resumeFileId: cloudinaryUpload.secure_url 
+      s3Upload = await uploadToS3(buffer, {
+        folder: 'fyp-stacks/resumes',
+        fileName: `resume_${session.user.id}_${Date.now()}.${file.name.split('.').pop()}`,
+        contentType: file.type,
       })
-    .where(eq(users.id, session.user.id))
+    } catch (s3Error) {
+      console.error('S3 upload error:', s3Error)
+      return NextResponse.json(
+        { error: 'Failed to upload file to S3' },
+        { status: 500 }
+      )
+    }
 
-    // Parse resume content using Letraz API
+    if (!s3Upload || !s3Upload.url) {
+      console.error('S3 upload failed')
+      return NextResponse.json(
+        { error: 'Failed to upload file to S3' },
+        { status: 500 }
+      )
+    }
+
+    await db.update(users)
+      .set({
+        resumeFileId: s3Upload.url
+      })
+      .where(eq(users.id, session.user.id))
+
+    // Parse resume content
     const extractedData = await parseResumeContent(file)
 
     return NextResponse.json({
       success: true,
-      fileUrl: cloudinaryUpload.secure_url,
+      fileUrl: s3Upload.url,
       fileName: file.name,
-      cloudinaryId: cloudinaryUpload.public_id,
+      s3Key: s3Upload.key,
       ...extractedData,
     })
 

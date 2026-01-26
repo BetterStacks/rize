@@ -78,7 +78,7 @@ export function ProfileCompletionWidget({
                             transition={{ duration: 0.2 }}
                             className="absolute bottom-full mb-2 right-0 w-full min-w-[400px] max-w-md"
                         >
-                            <div className="dark:bg-dark-bg bg-white border border-neutral-300 dark:border-dark-border shadow-2xl rounded-2xl overflow-hidden">
+                            <div className="dark:bg-dark-bg bg-white border border-neutral-200 dark:border-dark-border shadow-xl shadow-neutral-200/50 dark:shadow-none rounded-2xl overflow-hidden">
                                 {/* Expanded Header */}
                                 <div className="p-4 pb-3">
                                     <div className="flex items-start justify-between ">
@@ -141,7 +141,7 @@ export function ProfileCompletionWidget({
                                                             className={cn(
                                                                 'text-sm font-medium',
                                                                 task.completed
-                                                                    ? 'text-neutral-400 dark:text-neutral-500 line-through'
+                                                                    ? 'text-neutral-500 dark:text-neutral-500 line-through'
                                                                     : 'dark:text-white text-neutral-900'
                                                             )}
                                                         >

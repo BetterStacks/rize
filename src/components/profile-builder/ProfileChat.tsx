@@ -7,7 +7,7 @@ import { useChat } from '@ai-sdk/react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
-import { CheckIcon, ChevronDown, ChevronUp, Copy, PanelRight, Plus, RefreshCcw, Sparkles, Trash2, XIcon } from 'lucide-react';
+import { CheckIcon, ChevronDown, ChevronLeft, ChevronUp, Copy, PanelRight, Plus, RefreshCcw, Sparkles, Trash2, XIcon } from 'lucide-react';
 import { FormEvent, Fragment, useEffect, useRef, useState } from 'react';
 import { Conversation, ConversationContent, ConversationEmptyState } from '../ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '../ai-elements/message';
@@ -20,6 +20,7 @@ import { deleteEducation } from '@/actions/education-actions';
 import { deleteExperience } from '@/actions/experience-actions';
 import { deleteProject } from '@/actions/project-actions';
 import { Confirmation, ConfirmationAccepted, ConfirmationAction, ConfirmationActions, ConfirmationRejected, ConfirmationRequest } from '../ai-elements/confirmation';
+import { useActiveSidebarTab } from '@/lib/context';
 
 
 interface ProfileChatProps {
@@ -35,6 +36,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
     const [chatId, setChatId] = useState<string>(v4());
     const router = useRouter();
     const queryClient = useQueryClient();
+    const setActiveSidebarTab = useActiveSidebarTab()[1]
 
     const { messages, status, sendMessage, regenerate, addToolApprovalResponse } = useChat<ChatMessage>({
         id: chatId,
@@ -100,10 +102,6 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
 
         if (latestMessage.role !== 'assistant' || !latestMessage.parts) return;
 
-        // All profile tools that trigger a refetch:
-
-
-        const toolNames: string[] = ["tool-updateBasicInfo", "tool-addExperience", "tool-updateExperience", "tool-deleteExperience", "tool-addEducation", "tool-updateEducation", "tool-deleteEducation", "tool-addProject", "tool-updateProject", "tool-deleteProject", "tool-addStoryElement"];
         const completedTools = latestMessage.parts.filter(
             (part) =>
                 part.type.startsWith("tool-") &&
@@ -120,7 +118,6 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                 processedToolCalls.current.add(toolCallId);
 
                 const toolName = part.type.replace("tool-", "");
-                toolNames.push(toolName);
                 console.log(`[ProfileChat] Processing completed tool: ${toolName} (${toolCallId})`);
 
                 const lowerToolName = toolName.toLowerCase();
@@ -143,8 +140,6 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                 }
             });
 
-            console.log("Tools triggered:", toolNames);
-
             if (needsRefresh) {
                 router.refresh();
             }
@@ -157,10 +152,11 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                 <Button
                     size={'smallIcon'}
                     variant={'ghost'}
-                    onClick={toggleRightPanel}
+                    onClick={() => setActiveSidebarTab({ tab: "gallery" })}
                     className="rounded-md "
                 >
-                    <PanelRight className='size-4' />
+                    <ChevronLeft className='size-4' />
+                    {/* <PanelRight className='size-4' /> */}
                 </Button>
                 <Button
                     size={'smallIcon'}
@@ -190,7 +186,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                         className={cn(
                                             "rounded-xl font-inter",
                                             message.role === "user"
-                                                ? "bg-neutral-100 dark:bg-neutral-600 tracking-tight max-w-[85%] w-fit font-medium text-neutral-700 p-3"
+                                                ? "bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-0 tracking-tight max-w-[85%] w-fit font-medium text-neutral-800 dark:text-neutral-200 p-3"
                                                 : "border-none bg-transparent w-full max-w-full rounded-none"
                                         )}
                                     >
@@ -205,6 +201,16 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                         {message.parts.map((part, i) => {
                                             switch (part.type) {
                                                 case "text":
+                                                    if (part?.state === 'streaming') {
+                                                        return (
+                                                            <div key={`${message.id}-${i}`} className="flex flex-col gap-2 w-full">
+                                                                <div className='h-6 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:20] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
+                                                                <div className='h-6 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:20] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
+                                                                <div className='h-8 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:40] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
+                                                                <div className='h-24 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:40] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
+                                                            </div>
+                                                        )
+                                                    }
                                                     return (
                                                         <Fragment key={`${message.id}-${i}`}>
                                                             <MessageResponse>{part.text}</MessageResponse>
@@ -218,7 +224,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                                 <ChevronUp className="size-3 hidden group-open:block" />
                                                                 View AI Reasoning
                                                             </summary>
-                                                            <div className="mt-2 p-3 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs italic text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                                                            <div className="mt-2 p-3 bg-neutral-50/50 dark:bg-neutral-900/50 rounded-xl border border-neutral-200/60 dark:border-neutral-800 text-xs italic text-neutral-600 dark:text-neutral-400 leading-relaxed shadow-sm">
                                                                 {part.text}
                                                             </div>
                                                         </details>
@@ -297,7 +303,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                     return (
                                                         <div
                                                             key={`${message?.id}-tool-${i}`}
-                                                            className="flex items-center gap-2 p-2 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium"
+                                                            className="flex items-center gap-2 p-2 bg-indigo-50/30 dark:bg-indigo-900/10 rounded-xl border border-indigo-100/50 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium shadow-sm"
                                                         >
                                                             <Sparkles className="size-3" />
                                                             {(part as any)?.state === 'output-available'
@@ -325,7 +331,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                     return (
                                                         <div
                                                             key={`${message?.id}-tool-${i}`}
-                                                            className="flex items-center gap-2 p-2 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium"
+                                                            className="flex items-center gap-2 p-2 bg-indigo-50/30 dark:bg-indigo-900/10 rounded-xl border border-indigo-100/50 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium shadow-sm"
                                                         >
                                                             <Sparkles className="size-3" />
                                                             {(part as any)?.state === 'output-available'
@@ -369,16 +375,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                             )
                         })}
                         {status === "submitted" && (
-                            <div className={cn('flex w-[90%] flex-col gap-2 items-start justify-start', messages.length > 0 ? 'mt-4' : '')}>
-                                <div className='flex-row flex items-center justify-start gap-2'>
-
-                                    <Skeleton className='size-4 dark:bg-dark-border rounded-full' />
-                                    <Skeleton className='h-4 dark:bg-dark-border w-16 ' />
-                                </div>
-                                <Skeleton className='h-12 dark:bg-dark-border w-full' />
-                                <Skeleton className='h-12 dark:bg-dark-border w-full' />
-                                <Skeleton className='h-24 dark:bg-dark-border w-full' />
-                            </div>
+                            <MessageLoadingState notFreshChat={messages.length > 0} />
                         )}
                         <div ref={scrollRef} />
                     </div>
@@ -393,7 +390,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                         placeholder="Send a message..."
                         disabled={isLoading}
                         rows={1}
-                        className="flex-1 min-h-[44px] focus-visible:ring-0"
+                        className="flex-1 min-h-[44px] rounded-2xl focus-visible:ring-0"
                     />
                     <PromptInputFooter className="flex items-center justify-end h-[44px]">
                         <PromptInputSubmit
@@ -409,12 +406,24 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
     );
 }
 
-const MessageLoadingState = (msg: ChatMessage) => {
-    return (msg.role === "assistant" ? <div className='flex w-[75%] flex-col gap-2 items-start justify-start'>
-        <Skeleton className='h-24 w-full' />
-    </div> : <div className='flex w-[25%] flex-col gap-2 items-start justify-start'>
-        <Skeleton className='h-24 w-full' />
-    </div>)
+const MessageLoadingState = ({ notFreshChat }: { notFreshChat: boolean }) => {
+    return (
+        <div className={cn('flex shimmer-container w-full flex-col gap-2 items-start justify-start', notFreshChat ? 'mt-4' : '')}>
+            <div className='flex-row flex items-center justify-start gap-2'>
+                <div className='size-4 shimmer shimmer-bg [--shimmer-x:0] [--shimmer-y:0] animate-none dark:bg-dark-border rounded-full' />
+                <div className='h-4 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:0] dark:bg-dark-border w-16 ' />
+            </div>
+
+            <div className='w-full flex flex-col gap-2'>
+
+                <div className='h-6 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:20] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
+                <div className='h-8 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:40] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
+                <div className='h-8 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:40] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
+            </div>
+            <div className='h-24 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:60] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
+
+        </div>
+    )
 }
 
 {/* <div className="flex gap-2 mb-3">

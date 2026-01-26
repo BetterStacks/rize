@@ -1,58 +1,82 @@
 import { requireAuth } from '@/lib/auth'
-import { v2 as cloudinary, UploadApiOptions } from 'cloudinary'
 import { NextRequest } from 'next/server'
-
-cloudinary.config({
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-})
+import { uploadToS3 } from '@/lib/s3'
+import sharp from 'sharp'
 
 export async function POST(req: NextRequest) {
   try {
     const data = await req.formData()
     const type = data.get('type') as string
-    const file = data.getAll('file') as string[] // file
+    const files = data.getAll('file')
     const session = await requireAuth()
-    let options: UploadApiOptions = {}
     const results: string[] = []
 
-    if (!file || file.length === 0) {
+    if (!files || files.length === 0) {
       throw new Error('No file found')
     }
-    if (type === 'avatar') {
-      options = {
-        folder: 'fyp-stacks/avatar',
-        transformation: [{ radius: 'max' }],
-        overwrite: true,
-        public_id: `${session?.user?.profileId}.avatar`,
+
+    const processFile = async (item: any) => {
+      let uploadResult;
+      let fileBuffer: Buffer;
+      let contentType: string;
+      let fileName: string;
+
+      if (item instanceof File) {
+        fileBuffer = Buffer.from(await item.arrayBuffer());
+        contentType = item.type;
+        fileName = item.name;
+      } else if (typeof item === 'string') {
+        const base64String = item.includes(',') ? item.split(',')[1] : item;
+        fileBuffer = Buffer.from(base64String, 'base64');
+        contentType = item.includes('data:') ? item.split(';')[0].split(':')[1] : 'image/png';
+        fileName = `file_${Date.now()}.png`;
+      } else {
+        throw new Error('Unsupported file format');
       }
-      const upload = await cloudinary.uploader.upload(file[0], options)
+
+      const options: any = {
+        folder: type === 'avatar' ? 'fyp-stacks/avatar' : 'fyp-stacks/gallery',
+      };
+
+      if (type === 'avatar') {
+        // Force filename to {profileId}_avatar.png and convert to PNG
+        fileName = `${session?.user?.profileId}_avatar.png`;
+        fileBuffer = await sharp(fileBuffer).png().toBuffer();
+        contentType = 'image/png';
+      } else {
+        fileName = `${Date.now()}_${fileName.replace(/\s+/g, '_')}`;
+      }
+
+      uploadResult = await uploadToS3(fileBuffer, {
+        ...options,
+        contentType,
+        fileName,
+      });
+
+      return uploadResult.url;
+    }
+
+    if (type === 'avatar') {
+      const url = await processFile(files[0]);
       return Response.json(
         {
           message: 'File uploaded successfully',
-          url: upload.secure_url,
+          url: url,
         },
         { status: 200 }
       )
-    } else if (type === 'gallery') {
-      options = {
-        folder: 'fyp-stacks/gallery',
-        resource_type: 'auto',
-      }
     }
 
-    const uploadFiles = Promise.allSettled(
-      file.map(async (f) => await cloudinary.uploader.upload(f, options))
-    );
+    const uploadFiles = await Promise.allSettled(files.map(processFile));
 
-    (await uploadFiles).map((result) => {
+    uploadFiles.forEach((result) => {
       if (result.status === 'fulfilled') {
-        results.push(result.value.secure_url)
+        results.push(result.value)
       } else {
-        console.log({ err: result.reason })
+        console.error('Upload error:', result.reason)
       }
     })
+
     return Response.json(
       {
         message: 'File uploaded successfully',
@@ -60,44 +84,11 @@ export async function POST(req: NextRequest) {
       },
       { status: 200 }
     )
-  } catch (error) {
+  } catch (error: any) {
+    console.error('S3 upload error:', error)
     return Response.json(
-      { message: 'Cloudinary upload failed', error: (error as Error).message },
+      { message: 'S3 upload failed', error: error.message },
       { status: 500 }
     )
   }
 }
-
-// const fileBuffer = await file.arrayBuffer();
-// const mimeType = file.type;
-// const encoding = "base64";
-// const base64Data = Buffer.from(fileBuffer).toString("base64");
-// const fileUri = "data:" + mimeType + ";" + encoding + "," + base64Data;
-// // console.log({ file, fileUri });
-// // const img = cloudinary.image(fileBuffer, {
-// //   transformation: { width: 200, height: 200, crop: "fill" },
-// // });
-// console.log({ img });
-// const upload = await cloudinary.uploader.upload(fileUri, {
-//   folder: "fyp-stacks",
-// });
-
-// // Upload with transformations
-// const result = await new Promise((resolve, reject) => {
-//   const uploadStream = cloudinary.uploader.upload_stream(
-//     {
-//       folder: "uploads", // Optional: Folder in Cloudinary
-//       transformation: [
-//         { width: 500, height: 500, crop: "fill" }, // Resize to 500x500 and crop
-//         { format: "png" }, // Convert to JPEG
-//         { quality: "auto" }, // Automatic quality
-//       ],
-//     },
-//     (error, result) => {
-//       if (error) reject(error);
-//       else resolve(result);
-//     }
-//   );
-
-//   uploadStream.end(buffer);
-// });
