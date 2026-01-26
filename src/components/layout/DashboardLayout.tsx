@@ -75,10 +75,10 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
     switch (variant) {
       case 'profile':
         return {
-          right: {
+          right: isMine ? {
             component: <RightSidebar className="w-full" />,
-            show: isMine && isDesktop,
-          }
+            show: isDesktop,
+          } : undefined
         }
       case 'explore':
         return {
@@ -106,10 +106,10 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
         }
       case 'writing':
         return {
-          right: {
+          right: isMine ? {
             component: <RightSidebar className="w-full" />,
-            show: isMine && isDesktop,
-          }
+            show: isDesktop,
+          } : undefined
         }
       default:
         return {}
@@ -234,8 +234,7 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
           </>
         )}
 
-        {/* Right Sidebar - Mobile Sheet */}
-        {finalSidebarConfig.right?.component && (
+        {finalSidebarConfig.right?.component && (isMine || variant === 'explore') && (
           <Sheet open={rightSidebarOpen} onOpenChange={setRightSidebarOpen}>
             <SheetContent className="max-w-[90%] sm:max-w-md md:max-w-lg w-full h-screen p-0 bg-white dark:bg-dark-border/80 border border-neutral-200 dark:border-dark-border/60 dark:bg-dark-bg">
               {finalSidebarConfig.right.component}

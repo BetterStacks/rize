@@ -2,8 +2,8 @@ import { google } from '@ai-sdk/google';
 import { streamText, convertToModelMessages, type UIMessage, stepCountIs, createUIMessageStream, createUIMessageStreamResponse } from 'ai';
 import { getServerSession } from '@/lib/auth';
 import db from '@/lib/db';
-import { profile, projects, experience, education, storyElements, socialLinks } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { profile, projects, experience, education, storyElements, socialLinks, media, galleryMedia, gallery } from '@/db/schema';
+import { eq, getTableColumns } from 'drizzle-orm';
 import { getProfileTools } from './tools';
 import { ChatMessage } from '@/lib/types';
 import { getSystemPrompt } from './prompt';
@@ -19,15 +19,13 @@ export async function POST(req: Request) {
 
   const { messages }: { messages: ChatMessage[]; } = await req.json();
 
-
-
   // Fetch user profile
   const userProfile = await db.query.profile.findFirst({
     where: eq(profile.userId, session.user.id),
   });
 
   // Fetch all profile-related data
-  const [userProjects, userExperience, userEducation, userStoryElements, userSocialLinks] = await Promise.all([
+  const [userProjects, userExperience, userEducation, userStoryElements, userSocialLinks, galleryItems] = await Promise.all([
     userProfile ? db.query.projects.findMany({
       where: eq(projects.profileId, userProfile.id),
     }) : [],
@@ -43,7 +41,18 @@ export async function POST(req: Request) {
     userProfile ? db.query.socialLinks.findMany({
       where: eq(socialLinks.profileId, userProfile.id),
     }) : [],
+    userProfile ? db
+      .select({
+        ...getTableColumns(media),
+        galleryMediaId: galleryMedia.id,
+      })
+      .from(gallery)
+      .innerJoin(galleryMedia, eq(gallery.id, galleryMedia.galleryId))
+      .innerJoin(media, eq(galleryMedia.mediaId, media.id))
+      .where(eq(gallery.profileId, userProfile.id)) : [],
   ]);
+
+  const userGallery = galleryItems as any[];
 
   // Determine if this is the first real interaction to show/hide greeting
   const assistantMessages = messages.filter(m => m.role === 'assistant');
@@ -56,6 +65,7 @@ export async function POST(req: Request) {
     userProjects: userProjects || [],
     userStoryElements: userStoryElements || [],
     userSocialLinks: userSocialLinks || [],
+    userGallery: userGallery || [],
     isFirstMessage
   });
 
@@ -64,7 +74,7 @@ export async function POST(req: Request) {
     system: systemPrompt,
     messages: await convertToModelMessages(messages),
     stopWhen: stepCountIs(5),
-    tools: getProfileTools(userProfile?.id, userProfile?.username || ''),
+    tools: getProfileTools(userProfile?.id, userProfile?.username || '', messages),
   });
 
 

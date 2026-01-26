@@ -61,7 +61,7 @@ export const addGalleryItem = async (payload: TUploadFilesResponse) => {
     .insert(media)
     .values({
       url: payload?.url,
-      type: isImageUrl(payload?.url) ? 'image' : 'video',
+      type: payload?.type || (isImageUrl(payload?.url) ? 'image' : 'video'),
       profileId,
       height: payload?.height,
       width: payload?.width,

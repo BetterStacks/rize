@@ -45,7 +45,13 @@ export async function uploadToS3(
         isPublic = true,
     } = options
 
-    const sanitizedFileName = sanitizeFileName(fileName)
+    const extension = getFileExtension(fileName, contentType)
+    let finalFileName = fileName
+    if (!fileName.includes('.') && extension !== 'bin') {
+        finalFileName = `${fileName}.${extension}`
+    }
+
+    const sanitizedFileName = sanitizeFileName(finalFileName)
     const key = folder ? `${folder}/${sanitizedFileName}` : sanitizedFileName
 
     // Detect dimensions
@@ -204,12 +210,17 @@ export function getFileExtension(fileName: string, contentType?: string): string
         'image/png': 'png',
         'image/gif': 'gif',
         'image/webp': 'webp',
+        'video/mp4': 'mp4',
+        'video/quicktime': 'mov',
+        'video/webm': 'webm',
+        'audio/mpeg': 'mp3',
+        'audio/wav': 'wav',
         'application/pdf': 'pdf',
         'application/msword': 'doc',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
     }
 
-    return contentType ? contentTypeMap[contentType] || 'bin' : 'bin'
+    return contentType ? contentTypeMap[contentType] || (contentType.split('/')[1] || 'bin') : 'bin'
 }
 
 /**

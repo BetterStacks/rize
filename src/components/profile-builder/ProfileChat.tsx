@@ -1,26 +1,28 @@
 'use client';
 
+import {
+    Attachment,
+    AttachmentPreview,
+    AttachmentRemove,
+    Attachments,
+} from '@/components/ai-elements/attachment';
 import { Button } from '@/components/ui/button';
+import { ProfileTask } from '@/hooks/useProfileCompletion';
+import { useActiveSidebarTab } from '@/lib/context';
+import { usePanel } from '@/lib/panel-context';
 import { ChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useChat } from '@ai-sdk/react';
-import { useParams, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
-import { CheckIcon, ChevronDown, ChevronLeft, ChevronUp, Copy, PanelRight, Plus, RefreshCcw, Sparkles, Trash2, XIcon } from 'lucide-react';
+import { DefaultChatTransport } from 'ai';
+import { CheckIcon, ChevronDown, ChevronLeft, ChevronUp, Copy, Plus, RefreshCcw, Sparkles, XIcon } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
 import { FormEvent, Fragment, useEffect, useRef, useState } from 'react';
+import { v4 } from 'uuid';
+import { Confirmation, ConfirmationAccepted, ConfirmationAction, ConfirmationActions, ConfirmationRejected, ConfirmationRequest } from '../ai-elements/confirmation';
 import { Conversation, ConversationContent, ConversationEmptyState } from '../ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '../ai-elements/message';
-import { PromptInput, PromptInputFooter, PromptInputMessage, PromptInputSubmit, PromptInputTextarea } from '../ai-elements/prompt-input';
-import { usePanel } from '@/lib/panel-context';
-import { ProfileTask } from '@/hooks/useProfileCompletion';
-import { v4 } from 'uuid';
-import { Skeleton } from '../ui/skeleton';
-import { deleteEducation } from '@/actions/education-actions';
-import { deleteExperience } from '@/actions/experience-actions';
-import { deleteProject } from '@/actions/project-actions';
-import { Confirmation, ConfirmationAccepted, ConfirmationAction, ConfirmationActions, ConfirmationRejected, ConfirmationRequest } from '../ai-elements/confirmation';
-import { useActiveSidebarTab } from '@/lib/context';
+import { PromptInput, PromptInputActionAddAttachments, PromptInputActionMenu, PromptInputActionMenuContent, PromptInputActionMenuTrigger, PromptInputFooter, PromptInputHeader, PromptInputMessage, PromptInputSubmit, PromptInputTextarea, usePromptInputAttachments } from '../ai-elements/prompt-input';
 
 
 interface ProfileChatProps {
@@ -91,6 +93,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
 
         await sendMessage({
             text: currentInput,
+            files: message.files
         });
     };
 
@@ -136,6 +139,9 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                     needsRefresh = true;
                 } else if (lowerToolName.includes("storyelement")) {
                     queryClient.invalidateQueries({ queryKey: ["my-story-elements"] });
+                    needsRefresh = true;
+                } else if (lowerToolName.includes("galleryitem")) {
+                    queryClient.invalidateQueries({ queryKey: ["get-gallery-items", username] });
                     needsRefresh = true;
                 }
             });
@@ -186,7 +192,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                         className={cn(
                                             "rounded-xl font-inter",
                                             message.role === "user"
-                                                ? "bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-0 tracking-tight max-w-[85%] w-fit font-medium text-neutral-800 dark:text-neutral-200 p-3"
+                                                ? "bg-neutral-50 dark:bg-neutral-800 tracking-tight max-w-[85%] w-fit font-medium text-neutral-800 dark:text-neutral-200 p-3"
                                                 : "border-none bg-transparent w-full max-w-full rounded-none"
                                         )}
                                     >
@@ -233,11 +239,14 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                 case "tool-deleteEducation":
                                                 case "tool-deleteExperience":
                                                 case "tool-deleteProject":
-                                                    if ((part as any).state === "approval-requested" || (part as any).state === "approval-responded") {
+                                                case "tool-deleteGalleryItem":
+                                                    if ((part).state === "approval-requested" || (part).state === "approval-responded") {
                                                         const isEducation = part.type === "tool-deleteEducation";
                                                         const isExperience = part.type === "tool-deleteExperience";
                                                         const isProject = part.type === "tool-deleteProject";
-                                                        const toolArgs = (part as any).input as any;
+                                                        const isGalleryItem = part.type === "tool-deleteGalleryItem";
+
+                                                        const toolArgs = part.input;
 
                                                         let itemName = "this item";
                                                         let itemType = "item";
@@ -251,6 +260,9 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                         } else if (isProject) {
                                                             itemName = toolArgs.name;
                                                             itemType = "project";
+                                                        } else if (isGalleryItem) {
+                                                            itemName = toolArgs.name;
+                                                            itemType = "gallery item";
                                                         }
 
                                                         return (
@@ -315,10 +327,6 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                     );
 
 
-
-
-
-
                                                 case "tool-addEducation":
                                                 case "tool-addExperience":
                                                 case "tool-addStoryElement":
@@ -327,6 +335,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                 case "tool-updateEducation":
                                                 case "tool-updateExperience":
                                                 case "tool-updateProject":
+                                                case "tool-addGalleryItem":
 
                                                     return (
                                                         <div
@@ -383,16 +392,25 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
             </Conversation>
             <div className='px-2 flex items-center justify-center pb-2'>
 
-                <PromptInput onSubmit={handleFormSubmit} className="w-full border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden">
+                <PromptInput multiple globalDrop onSubmit={handleFormSubmit} className="w-full border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden">
+                    <PromptInputHeader>
+                        <PromptInputAttachmentsDisplay />
+                    </PromptInputHeader>
                     <PromptInputTextarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Send a message..."
                         disabled={isLoading}
                         rows={1}
-                        className="flex-1 min-h-[44px] rounded-2xl focus-visible:ring-0"
+                        className="flex-1 min-h-[60px] rounded-2xl focus-visible:ring-0"
                     />
-                    <PromptInputFooter className="flex items-center justify-end h-[44px]">
+                    <PromptInputFooter className="flex items-center justify-between h-[44px]">
+                        <PromptInputActionMenu>
+                            <PromptInputActionMenuTrigger />
+                            <PromptInputActionMenuContent>
+                                <PromptInputActionAddAttachments />
+                            </PromptInputActionMenuContent>
+                        </PromptInputActionMenu>
                         <PromptInputSubmit
                             className="rounded-full h-8 w-8 p-0 disabled:bg-neutral-400"
                             disabled={isLoading || !input.trim()}
@@ -405,6 +423,30 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
         </div>
     );
 }
+
+
+const PromptInputAttachmentsDisplay = () => {
+    const attachments = usePromptInputAttachments();
+    if (attachments.files.length === 0) {
+        return null;
+    }
+    return (
+        <Attachments variant="inline">
+            {attachments.files.map((attachment) => (
+                <Attachment
+                    data={attachment}
+                    key={attachment.id}
+                    className='dark:border-neutral-700'
+                    onRemove={() => attachments.remove(attachment.id)}
+                >
+                    <AttachmentPreview />
+                    <span className="text-xs w-[60px] truncate">{attachment?.filename}</span>
+                    <AttachmentRemove />
+                </Attachment>
+            ))}
+        </Attachments>
+    );
+};
 
 const MessageLoadingState = ({ notFreshChat }: { notFreshChat: boolean }) => {
     return (

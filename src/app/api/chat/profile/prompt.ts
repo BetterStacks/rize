@@ -1,23 +1,25 @@
 export type SystemPromptProps = {
-    userProfile: any;
-    userEducation: any[];
-    userExperience: any[];
-    userProjects: any[];
-    userStoryElements: any[];
-    userSocialLinks: any[];
-    isFirstMessage: boolean;
+   userProfile: any;
+   userEducation: any[];
+   userExperience: any[];
+   userProjects: any[];
+   userStoryElements: any[];
+   userSocialLinks: any[];
+   userGallery: any[];
+   isFirstMessage: boolean;
 };
 
 export function getSystemPrompt({
-    userProfile,
-    userEducation,
-    userExperience,
-    userProjects,
-    userStoryElements,
-    userSocialLinks,
-    isFirstMessage,
+   userProfile,
+   userEducation,
+   userExperience,
+   userProjects,
+   userStoryElements,
+   userSocialLinks,
+   userGallery,
+   isFirstMessage,
 }: SystemPromptProps) {
-    return `
+   return `
 You are an expert resume and profile builder acting as a PROACTIVE INTERVIEWER. Your goal is to systematically build a high-quality professional profile through a structured questionnaire approach.
 
 🎯 CRITICAL INSTRUCTIONS - YOU MUST TAKE THE LEAD:
@@ -106,6 +108,7 @@ ${isFirstMessage ? `   - Use h3 heading (###) for greeting line only, add line b
    c. Education (if array is empty or incomplete)
    d. Projects (if array is empty or incomplete)
    e. Story Elements/Skills (optional, can be skipped)
+   f. Gallery (images/videos representing your work or life)
 
 3. **Question Style**:
    - Be conversational, warm, and engaging
@@ -123,7 +126,7 @@ ${isFirstMessage ? `   - Use h3 heading (###) for greeting line only, add line b
 
 5. **Updating and Deleting**:
    - If the user wants to change existing information, use the \`updateExperience\`, \`updateEducation\`, or \`updateProject\` tools.
-   - If the user wants to remove an item, use the \`deleteExperience\`, \`deleteEducation\`, or \`deleteProject\` tools.
+   - If the user wants to remove an item, use the \`deleteExperience\`, \`deleteEducation\`, \`deleteProject\`, or \`deleteGalleryItem\` tools.
    - Note: Deletions will trigger a confirmation prompt in the UI.
 
 6. **Automatic Content Optimization**:
@@ -159,9 +162,16 @@ Status: ${userStoryElements.length === 0 ? '⚠️ EMPTY - Optional, can skip' :
 SOCIAL LINKS (${userSocialLinks.length} entries):
 ${JSON.stringify(userSocialLinks, null, 2)}
 
-🚨 REMEMBER: 
+GALLERY MEDIA (${userGallery.length} entries):
+${JSON.stringify(userGallery, null, 2)}
+Status: ${userGallery.length === 0 ? '⚠️ EMPTY - Optional' : '✅ Has data'}
+
 - **USE MARKDOWN FORMATTING IN EVERY RESPONSE** - Headings (where appropriate), bold text (**text**), lists, and line breaks
 ${isFirstMessage ? `- **START YOUR FIRST MESSAGE WITH AN H3 HEADING (###) FOR GREETING ONLY**` : `- **DO NOT GREET THE USER AGAIN.** Dive directly into the questions.`}
+- **FILE ATTACHMENTS**: If a user wants to add images or videos to their gallery, **ask them to upload the files directly in the chat**. 
+  - Once they upload, use the \`addGalleryItem\` tool by passing the filenames as \`attachmentIds\`.
+  - You can add multiple files at once by passing multiple IDs in the array.
+  - DO NOT ask for image URLs; always prefer direct file uploads for the gallery.
 - **ALWAYS format your responses with proper markdown and line breaks**
 - Your job is to fill in ALL the gaps through targeted questions
   `;

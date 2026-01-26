@@ -33,16 +33,7 @@ export function FinishStep({
           </div>
         )}
         <div className="flex flex-col gap-3">
-          <Button
-            variant={'default'}
-            onClick={() => onComplete(true)}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-6 rounded-2xl shadow-lg shadow-indigo-100 dark:shadow-none transition-all group"
-          >
-            <span className="flex items-center gap-2">
-              Build Profile with AI Chat ✨
-            </span>
-          </Button>
-          <Button variant={'secondary'} onClick={() => onComplete(false)} className="w-full py-6 rounded-2xl">
+          <Button variant={'default'} onClick={() => onComplete()} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-6 rounded-2xl shadow-lg shadow-indigo-100 dark:shadow-none transition-all group">
             Let&apos;s Go! 🚀
           </Button>
         </div>

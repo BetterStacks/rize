@@ -16,7 +16,7 @@ import { BaseEditor, BaseRange, Descendant, Element, Range } from "slate";
 import { HistoryEditor } from "slate-history";
 import { ReactEditor } from "slate-react";
 import { Result } from "url-metadata";
-import { InferUITool, ToolUIPart, UIMessage } from "ai";
+import { InferUITool, ToolUIPart, UIMessage, UITools } from "ai";
 import { z } from "zod";
 import { ProfileTools } from "@/app/api/chat/profile/tools";
 
@@ -66,6 +66,7 @@ export type TUploadFilesResponse = {
   width: number;
   height: number;
   url: string;
+  type?: 'image' | 'video';
 };
 
 export type TPostMedia = {
@@ -536,6 +537,14 @@ export const deleteProjectSchema = z.object({
   name: z.string().optional(), // For UI display in confirmation
 });
 
+export const addGalleryItemSchema = z.object({
+  attachmentIds: z.array(z.string()).min(1).describe("An array of attachment IDs (filenames or identifiers) from the user's message to add to the gallery."),
+});
+
+export const deleteGalleryItemSchema = z.object({
+  id: z.string().describe("The UUID of the media item to delete"),
+});
+
 
 export type Tool<TArgs> = {
   args: TArgs;
@@ -554,4 +563,7 @@ export type Metadata = {
 // }>;
 
 
-export type ChatMessage = UIMessage<Metadata, never, ProfileTools>;
+export type ChatMessage<T extends UITools = any> = UIMessage<Metadata, never, T> & {
+  attachments?: any[];
+  experimental_attachments?: any[];
+};

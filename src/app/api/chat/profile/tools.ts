@@ -12,15 +12,21 @@ import {
     updateBasicInfoSchema,
     updateEducationSchema,
     updateExperienceSchema,
-    updateProjectSchema
+    updateProjectSchema,
+    addGalleryItemSchema,
+    deleteGalleryItemSchema,
+    ChatMessage,
+    TUploadFilesResponse
 } from '@/lib/types';
-import { InferUITools, ToolSet, tool } from 'ai';
+import { addGalleryItem, removeGalleryItem } from '@/actions/gallery-actions';
+import { uploadBase64ToS3 } from '@/lib/s3';
+import { FileUIPart, InferUITools, ToolSet, tool } from 'ai';
 import { and, eq } from 'drizzle-orm';
 import { revalidatePageOnClient } from '@/lib/server-actions';
 
 
 // Profile Tools Factory
-export const getProfileTools = (profileId: string | undefined, username: string) => {
+export const getProfileTools = (profileId: string | undefined, username: string, messages: ChatMessage[]) => {
     const profileTools = {
         updateBasicInfo: tool({
             description: 'Update the user basic profile information like bio, location, mission, etc.',
@@ -201,6 +207,66 @@ export const getProfileTools = (profileId: string | undefined, username: string)
                 await db.delete(projects)
                     .where(and(eq(projects.id, id), eq(projects.profileId, profileId)));
 
+                await revalidatePageOnClient(`/${username}`);
+                return { success: true };
+            },
+        }),
+        addGalleryItem: tool({
+            description: 'Add media items (images or videos) from the user message attachments to the user gallery.',
+            inputSchema: addGalleryItemSchema,
+            execute: async (args) => {
+                const lastMessage = messages.at(-1);
+                const attachments: FileUIPart[] = lastMessage?.parts.filter(p => p.type === 'file') || [];
+
+                if (!attachments || attachments.length === 0) return { success: false, error: 'No attachments found', output: [] };
+                const results = [];
+
+                for (const attachment of attachments) {
+
+                    if (attachment && attachment.url) {
+                        try {
+                            let finalUrl = attachment.url;
+                            let finalWidth = 500;
+                            let finalHeight = 500;
+
+                            // If it's a data URL, upload to S3
+                            if (attachment.url.startsWith('data:')) {
+                                const uploadResult = await uploadBase64ToS3(attachment.url, {
+                                    folder: 'gallery',
+                                    contentType: attachment.mediaType
+                                });
+                                finalUrl = uploadResult.url;
+                                finalWidth = uploadResult.width || 500;
+                                finalHeight = uploadResult.height || 500;
+                            }
+
+                            const payload: TUploadFilesResponse = {
+                                url: finalUrl,
+                                width: finalWidth,
+                                height: finalHeight,
+                                type: attachment.mediaType?.startsWith('video') ? 'video' : 'image',
+                            };
+                            await addGalleryItem(payload);
+                            results.push({ id: attachments.indexOf(attachment), data: payload, success: true, error: null });
+                        } catch (error) {
+                            console.error(`Failed to process attachment ${attachments.indexOf(attachment)}:`, error);
+                            results.push({ id: attachments.indexOf(attachment), data: null, success: false, error: 'Upload failed' });
+                        }
+                    } else {
+                        results.push({ id: attachments.indexOf(attachment), data: null, success: false, error: 'Attachment not found' });
+                    }
+                }
+
+                await revalidatePageOnClient(`/${username}`);
+                return { success: true, output: results, error: null };
+            },
+        }),
+        deleteGalleryItem: tool({
+            description: 'Delete a media item from the user gallery.',
+            inputSchema: deleteGalleryItemSchema,
+            needsApproval: true,
+            execute: async ({ id }) => {
+                await removeGalleryItem(id);
                 await revalidatePageOnClient(`/${username}`);
                 return { success: true };
             },
