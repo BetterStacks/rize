@@ -262,13 +262,15 @@ export const getProfileTools = (profileId: string | undefined, username: string,
             },
         }),
         deleteGalleryItem: tool({
-            description: 'Delete a media item from the user gallery.',
+            description: 'Delete one or more media items from the user gallery.',
             inputSchema: deleteGalleryItemSchema,
             needsApproval: true,
-            execute: async ({ id }) => {
-                await removeGalleryItem(id);
+            execute: async ({ ids }) => {
+                for (const id of ids) {
+                    await removeGalleryItem(id);
+                }
                 await revalidatePageOnClient(`/${username}`);
-                return { success: true };
+                return { success: true, count: ids.length };
             },
         }),
 

@@ -542,7 +542,7 @@ export const addGalleryItemSchema = z.object({
 });
 
 export const deleteGalleryItemSchema = z.object({
-  id: z.string().describe("The UUID of the media item to delete"),
+  ids: z.array(z.string()).describe("The UUIDs of the media items to delete"),
 });
 
 

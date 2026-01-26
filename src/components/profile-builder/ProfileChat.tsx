@@ -261,8 +261,9 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                             itemName = toolArgs.name;
                                                             itemType = "project";
                                                         } else if (isGalleryItem) {
-                                                            itemName = toolArgs.name;
-                                                            itemType = "gallery item";
+                                                            const count = toolArgs.ids?.length || 0;
+                                                            itemName = count > 1 ? `${count} items` : "1 item";
+                                                            itemType = "gallery";
                                                         }
 
                                                         return (
