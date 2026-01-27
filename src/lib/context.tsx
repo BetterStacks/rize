@@ -45,7 +45,7 @@ const Context = ({ children }: { children: ReactNode }) => {
     tab: string;
   }>({
     id: null,
-    tab: 'chat',
+    tab: 'gallery',
   })
 
   return (

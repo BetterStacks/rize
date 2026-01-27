@@ -79,11 +79,6 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
         }
     }, [messages]);
 
-    const onSkip = () => {
-        sendMessage({
-            text: 'Skip this question for now.',
-        });
-    };
 
     const handleFormSubmit = async (message: PromptInputMessage, event: FormEvent<HTMLFormElement>) => {
         if (!message?.text.trim() || isLoading) return;
