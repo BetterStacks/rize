@@ -1,10 +1,5 @@
 "use client";
 import { getProfileByUsername } from "@/actions/profile-actions";
-import { getSocialLinks } from '@/actions/social-links-actions';
-import { useProfileCompletion } from '@/hooks/useProfileCompletion';
-import { useEnrichedSession } from "@/lib/auth-client";
-import { useActiveSidebarTab } from '@/lib/context';
-import { usePanel } from "@/lib/panel-context";
 import { useSections } from "@/lib/section-context";
 import {
   GalleryItemProps,
@@ -15,24 +10,40 @@ import {
   TEducation,
   TExperience,
   TStoryElement,
-} from '@/lib/types';
-import { capitalizeFirstLetter } from '@/lib/utils';
+} from '@/lib/types'
+import { capitalizeFirstLetter } from '@/lib/utils'
+import { useQueries, useQuery } from '@tanstack/react-query'
+import { useParams } from 'next/navigation'
+import React, { useMemo, useState } from 'react'
+import Education from '../education/education'
+import WorkExperience from '../experience/experience'
+import Gallery from '../gallery/gallery'
+import PostSection from '../posts-section'
+import Projects from '../projects/projects'
+import { Separator } from '../ui/separator'
+import Writings from '../writings/writings'
+import Profile from './profile'
+import SocialLinks from './social-links'
+import BottomBanner from '../bottom-banner'
+import { StoryElementsDisplay } from '../story/story-elements-display'
+import { useSession } from '@/hooks/useAuth'
+import ResumeRoaster from './ResumeRoaster'
+import { ProfileCompletionWidget } from './ProfileCompletionWidget'
+import { useProfileCompletion } from '@/hooks/useProfileCompletion'
+import { getSocialLinks } from '@/actions/social-links-actions'
+import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
+import { usePanel } from "@/lib/panel-context";
+import { useEnrichedSession } from "@/lib/auth-client";
+import { getGalleryItems } from "@/actions/gallery-actions";
+import { getAllPages } from "@/actions/page-actions";
+import { getAllProjects } from "@/actions/project-actions";
+import { getAllEducation } from "@/actions/education-actions";
+import { getAllExperience } from "@/actions/experience-actions";
+import { getUserPosts } from "@/actions/post-actions";
+import { getStoryElementsByUsername } from "@/actions/story-actions";
+import { getSections } from "@/actions/general-actions";
+import { profileSections } from "@/db/schema";
 import { useLocalStorage } from "@mantine/hooks";
-import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'next/navigation';
-import React, { useMemo } from 'react';
-import BottomBanner from '../bottom-banner';
-import Education from '../education/education';
-import WorkExperience from '../experience/experience';
-import Gallery from '../gallery/gallery';
-import PostSection from '../posts-section';
-import Projects from '../projects/projects';
-import { Separator } from '../ui/separator';
-import Writings from '../writings/writings';
-import Profile from './profile';
-import { ProfileCompletionWidget } from './ProfileCompletionWidget';
-import ResumeRoaster from './ResumeRoaster';
-import SocialLinks from './social-links';
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -96,6 +107,7 @@ const UserProfile = ({
     socialLinks,
     onOpenChat: () => {
       setActiveSidebarTab({ id: null, tab: 'chat' })
+      toggleRightPanel()
     }
   })
 

@@ -1,12 +1,12 @@
 'use client'
 
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronDown, CheckCircle2, Circle, ArrowRight, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { usePanel } from '@/lib/panel-context'
 import { cn } from '@/lib/utils'
-import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, Check, ChevronDown } from 'lucide-react'
-import { useState } from 'react'
+import { usePanel } from '@/lib/panel-context'
 
 interface ProfileTask {
     id: string
