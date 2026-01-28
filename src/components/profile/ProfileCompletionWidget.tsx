@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, CheckCircle2, Circle, ArrowRight, Check } from 'lucide-react'
+import { ChevronDown, CheckCircle2, Circle, ArrowRight, Check, MessageSquareText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import { usePanel } from '@/lib/panel-context'
+import { useActiveSidebarTab } from '@/lib/context'
 
 interface ProfileTask {
     id: string
@@ -31,17 +32,27 @@ export function ProfileCompletionWidget({
 }: ProfileCompletionWidgetProps) {
     const [isExpanded, setIsExpanded] = useState(false)
     const [isDismissed, setIsDismissed] = useState(false)
-    const { isRightPanelExpanded } = usePanel()
+    const { isRightPanelExpanded, toggleRightPanel, rightPanelRef } = usePanel()
+    const [, setActiveSidebarTab] = useActiveSidebarTab()
+
     const completedCount = tasks.filter(task => task.completed).length
     const totalCount = tasks.length
-    const progress = (completedCount / totalCount) * 100
+    const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
+    const isAllCompleted = totalCount > 0 && completedCount === totalCount
 
-    // Determine the stage based on basic info completion
-    const stage = completedCount > 0 ? 'Complete Profile' : 'Get Started'
+    // Determine the stage based on completion
+    const stage = isAllCompleted ? 'Ask AI' : (completedCount > 0 ? 'Complete Profile' : 'Get Started')
 
     const handleDismiss = () => {
         setIsDismissed(true)
         onDismiss?.()
+    }
+
+    const handleAskAI = () => {
+        setActiveSidebarTab({ id: null, tab: 'chat' })
+        if (rightPanelRef?.current?.isCollapsed()) {
+            toggleRightPanel()
+        }
     }
 
     if (isDismissed) return null
@@ -70,7 +81,7 @@ export function ProfileCompletionWidget({
             <div className="relative">
                 {/* Expanded Content - Renders on top */}
                 <AnimatePresence>
-                    {isExpanded && (
+                    {isExpanded && !isAllCompleted && (
                         <motion.div
                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -130,9 +141,9 @@ export function ProfileCompletionWidget({
                                                 )}
                                             >
                                                 <div className="flex items-center gap-3 flex-1">
-                                                    <div className={cn('size-5 rounded-full flex items-center justify-center', task.completed ? "bg-green-500" : " border border-neutral-200 dark:border-dark-border ")}>
+                                                    <div className={cn('size-5 rounded-full flex items-center justify-center', task.completed ? "bg-neutral-900 dark:bg-white" : " border border-neutral-200 dark:border-dark-border ")}>
                                                         {task.completed && (
-                                                            <Check strokeWidth={2.4} className="size-3 stroke-white flex-shrink-0" />
+                                                            <Check strokeWidth={2.4} className="size-3 stroke-white dark:stroke-black flex-shrink-0" />
 
                                                         )}
                                                     </div>
@@ -171,7 +182,7 @@ export function ProfileCompletionWidget({
                                     <Progress
                                         value={progress}
                                         className="h-2"
-                                        indicatorClassName="bg-green-500 dark:bg-green-500"
+                                        indicatorClassName="bg-neutral-900 dark:bg-white"
                                     />
                                 </div>
                             </div>
@@ -182,35 +193,46 @@ export function ProfileCompletionWidget({
                 {/* Collapsed Button - Always visible */}
                 <motion.button
                     layout
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="px-3 py-2 flex items-center gap-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors dark:bg-dark-bg bg-white border border-neutral-300 dark:border-dark-border shadow-2xl rounded-full"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={isAllCompleted ? handleAskAI : () => setIsExpanded(!isExpanded)}
+                    className={cn(
+                        "px-4 py-2.5 flex items-center gap-3 transition-all duration-300 dark:bg-dark-bg bg-white border shadow-2xl rounded-full",
+                        isAllCompleted
+                            ? "border-neutral-200 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+                            : "border-neutral-300 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+                    )}
                 >
                     <div className="flex items-center gap-3">
-                        <div className="relative size-5">
-                            {/* Circular progress background */}
-                            <svg className="size-5 transform -rotate-90">
-                                <circle
-                                    cx="10"
-                                    cy="10"
-                                    r="8"
-                                    strokeWidth="3"
-                                    fill="none"
-                                    className="text-neutral-200 dark:stroke-neutral-600 dark:text-neutral-800"
-                                />
-                                <circle
-                                    cx="10"
-                                    cy="10"
-                                    r="8"
-                                    stroke="#22c55e"
-                                    strokeWidth="3"
-                                    fill="none"
-                                    strokeDasharray={`${2 * Math.PI * 8}`}
-                                    strokeDashoffset={`${2 * Math.PI * 8 * (1 - progress / 100)}`}
-                                    className="transition-all duration-500"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                        </div>
+                        {isAllCompleted ? (
+                            <MessageSquareText className="size-5 text-neutral-900 dark:text-white" />
+                        ) : (
+                            <div className="relative size-5">
+                                {/* Circular progress background */}
+                                <svg className="size-5 transform -rotate-90">
+                                    <circle
+                                        cx="10"
+                                        cy="10"
+                                        r="8"
+                                        strokeWidth="3"
+                                        fill="none"
+                                        className="text-neutral-200 dark:stroke-neutral-600 dark:text-neutral-800"
+                                    />
+                                    <circle
+                                        cx="10"
+                                        cy="10"
+                                        r="8"
+                                        stroke="currentColor"
+                                        strokeWidth="3"
+                                        fill="none"
+                                        strokeDasharray={`${2 * Math.PI * 8}`}
+                                        strokeDashoffset={`${2 * Math.PI * 8 * (1 - progress / 100)}`}
+                                        className="transition-all duration-500 text-neutral-900 dark:text-white"
+                                        strokeLinecap="round"
+                                    />
+                                </svg>
+                            </div>
+                        )}
                         <span className="text-sm font-medium mr-2 dark:text-white text-neutral-900">{stage}</span>
                     </div>
                 </motion.button>

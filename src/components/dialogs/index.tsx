@@ -6,6 +6,7 @@ import PostForm from '../explore/post-form'
 import SearchDialog from './SearchDialog'
 import AuthDialog from './SignInDialog'
 import { ProfileUpdateDialog } from './UpdateProfileDialog'
+import { AIDialogPrompt } from './AIDialogPrompt'
 
 const Dialogs = () => {
   return (
@@ -14,6 +15,7 @@ const Dialogs = () => {
       <SearchDialog />
       <PostForm />
       <AuthDialog />
+      <AIDialogPrompt />
       {/* <ExperienceDialog /> */}
       {/* <PostDialog /> */}
     </>

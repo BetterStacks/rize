@@ -48,11 +48,7 @@ const SettingsLayoutInner = ({ children }: SettingsLayoutProps) => {
 }
 
 const SettingsLayout = ({ children }: SettingsLayoutProps) => {
-  return (
-    <PanelProvider>
-      <SettingsLayoutInner>{children}</SettingsLayoutInner>
-    </PanelProvider>
-  )
+  return <SettingsLayoutInner>{children}</SettingsLayoutInner>
 }
 
 export default SettingsLayout

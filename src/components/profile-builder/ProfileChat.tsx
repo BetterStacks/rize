@@ -139,6 +139,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                     needsRefresh = true;
                 } else if (lowerToolName.includes("storyelement")) {
                     queryClient.invalidateQueries({ queryKey: ["my-story-elements"] });
+                    queryClient.invalidateQueries({ queryKey: ["get-story-elements", username] });
                     needsRefresh = true;
                 } else if (lowerToolName.includes("galleryitem")) {
                     queryClient.invalidateQueries({ queryKey: ["get-gallery-items", username] });

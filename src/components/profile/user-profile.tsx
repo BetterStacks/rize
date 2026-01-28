@@ -44,6 +44,8 @@ import { getStoryElementsByUsername } from "@/actions/story-actions";
 import { getSections } from "@/actions/general-actions";
 import { profileSections } from "@/db/schema";
 import { useLocalStorage } from "@mantine/hooks";
+import { useAIPromptDialog } from "@/components/dialog-provider";
+import { useEffect } from "react";
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -71,7 +73,7 @@ const UserProfile = ({
   const params = useParams<{ username: string }>();
   const session = useEnrichedSession();
   const [, setActiveSidebarTab] = useActiveSidebarTab();
-  const { toggleRightPanel } = usePanel()
+  const { toggleRightPanel, rightPanelRef } = usePanel()
 
 
   const { data: profileData, isLoading } = useQuery({
@@ -95,21 +97,67 @@ const UserProfile = ({
   })
 
 
+  const { data: educationData } = useQuery({
+    queryKey: ['get-education', params.username],
+    queryFn: () => getAllEducation(params.username),
+    initialData: education,
+    enabled: !!params.username,
+  });
+
+  const { data: experienceData } = useQuery({
+    queryKey: ['get-all-experience', params.username],
+    queryFn: () => getAllExperience(params.username),
+    initialData: workExperience,
+    enabled: !!params.username,
+  });
+
+  const { data: projectsData } = useQuery({
+    queryKey: ['get-projects', params.username],
+    queryFn: () => getAllProjects(params.username),
+    initialData: projects,
+    enabled: !!params.username,
+  });
+
+  const { data: storyElementsData } = useQuery({
+    queryKey: ['get-story-elements', params.username],
+    queryFn: () => getStoryElementsByUsername(params.username),
+    initialData: { success: true, data: storyElements },
+    enabled: !!params.username,
+  });
+
   const { tasks, isComplete, hasBasicInfo } = useProfileCompletion({
-    profile: data,
+    profile: profileData || data,
     gallery,
     writings,
-    projects,
-    education,
-    workExperience,
+    projects: projectsData || projects,
+    education: educationData || education,
+    workExperience: experienceData || workExperience,
     posts,
-    storyElements: storyElements,
+    storyElements: (storyElementsData?.success ? storyElementsData.data : storyElements) as TStoryElement[],
     socialLinks,
     onOpenChat: () => {
       setActiveSidebarTab({ id: null, tab: 'chat' })
-      toggleRightPanel()
+      if (rightPanelRef?.current?.isCollapsed()) {
+        toggleRightPanel()
+      }
     }
   })
+
+  const [isAIPromptDismissed] = useLocalStorage<boolean>({
+    key: 'ai-prompt-dismissed',
+    defaultValue: false,
+  })
+
+  const [, setIsAIPromptDialogOpen] = useAIPromptDialog()
+
+  useEffect(() => {
+    if (isMine && !isComplete && !isAIPromptDismissed && !isLoading) {
+      const timer = setTimeout(() => {
+        setIsAIPromptDialogOpen(true)
+      }, 2000) // Show after 2 seconds
+      return () => clearTimeout(timer)
+    }
+  }, [isMine, isComplete, isAIPromptDismissed, isLoading, setIsAIPromptDialogOpen])
 
   const handleDismissWidget = () => {
     setIsWidgetDismissed(true)
@@ -132,20 +180,20 @@ const UserProfile = ({
       component: <Writings writings={writings} isMine={isMine} />,
     },
     projects: {
-      enabled: isMine ? true : projects?.length > 0,
-      hasData: projects?.length > 0,
-      component: <Projects projects={projects} isMine={isMine} />,
+      enabled: isMine ? true : (projectsData?.length ?? 0) > 0,
+      hasData: (projectsData?.length ?? 0) > 0,
+      component: <Projects projects={projectsData || projects} isMine={isMine} />,
     },
     education: {
-      enabled: isMine ? true : education?.length > 0,
-      hasData: education?.length > 0,
-      component: <Education education={education} isMine={isMine} />,
+      enabled: isMine ? true : (educationData?.length ?? 0) > 0,
+      hasData: (educationData?.length ?? 0) > 0,
+      component: <Education education={educationData || education} isMine={isMine} />,
     },
     experience: {
-      enabled: isMine ? true : workExperience?.length > 0,
-      hasData: workExperience?.length > 0,
+      enabled: isMine ? true : (experienceData?.length ?? 0) > 0,
+      hasData: (experienceData?.length ?? 0) > 0,
       component: (
-        <WorkExperience workExperience={workExperience} isMine={isMine} />
+        <WorkExperience workExperience={experienceData || workExperience} isMine={isMine} />
       ),
     },
   };
@@ -182,9 +230,9 @@ const UserProfile = ({
     gallery,
     posts,
     writings,
-    projects,
-    education,
-    workExperience,
+    projectsData,
+    educationData,
+    experienceData,
   ]);
 
   const areAllSectionsDisabled = filteredSections.every(
@@ -238,7 +286,7 @@ const UserProfile = ({
       {!session?.data && !session?.isPending && <BottomBanner />}
 
       {/* Profile Completion Widget - Only show for own profile */}
-      {isMine && !isComplete && !isWidgetDismissed && (
+      {isMine && !isWidgetDismissed && (
         <ProfileCompletionWidget
           tasks={tasks}
           onDismiss={handleDismissWidget}

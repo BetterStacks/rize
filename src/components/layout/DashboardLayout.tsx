@@ -247,11 +247,7 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
 }
 
 const DashboardLayout: FC<DashboardLayoutProps> = (props) => {
-  return (
-    <PanelProvider>
-      <DashboardLayoutInner {...props} />
-    </PanelProvider>
-  )
+  return <DashboardLayoutInner {...props} />
 }
 
 export default DashboardLayout

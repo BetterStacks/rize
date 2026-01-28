@@ -7,6 +7,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { ReactNode } from 'react'
 import { Toaster } from 'react-hot-toast'
 import Context from './context'
+import { PanelProvider } from './panel-context'
 
 export const queryClient = new QueryClient()
 
@@ -15,17 +16,19 @@ const Providers = ({ children }: { children: ReactNode }) => {
     <>
       <NuqsAdapter>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider 
-            attribute={'class'} 
+          <ThemeProvider
+            attribute={'class'}
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
             <Context>
-              <DialogContextProvider>
-                <Toaster position="top-right" />
-                {children}
-              </DialogContextProvider>
+              <PanelProvider>
+                <DialogContextProvider>
+                  <Toaster position="top-right" />
+                  {children}
+                </DialogContextProvider>
+              </PanelProvider>
             </Context>
           </ThemeProvider>
         </QueryClientProvider>
