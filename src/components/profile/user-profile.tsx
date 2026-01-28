@@ -9,11 +9,12 @@ import {
   GetProfileByUsername,
   TEducation,
   TExperience,
+  TStoryElement,
 } from '@/lib/types'
 import { capitalizeFirstLetter } from '@/lib/utils'
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import Education from '../education/education'
 import WorkExperience from '../experience/experience'
 import Gallery from '../gallery/gallery'
@@ -27,18 +28,24 @@ import BottomBanner from '../bottom-banner'
 import { StoryElementsDisplay } from '../story/story-elements-display'
 import { useSession } from '@/hooks/useAuth'
 import ResumeRoaster from './ResumeRoaster'
-
-type StoryElement = {
-  id: string;
-  profileId: string;
-  type: "mission" | "value" | "milestone" | "dream" | "superpower";
-  title: string;
-  content: string;
-  order: number;
-  isPublic: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import { ProfileCompletionWidget } from './ProfileCompletionWidget'
+import { useProfileCompletion } from '@/hooks/useProfileCompletion'
+import { getSocialLinks } from '@/actions/social-links-actions'
+import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
+import { usePanel } from "@/lib/panel-context";
+import { useEnrichedSession } from "@/lib/auth-client";
+import { getGalleryItems } from "@/actions/gallery-actions";
+import { getAllPages } from "@/actions/page-actions";
+import { getAllProjects } from "@/actions/project-actions";
+import { getAllEducation } from "@/actions/education-actions";
+import { getAllExperience } from "@/actions/experience-actions";
+import { getUserPosts } from "@/actions/post-actions";
+import { getStoryElementsByUsername } from "@/actions/story-actions";
+import { getSections } from "@/actions/general-actions";
+import { profileSections } from "@/db/schema";
+import { useLocalStorage } from "@mantine/hooks";
+import { useAIPromptDialog } from "@/components/dialog-provider";
+import { useEffect } from "react";
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -49,7 +56,7 @@ type UserProfileProps = {
   education: TEducation[];
   workExperience: TExperience[];
   posts: GetExplorePosts[];
-  storyElements: StoryElement[];
+  storyElements: TStoryElement[];
 };
 
 const UserProfile = ({
@@ -64,13 +71,97 @@ const UserProfile = ({
   storyElements,
 }: UserProfileProps) => {
   const params = useParams<{ username: string }>();
-  const session = useSession();
+  const session = useEnrichedSession();
+  const [, setActiveSidebarTab] = useActiveSidebarTab();
+  const { toggleRightPanel, rightPanelRef } = usePanel()
+
+
   const { data: profileData, isLoading } = useQuery({
-    queryKey: ["get-profile-by-username", params.username],
-    initialData: data,
+    queryKey: ['get-profile', params.username],
     queryFn: () => getProfileByUsername(params.username),
+    enabled: !!params.username,
+  })
+
+  const { data: socialLinks = [] } = useQuery({
+    queryKey: ['get-social-links', params.username],
+    queryFn: () => getSocialLinks(params.username),
+    enabled: !!params.username,
   });
+
   const { sections } = useSections();
+
+  // Profile completion tracking
+  const [isWidgetDismissed, setIsWidgetDismissed] = useLocalStorage<boolean>({
+    key: 'profile-completion-dismissed',
+    defaultValue: false,
+  })
+
+
+  const { data: educationData } = useQuery({
+    queryKey: ['get-education', params.username],
+    queryFn: () => getAllEducation(params.username),
+    initialData: education,
+    enabled: !!params.username,
+  });
+
+  const { data: experienceData } = useQuery({
+    queryKey: ['get-all-experience', params.username],
+    queryFn: () => getAllExperience(params.username),
+    initialData: workExperience,
+    enabled: !!params.username,
+  });
+
+  const { data: projectsData } = useQuery({
+    queryKey: ['get-projects', params.username],
+    queryFn: () => getAllProjects(params.username),
+    initialData: projects,
+    enabled: !!params.username,
+  });
+
+  const { data: storyElementsData } = useQuery({
+    queryKey: ['get-story-elements', params.username],
+    queryFn: () => getStoryElementsByUsername(params.username),
+    initialData: { success: true, data: storyElements },
+    enabled: !!params.username,
+  });
+
+  const { tasks, isComplete, hasBasicInfo } = useProfileCompletion({
+    profile: profileData || data,
+    gallery,
+    writings,
+    projects: projectsData || projects,
+    education: educationData || education,
+    workExperience: experienceData || workExperience,
+    posts,
+    storyElements: (storyElementsData?.success ? storyElementsData.data : storyElements) as TStoryElement[],
+    socialLinks,
+    onOpenChat: () => {
+      setActiveSidebarTab({ id: null, tab: 'chat' })
+      if (rightPanelRef?.current?.isCollapsed()) {
+        toggleRightPanel()
+      }
+    }
+  })
+
+  const [isAIPromptDismissed] = useLocalStorage<boolean>({
+    key: 'ai-prompt-dismissed',
+    defaultValue: false,
+  })
+
+  const [, setIsAIPromptDialogOpen] = useAIPromptDialog()
+
+  useEffect(() => {
+    if (isMine && !isComplete && !isAIPromptDismissed && !isLoading) {
+      const timer = setTimeout(() => {
+        setIsAIPromptDialogOpen(true)
+      }, 2000) // Show after 2 seconds
+      return () => clearTimeout(timer)
+    }
+  }, [isMine, isComplete, isAIPromptDismissed, isLoading, setIsAIPromptDialogOpen])
+
+  const handleDismissWidget = () => {
+    setIsWidgetDismissed(true)
+  }
 
   const sectionMap = {
     gallery: {
@@ -89,20 +180,20 @@ const UserProfile = ({
       component: <Writings writings={writings} isMine={isMine} />,
     },
     projects: {
-      enabled: isMine ? true : projects?.length > 0,
-      hasData: projects?.length > 0,
-      component: <Projects projects={projects} isMine={isMine} />,
+      enabled: isMine ? true : (projectsData?.length ?? 0) > 0,
+      hasData: (projectsData?.length ?? 0) > 0,
+      component: <Projects projects={projectsData || projects} isMine={isMine} />,
     },
     education: {
-      enabled: isMine ? true : education?.length > 0,
-      hasData: education?.length > 0,
-      component: <Education education={education} isMine={isMine} />,
+      enabled: isMine ? true : (educationData?.length ?? 0) > 0,
+      hasData: (educationData?.length ?? 0) > 0,
+      component: <Education education={educationData || education} isMine={isMine} />,
     },
     experience: {
-      enabled: isMine ? true : workExperience?.length > 0,
-      hasData: workExperience?.length > 0,
+      enabled: isMine ? true : (experienceData?.length ?? 0) > 0,
+      hasData: (experienceData?.length ?? 0) > 0,
       component: (
-        <WorkExperience workExperience={workExperience} isMine={isMine} />
+        <WorkExperience workExperience={experienceData || workExperience} isMine={isMine} />
       ),
     },
   };
@@ -139,9 +230,9 @@ const UserProfile = ({
     gallery,
     posts,
     writings,
-    projects,
-    education,
-    workExperience,
+    projectsData,
+    educationData,
+    experienceData,
   ]);
 
   const areAllSectionsDisabled = filteredSections.every(
@@ -149,10 +240,10 @@ const UserProfile = ({
   );
 
   return (
-    <div className="w-full flex flex-col items-center justify-start">
-      <Profile isMine={isMine} data={profileData} isLoading={isLoading} username={profileData?.username || params.username} />
+    <div className="w-full flex relative flex-col items-center justify-start">
+      <Profile isMine={isMine} data={profileData!} isLoading={isLoading} username={profileData?.username || params.username} />
       <SocialLinks isMine={isMine} />
-      
+
       {isMine && (
         <div className='w-full max-w-2xl'>
           <ResumeRoaster />
@@ -160,14 +251,14 @@ const UserProfile = ({
       )}
 
       {/* Story Elements Section */}
-      {storyElements && storyElements.length > 0 && (
+      {/* {storyElements && storyElements.length > 0 && (
         <>
           <div className="w-full mt-8 mb-6 max-w-2xl">
             <StoryElementsDisplay elements={storyElements} />
           </div>
           <Separator className="w-full max-w-2xl" />
         </>
-      )}
+      )} */}
 
       <Separator className="w-full mt-6 max-w-2xl" />
       {areAllSectionsDisabled && !isLoading && (
@@ -192,7 +283,16 @@ const UserProfile = ({
           </React.Fragment>
         ))}
 
-      {!session?.data && !session?.isLoading && <BottomBanner />}
+      {!session?.data && !session?.isPending && <BottomBanner />}
+
+      {/* Profile Completion Widget - Only show for own profile */}
+      {isMine && !isWidgetDismissed && (
+        <ProfileCompletionWidget
+          tasks={tasks}
+          onDismiss={handleDismissWidget}
+          hasBasicInfo={hasBasicInfo}
+        />
+      )}
     </div>
   );
 };

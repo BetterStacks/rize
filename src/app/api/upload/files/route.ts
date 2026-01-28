@@ -1,59 +1,43 @@
 import { TUploadFilesResponse } from "@/lib/types";
-import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { NextRequest } from "next/server";
-
-cloudinary.config({
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-});
+import { uploadToS3 } from "@/lib/s3";
 
 type UploadFilesWithTypeResponse = TUploadFilesResponse & { type: string };
 
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
-  const files = formData.getAll("files") as File[];
-  const folder = formData.get("folder") as string;
-  const results: UploadFilesWithTypeResponse[] = [];
-  for (const file of files) {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    try {
-      const result: UploadApiResponse = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder: folder, // Optional: specify a folder in Cloudinary
-            resource_type: "auto", // Automatically detect resource type
-          },
-          (error, result) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(result!);
-            }
-          }
-        );
+  try {
+    const formData = await req.formData();
+    const files = formData.getAll("files") as File[];
+    const folder = (formData.get("folder") as string) || "uploads";
+    const results: UploadFilesWithTypeResponse[] = [];
 
-        uploadStream.write(buffer);
-        uploadStream.end();
+    for (const file of files) {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      const uploadResult = await uploadToS3(buffer, {
+        folder: folder,
+        contentType: file.type,
+        fileName: `${Date.now()}_${file.name.replace(/\s+/g, '_')}`,
       });
 
       results.push({
-        width: result.width,
-        height: result.height,
-        url: result.secure_url,
-        type: result?.resource_type,
+        width: uploadResult.width || 0,
+        height: uploadResult.height || 0,
+        url: uploadResult.url,
+        type: file.type.startsWith("video") ? "video" : "image",
       });
-    } catch (uploadError) {
-      console.error("Error uploading ", uploadError);
-      return Response.json(
-        { success: false, data: null, error: uploadError },
-        { status: 500 }
-      );
     }
+
+    return Response.json(
+      { success: true, data: results, error: null },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("Error uploading to S3:", error);
+    return Response.json(
+      { success: false, data: null, error: error.message },
+      { status: 500 }
+    );
   }
-  return Response.json(
-    { success: true, data: results, error: null },
-    { status: 200 }
-  );
 }

@@ -27,7 +27,7 @@ const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
     queryKey: ["get-all-experience", username],
     initialData: workExperience,
     queryFn: () => getAllExperience(username),
-    refetchOnMount: false,
+    // refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
 
@@ -98,7 +98,7 @@ export function EmptyWritingState({
   title = "Share your Work Experience ",
   description = "Your ideas deserve to be shared. Create your first piece and let your words flow.",
   ctaText = "Add Experience",
-  onCreateNew = () => {},
+  onCreateNew = () => { },
 }: EmptyWorkExperienceStateProps) {
   const [isHovering, setIsHovering] = useState(false);
 

@@ -9,17 +9,9 @@ import { Trash2, Edit3, GripVertical, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export interface StoryElement {
-  id: string
-  profileId: string
-  type: 'mission' | 'value' | 'milestone' | 'dream' | 'superpower'
-  title: string
-  content: string
-  order: number
-  isPublic: boolean
-  createdAt: Date
-  updatedAt: Date
-}
+import { TStoryElement } from '@/lib/types'
+
+export type StoryElement = TStoryElement;
 
 interface StoryElementProps {
   element: StoryElement
@@ -32,33 +24,33 @@ interface StoryElementProps {
 }
 
 const typeConfig = {
-  mission: { 
-    label: 'Mission', 
-    emoji: '🎯', 
+  mission: {
+    label: 'Mission',
+    emoji: '🎯',
     color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
     prompt: 'What drives you? What\'s your purpose?'
   },
-  value: { 
-    label: 'Value', 
-    emoji: '💎', 
+  value: {
+    label: 'Value',
+    emoji: '💎',
     color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
     prompt: 'What principles guide your decisions?'
   },
-  milestone: { 
-    label: 'Milestone', 
-    emoji: '🏆', 
+  milestone: {
+    label: 'Milestone',
+    emoji: '🏆',
     color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     prompt: 'What achievement are you most proud of?'
   },
-  dream: { 
-    label: 'Dream', 
-    emoji: '✨', 
+  dream: {
+    label: 'Dream',
+    emoji: '✨',
     color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
     prompt: 'What change do you want to see in the world?'
   },
-  superpower: { 
-    label: 'Superpower', 
-    emoji: '⚡', 
+  superpower: {
+    label: 'Superpower',
+    emoji: '⚡',
     color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
     prompt: 'What\'s your unique strength?'
   },
@@ -130,7 +122,7 @@ export function StoryElement({
                 <EyeOff className="h-4 w-4 text-gray-400" />
               )}
             </div>
-            
+
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
                 variant="ghost"
@@ -207,7 +199,7 @@ export function StoryElement({
                   placeholder={config.prompt}
                   className="min-h-[100px] resize-none"
                 />
-                
+
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2 text-sm">
                     <input
@@ -218,7 +210,7 @@ export function StoryElement({
                     />
                     Make public
                   </label>
-                  
+
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={handleCancel}>
                       Cancel

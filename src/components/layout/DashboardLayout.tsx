@@ -1,8 +1,9 @@
 'use client'
+import * as React from 'react'
 import { useRightSidebar } from '@/lib/context'
 import { useMediaQuery } from '@mantine/hooks'
 import { motion } from 'framer-motion'
-import { FC, ReactNode } from 'react'
+import { FC, ReactNode, useState, useEffect } from 'react'
 import { useEnsureScroll } from '@/hooks/useScrollFix'
 import GalleryContextProvider from '../gallery/gallery-context'
 import Navbar from '../navbar'
@@ -16,6 +17,7 @@ import {
 import { ScrollArea } from '../ui/scroll-area'
 import { Sheet, SheetContent } from '../ui/sheet'
 import { cn } from '@/lib/utils'
+import { PanelProvider, usePanel } from '@/lib/panel-context'
 
 type LayoutVariant = 'profile' | 'explore' | 'post' | 'writing' | 'default'
 
@@ -44,7 +46,7 @@ type DashboardLayoutProps = {
   contentPadding?: string;
 };
 
-const DashboardLayout: FC<DashboardLayoutProps> = ({
+const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
   children,
   variant = 'default',
   isMine = false,
@@ -58,6 +60,12 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
   const [rightSidebarOpen, setRightSidebarOpen] = useRightSidebar()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const isMobile = useMediaQuery('(max-width: 768px)')
+  const { rightPanelRef } = usePanel()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Ensure scroll works properly
   useEnsureScroll()
@@ -67,10 +75,10 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
     switch (variant) {
       case 'profile':
         return {
-          right: {
+          right: isMine ? {
             component: <RightSidebar className="w-full" />,
-            show: isMine && isDesktop,
-          }
+            show: isDesktop,
+          } : undefined
         }
       case 'explore':
         return {
@@ -98,10 +106,10 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
         }
       case 'writing':
         return {
-          right: {
+          right: isMine ? {
             component: <RightSidebar className="w-full" />,
-            show: isMine && isDesktop,
-          }
+            show: isDesktop,
+          } : undefined
         }
       default:
         return {}
@@ -142,15 +150,20 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
 
   const contentStyles = getContentStyling()
 
+  if (!mounted) return null
+
   return (
     <ResizablePanelGroup
       className="w-full h-full flex items-center justify-center"
       direction="horizontal"
+      id="dashboard-layout-group"
+      autoSaveId="dashboard-layout-persistence"
     >
       <GalleryContextProvider>
         {/* Left Sidebar */}
         {finalSidebarConfig.left?.show && (
           <ResizablePanel
+            id="dashboard-left-sidebar"
             defaultSize={20}
             maxSize={25}
             minSize={15}
@@ -165,6 +178,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
 
         {/* Main Content Area */}
         <ResizablePanel
+          id="dashboard-main-content"
           className={cn(
             'w-full h-screen relative overflow-hidden',
             contentStyles.className,
@@ -201,21 +215,26 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
           <>
             {finalSidebarConfig.left?.show && <ResizableHandle />}
             <ResizablePanel
+              ref={rightPanelRef}
+              id="dashboard-right-sidebar"
               defaultSize={26}
               maxSize={30}
               minSize={20}
+              collapsible
+              collapsedSize={0}
               className={cn(
-                'border-l flex flex-col items-center justify-center dark:border-dark-border',
+                'border-l border-neutral-200/80 dark:border-dark-border flex flex-col items-center justify-center h-screen',
                 finalSidebarConfig.right.className
               )}
             >
-              {finalSidebarConfig.right.component}
+              <ScrollArea className="relative h-screen w-full overflow-y-auto flex flex-col items-center justify-start">
+                {finalSidebarConfig.right.component}
+              </ScrollArea>
             </ResizablePanel>
           </>
         )}
 
-        {/* Right Sidebar - Mobile Sheet */}
-        {finalSidebarConfig.right?.component && (
+        {finalSidebarConfig.right?.component && (isMine || variant === 'explore') && (
           <Sheet open={rightSidebarOpen} onOpenChange={setRightSidebarOpen}>
             <SheetContent className="max-w-[90%] sm:max-w-md md:max-w-lg w-full h-screen p-0 bg-white dark:bg-dark-border/80 border border-neutral-200 dark:border-dark-border/60 dark:bg-dark-bg">
               {finalSidebarConfig.right.component}
@@ -225,6 +244,10 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({
       </GalleryContextProvider>
     </ResizablePanelGroup>
   )
+}
+
+const DashboardLayout: FC<DashboardLayoutProps> = (props) => {
+  return <DashboardLayoutInner {...props} />
 }
 
 export default DashboardLayout

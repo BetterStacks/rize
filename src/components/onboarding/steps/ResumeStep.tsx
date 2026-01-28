@@ -20,7 +20,7 @@ interface ResumeStepProps {
 export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
   const searchParams = useSearchParams()
   const resumeId = searchParams.get('resumeId')
-  
+
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'success' | 'error'>('idle')
   const [extractedData, setExtractedData] = useState<any>(null)
@@ -32,7 +32,7 @@ export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('type', 'resume')
-      
+
       const response = await fetch('/api/upload/resume', {
         method: 'POST',
         body: formData,
@@ -56,13 +56,13 @@ export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
   })
 
   const { mutate: processPreloadedResume, isPending: isProcessingPreloaded } = useMutation({
-    mutationFn: async (cloudinaryFileId: string) => {
+    mutationFn: async (fileUrl: string) => {
       const response = await fetch('/api/process-resume', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ cloudinaryFileId }),
+        body: JSON.stringify({ fileUrl }),
       })
 
       if (!response.ok) {
@@ -82,15 +82,14 @@ export function ResumeStep({ formData, onNext, isPending }: ResumeStepProps) {
     },
   })
 
-  // Auto-load resume if resumeId is present in URL (only once, unless user hasn't replaced)
+  // Auto-load resume if resumeId is present in URL
   useEffect(() => {
     if (resumeId && !preloadedResume && !uploadedFile && !hasUserReplaced) {
-      const cloudinaryUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload/${resumeId}`
       const fileName = resumeId.split('/').pop()?.replace(/^resume_\d+_/, '') || 'Resume'
-      
+
       setPreloadedResume({
         name: fileName,
-        url: cloudinaryUrl
+        url: resumeId // resumeId is now the full S3 URL
       })
       setUploadStatus('processing')
       processPreloadedResume(resumeId)

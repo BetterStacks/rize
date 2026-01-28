@@ -34,7 +34,7 @@ function GalleryItem({ item, index, isMine, onImageClick }: TGalleryItemProps) {
   const handleClick = (e: React.MouseEvent) => {
     // Don't trigger lightbox if clicking on delete button or if no click handler provided
     if ((e.target as HTMLElement).closest('button') || !onImageClick) return
-    
+
     e.preventDefault()
     e.stopPropagation()
     onImageClick(index)
@@ -53,7 +53,7 @@ function GalleryItem({ item, index, isMine, onImageClick }: TGalleryItemProps) {
           <Trash2 className="size-4 " />
         </Button>
       )}
-      {item?.url && isImageUrl(item?.url) ? (
+      {item?.url && item?.type === 'image' ? (
         <Image
           draggable={false}
           src={item?.url}

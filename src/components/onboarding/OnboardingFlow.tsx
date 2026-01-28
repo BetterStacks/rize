@@ -188,10 +188,10 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
         // Process resume from claim link using Cloudinary file ID
         try {
           // You'll need to implement this function to fetch and parse resume from Cloudinary
-          const result = await fetch('/api/resume/parse-from-cloudinary', {
+          const result = await fetch('/api/process-resume', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ resumeFileId: formData.resumeId }),
+            body: JSON.stringify({ fileUrl: formData.resumeId }),
           })
 
           if (result.ok) {
@@ -298,7 +298,10 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
     {
       id: 'finish',
       component: (
-        <FinishStep formData={formData} onComplete={() => onComplete()} />
+        <FinishStep
+          formData={formData}
+          onComplete={() => onComplete()}
+        />
       ),
     },
   ]

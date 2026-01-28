@@ -32,6 +32,9 @@ import {
 import { Checkbox } from './ui/checkbox'
 import { Skeleton } from './ui/skeleton'
 
+// Type assertion to fix @dnd-kit/sortable compatibility issue
+const SortableContextComponent = SortableContext as any
+
 const SectionManager = () => {
   const { sections, setSections, isFetching } = useSections()
   const sensors = useSensors(
@@ -98,7 +101,7 @@ const SectionManager = () => {
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
               >
-                <SortableContext
+                <SortableContextComponent
                   strategy={verticalListSortingStrategy}
                   items={sections?.map((item) => item.id)}
                 >
@@ -114,7 +117,7 @@ const SectionManager = () => {
                       name={section.name}
                     />
                   ))}
-                </SortableContext>
+                </SortableContextComponent>
               </DndContext>
             )}
           </div>
@@ -157,7 +160,7 @@ function SortableItem({
       className={cn(
         'p-2 mb-2 w-full flex z-0 items-center justify-between bg-white dark:bg-dark-bg   rounded-lg cursor-pointer',
         isDragging &&
-          'drop-shadow-xl z-10 shadow-black/40 border border-neutral-300/80 dark:border-dark-border'
+        'drop-shadow-xl z-10 shadow-black/40 border border-neutral-300/80 dark:border-dark-border'
       )}
     >
       <div className="flex items-center justify-center">

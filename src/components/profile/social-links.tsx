@@ -60,59 +60,59 @@ const SocialLinks = ({ isMine }: { isMine: boolean }) => {
 
   return (
     <>
-    <div className="w-full  flex items-center justify-center ">
-      <div className="max-w-2xl social-links w-full gap-x-0.5 gap-y-1.5  text-sm md:text-base flex flex-wrap  mt-4 items-center justify-start">
-        {isLoading ? (
-          <SocialLinkSkeleton />
-        ) : links?.length === 0 ? (
-          dummyLinks?.map((link, i) => (
-            <SocialLinkButton
-              key={i}
-              platform={link?.platform}
-              url={link?.url}
-              hasLink={false}
-              className="opacity-70"
-            />
-          ))
-        ) : (
-          dummyLinks?.map((dummyLink, i) => {
-            const userLink = links.find(l => l.platform === dummyLink.platform)
-            return (
+      <div className="w-full  flex items-center justify-center ">
+        <div data-social-links className="max-w-2xl social-links w-full gap-x-0.5 gap-y-1.5  text-sm md:text-base flex flex-wrap  mt-4 items-center justify-start">
+          {isLoading ? (
+            <SocialLinkSkeleton />
+          ) : links?.length === 0 ? (
+            dummyLinks?.map((link, i) => (
               <SocialLinkButton
                 key={i}
-                platform={dummyLink?.platform}
-                url={userLink?.url || dummyLink?.url}
-                hasLink={!!userLink}  // Add this
-                className={!userLink ? 'opacity-70' : ''}
+                platform={link?.platform}
+                url={link?.url}
+                hasLink={false}
+                className="opacity-70"
               />
-            )
-          })
-        )}
+            ))
+          ) : (
+            dummyLinks?.map((dummyLink, i) => {
+              const userLink = links.find(l => l.platform === dummyLink.platform)
+              return (
+                <SocialLinkButton
+                  key={i}
+                  platform={dummyLink?.platform}
+                  url={userLink?.url || dummyLink?.url}
+                  hasLink={!!userLink}  // Add this
+                  className={!userLink ? 'opacity-70' : ''}
+                />
+              )
+            })
+          )}
 
-        {isMine && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowEditDialog(true)}
-            className='p-2 h-fit rounded-full'
-          >
-            <EllipsisVertical className="size-3.5" />
-          </Button>
-        )}
+          {isMine && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEditDialog(true)}
+              className='p-2 h-fit rounded-full'
+            >
+              <EllipsisVertical className="size-3.5" />
+            </Button>
+          )}
 
-      </div>
-    </div>
-
-    {showEditDialog && (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-1 sm:p-4">
-        <div className="bg-white dark:bg-dark-bg rounded-3xl max-w-lg w-full border border-neutral-300/60 dark:border-dark-border sm:p-3 sm:py-6 py-6 mb-4 max-h-[90vh] overflow-y-auto">
-          <SocialLinksForm onClose={() => setShowEditDialog(false)} />
         </div>
       </div>
-    )}
-  </>
 
-  )   
+      {showEditDialog && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-1 sm:p-4">
+          <div className="bg-white dark:bg-dark-bg rounded-3xl max-w-lg w-full border border-neutral-300/60 dark:border-dark-border sm:p-3 sm:py-6 py-6 mb-4 max-h-[90vh] overflow-y-auto">
+            <SocialLinksForm onClose={() => setShowEditDialog(false)} />
+          </div>
+        </div>
+      )}
+    </>
+
+  )
 }
 
 export default SocialLinks
@@ -146,10 +146,10 @@ export const SocialLinkButton = ({
     }
   }
   return (
-    <NextLink 
-      className={cn('scale-95', className)} 
-      href={hasLink ? url : '#'} 
-      target={hasLink ? '_blank' : undefined} 
+    <NextLink
+      className={cn('scale-95', className)}
+      href={hasLink ? url : '#'}
+      target={hasLink ? '_blank' : undefined}
       onClick={handleClick}
     >
       <Button

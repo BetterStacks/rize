@@ -13,9 +13,6 @@ const nextConfig: NextConfig = {
 
     return config;
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [{ hostname: "*" }],

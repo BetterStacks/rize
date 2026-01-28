@@ -5,31 +5,28 @@ import { parseResumeContent } from '@/lib/resume-parser'
 export async function POST(request: NextRequest) {
   try {
     const session = await requireAuth()
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { cloudinaryFileId } = await request.json()
+    const { fileUrl } = await request.json()
 
-    if (!cloudinaryFileId) {
-      return NextResponse.json({ error: 'No cloudinary file ID provided' }, { status: 400 })
+    if (!fileUrl) {
+      return NextResponse.json({ error: 'No file URL provided' }, { status: 400 })
     }
 
-    // Construct Cloudinary URL
-    const cloudinaryUrl = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/raw/upload/${cloudinaryFileId}`
-    
     try {
-      // Download the file from Cloudinary
-      const response = await fetch(cloudinaryUrl)
+      // Download the file from S3 (or any URL)
+      const response = await fetch(fileUrl)
       if (!response.ok) {
-        throw new Error('Failed to download resume from Cloudinary')
+        throw new Error('Failed to download resume from URL')
       }
 
       // Convert response to File-like object for parsing
       const arrayBuffer = await response.arrayBuffer()
-      const fileName = cloudinaryFileId.split('/').pop()?.replace(/^resume_\d+_/, '') || 'resume.pdf'
-      
+      const fileName = fileUrl.split('/').pop()?.replace(/^resume_\d+_/, '') || 'resume.pdf'
+
       // Determine file type from extension
       let mimeType = 'application/pdf'
       if (fileName.toLowerCase().endsWith('.doc')) {
@@ -41,14 +38,13 @@ export async function POST(request: NextRequest) {
       // Create a File-like object
       const file = new File([arrayBuffer], fileName, { type: mimeType })
 
-      // Parse resume content using existing parser
+      // Parse resume content
       const extractedData = await parseResumeContent(file)
 
       return NextResponse.json({
         success: true,
-        fileUrl: cloudinaryUrl,
+        fileUrl: fileUrl,
         fileName: fileName,
-        cloudinaryId: cloudinaryFileId,
         ...extractedData,
       })
 

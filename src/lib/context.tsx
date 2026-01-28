@@ -1,5 +1,6 @@
 'use client'
-import React, { createContext, ReactNode, useContext, useState } from 'react'
+import { useLocalStorage } from '@mantine/hooks';
+import React, { createContext, ReactNode, useContext, useState } from 'react';
 
 type TAppContext = {
   activeSidebarTab: { id?: string | null; tab: string };
@@ -14,11 +15,11 @@ type TAppContext = {
 
 const AppContext = createContext<TAppContext>({
   activeSidebarTab: { id: null, tab: 'gallery' },
-  setActiveSidebarTab: () => {},
+  setActiveSidebarTab: () => { },
   isRightSidebarOpen: false,
-  setIsRightSidebarOpen: () => {},
+  setIsRightSidebarOpen: () => { },
   isPageSidebarOpen: false,
-  setIsPageSidebarOpen: () => {},
+  setIsPageSidebarOpen: () => { },
 })
 
 export const useRightSidebar = () => {
@@ -40,12 +41,12 @@ export const useActiveSidebarTab = () => {
 const Context = ({ children }: { children: ReactNode }) => {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [isPageSidebarOpen, setIsPageSidebarOpen] = useState(false)
-  const [activeSidebarTab, setActiveSidebarTab] = useState<{
+  const [activeSidebarTab, setActiveSidebarTab] = useLocalStorage<{
     id?: string | null;
     tab: string;
   }>({
-    id: null,
-    tab: 'gallery',
+    key: "activeSidebarTab",
+    defaultValue: { id: null, tab: 'gallery' },
   })
 
   return (

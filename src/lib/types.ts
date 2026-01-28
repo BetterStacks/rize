@@ -16,7 +16,9 @@ import { BaseEditor, BaseRange, Descendant, Element, Range } from "slate";
 import { HistoryEditor } from "slate-history";
 import { ReactEditor } from "slate-react";
 import { Result } from "url-metadata";
+import { InferUITool, ToolUIPart, UIMessage, UITools } from "ai";
 import { z } from "zod";
+import { ProfileTools } from "@/app/api/chat/profile/tools";
 
 export const TUser = users.$inferSelect;
 export const TPage = page.$inferInsert;
@@ -34,6 +36,25 @@ export type TNewEducation = typeof education.$inferInsert;
 export type TExperience = typeof experience.$inferSelect;
 export type TNewExperience = typeof experience.$inferInsert;
 
+export type TStoryElementType =
+  | "mission"
+  | "value"
+  | "milestone"
+  | "dream"
+  | "superpower";
+
+export type TStoryElement = {
+  id: string;
+  profileId: string;
+  type: TStoryElementType;
+  title: string;
+  content: string;
+  order: number;
+  isPublic: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type WordType = "email" | "link" | "word" | "newline";
 
 export interface ClassifiedWord {
@@ -45,6 +66,7 @@ export type TUploadFilesResponse = {
   width: number;
   height: number;
   url: string;
+  type?: 'image' | 'video';
 };
 
 export type TPostMedia = {
@@ -91,10 +113,10 @@ export type GetCommentWithProfile = TComment & {
 
 export type GetProfileByUsername =
   | (typeof profile.$inferSelect & {
-      image: string;
-      name: string;
-      email: string;
-    })
+    image: string;
+    name: string;
+    email: string;
+  })
   | null;
 export type GalleryItemProps = typeof TMedia & {
   galleryMediaId: string | null;
@@ -294,6 +316,10 @@ export const profileSchema = z.object({
   hasCompletedWalkthrough: z.boolean().optional(),
   isLive: z.boolean().optional(),
   website: z.string().url().optional(),
+  location: z.string().optional(),
+  personalMission: z.string().optional(),
+  lifePhilosophy: z.string().optional(),
+  age: z.number().int().min(0).max(120).optional(),
 });
 
 export const AddCommentPayload = z.object({
@@ -354,3 +380,190 @@ export const newProjectSchema = z.object({
   height: z.string().optional(),
   media: z.array(fileSchema).optional(),
 });
+
+
+
+export const updateBasicInfoSchema = z.object({
+  displayName: z.string().optional(),
+  bio: z.string().optional(),
+  location: z.string().optional(),
+  personalMission: z.string().optional(),
+  lifePhilosophy: z.string().optional(),
+  age: z.number().optional(),
+});
+
+export const addExperienceSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .describe("The job title or position held (e.g., 'Software Engineer')"),
+  company: z
+    .string()
+    .min(1, "Company is required")
+    .describe("The name of the company or organization"),
+  location: z
+    .string()
+    .optional()
+    .describe("The geographic location (e.g., 'San Francisco, CA' or 'Remote')"),
+  employmentType: z
+    .string()
+    .optional()
+    .describe("The type of employment (e.g., 'Full-time', 'Contract')"),
+  startDate: z
+    .string()
+    .optional()
+    .describe("When you started this role (e.g., 'Jan 2022' or '2022-01-01')"),
+  endDate: z
+    .string()
+    .optional()
+    .describe(
+      "When you ended this role. Leave empty if currently working there."
+    ),
+  currentlyWorking: z
+    .boolean()
+    .default(false)
+    .describe("Whether you are still in this role"),
+  website: z
+    .string()
+    .url()
+    .optional()
+    .describe("The company website or a link to the project/role"),
+  companyLogo: z
+    .string()
+    .optional()
+    .describe("The media ID or URL for the company logo"),
+  description: z
+    .string()
+    .optional()
+    .describe(
+      "Key responsibilities, achievements, or technologies used in this role"
+    ),
+});
+
+export const updateExperienceSchema = addExperienceSchema.partial().extend({
+  id: z.string(),
+});
+
+export const deleteExperienceSchema = z.object({
+  id: z.string(),
+  title: z.string().optional(), // For UI display in confirmation
+  company: z.string().optional(), // For UI display in confirmation
+});
+
+
+export const addEducationSchema = z.object({
+  school: z
+    .string()
+    .min(1, "School name is required")
+    .describe("The name of the educational institution"),
+  degree: z
+    .string()
+    .optional()
+    .describe("The degree obtained (e.g., 'Bachelor of Science')"),
+  fieldOfStudy: z
+    .string()
+    .optional()
+    .describe("The field of study or major (e.g., 'Computer Science')"),
+  startDate: z
+    .string()
+    .optional()
+    .describe("When you started your studies"),
+  endDate: z
+    .string()
+    .optional()
+    .describe("When you finished or expect to finish"),
+  grade: z
+    .string()
+    .optional()
+    .describe("GPA or equivalent academic grade"),
+  description: z
+    .string()
+    .optional()
+    .describe("Honors, extracurriculars, or relevant coursework"),
+});
+
+export const updateEducationSchema = addEducationSchema.partial().extend({
+  id: z.string(),
+});
+
+export const deleteEducationSchema = z.object({
+  id: z.string(),
+  school: z.string().optional(), // For UI display in confirmation
+});
+
+
+export const addStoryElementSchema = z.object({
+  type: z.enum(["mission", "value", "milestone", "dream", "superpower"]),
+  title: z.string(),
+  content: z.string(),
+});
+
+export const addProjectSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Project name is required")
+    .describe("The name of the project"),
+  tagline: z
+    .string()
+    .optional()
+    .describe("A short one-liner description of the project"),
+  description: z
+    .string()
+    .min(1, "Description is required")
+    .describe("Detailed description of what the project does"),
+  url: z
+    .string()
+    .url()
+    .optional()
+    .describe("The project's URL or repository link"),
+  status: z
+    .enum(["wip", "completed", "archived"])
+    .default("completed")
+    .describe("The current status of the project"),
+  logo: z
+    .string()
+    .optional()
+    .describe("The media ID or URL for the project logo"),
+  startDate: z.string().optional().describe("When the project started"),
+  endDate: z.string().optional().describe("When the project ended or was shipped"),
+});
+
+export const updateProjectSchema = addProjectSchema.partial().extend({
+  id: z.string(),
+});
+
+export const deleteProjectSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(), // For UI display in confirmation
+});
+
+export const addGalleryItemSchema = z.object({
+  attachmentIds: z.array(z.string()).min(1).describe("An array of attachment IDs (filenames or identifiers) from the user's message to add to the gallery."),
+});
+
+export const deleteGalleryItemSchema = z.object({
+  ids: z.array(z.string()).describe("The UUIDs of the media items to delete"),
+});
+
+
+export type Tool<TArgs> = {
+  args: TArgs;
+};
+
+export type Metadata = {
+  isWelcomeMessage?: boolean;
+};
+
+
+// export type ChatToolUIPart = ToolUIPart<{
+//   delete_file: {
+//     input: DeleteFileInput;
+//     output: { success: boolean; message: string };
+//   };
+// }>;
+
+
+export type ChatMessage<T extends UITools = any> = UIMessage<Metadata, never, T> & {
+  attachments?: any[];
+  experimental_attachments?: any[];
+};

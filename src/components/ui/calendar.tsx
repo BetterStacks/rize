@@ -7,7 +7,7 @@ import { DayPicker } from 'react-day-picker'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
+export type CalendarProps = any
 
 function Calendar({
   className,
@@ -15,8 +15,9 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const DayPickerComponent = DayPicker as any
   return (
-    <DayPicker
+    <DayPickerComponent
       showOutsideDays={showOutsideDays}
       className={cn('p-3', className)}
       classNames={{
@@ -38,7 +39,7 @@ function Calendar({
         row: 'flex w-full mt-2',
         cell: cn(
           'relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-neutral-100 [&:has([aria-selected].day-outside)]:bg-neutral-100/50 [&:has([aria-selected].day-range-end)]:rounded-r-md dark:[&:has([aria-selected])]:bg-neutral-800 dark:[&:has([aria-selected].day-outside)]:bg-neutral-800/50',
-          props.mode === 'range'
+          (props as any).mode === 'range'
             ? '[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md'
             : '[&:has([aria-selected])]:rounded-md'
         ),
@@ -60,11 +61,11 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn('h-4 w-4', className)} {...props} />
+        IconLeft: ({ ...props }) => (
+          <ChevronLeft className={cn('h-4 w-4', (props as any).className)} />
         ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn('h-4 w-4', className)} {...props} />
+        IconRight: ({ ...props }) => (
+          <ChevronRight className={cn('h-4 w-4', (props as any).className)} />
         ),
       }}
       {...props}
