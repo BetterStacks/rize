@@ -30,7 +30,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import ProfileChat from '../profile-builder/ProfileChat'
-import ProfileCompletionPrompt from '../profile-builder/ProfileCompletionPrompt'
 
 
 const RightSidebar = ({ className }: { className?: string }) => {
@@ -76,19 +75,6 @@ const RightSidebar = ({ className }: { className?: string }) => {
       )}
     >
 
-
-      {/* {active?.tab !== 'gallery' && (
-        <Button
-          onClick={() => {
-            setActive({ id: null, tab: 'gallery' })
-          }}
-          size={'smallIcon'}
-          variant={'outline'}
-          className="absolute top-3 left-3 z-50"
-        >
-          <ChevronLeft className="size-4 opacity-80" />
-        </Button>
-      )} */}
       {active?.tab === 'gallery' && <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -119,20 +105,6 @@ const RightSidebar = ({ className }: { className?: string }) => {
                 </div>
               )}
             </div>
-
-            {/* Profile Completion Prompt */}
-            {profileCompletionData && (
-              <div className="w-full flex justify-center">
-                <ProfileCompletionPrompt
-                  profile={profileCompletionData.profile}
-                  educationCount={profileCompletionData.educationCount}
-                  experienceCount={profileCompletionData.experienceCount}
-                  projectsCount={profileCompletionData.projectsCount}
-                  storyElementsCount={profileCompletionData.storyElementsCount}
-                  className="max-w-sm"
-                />
-              </div>
-            )}
 
             <div className="w-full flex justify-center">
               {process.env.NEXT_PUBLIC_LETRAZ_CONNECTION === 'true' &&

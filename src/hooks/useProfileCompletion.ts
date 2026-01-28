@@ -73,7 +73,7 @@ export function useProfileCompletion({
                 description: 'Add your name, bio, and profile picture',
                 completed: hasBasicInfo,
                 action: () => {
-                    toggleRightPanel()
+                    // Just scroll to top or do nothing if undesired to toggle panel
                 }
             },
             {

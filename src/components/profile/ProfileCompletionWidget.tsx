@@ -50,9 +50,6 @@ export function ProfileCompletionWidget({
 
     const handleAskAI = () => {
         setActiveSidebarTab({ id: null, tab: 'chat' })
-        if (rightPanelRef?.current?.isCollapsed()) {
-            toggleRightPanel()
-        }
     }
 
     if (isDismissed) return null
@@ -70,11 +67,6 @@ export function ProfileCompletionWidget({
             transition={{ duration: 0.3 }}
             className={cn(
                 'fixed bottom-6 z-40',
-                // On mobile and tablet, position from right edge
-                // 'right-4',
-                // // On desktop with sidebar, add margin to avoid overlap
-                // // Sidebar is ~26% of screen width, so we offset accordingly
-                // 'lg:right-[calc(26%+1.5rem)]',
                 className
             )}
         >
@@ -141,9 +133,9 @@ export function ProfileCompletionWidget({
                                                 )}
                                             >
                                                 <div className="flex items-center gap-3 flex-1">
-                                                    <div className={cn('size-5 rounded-full flex items-center justify-center', task.completed ? "bg-neutral-900 dark:bg-white" : " border border-neutral-200 dark:border-dark-border ")}>
+                                                    <div className={cn('size-5 rounded-full flex items-center justify-center', task.completed ? "bg-green-500" : " border border-neutral-200 dark:border-dark-border ")}>
                                                         {task.completed && (
-                                                            <Check strokeWidth={2.4} className="size-3 stroke-white dark:stroke-black flex-shrink-0" />
+                                                            <Check strokeWidth={2.4} className="size-3 stroke-white flex-shrink-0" />
 
                                                         )}
                                                     </div>
@@ -182,7 +174,7 @@ export function ProfileCompletionWidget({
                                     <Progress
                                         value={progress}
                                         className="h-2"
-                                        indicatorClassName="bg-neutral-900 dark:bg-white"
+                                        indicatorClassName="dark:bg-green-500 bg-green-500"
                                     />
                                 </div>
                             </div>
@@ -205,7 +197,7 @@ export function ProfileCompletionWidget({
                 >
                     <div className="flex items-center gap-3">
                         {isAllCompleted ? (
-                            <MessageSquareText className="size-5 text-neutral-900 dark:text-white" />
+                            <MessageSquareText className="size-5 text-green-500" />
                         ) : (
                             <div className="relative size-5">
                                 {/* Circular progress background */}
@@ -227,7 +219,7 @@ export function ProfileCompletionWidget({
                                         fill="none"
                                         strokeDasharray={`${2 * Math.PI * 8}`}
                                         strokeDashoffset={`${2 * Math.PI * 8 * (1 - progress / 100)}`}
-                                        className="transition-all duration-500 text-neutral-900 dark:text-white"
+                                        className="transition-all duration-500 text-green-500"
                                         strokeLinecap="round"
                                     />
                                 </svg>
