@@ -137,9 +137,6 @@ const UserProfile = ({
     socialLinks,
     onOpenChat: () => {
       setActiveSidebarTab({ id: null, tab: 'chat' })
-      if (rightPanelRef?.current?.isCollapsed()) {
-        toggleRightPanel()
-      }
     }
   })
 
