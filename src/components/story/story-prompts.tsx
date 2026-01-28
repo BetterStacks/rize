@@ -26,6 +26,9 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
+// Type assertion to fix @dnd-kit/sortable compatibility issue
+const SortableContextComponent = SortableContext as any
+
 interface StoryPromptsProps {
   elements: StoryElement[]
   onAddElement: (type: StoryElement['type']) => void
@@ -108,7 +111,7 @@ function SortableStoryElement({
   }
 
   return (
-    <div 
+    <div
       ref={setNodeRef}
       style={style}
       {...attributes}
@@ -227,7 +230,7 @@ export function StoryPrompts({
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext
+          <SortableContextComponent
             items={elements.map(el => el.id)}
             strategy={verticalListSortingStrategy}
           >
@@ -247,7 +250,7 @@ export function StoryPrompts({
                 ))}
               </AnimatePresence>
             </div>
-          </SortableContext>
+          </SortableContextComponent>
         </DndContext>
       )}
 
@@ -279,7 +282,7 @@ export function StoryPrompts({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <Card 
+                      <Card
                         className="cursor-pointer hover:border-purple-300 dark:hover:border-purple-600 transition-colors group"
                         onClick={() => handleAddElement(prompt.type)}
                       >
@@ -328,7 +331,7 @@ export function StoryPrompts({
           <Sparkles className="h-12 w-12 mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-medium mb-2">Share Your Story</h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-            Add story elements to showcase what makes you unique beyond your resume. 
+            Add story elements to showcase what makes you unique beyond your resume.
             Let others understand your values, dreams, and what drives you.
           </p>
           <Button

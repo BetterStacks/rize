@@ -5,7 +5,8 @@ import { getBase64Image, getCroppedImg } from '@/lib/utils'
 import { Loader } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
 import React, { FC, useEffect, useState } from 'react'
-import Cropper, { Area } from 'react-easy-crop'
+import Cropper from 'react-easy-crop'
+import type { Area } from 'react-easy-crop'
 import toast from 'react-hot-toast'
 import { useAvatarDialog } from '../dialog-provider'
 import { Button } from '../ui/button'
@@ -16,6 +17,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog'
+
+// Type assertion to fix react-easy-crop compatibility issue
+const CropperComponent = Cropper as any
 
 type ChangeAvatarDialogProps = {
   file: File | null;
@@ -86,7 +90,7 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
         </DialogHeader>
         <div className="flex flex-col px-4 ">
           <div className="aspect-square  relative rounded-3xl overflow-hidden w-full ">
-            <Cropper
+            <CropperComponent
               classes={{
                 containerClassName: 'overflow-hidden relative ',
                 mediaClassName: 'aspect-square ',

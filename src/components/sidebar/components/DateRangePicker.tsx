@@ -62,11 +62,13 @@ export function DateRangePicker<T extends FieldValues>({
               </PopoverTrigger>
               <PopoverContent className="w-auto p-2 dark:bg-dark-bg dark:border-dark-border rounded-2xl mt-2 border-neutral-200">
                 <Calendar
-                  className="dark:bg-dark"
-                  mode="single"
-                  selected={field.value ? new Date(field.value) : undefined}
-                  onSelect={(date) => field.onChange(date)}
-                  initialFocus
+                  {...({
+                    className: "dark:bg-dark",
+                    mode: "single",
+                    selected: field.value ? new Date(field.value) : undefined,
+                    onSelect: (date: Date | undefined) => field.onChange(date),
+                    initialFocus: true,
+                  } as any)}
                 />
               </PopoverContent>
             </Popover>
@@ -103,9 +105,11 @@ export function DateRangePicker<T extends FieldValues>({
               </PopoverTrigger>
               <PopoverContent className="w-auto p-2 dark:bg-dark-bg dark:border-dark-border rounded-2xl mt-2 border-neutral-200">
                 <Calendar
-                  mode="single"
-                  selected={field.value ? new Date(field.value) : undefined}
-                  onSelect={(date) => field.onChange(date)}
+                  {...({
+                    mode: "single",
+                    selected: field.value ? new Date(field.value) : undefined,
+                    onSelect: (date: Date | undefined) => field.onChange(date),
+                  } as any)}
                 />
               </PopoverContent>
             </Popover>

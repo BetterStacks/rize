@@ -30,7 +30,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
-import { Briefcase, Building, MapPin, Save, X } from 'lucide-react'
+import { Briefcase, Building, MapPin, Save, X, Calendar as CalendarIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -166,7 +166,7 @@ export default function WorkExperienceDialog() {
                               !field.value && 'text-muted-foreground'
                             )}
                           >
-                            <Calendar className="mr-2 h-4 w-4" />
+                            <CalendarIcon className="mr-2 h-4 w-4" />
                             {field.value ? (
                               format(field.value, 'MMM yyyy')
                             ) : (
@@ -177,13 +177,15 @@ export default function WorkExperienceDialog() {
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                          captionLayout="dropdown-buttons"
-                          fromYear={1990}
-                          toYear={2030}
+                          {...({
+                            mode: "single",
+                            selected: field.value,
+                            onSelect: field.onChange,
+                            initialFocus: true,
+                            captionLayout: "dropdown-buttons",
+                            fromYear: 1990,
+                            toYear: 2030,
+                          } as any)}
                         />
                       </PopoverContent>
                     </Popover>
@@ -228,7 +230,7 @@ export default function WorkExperienceDialog() {
                               !field.value && 'text-muted-foreground'
                             )}
                           >
-                            <Calendar className="mr-2 h-4 w-4" />
+                            <CalendarIcon className="mr-2 h-4 w-4" />
                             {field.value ? (
                               format(field.value, 'MMM yyyy')
                             ) : (
@@ -239,13 +241,15 @@ export default function WorkExperienceDialog() {
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                          captionLayout="dropdown-buttons"
-                          fromYear={1990}
-                          toYear={2030}
+                          {...({
+                            mode: "single",
+                            selected: field.value,
+                            onSelect: field.onChange,
+                            initialFocus: true,
+                            captionLayout: "dropdown-buttons",
+                            fromYear: 1990,
+                            toYear: 2030,
+                          } as any)}
                         />
                       </PopoverContent>
                     </Popover>

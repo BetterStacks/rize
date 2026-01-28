@@ -7,7 +7,8 @@ import { motion } from 'framer-motion'
 import { Camera, Palette, Upload, Loader, ArrowLeft } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
 import React, { FC, useEffect, useState } from 'react'
-import Cropper, { Area } from 'react-easy-crop'
+import Cropper from 'react-easy-crop'
+import type { Area } from 'react-easy-crop'
 import toast from 'react-hot-toast'
 import { useAvatarDialog } from '../dialog-provider'
 import { Button } from '../ui/button'
@@ -21,6 +22,9 @@ import {
 import { CreativeAvatar } from '../ui/creative-avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 
+// Type assertion to fix react-easy-crop compatibility issue
+const CropperComponent = Cropper as any
+
 type AvatarSelectionDialogProps = {
   file: File | null
   setFile: (file: File | null) => void
@@ -33,7 +37,7 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
   const { data: session } = useSession()
   const [step, setStep] = useState<Step>('selection')
   const [selectedMethod, setSelectedMethod] = useState<'upload' | 'creative'>('upload')
-  
+
   // Upload states
   const [image, setImage] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
@@ -41,10 +45,10 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
   const [croppedImage, setCroppedImage] = useState<string | null>(null)
-  
+
   // Creative avatar states
   const [selectedVariant, setSelectedVariant] = useState<'gradient' | 'emoji' | 'geometric' | 'neon' | 'minimal'>('gradient')
-  
+
   const [isUploading, setIsUploading] = useState(false)
 
   const variants = [
@@ -153,9 +157,9 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
       // Save the creative avatar variant choice with timestamp for uniqueness
       const timestamp = Date.now()
       const avatarData = `creative-${selectedVariant}-${timestamp}`
-      
-      const resp = await updateProfile({ 
-        profileImage: avatarData 
+
+      const resp = await updateProfile({
+        profileImage: avatarData
       })
 
       if (!resp?.success) {
@@ -198,7 +202,7 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
         <div className="grid grid-cols-2 gap-4">
           {/* Upload Option */}
           <div className="space-y-3">
-            <label 
+            <label
               htmlFor="file-upload"
               className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-neutral-300 dark:border-dark-border rounded-2xl cursor-pointer hover:border-purple-400 dark:hover:border-purple-500 transition-colors group"
             >
@@ -262,7 +266,8 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
       </div>
 
       <div className="aspect-square relative w-full max-w-md mx-auto">
-        <Cropper
+        {/* @ts-ignore - react-easy-crop type compatibility issue */}
+        <CropperComponent
           classes={{
             containerClassName: 'overflow-hidden relative',
             mediaClassName: 'aspect-square',
@@ -337,11 +342,10 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
               <motion.button
                 key={variant.type}
                 onClick={() => setSelectedVariant(variant.type)}
-                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
-                  selectedVariant === variant.type
-                    ? 'border-purple-400 bg-purple-50 dark:border-purple-500 dark:bg-purple-900/20'
-                    : 'border-neutral-200 dark:border-dark-border hover:border-neutral-300 dark:hover:border-neutral-600'
-                }`}
+                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${selectedVariant === variant.type
+                  ? 'border-purple-400 bg-purple-50 dark:border-purple-500 dark:bg-purple-900/20'
+                  : 'border-neutral-200 dark:border-dark-border hover:border-neutral-300 dark:hover:border-neutral-600'
+                  }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
