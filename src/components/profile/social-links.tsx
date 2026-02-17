@@ -154,7 +154,7 @@ export const SocialLinkButton = ({
     >
       <Button
         variant={'outline'}
-        className={cn('bg-white shadow-lg', buttonClassName)}
+        className={cn('bg-white rounded-md shadow-lg', buttonClassName)}
       >
         <Image
           src={`/${getIcon(platform as any)}`}

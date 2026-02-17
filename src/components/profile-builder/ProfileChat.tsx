@@ -394,7 +394,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
             </Conversation>
             <div className='px-2 flex items-center justify-center pb-2'>
 
-                <PromptInput multiple globalDrop onSubmit={handleFormSubmit} className="w-full border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden">
+                <PromptInput multiple globalDrop onSubmit={handleFormSubmit} className="w-full  shadow-none ">
                     <PromptInputHeader>
                         <PromptInputAttachmentsDisplay />
                     </PromptInputHeader>

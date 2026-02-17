@@ -10,21 +10,21 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-600 rounded-2xl',
+          'border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-600 rounded-lg',
         destructive:
-          'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 rounded-2xl shadow-lg hover:shadow-red-500/25',
+          'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 rounded-lg shadow-lg hover:shadow-red-500/25',
         outline:
-          'border border-neutral-200 bg-white/80 backdrop-blur-sm hover:bg-white hover:border-neutral-300 dark:border-dark-border dark:bg-dark-bg/80 dark:hover:bg-dark-border/50 rounded-2xl',
+          'border border-neutral-200 bg-white/80 backdrop-blur-sm hover:bg-white hover:border-neutral-300 dark:border-dark-border dark:bg-dark-bg/80 dark:hover:bg-dark-border/50 rounded-lg',
         secondary:
-          'bg-gradient-to-r from-neutral-800 to-neutral-900 text-white dark:from-neutral-100 dark:to-neutral-200 dark:text-black hover:from-neutral-900 hover:to-black dark:hover:from-white dark:hover:to-neutral-100 rounded-2xl shadow-lg',
-        ghost: 'dark:hover:bg-dark-border/60 hover:bg-neutral-100 rounded-2xl backdrop-blur-sm',
+          'bg-gradient-to-r from-neutral-800 to-neutral-900 text-white dark:from-neutral-100 dark:to-neutral-200 dark:text-black hover:from-neutral-900 hover:to-black dark:hover:from-white dark:hover:to-neutral-100 rounded-lg shadow-lg',
+        ghost: 'dark:hover:bg-dark-border/60 hover:bg-neutral-100 rounded-lg backdrop-blur-sm',
         link: 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white underline-offset-4 hover:underline',
         primary:
-          'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded-2xl shadow-lg hover:shadow-purple-500/25',
+          'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 rounded-lg shadow-lg hover:shadow-purple-500/25',
         success:
-          'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 rounded-2xl shadow-lg hover:shadow-green-500/25',
+          'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 rounded-lg shadow-lg hover:shadow-green-500/25',
         warning:
-          'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600 rounded-2xl shadow-lg hover:shadow-yellow-500/25',
+          'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600 rounded-lg shadow-lg hover:shadow-yellow-500/25',
       },
       size: {
         default: 'h-10 px-4 py-2',
@@ -44,7 +44,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   haptic?: boolean;
   loading?: boolean;
@@ -59,7 +59,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       if (haptic && 'vibrate' in navigator) {
         navigator.vibrate?.(1)
       }
-      
+
       onClick?.(e)
     }
 

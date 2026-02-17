@@ -189,7 +189,7 @@ export function ProfileCompletionWidget({
                     whileTap={{ scale: 0.98 }}
                     onClick={isAllCompleted ? handleAskAI : () => setIsExpanded(!isExpanded)}
                     className={cn(
-                        "px-4 py-2.5 flex items-center gap-3 transition-all duration-300 dark:bg-dark-bg bg-white border shadow-2xl rounded-full",
+                        "px-4 py-2.5 flex items-center gap-3 transition-all duration-300 dark:bg-dark-bg z-50 shadow-md bg-white border rounded-full",
                         isAllCompleted
                             ? "border-neutral-200 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
                             : "border-neutral-300 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
@@ -208,7 +208,7 @@ export function ProfileCompletionWidget({
                                         r="8"
                                         strokeWidth="3"
                                         fill="none"
-                                        className="text-neutral-200 dark:stroke-neutral-600 dark:text-neutral-800"
+                                        className=" stroke-neutral-300/80 dark:stroke-neutral-600 dark:text-neutral-800"
                                     />
                                     <circle
                                         cx="10"

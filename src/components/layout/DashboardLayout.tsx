@@ -223,7 +223,7 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
               collapsible
               collapsedSize={0}
               className={cn(
-                'border-l border-neutral-200/80 dark:border-dark-border flex flex-col items-center justify-center h-screen',
+                'border-l border-neutral-200/80 dark:border-neutral-800 flex flex-col items-center justify-center h-screen',
                 finalSidebarConfig.right.className
               )}
             >
