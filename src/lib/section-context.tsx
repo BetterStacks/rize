@@ -6,6 +6,7 @@ import Gallery from '@/components/gallery/gallery'
 import PostSection from '@/components/posts-section'
 import Projects from '@/components/projects/projects'
 import Writings from '@/components/writings/writings'
+import CertificatesList from '@/components/certificates/certificates-list'
 import { useParams } from 'next/navigation'
 import React, {
   createContext,
@@ -22,6 +23,7 @@ import {
   TEducation,
   TExperience,
   TSection,
+  TCertificate,
 } from './types'
 import { useQuery } from '@tanstack/react-query'
 
@@ -33,7 +35,7 @@ type SectionContextType = {
 
 export const SectionContext = createContext<SectionContextType>({
   sections: [],
-  setSections: () => {},
+  setSections: () => { },
   isFetching: false,
 })
 
@@ -46,6 +48,7 @@ type SectionProviderProps = {
   education: TEducation[];
   workExperience: TExperience[];
   posts: GetExplorePosts[];
+  certificates?: TCertificate[];
   profileSections: {
     id: string;
     profileId: string;
@@ -74,6 +77,7 @@ const SectionContextProvider: FC<SectionProviderProps> = ({
   projects,
   workExperience,
   writings,
+  certificates = [],
   profileSections,
 }) => {
   const sectionsList: TSection[] = [
@@ -124,6 +128,13 @@ const SectionContextProvider: FC<SectionProviderProps> = ({
         <WorkExperience workExperience={workExperience} isMine={isMine} />
       ),
       enabled: isMine || workExperience?.length > 0,
+    },
+    {
+      order: 6,
+      id: 'certificates',
+      name: 'Certificates',
+      component: <CertificatesList certificates={certificates} isMine={isMine} />,
+      enabled: isMine || certificates?.length > 0,
     },
   ]
   const params = useParams<{ username: string }>()

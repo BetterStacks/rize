@@ -64,7 +64,6 @@ export function useProfileCompletion({
         }
 
 
-        const hasSocialLinks = socialLinks.length > 0
 
         return [
             {
@@ -73,7 +72,14 @@ export function useProfileCompletion({
                 description: 'Add your name, bio, and profile picture',
                 completed: hasBasicInfo,
                 action: () => {
-                    // Just scroll to top or do nothing if undesired to toggle panel
+                    if (onOpenChat) {
+                        onOpenChat()
+                    } else {
+                        const chatButton = document.querySelector('[data-profile-chat-trigger]')
+                        if (chatButton instanceof HTMLElement) {
+                            chatButton.click()
+                        }
+                    }
                 }
             },
             {

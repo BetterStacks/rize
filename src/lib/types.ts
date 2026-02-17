@@ -2,6 +2,7 @@ import {
   comments,
   education,
   experience,
+  certificates,
   galleryMedia,
   Media,
   media,
@@ -35,6 +36,8 @@ export type TEducation = typeof education.$inferSelect;
 export type TNewEducation = typeof education.$inferInsert;
 export type TExperience = typeof experience.$inferSelect;
 export type TNewExperience = typeof experience.$inferInsert;
+export type TCertificate = typeof certificates.$inferSelect;
+export type TNewCertificate = typeof certificates.$inferInsert;
 
 export type TStoryElementType =
   | "mission"
@@ -489,6 +492,52 @@ export const updateEducationSchema = addEducationSchema.partial().extend({
 export const deleteEducationSchema = z.object({
   id: z.string(),
   school: z.string().optional(), // For UI display in confirmation
+});
+
+export const addCertificateSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Certificate name is required")
+    .describe("The name of the certificate or certification"),
+  issuer: z
+    .string()
+    .min(1, "Issuer is required")
+    .describe("The organization that issued the certificate"),
+  issueDate: z
+    .string()
+    .optional()
+    .describe("When the certificate was issued"),
+  expiryDate: z
+    .string()
+    .optional()
+    .describe("When the certificate expires (if applicable)"),
+  credentialId: z
+    .string()
+    .optional()
+    .describe("The credential ID or certificate number"),
+  credentialUrl: z
+    .string()
+    .url()
+    .optional()
+    .describe("URL to verify the certificate online"),
+  fileUrl: z
+    .string()
+    .url()
+    .optional()
+    .describe("URL to the certificate file/document"),
+  description: z
+    .string()
+    .optional()
+    .describe("Additional details about the certificate"),
+});
+
+export const updateCertificateSchema = addCertificateSchema.partial().extend({
+  id: z.string(),
+});
+
+export const deleteCertificateSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(), // For UI display in confirmation
 });
 
 

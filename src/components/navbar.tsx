@@ -1,27 +1,31 @@
+import { useSession } from '@/hooks/useAuth'
 import { useRightSidebar } from '@/lib/context'
 import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@mantine/hooks'
 import { motion } from 'framer-motion'
 import {
-  Edit3,
-  Sidebar,
-  Search,
-  Bell,
   Compass,
+  Edit,
+  Edit3,
   Home,
-  Sparkles,
-  Plus
+  MoonIcon,
+  Pencil,
+  Plus,
+  Search,
+  Sidebar,
+  SunIcon
 } from 'lucide-react'
-import { FC, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useSession } from '@/hooks/useAuth'
 import Link from 'next/link'
-import { useProfileDialog, useSearchDialog, usePostsDialog } from './dialog-provider'
-import Menu from './menu'
+import { useRouter } from 'next/navigation'
+import { FC, useState } from 'react'
+import { usePostsDialog, useProfileDialog, useSearchDialog } from './dialog-provider'
 import Logo from './logo'
+import Menu from './menu'
 import { Button } from './ui/button'
-import { ShareCard } from './profile/ShareCard'
+import { useTheme } from 'next-themes'
+import { Separator } from './ui/separator'
 import { Badge } from './ui/badge'
+import { ShareCard } from './profile/ShareCard'
 
 type LayoutVariant = 'profile' | 'explore' | 'post' | 'writing' | 'default'
 
@@ -55,7 +59,7 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
   const session = useSession()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [activeTab, setActiveTab] = useState<string>(variant)
-
+  const { setTheme, theme } = useTheme()
   // Navigation items for Gen Z/Alpha users
   const navItems = [
     {
@@ -63,7 +67,10 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
       icon: Home,
       label: 'Home',
       href: '/',
-      active: variant === 'default'
+      active: variant === 'default',
+      dummyOnClick: () => {
+        setActiveTab('home')
+      }
     },
     {
       id: 'explore',
@@ -71,18 +78,25 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
       label: 'Explore',
       href: '/explore',
       active: variant === 'explore',
-      badge: 'new'
+      badge: 'new',
+      dummyOnClick: () => {
+        setActiveTab('explore')
+      }
     },
     {
       id: 'create',
       icon: Plus,
       label: 'Create',
       action: () => setCreateOpen(true),
-      special: true
+      special: true,
+      dummyOnClick: () => {
+        setActiveTab('create')
+      }
     }
   ]
 
   return (
+
     <motion.nav
       className='sticky top-0 w-full flex items-center justify-center z-50 backdrop-blur-xl bg-white/80 dark:bg-dark-bg/80 border-b border-neutral-200/50 dark:border-dark-border/50'
       initial={{ y: -100, opacity: 0 }}
@@ -183,10 +197,10 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
             <Button
               variant="outline"
               size="icon"
-              className="rounded-2xl"
+              className=""
               onClick={() => router.push('/settings')}
             >
-              <Edit3 className="size-5" />
+              <Edit3 className="size-4" />
             </Button>
           )}
 
@@ -195,10 +209,10 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
             <Button
               variant="outline"
               size="icon"
-              className="rounded-2xl"
+              className="rounded-lg"
               onClick={() => setSidebarOpen(true)}
             >
-              <Sidebar className="size-5" />
+              <Sidebar className="size-4" />
             </Button>
           )}
 

@@ -368,6 +368,25 @@ export const experience = pgTable("experience", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const certificates = pgTable("certificates", {
+  id: uuid("id")
+    .primaryKey()
+    .$defaultFn(() => gen_uuid()),
+  profileId: uuid("profileId")
+    .notNull()
+    .references(() => profile.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  fileUrl: text("file_url").notNull(), // Required PDF file
+  issuer: varchar("issuer", { length: 255 }),
+  issueDate: timestamp("issue_date"),
+  expiryDate: timestamp("expiry_date"),
+  credentialId: varchar("credential_id", { length: 255 }),
+  credentialUrl: text("credential_url"),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const profileSections = pgTable("profile_sections", {
   id: uuid("id")
     .primaryKey()
@@ -452,6 +471,13 @@ export const educationRelations = relations(education, ({ one }) => ({
     references: [profile.id],
   }),
 }));
+
+export const certificatesRelations = relations(certificates, ({ one }) => ({
+  profile: one(profile, {
+    fields: [certificates.profileId],
+    references: [profile.id],
+  }),
+}));
 export const galleryRelations = relations(gallery, ({ one }) => ({
   profile: one(profile, {
     fields: [gallery.profileId],
@@ -492,6 +518,7 @@ export const profileRelations = relations(profile, ({ many, one }) => ({
   gallery: many(gallery),
   experience: many(experience),
   education: many(education),
+  certificates: many(certificates),
   projects: many(projects),
   projectUpvotes: many(projectUpvotes),
   sections: many(profileSections),
