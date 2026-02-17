@@ -32,7 +32,7 @@ const UserAvatar = ({
     setIsOpen(true)
   }
 
-  const url = data?.image || `https://api.dicebear.com/9.x/initials/svg?seed=${data?.name.trim()}&radius=50`
+  const url = data?.image || `https://api.dicebear.com/9.x/initials/svg?seed=${data?.name?.trim()}&radius=50`
 
   return (
     <>

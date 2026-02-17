@@ -7,6 +7,7 @@ import { getUserPosts } from "@/actions/post-actions";
 import { getProfileByUsername } from "@/actions/profile-actions";
 import { getAllProjects } from "@/actions/project-actions";
 import { getStoryElementsByUsername } from "@/actions/story-actions";
+import { getAllCertificates } from "@/actions/certificate-actions";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { getServerSession } from "@/lib/auth";
 import SectionContextProvider from "@/lib/section-context";
@@ -48,6 +49,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
     posts,
     sections,
     storyElements,
+    certificates,
   ] = await Promise.all([
     getGalleryItems(username),
     getAllPages(username).then((pages) =>
@@ -62,6 +64,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
     getUserPosts(username),
     getSections(username),
     getStoryElementsByUsername(username),
+    getAllCertificates(username),
   ]);
 
   const isMine = user?.username === session?.user?.username;
@@ -97,6 +100,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
         education={education}
         workExperience={workExperience}
         posts={posts}
+        certificates={certificates}
         profileSections={sections}
       >
         <DashboardLayout variant="profile" isMine={isMine}>
@@ -113,6 +117,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
             storyElements={
               (storyElements?.success ? storyElements.data || [] : []) as TStoryElement[]
             }
+            certificates={certificates}
           />
         </DashboardLayout>
       </SectionContextProvider>

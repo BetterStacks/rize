@@ -56,6 +56,11 @@ export async function bulkInsertSections() {
       order: 5,
       enabled: true,
     },
+    {
+      slug: 'certificates',
+      order: 6,
+      enabled: true,
+    },
   ]
 
   await db.insert(sections).values(

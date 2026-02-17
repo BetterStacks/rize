@@ -26,7 +26,7 @@ const BottomBanner: FC<BottomBannerProps> = ({
   return (
     <div
       className={cn(
-        'w-full max-w-2xl p-6 gap-x-4 mt-4 rounded-xl border border-neutral-300/60 dark:border-dark-border/80 flex flex-col items-start bg-neutral-100 dark:bg-dark-border',
+        'w-full max-w-2xl mb-20 p-6 gap-x-4 mt-4 rounded-xl border border-neutral-300/60 dark:border-neutral-800/80 flex flex-col items-start bg-neutral-100 dark:bg-neutral-900',
         className
       )}
     >
@@ -47,9 +47,7 @@ const BottomBanner: FC<BottomBannerProps> = ({
         </div>
       </div>
       <div className="md:mt-4 mt-2 w-full">
-        {/* <Button className="w-full" variant={"outline"} size={"sm"}>
-          Create Profile
-        </Button> */}
+
         <ClaimUsernameForm
           onSubmit={handleSubmit}
           badgeClassName="rounded-xl 5"

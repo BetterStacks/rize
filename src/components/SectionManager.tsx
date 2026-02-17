@@ -21,7 +21,6 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { motion } from 'framer-motion'
 import { AlignJustify, Loader } from 'lucide-react'
-import { useMemo } from 'react'
 import {
   Card,
   CardContent,
@@ -30,7 +29,6 @@ import {
   CardTitle,
 } from './ui/card'
 import { Checkbox } from './ui/checkbox'
-import { Skeleton } from './ui/skeleton'
 
 // Type assertion to fix @dnd-kit/sortable compatibility issue
 const SortableContextComponent = SortableContext as any

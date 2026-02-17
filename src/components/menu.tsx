@@ -13,11 +13,13 @@ import {
   ArrowUpRight,
   Compass,
   LogOut,
+  MenuIcon,
   Moon,
   Search,
   Settings,
   Sun,
-  UserRound
+  UserRound,
+  X
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
@@ -25,6 +27,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useProfileDialog } from './dialog-provider'
 import { Button } from './ui/button'
+import { cn } from "@/lib/utils"
 
 const Menu = () => {
   const [open, setOpen] = useState(false)
@@ -116,15 +119,15 @@ const Menu = () => {
         <Button
           variant={'outline'}
           size={'icon'}
-          className="rounded-full relative overflow-hidden size-10 "
+          className={cn(" relative overflow-hidden size-10 ", session?.data && "rounded-full")}
           onClick={() => setOpen(true)}
         >
-          {/* {open ? (
+          {session?.data ? <Image src={session?.data?.user?.profileImage || session?.data?.user?.image || '/'} alt="Profile" className='rounded-lg size-full' width={24} height={24} priority /> :
+            open ? (
               <X strokeWidth={1.5} className="size-5 opacity-70" />
             ) : (
               <MenuIcon strokeWidth={1.5} className="size-5 opacity-70" />
-            )} */}
-          <Image src={session?.data?.user?.profileImage || session?.data?.user?.image || '/'} alt="Profile" className='rounded-lg size-full' width={24} height={24} priority />
+            )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64 mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-2xl" align="end">
@@ -146,25 +149,26 @@ const Menu = () => {
             </>
           ) : (
             <>
-              <div className="flex p-4 mt-2 items-center justify-center">
-                <div className="flex flex-col items-center justify-center text-center">
-                  <h3 className="font-medium leading-tight text-lg">
-                    Claim your profile
-                  </h3>
-                  <span className="opacity-70 text-sm leading-tight mt-1">
-                    Join the community today
-                  </span>
-                </div>
+              <div className="flex flex-col items-start justify-start">
+                <h3 className="font-medium leading-tight text-lg">
+                  Claim your profile
+                </h3>
+                <span className="opacity-70 text-sm leading-tight mt-1">
+                  Join the community today
+                </span>
               </div>
             </>
           )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator className='dark:bg-dark-border/60 bg-neutral-200/60' />
         <DropdownMenuGroup className=''>
-          {options.map((option) => (
+          {(session?.data ? options : guestOptions).map((option) => (
             <DropdownMenuItem key={option.id} onClick={() => {
               if (option.href) {
                 router.push(option.href)
+              }
+              if (option.onClick) {
+                option.onClick()
               }
             }}>
               <option.icon /> {option.name}
@@ -177,10 +181,12 @@ const Menu = () => {
             {theme === "dark" ? <Sun /> : <Moon />} Switch to {theme === "dark" ? "light" : "dark"}
             <DropdownMenuShortcut>⇧⌘T</DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuItem className='text-red-500'>
-            <LogOut /> Log out
-            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-          </DropdownMenuItem>
+          {session?.data && (
+            <DropdownMenuItem className='text-red-500'>
+              <LogOut /> Log out
+              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

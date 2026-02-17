@@ -1,5 +1,16 @@
 "use client";
+import { getAllCertificates } from "@/actions/certificate-actions";
+import { getAllEducation } from "@/actions/education-actions";
+import { getAllExperience } from "@/actions/experience-actions";
 import { getProfileByUsername } from "@/actions/profile-actions";
+import { getAllProjects } from "@/actions/project-actions";
+import { getSocialLinks } from '@/actions/social-links-actions';
+import { getStoryElementsByUsername } from "@/actions/story-actions";
+import { useAIPromptDialog } from "@/components/dialog-provider";
+import { useProfileCompletion } from '@/hooks/useProfileCompletion';
+import { useEnrichedSession } from "@/lib/auth-client";
+import { useActiveSidebarTab } from '@/lib/context';
+import { usePanel } from "@/lib/panel-context";
 import { useSections } from "@/lib/section-context";
 import {
   GalleryItemProps,
@@ -7,45 +18,29 @@ import {
   GetAllWritings,
   GetExplorePosts,
   GetProfileByUsername,
+  TCertificate,
   TEducation,
   TExperience,
   TStoryElement,
-} from '@/lib/types'
-import { capitalizeFirstLetter } from '@/lib/utils'
-import { useQueries, useQuery } from '@tanstack/react-query'
-import { useParams } from 'next/navigation'
-import React, { useMemo, useState } from 'react'
-import Education from '../education/education'
-import WorkExperience from '../experience/experience'
-import Gallery from '../gallery/gallery'
-import PostSection from '../posts-section'
-import Projects from '../projects/projects'
-import { Separator } from '../ui/separator'
-import Writings from '../writings/writings'
-import Profile from './profile'
-import SocialLinks from './social-links'
-import BottomBanner from '../bottom-banner'
-import { StoryElementsDisplay } from '../story/story-elements-display'
-import { useSession } from '@/hooks/useAuth'
-import ResumeRoaster from './ResumeRoaster'
-import { ProfileCompletionWidget } from './ProfileCompletionWidget'
-import { useProfileCompletion } from '@/hooks/useProfileCompletion'
-import { getSocialLinks } from '@/actions/social-links-actions'
-import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
-import { usePanel } from "@/lib/panel-context";
-import { useEnrichedSession } from "@/lib/auth-client";
-import { getGalleryItems } from "@/actions/gallery-actions";
-import { getAllPages } from "@/actions/page-actions";
-import { getAllProjects } from "@/actions/project-actions";
-import { getAllEducation } from "@/actions/education-actions";
-import { getAllExperience } from "@/actions/experience-actions";
-import { getUserPosts } from "@/actions/post-actions";
-import { getStoryElementsByUsername } from "@/actions/story-actions";
-import { getSections } from "@/actions/general-actions";
-import { profileSections } from "@/db/schema";
+} from '@/lib/types';
+import { capitalizeFirstLetter } from '@/lib/utils';
 import { useLocalStorage } from "@mantine/hooks";
-import { useAIPromptDialog } from "@/components/dialog-provider";
-import { useEffect } from "react";
+import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
+import React, { useEffect, useMemo } from 'react';
+import BottomBanner from '../bottom-banner';
+import CertificatesList from "../certificates/certificates-list";
+import Education from '../education/education';
+import WorkExperience from '../experience/experience';
+import Gallery from '../gallery/gallery';
+import PostSection from '../posts-section';
+import Projects from '../projects/projects';
+import { Separator } from '../ui/separator';
+import Writings from '../writings/writings';
+import Profile from './profile';
+import { ProfileCompletionWidget } from './ProfileCompletionWidget';
+import ResumeRoaster from './ResumeRoaster';
+import SocialLinks from './social-links';
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -57,6 +52,7 @@ type UserProfileProps = {
   workExperience: TExperience[];
   posts: GetExplorePosts[];
   storyElements: TStoryElement[];
+  certificates: TCertificate[];
 };
 
 const UserProfile = ({
@@ -69,6 +65,7 @@ const UserProfile = ({
   workExperience,
   posts,
   storyElements,
+  certificates,
 }: UserProfileProps) => {
   const params = useParams<{ username: string }>();
   const session = useEnrichedSession();
@@ -122,6 +119,13 @@ const UserProfile = ({
     queryKey: ['get-story-elements', params.username],
     queryFn: () => getStoryElementsByUsername(params.username),
     initialData: { success: true, data: storyElements },
+    enabled: !!params.username,
+  });
+
+  const { data: certificatesData } = useQuery({
+    queryKey: ['get-certificates', params.username],
+    queryFn: () => getAllCertificates(params.username),
+    initialData: certificates,
     enabled: !!params.username,
   });
 
@@ -193,6 +197,11 @@ const UserProfile = ({
         <WorkExperience workExperience={experienceData || workExperience} isMine={isMine} />
       ),
     },
+    certificates: {
+      enabled: isMine ? true : (certificatesData?.length ?? 0) > 0,
+      hasData: (certificatesData?.length ?? 0) > 0,
+      component: <CertificatesList certificates={certificatesData || certificates} isMine={isMine} />,
+    },
   };
 
   const filteredSections = useMemo(() => {
@@ -230,6 +239,7 @@ const UserProfile = ({
     projectsData,
     educationData,
     experienceData,
+    certificatesData,
   ]);
 
   const areAllSectionsDisabled = filteredSections.every(

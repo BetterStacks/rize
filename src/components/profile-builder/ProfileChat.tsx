@@ -408,7 +408,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                     />
                     <PromptInputFooter className="flex items-center justify-between h-[44px]">
                         <PromptInputActionMenu>
-                            <PromptInputActionMenuTrigger />
+                            <PromptInputActionMenuTrigger className='rounded-full' />
                             <PromptInputActionMenuContent>
                                 <PromptInputActionAddAttachments />
                             </PromptInputActionMenuContent>
