@@ -88,7 +88,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
       {shouldShowPhoneModal && (
         <PhoneCollectionModal
           isOpen={true}
-          userName={session?.user?.name || "there"}
+          userName={session?.user?.displayName || "there"}
         />
       )}
 

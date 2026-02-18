@@ -39,7 +39,7 @@ const Profile = ({
             profileImage={data?.profileImage as string}
           />
         </div>
-        <h1 className="profile-displayName self-start text-xl font-medium md:text-xl lg:text-2xl tracking-tight">
+        <h1 className="profile-displayName self-start text-base sm:text-lg font-medium md:text-xl lg:text-2xl tracking-tight">
           {' '}
           {data?.displayName || data?.name}
         </h1>

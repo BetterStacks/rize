@@ -27,7 +27,7 @@ import { capitalizeFirstLetter } from '@/lib/utils';
 import { useLocalStorage } from "@mantine/hooks";
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import BottomBanner from '../bottom-banner';
 import CertificatesList from "../certificates/certificates-list";
 import Education from '../education/education';
@@ -41,6 +41,8 @@ import Profile from './profile';
 import { ProfileCompletionWidget } from './ProfileCompletionWidget';
 import ResumeRoaster from './ResumeRoaster';
 import SocialLinks from './social-links';
+import { motion } from "framer-motion";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -70,7 +72,7 @@ const UserProfile = ({
   const params = useParams<{ username: string }>();
   const session = useEnrichedSession();
   const [, setActiveSidebarTab] = useActiveSidebarTab();
-  const { toggleRightPanel, rightPanelRef } = usePanel()
+  const [activeTab, setActiveTab] = useState<string>('gallery')
 
 
   const { data: profileData, isLoading } = useQuery({
@@ -247,7 +249,7 @@ const UserProfile = ({
   );
 
   return (
-    <div className="w-full flex relative flex-col items-center justify-start">
+    <div className="w-full flex relative flex-col items-center mb-32 justify-start">
       <Profile isMine={isMine} data={profileData!} isLoading={isLoading} username={profileData?.username || params.username} />
       <SocialLinks isMine={isMine} />
 
@@ -267,9 +269,9 @@ const UserProfile = ({
         </>
       )} */}
 
-      <Separator className="w-full mt-6 max-w-2xl" />
       {areAllSectionsDisabled && !isLoading && (
         <>
+          <Separator className="w-full mt-6 max-w-2xl" />
           <div className="w-full border-2 py-6 px-4 border-dashed border-neutral-300/60 dark:border-dark-border rounded-2xl max-w-2xl p-4 flex flex-col md:flex-row items-center md:items-start justify-center mt-4">
             <p className=" md:w-1/2 text-neutral-600 dark:text-neutral-400">
               Oops ! It seems like{" "}
@@ -281,14 +283,45 @@ const UserProfile = ({
           </div>
         </>
       )}
-      {filteredSections
-        ?.filter((section) => section.enabled)
-        .map((section) => (
-          <React.Fragment key={section?.id}>
-            {section.component}
-            <Separator className="w-full max-w-2xl" />
+      {/* <div className="w-full border-b flex flex-row items-center border-neutral-200 dark:border-neutral-800 max-w-2xl mt-8 mb-10">
+        {Object.keys(sectionMap).map((key) => {
+          return (
+            <div className="relative px-4 py-3 cursor-pointer group" onClick={() => setActiveTab(key)} key={key}>
+              <span className={`transition-colors text-sm md:text-base duration-200 ${activeTab === key ? "text-neutral-900 dark:text-white" : "text-neutral-500 group-hover:text-neutral-700 dark:group-hover:text-neutral-300"}`}>
+                {capitalizeFirstLetter(key)}
+              </span>
+
+
+              {activeTab === key && (
+                <motion.div
+                  layoutId={`sectionTab`}
+                  layout="position"
+                  className="absolute inset-x-0 h-px bottom-0  bg-main-yellow"
+                  transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+                />
+              )}
+            </div>
+          )
+        })}
+      </div>
+      <div className="w-full mx-auto">
+
+        {sectionMap[activeTab as keyof typeof sectionMap]?.component &&
+          <React.Fragment key={activeTab}>
+            {sectionMap[activeTab as keyof typeof sectionMap]?.component}
+            <Separator className="w-full max-w-2xl mx-auto" />
           </React.Fragment>
-        ))}
+        }
+      </div> */}
+
+      {filteredSections.map((section) => (
+        <div key={section.id} className="w-full mx-auto">
+          {sectionMap[section.id as keyof typeof sectionMap]?.component}
+          <Separator className="w-full max-w-2xl mx-auto" />
+        </div>
+      ))}
+
+
 
       {!session?.data && !session?.isPending && <BottomBanner />}
 

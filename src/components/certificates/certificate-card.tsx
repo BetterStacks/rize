@@ -1,8 +1,10 @@
 'use client'
 
 import { TCertificate } from '@/lib/types'
-import { Award, Calendar, ExternalLink, FileText, Shield } from 'lucide-react'
+import { Award, Calendar, Edit2, ExternalLink, FileText, MoreHorizontal, Shield, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
+import { Button } from '../ui/button'
 
 type CertificateCardProps = {
     certificate: TCertificate
@@ -39,20 +41,28 @@ export default function CertificateCard({
                 </div>
 
                 {isMine && (
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                            onClick={() => onEdit?.(certificate)}
-                            className="text-xs px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-md transition-colors"
-                        >
-                            Edit
-                        </button>
-                        <button
-                            onClick={() => onDelete?.(certificate.id)}
-                            className="text-xs px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md transition-colors"
-                        >
-                            Delete
-                        </button>
-                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild className="absolute right-4 top-4 ">
+                            <Button variant={"outline"} size={"smallIcon"}>
+                                <MoreHorizontal className="size-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
+                            <DropdownMenuItem onClick={(e) => {
+                                onEdit?.(certificate)
+
+                            }}>
+                                <Edit2 className="size-4" />
+                                <span>Edit</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="stroke-red-500 text-red-500" onClick={(e) => {
+                                onDelete?.(certificate.id);
+                            }}>
+                                <Trash2 className="size-4" />
+                                <span>Delete</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 )}
             </div>
 

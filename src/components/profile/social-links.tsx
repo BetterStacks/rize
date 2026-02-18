@@ -61,7 +61,7 @@ const SocialLinks = ({ isMine }: { isMine: boolean }) => {
   return (
     <>
       <div className="w-full  flex items-center justify-center ">
-        <div data-social-links className="max-w-2xl social-links w-full gap-x-0.5 gap-y-1.5  text-sm md:text-base flex flex-wrap  mt-4 items-center justify-start">
+        <div data-social-links className="md:max-w-2xl social-links w-full gap-x-0.5 gap-y-1.5  text-sm md:text-base flex flex-wrap  mt-4 items-center justify-start">
           {isLoading ? (
             <SocialLinkSkeleton />
           ) : links?.length === 0 ? (
@@ -154,7 +154,7 @@ export const SocialLinkButton = ({
     >
       <Button
         variant={'outline'}
-        className={cn('bg-white rounded-md shadow-lg', buttonClassName)}
+        className={cn('bg-white rounded-md shadow-sm', buttonClassName)}
       >
         <Image
           src={`/${getIcon(platform as any)}`}

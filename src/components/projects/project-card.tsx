@@ -14,6 +14,7 @@ import {
   Globe,
   Loader,
   Minus,
+  MoreHorizontal,
   Trash2,
 } from "lucide-react";
 import Image from "next/image";
@@ -22,6 +23,7 @@ import { useParams } from "next/navigation";
 import { FC, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
 type ProjectCardProps = {
   project: GetAllProjects;
@@ -101,18 +103,18 @@ const ProjectCard: FC<ProjectCardProps> = ({
               <span className=" text-neutral-700 font-medium  dark:text-neutral-400">
                 {project?.startDate
                   ? new Date(project.startDate).toLocaleDateString("en-US", {
-                      month: "short",
-                      year: "numeric",
-                    })
+                    month: "short",
+                    year: "numeric",
+                  })
                   : ""}
               </span>
               <Minus className=" text-neutral-700 font-medium size-3 mx-0.5 leading-none dark:text-neutral-400" />
               <span className=" text-neutral-700 font-medium  dark:text-neutral-400">
                 {project?.endDate
                   ? new Date(project.endDate).toLocaleDateString("en-US", {
-                      month: "short",
-                      year: "numeric",
-                    })
+                    month: "short",
+                    year: "numeric",
+                  })
                   : ""}
               </span>
             </div>
@@ -154,7 +156,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
           </div>
         </div>
       </div>
-      {isMine && (
+      {/* {isMine && (
         <div className="space-x-2 absolute right-4 opacity-0 group-hover:opacity-100 flex items-center justify-center">
           <Button
             variant={"outline"}
@@ -163,13 +165,6 @@ const ProjectCard: FC<ProjectCardProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               onEditProject(project.id);
-              // setTab((prev) => ({
-              //   id: prev?.id === project?.id ? null : project?.id,
-              //   tab: "projects",
-              // }));
-              // if (!isDesktop) {
-              //   setOpen(true);
-              // }
             }}
           >
             <Edit2 className="size-4 opacity-80" />
@@ -191,6 +186,32 @@ const ProjectCard: FC<ProjectCardProps> = ({
             )}
           </Button>
         </div>
+      )} */}
+      {isMine && (
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="absolute right-2 ">
+            <Button variant={"outline"} size={"smallIcon"}>
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
+            <DropdownMenuItem onClick={(e) => {
+              e.stopPropagation();
+              onEditProject(project.id);
+            }}>
+              <Edit2 className="size-4" />
+              <span>Edit</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="stroke-red-500 text-red-500" onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteProject(project.id);
+            }}>
+              <Trash2 className="size-4" />
+              <span>Delete</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
     </motion.div>
   );
