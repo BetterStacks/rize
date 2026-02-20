@@ -46,7 +46,7 @@ export default function RootLayout({
               <Dialogs />
             </Suspense>
             {children}
-            <Toaster position="top-right" theme="light" richColors />
+            {/* <Toaster position="top-right" theme="light" richColors /> */}
             <BottomNav />
           </Providers>
         </PostHogProvider>

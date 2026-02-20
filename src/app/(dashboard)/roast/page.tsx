@@ -1,7 +1,7 @@
 'use client'
 
 import { FileUpload } from '@/components/ui/file-upload'
-import { toast } from 'sonner'
+import { toast } from 'react-hot-toast'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import RoastCard from '@/components/RoastCard'
@@ -63,7 +63,7 @@ export default function Home() {
 
     setLoading(true)
     setRoast('')
-    
+
     try {
       let fileToRoast: File | Blob
 
@@ -100,7 +100,7 @@ export default function Home() {
     return <ResumeRoasterSkeleton />
   }
 
-  
+
   return (
     <div className="min-h-screen overflow-x-hidden w-full dark:bg-neutral-900 bg-white flex flex-col items-center justify-center py-20">
 
@@ -126,7 +126,7 @@ export default function Home() {
             </div>
             {roast && <RoastCard roast={roast} />}
           </div>
-      
+
           {session?.user?.username && (
             <div className="lg:sticky lg:top-6">
               <RoastAnalytics username={session.user.username} key={roast} />

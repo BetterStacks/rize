@@ -7,6 +7,7 @@ import SectionManager from '../SectionManager'
 import SocialLinksManager from '../SocialLinksManager'
 import { Button } from '../ui/button'
 import { GalleryEditor } from './components/GalleryEditor'
+// import { ResumeUploadWidget } from './components/ResumeUploadWidget'
 // import { ProjectForm } from "./forms/UpdateProjectForm";
 import letrazBanner from '@/../public/letraz-banner.png'
 import letrazLogoLight from '@/../public/letraz-logo-light.svg'
@@ -26,6 +27,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import ProfileChat from '../profile-builder/ProfileChat'
+import { ResumeForm } from '../settings/ResumeForm'
 
 
 const RightSidebar = ({ className }: { className?: string }) => {
@@ -61,7 +63,7 @@ const RightSidebar = ({ className }: { className?: string }) => {
           className="mt-6 mb-20 flex flex-col items-center justify-start relative w-full space-y-8"
         >
 
-          <div className="w-full flex justify-center">
+          <div className="w-full px-4 flex justify-center">
             {data?.user?.username ? (
               <ProfileViewsWidget />
             ) : (
@@ -81,8 +83,11 @@ const RightSidebar = ({ className }: { className?: string }) => {
               </div>
             )}
           </div>
+          <div className='px-4'>
+            <ResumeForm />
+          </div>
 
-          <div className="w-full flex justify-center">
+          <div className="w-full px-4 flex justify-center">
             {process.env.NEXT_PUBLIC_LETRAZ_CONNECTION === 'true' &&
               letrazBaseUrl ? (
               isSessionLoading || !rizeUserId ? (
@@ -149,6 +154,7 @@ const RightSidebar = ({ className }: { className?: string }) => {
           <GalleryEditor />
           <SocialLinksManager />
           <SectionManager />
+
 
         </motion.div>
       )}

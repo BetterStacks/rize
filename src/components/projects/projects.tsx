@@ -73,7 +73,7 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
           [...Array.from({ length: 4 })].map((_, i) => (
             <Skeleton
               key={i}
-              className="w-full h-[80px]  rounded-xl animate-pulse bg-neutral-200 dark:bg-dark-border"
+              className="w-full h-[80px] rounded-xl"
             />
           ))
         ) : data?.length === 0 ? (
@@ -111,7 +111,7 @@ export function EmptyWritingState({
   title = "Start Sharing your Projects Journey",
   description = "Your ideas deserve to be shared. Create your first piece and let your words flow.",
   ctaText = "Add New Project",
-  onCreateNew = () => {},
+  onCreateNew = () => { },
 }: EmptyProjectStateProps) {
   const [isHovering, setIsHovering] = useState(false);
 

@@ -43,6 +43,7 @@ import ResumeRoaster from './ResumeRoaster';
 import SocialLinks from './social-links';
 import { motion } from "framer-motion";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
+import toast from "react-hot-toast";
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -247,6 +248,7 @@ const UserProfile = ({
   const areAllSectionsDisabled = filteredSections.every(
     (section) => !section.enabled
   );
+
 
   return (
     <div className="w-full flex relative flex-col items-center mb-32 justify-start">

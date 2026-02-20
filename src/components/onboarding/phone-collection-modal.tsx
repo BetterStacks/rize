@@ -14,7 +14,7 @@ import {
 import { useSession } from "@/lib/auth-client";
 import { useState } from "react";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 type Props = {
   isOpen: boolean;
@@ -60,7 +60,7 @@ export default function PhoneCollectionModal({
     try {
       const result = await skipOnboarding();
       if (result.success) {
-        toast.info("We will remind you next time! 👋");
+        toast.success("We will remind you next time! 👋");
       }
     } catch (error) {
       toast.error("Something went wrong");

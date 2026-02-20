@@ -1,7 +1,7 @@
 'use server'
 import { requireProfile } from '@/lib/auth'
 import db from '@/lib/db'
-import { education, experience, profile, projects } from '@/db/schema'
+import { education, experience, profile, projects, users } from '@/db/schema'
 import { ExtractedData } from '@/lib/resume-parser'
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
@@ -9,19 +9,27 @@ import { revalidatePath } from 'next/cache'
 /**
  * Process and save resume data to user's profile
  */
-export async function processResumeData(resumeData: ExtractedData) {
+export async function processResumeData(resumeData: ExtractedData, resumeFileUrl?: string) {
   try {
     const profileId = await requireProfile()
 
     // Get user's profile for conditional updates
     const userProfile = await db
-      .select()
+      .select({ id: profile.id, userId: profile.userId, username: profile.username, location: profile.location, bio: profile.bio })
       .from(profile)
       .where(eq(profile.id, profileId))
       .limit(1)
 
     if (!userProfile.length) {
       return { success: false, error: 'Profile not found' }
+    }
+
+    // Update user's resumeFileId if provided
+    if (resumeFileUrl) {
+      await db
+        .update(users)
+        .set({ resumeFileId: resumeFileUrl })
+        .where(eq(users.id, userProfile[0].userId))
     }
 
     // Insert experience data
