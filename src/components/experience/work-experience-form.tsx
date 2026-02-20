@@ -111,7 +111,7 @@ export const WorkExperienceForm: FC<WorkExperienceFormProps> = ({
         onError: (error) => {
           toast.error(
             error?.message ||
-              `Failed to ${activeTab?.id ? "update" : "add"} experience`
+            `Failed to ${activeTab?.id ? "update" : "add"} experience`
           );
         },
       });

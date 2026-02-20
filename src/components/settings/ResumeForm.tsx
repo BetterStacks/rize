@@ -16,6 +16,7 @@ export function ResumeForm() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'success' | 'error'>('idle')
   const [extractedData, setExtractedData] = useState<any>(null)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['experience', 'education', 'skills', 'projects'])
 
   // Query to get current resume status
   const { data: resumeStatus, refetch: refetchStatus } = useQuery({
@@ -28,7 +29,7 @@ export function ResumeForm() {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('type', 'resume')
-      
+
       const response = await fetch('/api/upload/resume', {
         method: 'POST',
         body: formData,
@@ -52,7 +53,7 @@ export function ResumeForm() {
   })
 
   const { mutate: processData, isPending: isProcessing } = useMutation({
-    mutationFn: processResumeData,
+    mutationFn: ({ data, fileUrl }: { data: any, fileUrl?: string }) => processResumeData(data, fileUrl),
     onSuccess: (result) => {
       if (result.success) {
         toast.success(`Resume data imported: ${result.stats?.experience || 0} experiences, ${result.stats?.education || 0} education entries`)
@@ -112,8 +113,23 @@ export function ResumeForm() {
 
   const handleImportData = () => {
     if (extractedData) {
-      processData(extractedData)
+      const filteredData = {
+        ...extractedData,
+        experience: selectedCategories.includes('experience') ? extractedData.experience : [],
+        education: selectedCategories.includes('education') ? extractedData.education : [],
+        skills: selectedCategories.includes('skills') ? extractedData.skills : [],
+        projects: selectedCategories.includes('projects') ? extractedData.projects : [],
+      }
+      processData({ data: filteredData, fileUrl: extractedData.fileUrl })
     }
+  }
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    )
   }
 
   const getStatusIcon = () => {
@@ -150,7 +166,7 @@ export function ResumeForm() {
   }
 
   return (
-    <Card>
+    <Card className='dark:bg-dark-bg dark:border-dark-border sm:rounded-3xl'>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="w-5 h-5" />
@@ -163,38 +179,36 @@ export function ResumeForm() {
       <CardContent className="space-y-6">
         {/* Current Resume Status */}
         {resumeStatus?.success && (
-          <div className="rounded-lg border p-4 bg-muted/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Current Resume Data</p>
-                <p className="text-sm text-muted-foreground">
-                  {resumeStatus.experienceCount} work experiences • {resumeStatus.educationCount} education entries
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                {resumeStatus.hasResumeData && (
-                  <>
-                    <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Active
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => clearData()}
-                      disabled={isClearing}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
-                    >
-                      {isClearing ? (
-                        <RefreshCw className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <Trash2 className="w-3 h-3" />
-                      )}
-                    </Button>
-                  </>
-                )}
-              </div>
+          <div className="rounded-lg w-full border p-4 bg-muted/50">
+            <div className="flex flex-col items-start">
+              <p className="font-medium text-sm">Current Resume Data</p>
+              <p className="text-xs text-muted-foreground">
+                {resumeStatus.experienceCount} work experiences • {resumeStatus.educationCount} education entries
+              </p>
             </div>
+            {resumeStatus.hasResumeData && (
+              <div className="flex items-center mt-2 w-full justify-between gap-2">
+                <>
+                  <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Active
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="smallIcon"
+                    onClick={() => clearData()}
+                    disabled={isClearing}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                  >
+                    {isClearing ? (
+                      <RefreshCw className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-3 h-3" />
+                    )}
+                  </Button>
+                </>
+              </div>
+            )}
           </div>
         )}
 
@@ -213,13 +227,13 @@ export function ResumeForm() {
             <Card
               {...getRootProps()}
               className={cn(
-                'border-2 border-dashed transition-all duration-200 cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600',
+                'border-2 border-dashed transition-all duration-200 bg-neutral-100 dark:bg-dark-bg cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600',
                 isDragActive && 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
               )}
             >
               <input {...getInputProps()} />
               <CardContent className="p-8 text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
+                <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4">
                   <Upload className="w-6 h-6 text-neutral-600 dark:text-neutral-400" />
                 </div>
                 <h3 className="font-medium mb-2">
@@ -266,37 +280,48 @@ export function ResumeForm() {
         {uploadStatus === 'success' && extractedData && (
           <div className="space-y-4">
             <Separator />
-            <Card className="bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
-              <CardContent className="p-4">
+            <Card className="bg-green-50/50 dark:bg-green-950/10 border-green-200/50 dark:border-green-800/50">
+              <CardContent className="p-6">
                 <div className="text-sm">
-                  <p className="font-medium text-green-800 dark:text-green-200 mb-3">
-                    🎉 Great! We extracted the following information:
+                  <p className="font-medium text-green-800 dark:text-green-200 mb-4 flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" />
+                    Extraction complete! Select what you'd like to import:
                   </p>
-                  <div className="grid grid-cols-2 gap-4 text-green-700 dark:text-green-300">
-                    {extractedData.experience?.length > 0 && (
-                      <div>
-                        <p className="font-medium">Work Experience</p>
-                        <p className="text-xs">{extractedData.experience.length} entries found</p>
-                      </div>
-                    )}
-                    {extractedData.education?.length > 0 && (
-                      <div>
-                        <p className="font-medium">Education</p>
-                        <p className="text-xs">{extractedData.education.length} entries found</p>
-                      </div>
-                    )}
-                    {extractedData.skills?.length > 0 && (
-                      <div>
-                        <p className="font-medium">Skills</p>
-                        <p className="text-xs">{extractedData.skills.length} skills identified</p>
-                      </div>
-                    )}
-                    {extractedData.projects?.length > 0 && (
-                      <div>
-                        <p className="font-medium">Projects</p>
-                        <p className="text-xs">{extractedData.projects.length} projects found</p>
-                      </div>
-                    )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { id: 'experience', label: 'Work Experience', count: extractedData.experience?.length },
+                      { id: 'education', label: 'Education', count: extractedData.education?.length },
+                      { id: 'skills', label: 'Skills', count: extractedData.skills?.length },
+                      { id: 'projects', label: 'Projects', count: extractedData.projects?.length },
+                    ].map((item) => (
+                      item.count > 0 && (
+                        <div
+                          key={item.id}
+                          onClick={() => toggleCategory(item.id)}
+                          className={cn(
+                            "flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer group",
+                            selectedCategories.includes(item.id)
+                              ? "bg-white dark:bg-neutral-900 border-green-500/50 shadow-sm"
+                              : "bg-transparent border-neutral-200 dark:border-neutral-800 opacity-60 grayscale"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              "w-5 h-5 rounded-md border flex items-center justify-center transition-colors",
+                              selectedCategories.includes(item.id)
+                                ? "bg-green-500 border-green-500 text-white"
+                                : "border-neutral-300 dark:border-neutral-700"
+                            )}>
+                              {selectedCategories.includes(item.id) && <CheckCircle className="w-3.5 h-3.5" />}
+                            </div>
+                            <div>
+                              <p className="font-medium text-xs dark:text-neutral-200">{item.label}</p>
+                              <p className="text-[10px] text-neutral-500">{item.count} items found</p>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    ))}
                   </div>
                 </div>
               </CardContent>

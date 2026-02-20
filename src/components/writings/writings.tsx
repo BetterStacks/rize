@@ -10,6 +10,7 @@ import { Button } from '../ui/button'
 import { Skeleton } from '../ui/skeleton'
 import WritingCard from './writing-card'
 import { CreatePageDialog } from './create-page-dialog'
+import { cn } from '@/lib/utils'
 
 type WritingsProps = {
   isMine: boolean;
@@ -47,12 +48,12 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
           </Button>
         )}
       </div>
-      <div className="w-full max-w-2xl mt-4 grid grid-cols-1 gap-6 ">
+      <div className={cn("w-full max-w-2xl mt-4 grid grid-cols-1 ", isFetching ? "gap-4" : "gap-6")}>
         {isFetching ? (
           [...Array.from({ length: 4 })].map((_, i) => (
             <Skeleton
               key={i}
-              className="w-full h-[140px] mt-3 rounded-xl animate-pulse bg-neutral-200 dark:bg-dark-border"
+              className="w-full h-[80px] rounded-xl"
             />
           ))
         ) : data?.length === 0 ? (
@@ -67,10 +68,10 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
           })
         )}
       </div>
-      
-      <CreatePageDialog 
-        open={showCreateDialog} 
-        onOpenChange={setShowCreateDialog} 
+
+      <CreatePageDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
       />
     </div>
   )
@@ -87,7 +88,7 @@ export function EmptyWritingState({
   title = 'Start Your Writing Journey',
   description = 'Your ideas deserve to be shared. Create your first piece and let your words flow.',
   ctaText = 'Create New Document',
-  onCreateNew = () => {},
+  onCreateNew = () => { },
 }: EmptyWritingStateProps) {
   const [isHovering, setIsHovering] = useState(false)
 

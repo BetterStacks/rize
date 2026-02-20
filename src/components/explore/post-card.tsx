@@ -107,7 +107,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
       handlePostClick={handleViewPost}
       className="group shadow-md"
     >
-      <div className="">
+      <div onClick={(e) => e.stopPropagation()} className="">
         {(post.media as TPostMedia) && (
           <div
             key={(post?.media as TPostMedia)?.id}
@@ -117,8 +117,10 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
               mediaContainerClassName
             )}
             style={{
-              aspectRatio: 1 / 1,
+              // aspectRatio: 1 / 1,
               objectFit: "cover",
+              height: post?.media?.height,
+              maxHeight: "500px"
             }}
           >
             <div className="absolute top-2 z-[2] px-4 pt-2 w-full gap-x-2 flex items-center justify-between">
@@ -164,7 +166,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
                   draggable={false}
                   loop
                   muted
-                  controls={false}
+                  controls={true}
                 />
               </>
             )}

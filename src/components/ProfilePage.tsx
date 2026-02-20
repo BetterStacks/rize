@@ -22,6 +22,7 @@ import ProfileNotFound from "./profile-not-found";
 import ViewTracker from "./analytics/ViewTracker";
 import PhoneCollectionModal from "./onboarding/phone-collection-modal";
 import { TStoryElement } from "@/lib/types";
+import toast from "react-hot-toast";
 
 type Props = {
   username: string;
@@ -81,6 +82,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
     isMine && session?.user && !hasSkipped
     && !session.user.phoneNumberVerified && !session.user.onboardingCallId
 
+
   return (
     <ScrollFixWrapper>
       <ViewTracker username={username} />
@@ -88,7 +90,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
       {shouldShowPhoneModal && (
         <PhoneCollectionModal
           isOpen={true}
-          userName={session?.user?.name || "there"}
+          userName={session?.user?.displayName || "there"}
         />
       )}
 

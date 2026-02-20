@@ -8,7 +8,7 @@ import { motion } from 'framer-motion'
 import { Award, Download, Plus } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from 'react-hot-toast'
 import { Button } from '../ui/button'
 import CertificateCard from './certificate-card'
 import CertificateDrawer from './certificate-drawer'
@@ -113,7 +113,7 @@ export default function CertificatesList({ certificates, isMine = false }: Certi
         >
             <div className="max-w-2xl w-full flex mb-2 md:mb-4 items-center justify-between">
                 <h2 className="text-lg md:text-xl font-medium ">Certifications</h2>
-                <div className="flex gap-2">
+                <div className="flex">
                     {certificatesData.length > 0 && (
                         <Button
                             className="rounded-lg scale-90 text-sm"

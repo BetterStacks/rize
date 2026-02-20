@@ -6,10 +6,11 @@ import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@mantine/hooks'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Edit2, Loader, Trash2 } from 'lucide-react'
+import { Edit2, Loader, MoreHorizontal, Trash2 } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
 import { FC } from 'react'
 import toast from 'react-hot-toast'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
 import { Button } from '../ui/button'
 
 type EducationCardProps = {
@@ -44,25 +45,22 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
     <motion.div
       className={
         cn(
-          'flex flex-col relative group',
-          // tab?.id === education?.id &&
-          // 'dark:bg-amber-400/10 border-2 border-dashed bg-amber-400/15 border-amber-400/30 dark:border-amber-400/20'
+          'flex flex-col first:mt-2 relative group',
         )
-        // "flex flex-col w-full bg-neutral-100 dark:bg-neutral-800 transition-all  rounded-2xl border border-neutral-300/60 dark:border-dark-border p-4 md:p-6 ",
-        // tab?.id === education?.id &&
-        //   "dark:bg-amber-400/10 border-2 border-dashed bg-amber-400/15 border-amber-400/30 dark:border-amber-400/20"
       }
     >
       <h3 className="md:text-lg font-medium tracking-tight">
         {education?.school}
       </h3>
       {isMine && (
-        <div className="space-x-2 group-hover:opacity-100 opacity-0 absolute right-0 flex items-center justify-center">
-          <Button
-            variant={'outline'}
-            className="rounded-lg  text-sm"
-            size={'smallIcon'}
-            onClick={() => {
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="absolute right-2 ">
+            <Button variant={"outline"} size={"smallIcon"}>
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
+            <DropdownMenuItem onClick={(e) => {
               setTab((prev) => ({
                 id: education?.id,
                 tab: 'education',
@@ -70,24 +68,24 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
               if (!isDesktop) {
                 setOpen(true)
               }
-            }}
-          >
-            <Edit2 className="size-4 opacity-80" />
-          </Button>
-          <Button
-            variant={'outline'}
-            className="rounded-lg  text-sm"
-            size={'smallIcon'}
-            onClick={() => handleDeleteEducation(education.id)}
-            disabled={isPending}
-          >
-            {isPending ? (
-              <Loader className="size-4 opacity-80 animate-spin" />
-            ) : (
-              <Trash2 className="size-4 opacity-80" />
-            )}
-          </Button>
-        </div>
+
+            }}>
+              <Edit2 className="size-4" />
+              <span>Edit</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="stroke-red-500 text-red-500"
+              onClick={() => handleDeleteEducation(education.id)}
+              disabled={isPending}
+            >
+              {isPending ? (
+                <Loader className="size-4 opacity-80 animate-spin" />
+              ) : (
+                <Trash2 className="size-4 opacity-80" />
+              )}
+              <span>Delete</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
 
       <span className="dark:text-neutral-400 leading-none text-neutral-600 text-sm">

@@ -25,7 +25,9 @@ const Providers = ({ children }: { children: ReactNode }) => {
             <Context>
               <PanelProvider>
                 <DialogContextProvider>
-                  <Toaster position="top-right" />
+                  <Toaster position="top-right" toastOptions={{
+                    className: "dark:bg-dark-bg border dark:text-white dark:border-dark-border"
+                  }} />
                   {children}
                 </DialogContextProvider>
               </PanelProvider>

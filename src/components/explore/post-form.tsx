@@ -10,7 +10,7 @@ import { useSession } from "@/hooks/useAuth";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import TextArea from "react-textarea-autosize";
 import { v4 } from "uuid";
 import { usePostsDialog } from "../dialog-provider";
@@ -152,7 +152,7 @@ const PostForm = () => {
       setFile(undefined);
       setLink(undefined);
       setShowLinkInput(false)
-      setLinkInput("")  
+      setLinkInput("")
       queryClient.setQueryData(["get-link-metadata"], null);
     }
   }, [open]);

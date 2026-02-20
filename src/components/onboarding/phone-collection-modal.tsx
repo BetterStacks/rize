@@ -14,7 +14,7 @@ import {
 import { useSession } from "@/lib/auth-client";
 import { useState } from "react";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 type Props = {
   isOpen: boolean;
@@ -60,7 +60,7 @@ export default function PhoneCollectionModal({
     try {
       const result = await skipOnboarding();
       if (result.success) {
-        toast.info("We will remind you next time! 👋");
+        toast.success("We will remind you next time! 👋");
       }
     } catch (error) {
       toast.error("Something went wrong");
@@ -71,11 +71,11 @@ export default function PhoneCollectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md sm:rounded-xl dark:bg-neutral-900">
         <DialogHeader>
           <DialogTitle className="font-medium tracking-wide">
             Welcome,{" "}
-            <span className="font-normal tracking-tight">{userName}</span> 👋
+            <span className="tracking-tight">{userName}</span> 👋
           </DialogTitle>
         </DialogHeader>
 
@@ -85,7 +85,7 @@ export default function PhoneCollectionModal({
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex h-10 w-full items-center rounded-md border border-gray-300 bg-background px-3 py-2 text-sm">
+            <div className="flex h-10 w-full items-center rounded-lg border border-gray-300 dark:border-neutral-800  px-3 py-2 text-sm">
               <PhoneInput
                 international
                 defaultCountry="IN"
@@ -96,10 +96,10 @@ export default function PhoneCollectionModal({
                 internationalIconComponent={() => <></>}
                 addInternationalOption={false}
                 countrySelectProps={{
-                  className: "w-24 focus:outline-none bg-transparent",
+                  className: "w-24 focus:outline-none dark:bg-neutral-900",
                 }}
                 numberInputProps={{
-                  className: "flex-1 ml-3 outline-none bg-transparent",
+                  className: "flex-1 ml-3 outline-none dark:bg-neutral-900",
                 }}
                 className="flex w-full items-center [&_.PhoneInputCountryIcon]:hidden"
               />

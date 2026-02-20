@@ -58,12 +58,12 @@ const Education = ({ isMine, education }: EducationProps) => {
           </Button>
         )}
       </div>
-      <div className="w-full flex flex-col max-w-2xl gap-y-5 ">
+      <div className="w-full flex flex-col max-w-2xl gap-4 ">
         {isFetching ? (
           [...Array.from({ length: 4 })].map((_, i) => (
             <Skeleton
               key={i}
-              className="w-full h-[140px] mt-3 rounded-xl animate-pulse bg-neutral-200 dark:bg-dark-border"
+              className="w-full h-[80px] rounded-xl"
             />
           ))
         ) : data?.length === 0 ? (

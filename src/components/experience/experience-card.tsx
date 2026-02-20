@@ -6,11 +6,12 @@ import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@mantine/hooks";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Edit2, Loader, Trash2 } from "lucide-react";
+import { Edit2, Loader, MoreHorizontal, Trash2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { FC } from "react";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 
 type ExperienceCardProps = {
   experience: TExperience;
@@ -25,9 +26,9 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
   const formatDate = (date?: string) =>
     date
       ? new Date(date).toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "short",
-        })
+        year: "numeric",
+        month: "short",
+      })
       : "—";
   const { mutate: handleDeleteExperience, isPending } = useMutation({
     mutationFn: deleteExperience,
@@ -53,38 +54,67 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
       )}
     >
       {isMine && (
-        <div className="absolute group-hover:opacity-100 opacity-0 top-2 right-2 flex gap-x-2">
-          <Button
-            variant="outline"
-            size="smallIcon"
-            onClick={() => {
+        // <div className="absolute group-hover:opacity-100 opacity-0 top-2 right-2 flex gap-x-2">
+        //   <Button
+        //     variant="outline"
+        //     size="smallIcon"
+        //     onClick={() => {
+        //       setActiveTab({
+        //         id: experience?.id,
+        //         tab: "experience",
+        //       });
+        //       // Only open sidebar on mobile devices
+        //       if (!isDesktop) {
+        //         setOpen(true);
+        //       }
+        //     }}
+        //   >
+        //     <Edit2 className="h-4 w-4 opacity-80" />
+        //   </Button>
+        //   <Button
+        //     variant="outline"
+        //     size="smallIcon"
+        //     onClick={() => {
+        //       handleDeleteExperience(experience?.id);
+        //     }}
+        //     disabled={isPending}
+        //   >
+        //     {isPending ? (
+        //       <Loader className="opacity-80 h-4 w-4 animate-spin" />
+        //     ) : (
+        //       <Trash2 className="opacity-80 h-4 w-4" />
+        //     )}
+        //   </Button>
+        // </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="absolute right-2 ">
+            <Button variant={"outline"} size={"smallIcon"}>
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
+            <DropdownMenuItem onClick={(e) => {
               setActiveTab({
                 id: experience?.id,
                 tab: "experience",
               });
-              // Only open sidebar on mobile devices
               if (!isDesktop) {
                 setOpen(true);
               }
-            }}
-          >
-            <Edit2 className="h-4 w-4 opacity-80" />
-          </Button>
-          <Button
-            variant="outline"
-            size="smallIcon"
-            onClick={() => {
+
+            }}>
+              <Edit2 className="size-4" />
+              <span>Edit</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={isPending} className="stroke-red-500 text-red-500" onClick={(e) => {
+              e.stopPropagation();
               handleDeleteExperience(experience?.id);
-            }}
-            disabled={isPending}
-          >
-            {isPending ? (
-              <Loader className="opacity-80 h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="opacity-80 h-4 w-4" />
-            )}
-          </Button>
-        </div>
+            }}>
+              {isPending ? <Loader className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+              <span>Delete</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
       <div className="flex flex-col ">
         <h3 className="md:text-lg font-medium tracking-tight">
@@ -97,7 +127,7 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
           <span>
             {" "}
             {formatDate(experience?.startDate?.toString())} –{" "}
-            {experience?.currentlyWorking
+            {!experience?.endDate || experience?.currentlyWorking
               ? "Present"
               : formatDate(experience?.endDate?.toString())}
           </span>
