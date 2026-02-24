@@ -82,8 +82,6 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
                   project={{
                     description: project.description,
                     name: project.name,
-                    endDate: new Date(),
-                    startDate: new Date(),
                     status: "wip",
                     thumbnail: "",
                     logo: "",
@@ -92,8 +90,8 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
                     id: "",
                     profileId: "",
                   }}
-                  onOpenProject={() => {}}
-                  onEditProject={() => {}}
+                  onOpenProject={() => { }}
+                  onEditProject={() => { }}
                 />
               );
             })}

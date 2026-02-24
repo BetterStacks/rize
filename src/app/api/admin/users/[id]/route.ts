@@ -117,8 +117,6 @@ export async function GET(
             status: projects.status,
             logo: projects.logo,
             url: projects.url,
-            startDate: projects.startDate,
-            endDate: projects.endDate,
           })
           .from(projects)
           .where(inArray(projects.profileId, profileIds as string[])),

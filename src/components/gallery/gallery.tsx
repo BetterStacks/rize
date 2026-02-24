@@ -82,7 +82,7 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
     refetchOnMount: false,
   })
   const [sortedItems, setSortedItems] = useState(data || [])
-  
+
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -128,9 +128,9 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
       formData.append('files', file)
     })
     formData.append('folder', 'fyp-stacks/gallery')
-    
+
     handleUpload(formData)
-    
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
@@ -162,12 +162,12 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />
-      
+
       <motion.div className="w-full relative max-w-3xl hidden md:flex flex-col  items-center justify-center mt-4">
         {isLoading ? (
           <GallerySkeleton />
         ) : sortedItems?.length === 0 ? (
-          <EmptyGalleryState 
+          <EmptyGalleryState
             onAddImages={handleAddImages}
             ctaText={isPending ? 'Uploading...' : 'Add Images'}
             disabled={isPending}
@@ -197,7 +197,7 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
         {isLoading ? (
           <GallerySkeleton />
         ) : sortedItems?.length === 0 ? (
-          <EmptyGalleryState 
+          <EmptyGalleryState
             onAddImages={handleAddImages}
             ctaText={isPending ? 'Uploading...' : 'Add Images'}
             disabled={isPending}
@@ -214,7 +214,7 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
                 <motion.div
                   key={i}
                   style={{
-                    aspectRatio: item?.width / item?.height,
+                    aspectRatio: (item?.width || 1) / (item?.height || 1),
                   }}
                   className="relative  object-cover  overflow-hidden"
                 >
