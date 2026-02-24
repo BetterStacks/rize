@@ -363,7 +363,7 @@ export const upsertProject = async (
       });
     }
 
-    return { success: true, projectId };
+    return { ok: true, projectId };
   } catch (error) {
     return { ok: false, error: (error as Error)?.message };
   }

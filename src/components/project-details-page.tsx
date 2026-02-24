@@ -5,13 +5,14 @@ import { GetAllProjects } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Globe, Tags } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Globe, Tags } from "lucide-react";
 import Image from "next/image";
-import { FC, useState } from "react";
+import React, { FC, useState } from "react";
 import { EmptyGalleryState } from "./gallery/gallery-empty-state";
 import { ProjectDialogOptions } from "./projects/ProjectDetailsDialog";
 import ProjectDrawer from "./projects/ProjectDrawer";
 import { Button } from "./ui/button";
+import Link from "next/link";
 
 type ProjectPageProps = {
     id: string;
@@ -34,7 +35,7 @@ const ProjectPage: FC<ProjectPageProps> = ({
 
     const medias = project.attachments || [];
     const prev = () => setIndex((i) => Math.max(0, i - 1));
-    const next = () => setIndex((i) => Math.min(medias.length - 1, i + 1));
+    const next = () => setIndex((i) => Math.min(medias.length > 1 ? medias.length - 2 : 0, i + 1));
 
     return (
         <div className="w-full ">
@@ -75,58 +76,37 @@ const ProjectPage: FC<ProjectPageProps> = ({
                     {project?.categories!?.length > 0 && <div className="flex items-center justify-start dark:text-gray-400 text-gray-700 gap-2">
                         <Tags className="mr-2 size-5" />
                         {project?.categories!?.map((category, index) => (
-                            <>
-                                <span key={category.id} className="cursor-pointer hover:dark:text-main-yellow hover:text-yellow-500 hover:underline transition-all ease-in duration-75 underline-offset-2">
+                            <React.Fragment key={category.id} >
+                                <span className="cursor-pointer hover:dark:text-main-yellow hover:text-yellow-500 hover:underline transition-all ease-in duration-75 underline-offset-2">
                                     {category.name}
                                 </span>
                                 {project.categories!.length - 1 !== index && <span className="">•</span>}
-                            </>
+                            </React.Fragment>
                         ))}
                     </div>}
-                    {project.description && (
-                        <p className="text-gray-700 mt-3 dark:text-gray-300 leading-relaxed mb-10 whitespace-pre-wrap ">
-                            {project.description}
-                        </p>
-                    )}
-
-                    {(project.skills?.length || 0) > 0 && (
-                        <div className="mt-4 mb-6">
-                            <h3 className="text-sm font-semibold text-neutral-400 tracking-wider mb-4">Built With</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {project.skills?.map(skill => (
-                                    <Button key={skill?.slug} variant={"outline"} >
-                                        {skill?.name}
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {project?.collaborators!?.length > 0 && (
-                        <div className="mt-4 mb-6">
-                            <h3 className="text-sm font-semibold text-neutral-400 tracking-wider mb-4">Collaborators</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {project.collaborators!?.map(collaborator => (
-                                    <Button key={collaborator.id} variant={"outline"} >
-                                        <div className="size-5 rounded-full overflow-hidden relative mr-2">
-                                            {collaborator.profileImage && <Image src={collaborator.profileImage} alt={collaborator.username!} fill className="object-cover" />}
-                                        </div>
-                                        @{collaborator.username}
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    <div className="mt-6 mb-4 flex flex-row items-center justify-center gap-4">
+                        {project?.url && <Link className="w-full" href={project?.url} target="_blank">
+                            <Button variant={"secondary"} className="w-full" >
+                                {/* <span className="font-medium"> */}
+                                Visit Website
+                                {/* </span> */}
+                                <ArrowUpRight className="size-4 ml-2" />
+                            </Button>
+                        </Link>}
+                        {/* <Button className="w-full" >
+                            Save
+                        </Button> */}
+                    </div>
 
                     {medias.length > 0 && (
-                        <div className="relative mb-6 w-full overflow-hidden">
+                        <div className="relative mb-6 mt-6 w-full overflow-hidden">
                             <div className="w-full flex items-center justify-between mb-4">
                                 <h3 className="text-sm font-semibold text-neutral-400 tracking-wider ">Attachments</h3>
                                 <div className="flex items-center gap-2">
                                     {index > 0 && <Button variant={"outline"} className='' size={"smallIcon"} onClick={prev}>
                                         <ArrowLeft className="size-4" />
                                     </Button>}
-                                    {index < medias.length - 1 && <Button variant={"outline"} className='' size={"smallIcon"} onClick={next}>
+                                    {index < (medias.length > 1 ? medias.length - 2 : 0) && <Button variant={"outline"} className='' size={"smallIcon"} onClick={next}>
                                         <ArrowRight className="size-4" />
                                     </Button>}
                                 </div>
@@ -138,7 +118,7 @@ const ProjectPage: FC<ProjectPageProps> = ({
                                 drag="x"
                                 dragConstraints={{ left: 0, right: 0 }}
                                 onDragEnd={(_, info) => {
-                                    if (info.offset.x < -100 && index < medias.length - 1) next();
+                                    if (info.offset.x < -100 && index < (medias.length > 1 ? medias.length - 2 : 0)) next();
                                     else if (info.offset.x > 100 && index > 0) prev();
                                 }}
                             >
@@ -194,7 +174,7 @@ const ProjectPage: FC<ProjectPageProps> = ({
 
                             {/* Pagination Dots */}
                             <div className="mt-8 flex items-center justify-center gap-2.5">
-                                {medias.map((_, i) => (
+                                {medias.length > 1 ? medias.slice(0, medias.length - 1).map((_, i) => (
                                     <button
                                         key={i}
                                         onClick={() => setIndex(i)}
@@ -206,10 +186,47 @@ const ProjectPage: FC<ProjectPageProps> = ({
                                         )}
                                         aria-label={`Go to slide ${i + 1}`}
                                     />
+                                )) : null}
+                            </div>
+                        </div>
+                    )}
+
+                    {project.description && (
+                        <p className="text-gray-700 mt-3 dark:text-gray-300 leading-relaxed mb-10 whitespace-pre-wrap ">
+                            {project.description}
+                        </p>
+                    )}
+
+                    {(project.skills?.length || 0) > 0 && (
+                        <div className="mt-4 mb-6">
+                            <h3 className="text-sm font-semibold text-neutral-400 tracking-wider mb-4">Built With</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {project.skills?.map(skill => (
+                                    <Button key={skill?.slug} variant={"outline"} >
+                                        {skill?.name}
+                                    </Button>
                                 ))}
                             </div>
                         </div>
                     )}
+
+                    {project?.collaborators!?.length > 0 && (
+                        <div className="mt-4 mb-6">
+                            <h3 className="text-sm font-semibold text-neutral-400 tracking-wider mb-4">Collaborators</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {project.collaborators!?.map(collaborator => (
+                                    <Button key={collaborator.id} variant={"outline"} >
+                                        <div className="size-5 rounded-full overflow-hidden relative mr-2">
+                                            {collaborator.profileImage && <Image src={collaborator.profileImage} alt={collaborator.username!} fill className="object-cover" />}
+                                        </div>
+                                        @{collaborator.username}
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+
 
                     {/* {(project.categories?.length || 0) > 0 && (
                         <div className="mt-12">

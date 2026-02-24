@@ -190,7 +190,18 @@ export const isUsernameAvailable = async (username: string) => {
 };
 
 export const searchProfiles = async (query: string) => {
-  if (!query || query.length < 1) return [];
+  const q = query.startsWith("@") ? query.slice(1) : query;
+  if (!q || q.length < 1) {
+    return await db
+      .select({
+        id: profile.id,
+        displayName: profile.displayName,
+        username: profile.username,
+        profileImage: profile.profileImage,
+      })
+      .from(profile)
+      .limit(10);
+  }
   return await db
     .select({
       id: profile.id,
@@ -200,7 +211,7 @@ export const searchProfiles = async (query: string) => {
     })
     .from(profile)
     .where(
-      sql`(${profile.displayName} ILIKE ${'%' + query + '%'} OR ${profile.username} ILIKE ${'%' + query + '%'})`
+      sql`(${profile.displayName} ILIKE ${'%' + q + '%'} OR ${profile.username} ILIKE ${'%' + q + '%'})`
     )
     .limit(10);
 };

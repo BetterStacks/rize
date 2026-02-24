@@ -2,7 +2,8 @@
 
 import { getAllCategories, getAllSkills, getProjectByID, upsertProject } from "@/actions/project-actions";
 import { searchProfiles } from "@/actions/profile-actions";
-import { Button } from "@/components/ui/button";
+import { fetchImageAsBase64 } from "@/actions/project-metadata-actions";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -46,7 +47,7 @@ const ProjectSchema = z.object({
     tagline: z
         .string()
         .min(1, "Tagline is required")
-        .max(60, "Tagline must not exceed 60 characters"),
+        .max(120, "Tagline must not exceed 120 characters"),
     url: z.string().url("Invalid URL"),
     description: z.string().optional(),
     categoryIds: z.array(z.string()).max(3, "Maximum 3 categories allowed").optional(),
@@ -146,13 +147,39 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
     // reset initialized flag when id changes
     useEffect(() => {
         initializedRef.current = false;
-        setSelectedCollaborators([]);
+        // Only clear if switching to create mode (id is null)
+        if (!id) {
+            setSelectedCollaborators([]);
+        }
     }, [id]);
+
+    // ── Local Storage Persistence ──────────────────────────────────────────
+    useEffect(() => {
+        if (mode !== "create") return;
+        const saved = localStorage.getItem("project-form-draft");
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                form.reset(parsed);
+                // If there are specific states like collaborators, we might need to handle them
+            } catch (e) {
+                console.error("Error loading saved project draft", e);
+            }
+        }
+    }, [mode, form]);
+
+    useEffect(() => {
+        if (mode !== "create") return;
+        const subscription = form.watch((value) => {
+            localStorage.setItem("project-form-draft", JSON.stringify(value));
+        });
+        return () => subscription.unsubscribe();
+    }, [form, mode]);
 
     const { data: profileResults, isLoading: isSearchingProfiles } = useQuery({
         queryKey: ["search-profiles", collaboratorSearchQuery],
-        queryFn: () => searchProfiles(collaboratorSearchQuery.startsWith("@") ? collaboratorSearchQuery.slice(1) : collaboratorSearchQuery),
-        enabled: collaboratorSearchQuery.length > 0,
+        queryFn: () => searchProfiles(collaboratorSearchQuery),
+        enabled: openCollaboratorSearch,
     });
 
     const addCollaborator = (p: any) => {
@@ -185,13 +212,19 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
         });
 
         if (projectDraft.logo) {
-            fetch(projectDraft.logo)
-                .then(res => res.blob())
-                .then(blob => {
-                    const file = new File([blob], "logo.png", { type: blob.type });
+            fetchImageAsBase64(projectDraft.logo).then(res => {
+                if (res.ok && res.data) {
+                    const byteCharacters = atob(res.data.base64);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: res.data.contentType });
+                    const file = new File([blob], "logo.png", { type: res.data.contentType });
                     setLogoFile(file);
-                })
-                .catch(err => console.error("Error fetching logo", err));
+                }
+            }).catch(err => console.error("Error fetching logo via proxy", err));
         } else {
             setLogoFile(null);
         }
@@ -237,19 +270,6 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
     // ── Mutations ──────────────────────────────────────────────────────────
     const { mutateAsync: mutateUpload, isPending: isUploading } = useMutation({
         mutationFn: uploadMedia,
-        // mutationFn: async ({ file, folder }: { file: File, folder: string }) => {
-        //     const fileToArrayBuffer = Buffer.from(await file.arrayBuffer())
-        //     // const res = {}
-        //     const res = await uploadToS3(fileToArrayBuffer, {
-        //         folder: folder,
-        //         contentType: file.type,
-        //         fileName: `${Date.now()}_${file.name.replace(/\s+/g, '_')}`,
-        //     })
-        //     return {
-        //         ...res,
-        //         type: file.type.startsWith("video") ? "video" : "image",
-        //     }
-        // },
     });
 
     const { mutateAsync: mutateUpsert, isPending: isUpserting } = useMutation({
@@ -316,6 +336,9 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
 
             if (res?.ok) {
                 toast.success(mode === "edit" ? "Project updated" : "Project created");
+                if (mode === "create") {
+                    localStorage.removeItem("project-form-draft");
+                }
                 setActiveTab({ id: null, tab: "gallery" });
                 await queryClient.invalidateQueries({
                     queryKey: ["get-projects", username],
@@ -326,11 +349,16 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                     });
                 }
             } else {
-                throw new Error(res?.error || "Something went wrong");
+                const errorMsg = res?.error || "Something went wrong";
+                toast.error(errorMsg);
+                throw new Error(errorMsg);
             }
         } catch (err: any) {
             console.error(err);
-            toast.error(err?.message || "Error saving project");
+            // Error is already toasted in the else block above, but we'll keep this for unexpected errors
+
+            toast.error((err as Error)?.message || "Error saving project");
+
         }
     };
 
@@ -439,10 +467,12 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                         <Label className="dark:text-neutral-300 text-neutral-700">Categories</Label>
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
+                                <div
                                     role="combobox"
-                                    className="w-full dark:border-dark-border dark:bg-transparent justify-between h-auto min-h-10 px-3 py-2 flex-wrap gap-2 hover:bg-neutral-50 dark:hover:bg-dark-border/20 active:scale-100"
+                                    className={cn(
+                                        buttonVariants({ variant: "outline" }),
+                                        "w-full dark:border-dark-border dark:bg-transparent justify-between h-auto min-h-10 px-3 py-2 flex-wrap gap-2 hover:bg-neutral-50 dark:hover:bg-dark-border/20 active:scale-100 cursor-pointer"
+                                    )}
                                 >
                                     <div className="flex flex-wrap gap-2">
                                         {form.watch("categoryIds") && form.watch("categoryIds")!.length > 0 ? (
@@ -453,7 +483,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                                                         key={catId}
                                                         size={"sm"}
                                                         variant="outline"
-                                                        className="flex items-center "
+                                                        className="flex items-center"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             const current = form.getValues("categoryIds") || [];
@@ -461,7 +491,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                                                         }}
                                                     >
                                                         {category?.name}
-                                                        <X className="size-4 ml-2 " />
+                                                        <X className="size-4 ml-2" />
                                                     </Button>
                                                 );
                                             })
@@ -470,7 +500,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                                         )}
                                     </div>
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </Button>
+                                </div>
                             </PopoverTrigger>
                             <PopoverContent className="w-[var(--radix-popover-trigger-width)] dark:border-dark-border sm:rounded-lg max-h-[260px] h-auto p-0" align="start">
                                 <Command>
@@ -522,10 +552,12 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                         <Label className="dark:text-neutral-300 text-neutral-700">Built with</Label>
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
+                                <div
                                     role="combobox"
-                                    className="w-full dark:border-dark-border dark:bg-transparent justify-between h-auto min-h-10 px-3 py-2 flex-wrap gap-2 hover:bg-neutral-50 dark:hover:bg-dark-border/20 active:scale-100"
+                                    className={cn(
+                                        buttonVariants({ variant: "outline" }),
+                                        "w-full dark:border-dark-border dark:bg-transparent justify-between h-auto min-h-10 px-3 py-2 flex-wrap gap-2 hover:bg-neutral-50 dark:hover:bg-dark-border/20 active:scale-100 cursor-pointer"
+                                    )}
                                 >
                                     <div className="flex flex-wrap gap-2">
                                         {form.watch("skillIds") && form.watch("skillIds")!.length > 0 ? (
@@ -536,7 +568,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                                                         key={skillId}
                                                         size={"sm"}
                                                         variant="outline"
-                                                        className="flex items-center "
+                                                        className="flex items-center"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             const current = form.getValues("skillIds") || [];
@@ -544,7 +576,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                                                         }}
                                                     >
                                                         {skill?.name}
-                                                        <X className="size-4 ml-2 " />
+                                                        <X className="size-4 ml-2" />
                                                     </Button>
                                                 );
                                             })
@@ -553,7 +585,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                                         )}
                                     </div>
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </Button>
+                                </div>
                             </PopoverTrigger>
                             <PopoverContent className="w-[var(--radix-popover-trigger-width)] dark:border-dark-border sm:rounded-lg max-h-[260px] h-auto p-0" align="start">
                                 <Command>
@@ -605,10 +637,12 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                         <Label className="dark:text-neutral-300 text-neutral-700">Collaborators</Label>
                         <Popover open={openCollaboratorSearch} onOpenChange={setOpenCollaboratorSearch}>
                             <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
+                                <div
                                     role="combobox"
-                                    className="w-full justify-between h-auto min-h-12 py-2 dark:border-dark-border dark:bg-dark-bg/50 active:scale-100"
+                                    className={cn(
+                                        buttonVariants({ variant: "outline" }),
+                                        "w-full justify-between h-auto min-h-12 py-2 dark:border-dark-border dark:bg-dark-bg/50 active:scale-100 cursor-pointer"
+                                    )}
                                 >
                                     <div className="flex flex-wrap gap-2">
                                         {selectedCollaborators.length > 0 ? (
@@ -616,30 +650,25 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                                                 <Button
                                                     key={p.id}
                                                     variant="outline"
-                                                    className="flex items-center "
+                                                    className="flex items-center"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        removeCollaborator(p.id);
+                                                    }}
                                                 >
                                                     <div className="size-5 rounded-full overflow-hidden relative mr-2">
                                                         {p.profileImage && <Image src={p.profileImage} alt={p.username} fill className="object-cover" />}
                                                     </div>
                                                     {p?.username}
-                                                    <button onClick={
-                                                        (e) => {
-                                                            e.stopPropagation();
-                                                            setSelectedCollaborators(selectedCollaborators.filter((c) => c.id !== p.id));
-                                                            form.setValue("collaboratorProfileIds", form.getValues("collaboratorProfileIds")?.filter((id) => id !== p.id));
-                                                        }
-                                                    }>
-
-                                                        <X className="size-4 ml-2 " />
-                                                    </button>
+                                                    <X className="size-4 ml-2" />
                                                 </Button>
                                             ))
                                         ) : (
-                                            <span className="text-neutral-400 font-normal italic">Type @ to search profiles...</span>
+                                            <span className="text-neutral-400 font-normal">Type @ to search profiles...</span>
                                         )}
                                     </div>
                                     <ChevronsUpDown className="size-4 opacity-50 ml-2" />
-                                </Button>
+                                </div>
                             </PopoverTrigger>
                             <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 dark:border-dark-border" align="start">
                                 <Command shouldFilter={false}>

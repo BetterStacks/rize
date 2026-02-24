@@ -16,12 +16,13 @@ import {
   Minus,
   MoreHorizontal,
   Tag,
+  Tags,
   Trash2,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { FC, useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -88,25 +89,20 @@ const ProjectCard: FC<ProjectCardProps> = ({
             {project.name}
           </h2>
           {project.tagline && (
-            <p className="dark:text-neutral-300 text-neutral-700 line-clamp-1 mt-1 leading-tight">
+            <p className="dark:text-gray-300 text-sm text-gray-700 line-clamp-1 mt-1 leading-tight">
               {project.tagline}
             </p>
           )}
-          {project.categories && project.categories.length > 0 && <div className="flex items-center justify-start mt-1">
-            {/* <Tag className="size-4 " /> */}
-            <div className="flex gap-1">
-              {project.categories?.slice(0, 4).map((category, index) => (
-                <span key={category.id} className="group text-xs text-neutral-500 dark:text-neutral-400">
-                  #{category.name}
-                  {/* {index < project.categories!?.slice(0, 4)?.length - 1 && ","} */}
+          {project?.categories!?.length > 0 && <div className="flex items-center justify-start dark:text-gray-400 text-gray-700 gap-1 mt-1">
+            <Tags className="mr-1 size-4" />
+            {project?.categories!?.map((category, index) => (
+              <React.Fragment key={category.id} >
+                <span className="cursor-pointer hover:dark:text-main-yellow hover:text-yellow-500 hover:underline transition-all ease-in duration-75 underline-offset-2 text-sm">
+                  {category.name}
                 </span>
-              ))}
-              {/* {project.categories.length > 2 && (
-              <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                +{project.categories.length - 2}
-              </span>
-            )} */}
-            </div>
+                {project.categories!.length - 1 !== index && <span className="">•</span>}
+              </React.Fragment>
+            ))}
           </div>}
 
         </div>

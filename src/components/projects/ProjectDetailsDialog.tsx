@@ -240,7 +240,7 @@ export const ProjectDialogOptions: FC<ProjectCardOptionsProps> = ({
       <DropdownMenu>
         <DropdownMenuTrigger
           asChild
-          className="z-[6]  transition-all duration-200 ease-in"
+          className="z-[6] transition-all duration-200 ease-in"
         >
           <Button
             size={"smallIcon"}
@@ -254,7 +254,7 @@ export const ProjectDialogOptions: FC<ProjectCardOptionsProps> = ({
             />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
+        <DropdownMenuContent align="end" className="mt-2 w-44 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
           <DropdownMenuItem
             onClick={() => {
               const url = `${window.location.origin}/project/${projectId}`;
@@ -274,12 +274,12 @@ export const ProjectDialogOptions: FC<ProjectCardOptionsProps> = ({
             <span>Share</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem
+          {/* <DropdownMenuItem
             onClick={() => handleToggleBookmark(true)}
           >
             <Bookmark className="  size-4" />
             <span>Save to Collection</span>
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
 
           {isMyProject && (
             <>

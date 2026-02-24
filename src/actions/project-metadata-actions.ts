@@ -120,3 +120,27 @@ export const getProjectMetadataFromUrl = async (payload: {
     return { ok: false, error: (error as Error)?.message || "Failed to fetch metadata" };
   }
 };
+
+export const fetchImageAsBase64 = async (url: string): Promise<{ ok: boolean; data?: { base64: string; contentType: string }; error?: string }> => {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+    const blob = await response.blob();
+    const buffer = Buffer.from(await blob.arrayBuffer());
+    const base64 = buffer.toString("base64");
+    const contentType = response.headers.get("content-type") || "image/png";
+
+    return {
+      ok: true,
+      data: {
+        base64,
+        contentType,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching image as base64:", error);
+    return { ok: false, error: (error as Error)?.message || "Failed to fetch image" };
+  }
+};

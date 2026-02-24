@@ -17,7 +17,11 @@ const EducationDrawer = () => {
       open={activeTab?.tab === "education"}
       onOpenChange={() => setActiveTab({ id: null, tab: "gallery" })}
     >
-      <SheetContent className="dark:bg-neutral-900 overflow-y-auto p-0 dark:border-dark-border sm:max-w-2xl">
+      <SheetContent
+        className="dark:bg-neutral-900 overflow-y-auto p-0 dark:border-dark-border sm:max-w-2xl"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <EducationForm
           defaultValues={defaultValues ?? undefined}
           isFetchingValues={isFetchingValues}
