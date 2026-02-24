@@ -38,6 +38,11 @@ export type TExperience = typeof experience.$inferSelect;
 export type TNewExperience = typeof experience.$inferInsert;
 export type TCertificate = typeof certificates.$inferSelect;
 export type TNewCertificate = typeof certificates.$inferInsert;
+export type TSkill = {
+  id: string;
+  name: string;
+  slug: string;
+};
 
 export type TStoryElementType =
   | "mission"
@@ -132,7 +137,7 @@ export type GetAllWritings = typeof TPage & {
   thumbnail: string;
 };
 export type GetAllProjects = TProject & {
-  thumbnail: string;
+  thumbnail?: string;
   attachments?: Array<{
     id: string;
     url: string;
@@ -140,6 +145,23 @@ export type GetAllProjects = TProject & {
     width: number;
     height: number;
   }> | null;
+  categories?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }> | null;
+  skills?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }> | null;
+  collaborators?: Array<{
+    id: string;
+    displayName: string | null;
+    username: string | null;
+    profileImage: string | null;
+  }> | null;
+  username?: string | null;
 };
 
 export type SocialPlatform =
@@ -323,6 +345,7 @@ export const profileSchema = z.object({
   personalMission: z.string().optional(),
   lifePhilosophy: z.string().optional(),
   age: z.number().int().min(0).max(120).optional(),
+  skillIds: z.array(z.string()).optional(),
 });
 
 export const AddCommentPayload = z.object({
@@ -371,17 +394,17 @@ export const newProjectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
   url: z.string(),
   description: z.string(),
-  startDate: z.string(),
-  tagline: z
-    .string()
+  tagline: z.string()
     .min(1, "Tagline is required")
     .max(60, "Tagline must not exceed 60 characters"),
-  endDate: z.string().optional(),
   // logo is optional now
   logo: z.string().url("Invalid URL").optional(),
   width: z.string().optional(),
   height: z.string().optional(),
   media: z.array(fileSchema).optional(),
+  categoryIds: z.array(z.string()).max(3, "Maximum 3 categories allowed").optional(),
+  skillIds: z.array(z.string()).max(10, "Maximum 10 skills allowed").optional(),
+  collaboratorProfileIds: z.array(z.string()).max(6, "Maximum 6 collaborators allowed").optional(),
 });
 
 
@@ -573,8 +596,6 @@ export const addProjectSchema = z.object({
     .string()
     .optional()
     .describe("The media ID or URL for the project logo"),
-  startDate: z.string().optional().describe("When the project started"),
-  endDate: z.string().optional().describe("When the project ended or was shipped"),
 });
 
 export const updateProjectSchema = addProjectSchema.partial().extend({
@@ -616,3 +637,14 @@ export type ChatMessage<T extends UITools = any> = UIMessage<Metadata, never, T>
   attachments?: any[];
   experimental_attachments?: any[];
 };
+
+
+export type UploadFilesWithTypeResponse = TUploadFilesResponse & { type: string };
+
+
+export type UpsertProjectPayload = z.infer<typeof newProjectSchema> & {
+  id?: string;
+  width?: string;
+  height?: string;
+  removeMediaPayload?: Array<{ id: string; url: string }>
+}

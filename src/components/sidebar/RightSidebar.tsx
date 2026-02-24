@@ -7,8 +7,6 @@ import SectionManager from '../SectionManager'
 import SocialLinksManager from '../SocialLinksManager'
 import { Button } from '../ui/button'
 import { GalleryEditor } from './components/GalleryEditor'
-// import { ResumeUploadWidget } from './components/ResumeUploadWidget'
-// import { ProjectForm } from "./forms/UpdateProjectForm";
 import letrazBanner from '@/../public/letraz-banner.png'
 import letrazLogoLight from '@/../public/letraz-logo-light.svg'
 import letrazLogo from '@/../public/letraz-logo.svg'
@@ -50,7 +48,7 @@ const RightSidebar = ({ className }: { className?: string }) => {
     <div
       className={cn(
         className,
-        'h-screen w-full flex flex-col items-center justify-start pt-16'
+        'h-dvh w-full flex flex-col items-center justify-start pt-16'
       )}
     >
       {active?.tab === 'gallery' && (

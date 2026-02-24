@@ -1,6 +1,6 @@
 "use server";
 
-import { accounts, profile, profileSections, users } from "@/db/schema";
+import { accounts, profile, profileSections, users, profileSkills, skills } from "@/db/schema";
 import {
   requireAuth,
   requireAuthWithProfile,
@@ -31,10 +31,28 @@ export async function updateProfile(data: z.infer<typeof profileSchema>) {
 
     // Update profile table if there are profile-related updates
     if (Object.keys(profileData).length > 0) {
-      await db
-        .update(profile)
-        .set(profileData)
-        .where(eq(profile.id, profileId));
+      const { skillIds, ...cleanedProfileData } = profileData as any;
+      if (Object.keys(cleanedProfileData).length > 0) {
+        await db
+          .update(profile)
+          .set(cleanedProfileData)
+          .where(eq(profile.id, profileId));
+      }
+
+      // Handle skills
+      if (skillIds) {
+        await db.transaction(async (tx) => {
+          await tx.delete(profileSkills).where(eq(profileSkills.profileId, profileId));
+          if (skillIds.length > 0) {
+            await tx.insert(profileSkills).values(
+              skillIds.map((skillId: string) => ({
+                profileId,
+                skillId,
+              }))
+            );
+          }
+        });
+      }
     }
 
     return { success: true, error: null };
@@ -72,11 +90,27 @@ export const getProfileByUsername = async (username: string) => {
       ...rest,
       email: users.email,
       image: users.image,
-      name: users.name, 
+      name: users.name,
+      skills: sql`
+        (
+          SELECT
+            CASE WHEN COUNT(*) = 0 THEN NULL
+            ELSE json_agg(json_build_object(
+              'id', s.id,
+              'name', s.name,
+              'slug', s.slug
+            ))
+            END
+          FROM profile_skills ps
+          JOIN skills s ON ps.skill_id = s.id
+          WHERE ps.profile_id = profile.id
+        )
+      `.as("skills"),
     })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
     .where(eq(profile.username, username.toLowerCase()))
+
     .limit(1);
 
   if (!p || p.length === 0) {
@@ -156,40 +190,30 @@ export const isUsernameAvailable = async (username: string) => {
 };
 
 export const searchProfiles = async (query: string) => {
-  // return await db
-  //   .select({
-  //     displayName: profile.displayName,
-  //     username: profile.username,
-  //     profileImage: profile.profileImage,
-  //     image: users.image,
-  //     name: users.name,
-  //   })
-  //   .from(profile)
-  //   .innerJoin(users, eq(profile.userId, users.id))
-  //   .where(
-  //     or(ilike(profile.username, `%${query}%`), ilike(users.name, `%${query}%`))
-  //   );
-
+  const q = query.startsWith("@") ? query.slice(1) : query;
+  if (!q || q.length < 1) {
+    return await db
+      .select({
+        id: profile.id,
+        displayName: profile.displayName,
+        username: profile.username,
+        profileImage: profile.profileImage,
+      })
+      .from(profile)
+      .limit(10);
+  }
   return await db
     .select({
+      id: profile.id,
       displayName: profile.displayName,
       username: profile.username,
       profileImage: profile.profileImage,
-      image: users.image,
-      name: users.name,
     })
     .from(profile)
-    .innerJoin(users, eq(profile.userId, users.id))
-
     .where(
-      sql`
-      to_tsvector('english', 
-        coalesce(${profile.username}, '') || ' ' || 
-        coalesce(${profile.displayName}, '') || ' ' || 
-        coalesce(${profile.bio}, '')
-      ) @@ websearch_to_tsquery('english', ${query})
-    `
-    );
+      sql`(${profile.displayName} ILIKE ${'%' + q + '%'} OR ${profile.username} ILIKE ${'%' + q + '%'})`
+    )
+    .limit(10);
 };
 
 export const getProfileIdByUsername = async (username: string) => {
@@ -201,7 +225,8 @@ export const getProfileIdByUsername = async (username: string) => {
     throw new Error("Profile not found");
   }
   return profileId[0];
-};
+}
+
 export const getProfileByUserId = async (userId: string) => {
   const userProfile = await db
     .select({ id: profile.id })
@@ -225,6 +250,21 @@ export const getCurrentUserProfile = async () => {
       name: users.name,
       isOnboarded: users.isOnboarded,
       letrazId: users.letrazId,
+      skills: sql`
+        (
+          SELECT
+            CASE WHEN COUNT(*) = 0 THEN NULL
+            ELSE json_agg(json_build_object(
+              'id', s.id,
+              'name', s.name,
+              'slug', s.slug
+            ))
+            END
+          FROM profile_skills ps
+          JOIN skills s ON ps.skill_id = s.id
+          WHERE ps.profile_id = profile.id
+        )
+      `.as("skills"),
     })
     .from(users)
     .leftJoin(profile, eq(profile.userId, users.id))

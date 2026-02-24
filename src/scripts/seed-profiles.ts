@@ -11,16 +11,16 @@ import { eq, like, desc } from 'drizzle-orm'
 const SAMPLE_DATA = {
   tech_roles: [
     'Full Stack Developer', 'Frontend Developer', 'Backend Developer', 'DevOps Engineer',
-    'Data Scientist', 'Product Manager', 'UX Designer', 'Mobile Developer', 
+    'Data Scientist', 'Product Manager', 'UX Designer', 'Mobile Developer',
     'Machine Learning Engineer', 'Cloud Architect', 'Software Engineer', 'AI Engineer'
   ],
-  
+
   companies: [
     'Google', 'Microsoft', 'Apple', 'Amazon', 'Meta', 'Netflix', 'Spotify', 'Airbnb',
     'Uber', 'Tesla', 'Stripe', 'Figma', 'Notion', 'Linear', 'Vercel', 'Supabase',
     'OpenAI', 'GitHub', 'Slack', 'Discord', 'Shopify', 'Twilio', 'MongoDB', 'Atlassian'
   ],
-  
+
   startup_companies: [
     'TechFlow', 'DataVibe', 'CloudNine', 'CodeCraft', 'PixelForge', 'ByteStream',
     'NeuralLab', 'FlowState', 'BuildFast', 'DevTools', 'AppLaunch', 'ScaleUp',
@@ -29,7 +29,7 @@ const SAMPLE_DATA = {
 
   universities: [
     'Stanford University', 'MIT', 'Harvard University', 'UC Berkeley', 'Carnegie Mellon',
-    'Georgia Tech', 'University of Washington', 'Caltech', 'Cornell University', 
+    'Georgia Tech', 'University of Washington', 'Caltech', 'Cornell University',
     'Columbia University', 'Princeton University', 'Yale University', 'NYU', 'UCLA'
   ],
 
@@ -138,7 +138,7 @@ async function generateSeedProfile(index: number) {
     'Alex', 'Sam', 'Jordan', 'Casey', 'Morgan', 'Taylor', 'Jamie', 'Riley', 'Avery', 'Quinn',
     'Blake', 'Drew', 'Sage', 'River', 'Phoenix', 'Kai', 'Rowan', 'Skyler', 'Emery', 'Finley'
   ])
-  
+
   const lastNames = [
     'Chen', 'Johnson', 'Williams', 'Brown', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
     'Wilson', 'Anderson', 'Taylor', 'Thomas', 'Hernandez', 'Moore', 'Martin', 'Jackson', 'Thompson',
@@ -146,11 +146,11 @@ async function generateSeedProfile(index: number) {
     'Hall', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores',
     'Green', 'Adams', 'Nelson', 'Baker', 'Patel', 'Kumar', 'Singh', 'Ahmed', 'Ali', 'Kim', 'Park'
   ]
-  
+
   const lastName = randomChoice(lastNames)
   const displayName = `${firstName} ${lastName}`
   const username = `${firstName.toLowerCase()}${lastName.toLowerCase()}${Math.floor(Math.random() * 99) + 1}`
-  
+
   const role = randomChoice(SAMPLE_DATA.tech_roles)
   const currentCompany = Math.random() > 0.3 ? randomChoice(SAMPLE_DATA.companies) : randomChoice(SAMPLE_DATA.startup_companies)
   const prevCompany = randomChoice(SAMPLE_DATA.companies)
@@ -158,7 +158,7 @@ async function generateSeedProfile(index: number) {
   const field = randomChoice(['tech', 'AI', 'web development', 'mobile', 'data science', 'cloud computing'])
   const years = Math.floor(Math.random() * 8) + 2
   const university = randomChoice(SAMPLE_DATA.universities)
-  
+
   const profileData = {
     username,
     displayName,
@@ -184,7 +184,7 @@ interface SeedMetadata {
 
 async function generateExperience(profileId: string, metadata: SeedMetadata) {
   const experiences = []
-  
+
   // Current job
   experiences.push({
     profileId,
@@ -197,7 +197,7 @@ async function generateExperience(profileId: string, metadata: SeedMetadata) {
     currentlyWorking: true,
     description: 'Leading development of innovative solutions using modern technologies. Collaborate with cross-functional teams to deliver high-quality products.'
   })
-  
+
   // Previous job (maybe)
   if (metadata.years > 3 && Math.random() > 0.3) {
     experiences.push({
@@ -212,7 +212,7 @@ async function generateExperience(profileId: string, metadata: SeedMetadata) {
       description: 'Developed and maintained web applications, collaborated with team members on various projects, and gained valuable experience in software development.'
     })
   }
-  
+
   return experiences
 }
 
@@ -225,22 +225,22 @@ async function createPlaceholderLogo(profileId: string, projectName: string) {
     height: 100,
     profileId: profileId,
   }).returning()
-  
+
   return logoMedia[0].id
 }
 
 async function generateProjects(profileId: string) {
   const projectCount = Math.floor(Math.random() * 4) + 2 // 2-5 projects
   const projects = []
-  
+
   for (let i = 0; i < projectCount; i++) {
     const projectType = randomChoice(SAMPLE_DATA.project_types)
     const tech = randomChoice(SAMPLE_DATA.skills)
     const name = generateProjectName()
-    
+
     // Create placeholder logo
     const logoId = await createPlaceholderLogo(profileId, name)
-    
+
     projects.push({
       profileId,
       name,
@@ -250,7 +250,7 @@ async function generateProjects(profileId: string) {
       logo: logoId,
     })
   }
-  
+
   return projects
 }
 
@@ -268,7 +268,7 @@ async function generateEducation(profileId: string, metadata: SeedMetadata) {
 
 async function generateSocialLinks(profileId: string, username: string) {
   const links = []
-  
+
   // GitHub (high probability)
   if (Math.random() > 0.2) {
     links.push({
@@ -277,7 +277,7 @@ async function generateSocialLinks(profileId: string, username: string) {
       url: `https://github.com/${username.toLowerCase()}`
     })
   }
-  
+
   // LinkedIn (medium probability)
   if (Math.random() > 0.4) {
     links.push({
@@ -286,7 +286,7 @@ async function generateSocialLinks(profileId: string, username: string) {
       url: `https://linkedin.com/in/${username.toLowerCase()}`
     })
   }
-  
+
   // Twitter (lower probability)
   if (Math.random() > 0.6) {
     links.push({
@@ -295,7 +295,7 @@ async function generateSocialLinks(profileId: string, username: string) {
       url: `https://twitter.com/${username.toLowerCase()}`
     })
   }
-  
+
   // Personal website (low probability)
   if (Math.random() > 0.8) {
     links.push({
@@ -304,24 +304,24 @@ async function generateSocialLinks(profileId: string, username: string) {
       url: `https://${username.toLowerCase()}.dev`
     })
   }
-  
+
   // Filter out any links with empty URLs (safety check)
   return links.filter(link => link.url && link.url.trim() !== '')
 }
 
 async function generatePost(profileId: string, metadata: SeedMetadata) {
   if (Math.random() > 0.4) return null // Not everyone posts
-  
+
   const tech = randomChoice(SAMPLE_DATA.skills)
   const projectType = randomChoice(SAMPLE_DATA.project_types).toLowerCase()
   const projectName = generateProjectName()
-  
+
   const template = randomChoice(SAMPLE_DATA.post_templates)
   const content = template
     .replace('{tech}', tech)
     .replace('{project_type}', projectType)
     .replace('{project_name}', projectName)
-  
+
   return {
     profileId,
     content,
@@ -331,14 +331,14 @@ async function generatePost(profileId: string, metadata: SeedMetadata) {
 
 export async function seedProfiles(count: number = 100) {
   console.log(`🌱 Seeding ${count} profiles...`)
-  
+
   try {
     // Find the last seed user to continue from where we left off
     const lastSeedUsers = await db.select()
       .from(users)
       .where(like(users.id, 'seed-user-%'))
       .orderBy(users.id)
-    
+
     let startIndex = 0
     if (lastSeedUsers.length > 0) {
       // Extract the highest number from seed-user-X format
@@ -349,14 +349,14 @@ export async function seedProfiles(count: number = 100) {
       startIndex = Math.max(...lastUserNumbers)
       console.log(`📍 Found ${lastSeedUsers.length} existing seed users. Starting from index ${startIndex + 1}...`)
     }
-    
+
     for (let i = 0; i < count; i++) {
       const actualIndex = startIndex + i + 1
       console.log(`Creating profile ${actualIndex} (${i + 1}/${count})...`)
-      
+
       // Generate profile
       const { profileData, metadata } = await generateSeedProfile(actualIndex)
-      
+
       // Create a user first
       const email = `${profileData.username}@example.com`
       const insertedUser = await db.insert(users).values({
@@ -367,17 +367,17 @@ export async function seedProfiles(count: number = 100) {
         image: profileData.profileImage,
         isOnboarded: true,
       }).returning()
-      
+
       const userId = insertedUser[0].id
-      
+
       // Insert profile
       const insertedProfile = await db.insert(profile).values({
         userId,
         ...profileData,
       }).returning()
-      
+
       const profileId = insertedProfile[0].id
-      
+
       // Generate and insert related data (projects need to be created separately because they create media)
       const [experienceData, educationData, socialData, postData] = await Promise.all([
         generateExperience(profileId, metadata),
@@ -385,10 +385,10 @@ export async function seedProfiles(count: number = 100) {
         generateSocialLinks(profileId, profileData.username),
         generatePost(profileId, metadata)
       ])
-      
+
       // Insert projects separately (they create their own media entries)
       const projectsData = await generateProjects(profileId)
-      
+
       // Insert all other related data
       await Promise.all([
         experienceData.length > 0 ? db.insert(experience).values(experienceData) : Promise.resolve(),
@@ -397,16 +397,16 @@ export async function seedProfiles(count: number = 100) {
         postData ? db.insert(posts).values(postData) : Promise.resolve(),
         projectsData.length > 0 ? db.insert(projects).values(projectsData) : Promise.resolve(),
       ])
-      
+
       // Small delay to avoid overwhelming the database
       if (i % 10 === 0) {
         await new Promise(resolve => setTimeout(resolve, 100))
       }
     }
-    
+
     console.log(`✅ Successfully seeded ${count} profiles! (seed-user-${startIndex + 1} to seed-user-${startIndex + count})`)
     return { success: true, count, startIndex: startIndex + 1, endIndex: startIndex + count }
-    
+
   } catch (error) {
     console.error('❌ Error seeding profiles:', error)
     return { success: false, error }

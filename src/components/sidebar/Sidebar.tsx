@@ -1,74 +1,26 @@
 'use client'
+import { useSession } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
-import { Edit3, Plus, Search, Settings, UserRound } from 'lucide-react'
-import { useSession } from '@/hooks/useAuth'
+import { Compass, Edit3, Plus, Search, Settings, UserRound } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   useAuthDialog,
   usePostsDialog,
   useSearchDialog,
 } from '../dialog-provider'
+import Menu from '../menu'
 import { Button } from '../ui/button'
-import { PostAvatar } from '../explore/post-interactions'
+import { Separator } from '../ui/separator'
 
 const Sidebar = ({ className }: { className?: string }) => {
   const session = useSession()
-
+  const router = useRouter()
   const setIsPostDialogOpen = usePostsDialog()[1]
   const setIsAuthDialogOpen = useAuthDialog()[1]
   const setIsSearchDialogOpen = useSearchDialog()[1]
-  // const { theme } = useTheme();
-  // const options = [
-  //   {
-  //     id: 1,
-  //     name: "Explore",
-  //     href: "/",
-  //     onClick: () => {
-  //       // router.push("/");
-  //     },
-  //     icon: <Compass className="opacity-70" strokeWidth={1.5} />,
-  //   },
-  //   {
-  //     id: 3,
-  //     name: "Search",
-  //     href: null,
-  //     onClick: () => {
-  //       setOpenSearch(true);
-  //       // router.push("/");
-  //     },
-  //     icon: <Search className="opacity-70" strokeWidth={1.5} />,
-  //   },
-  //   {
-  //     id: 4,
-  //     name: "Notifications",
-  //     href: null,
-  //     onClick: () => {
-  //       // router.push("/");
-  //     },
-  //     icon: <Bell className="opacity-70" strokeWidth={1.5} />,
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "Account",
-  //     href: `/${session?.data?.user?.username}`,
-  //     onClick: () => {
-  //       // router.push("/");
-  //     },
-  //     icon: <UserRound className="opacity-70" strokeWidth={1.5} />,
-  //   },
-  //   {
-  //     id: 5,
-  //     name: "Settings",
-  //     href: `/${session?.data?.user?.username}?tab=settings`,
-  //     onClick: () => {
-  //       // router.push("/");
-  //       setOpen(true);
-  //     },
-  //     icon: <Settings className="opacity-70" strokeWidth={1.5} />,
-  //   },
-  // ];
 
   return (
     <div
@@ -104,34 +56,62 @@ const Sidebar = ({ className }: { className?: string }) => {
           className="rounded-full size-10 group relative"
           size={'icon'}
           onClick={() => {
+            router.push('/')
+          }}
+          title="Explore"
+        >
+          <Compass strokeWidth={1.4} className="size-5 opacity-80 group-hover:opacity-100 transition-opacity" />
+        </Button>
+        <Button
+          variant={'ghost'}
+          className="rounded-full size-10 group relative"
+          size={'icon'}
+          onClick={() => {
             setIsSearchDialogOpen(true)
           }}
           title="Search (⌘K)"
         >
           <Search strokeWidth={1.4} className="size-5 opacity-80 group-hover:opacity-100 transition-opacity" />
         </Button>
-        <Button
-          variant={'ghost'}
-          className={cn('rounded-full size-10', !session?.data && 'mb-10')}
-          size={'icon'}
-          onClick={() => {
-            if (!session?.data) {
-              setIsAuthDialogOpen(true)
-              return
-            }
-            setIsPostDialogOpen(true)
-          }}
-        >
-          <Plus strokeWidth={1.4} className="size-5 opacity-80" />
-        </Button>
         {session?.data && (
+          <>
+            <Button
+              variant={'ghost'}
+              className={cn('rounded-full size-10', !session?.data && 'mb-10')}
+              size={'icon'}
+              onClick={() => {
+                if (!session?.data) {
+                  setIsAuthDialogOpen(true)
+                  return
+                }
+                setIsPostDialogOpen(true)
+              }}
+            >
+              <Plus strokeWidth={1.4} className="size-5 opacity-80" />
+            </Button>
+            <Button
+              variant={'ghost'}
+              className="rounded-full size-10 group relative"
+              size={'icon'}
+              onClick={() => {
+                router.push(`/settings`)
+              }}
+              title="Settings"
+            >
+              <Settings strokeWidth={1.4} className="size-5 opacity-80 group-hover:opacity-100 transition-opacity" />
+            </Button>
+          </>
+        )}
+        <Separator className='w-6 h-px mb-2 mt-1 bg-neutral-200 dark:bg-dark-border mx-auto' />
+        <Menu />
+        {/* {session?.data && (
                       <Link href={`/${session?.data?.user?.username}`}>
             <PostAvatar
               avatar={session?.data?.user?.profileImage || session?.data?.user?.image || ''}
               name={session?.data?.user?.displayName || session?.data?.user?.name || ''}
             />
           </Link>
-        )}
+        )} */}
       </div>
     </div>
   )
@@ -144,21 +124,21 @@ const OptionsMenu = () => {
       id: 1,
       name: 'Manage Account',
       href: `/${session?.data?.user?.username}`,
-      onClick: () => {},
+      onClick: () => { },
       icon: <UserRound className="opacity-70 size-5" strokeWidth={1.2} />,
     },
     {
       id: 2,
       name: 'Edit Profile',
       href: `/${session?.data?.user?.username}`,
-      onClick: () => {},
+      onClick: () => { },
       icon: <Edit3 className="opacity-70 size-5" strokeWidth={1.2} />,
     },
     {
       id: 3,
       name: 'Settings',
       href: `/${session?.data?.user?.username}?tab=settings`,
-      onClick: () => {},
+      onClick: () => { },
       icon: <Settings className="opacity-70 size-5" strokeWidth={1.2} />,
     },
   ]

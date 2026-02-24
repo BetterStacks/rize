@@ -71,7 +71,6 @@ export const EducationForm: FC<EducationFormProps> = ({
   const upsertMutation = useMutation({ mutationFn: upsertEducation });
   const mutateUpsert = upsertMutation.mutateAsync;
 
-  // Prefill when editing
   useEffect(() => {
     if (!defaultValues) return;
     try {
@@ -90,6 +89,30 @@ export const EducationForm: FC<EducationFormProps> = ({
     }
   }, [defaultValues, form]);
 
+  // ── Local Storage Persistence ──────────────────────────────────────────
+  useEffect(() => {
+    if (id) return; // Skip if editing
+    const saved = localStorage.getItem("education-form-draft");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.startDate) parsed.startDate = new Date(parsed.startDate);
+        if (parsed.endDate) parsed.endDate = new Date(parsed.endDate);
+        form.reset(parsed);
+      } catch (e) {
+        console.error("Error loading saved education draft", e);
+      }
+    }
+  }, [id, form]);
+
+  useEffect(() => {
+    if (id) return; // Skip if editing
+    const subscription = form.watch((value) => {
+      localStorage.setItem("education-form-draft", JSON.stringify(value));
+    });
+    return () => subscription.unsubscribe();
+  }, [form, id]);
+
   // Submit handler
   async function onSubmit(values: EducationFormData) {
     const payload = {
@@ -101,6 +124,9 @@ export const EducationForm: FC<EducationFormProps> = ({
 
     const res = await mutateUpsert(payload, {
       onSuccess: async () => {
+        if (!id) {
+          localStorage.removeItem("education-form-draft");
+        }
         await queryClient.invalidateQueries({
           queryKey: ["get-education", username],
         });

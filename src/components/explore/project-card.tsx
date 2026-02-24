@@ -47,7 +47,7 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, className }) => {
   }
 
   return (
-    <PostCardContainer 
+    <PostCardContainer
       handlePostClick={handleViewProject}
       className={cn("group", className)}
     >
@@ -68,7 +68,7 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, className }) => {
               <Briefcase className="size-8 opacity-40" />
             </div>
           )}
-          
+
           {/* Status Badge */}
           <div className="absolute top-3 right-3">
             <span className={cn(
@@ -103,7 +103,7 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, className }) => {
           {project.profileId && (
             <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
               <User2 className="size-3" />
-              <Link 
+              <Link
                 href={`/profile/${project.profileId}`}
                 className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 onClick={(e) => e.stopPropagation()}
@@ -113,24 +113,15 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, className }) => {
             </div>
           )}
 
-          {/* Duration */}
-          {project.startDate && (
-            <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-              <Calendar className="size-3" />
-              <span>
-                {moment(project.startDate).format('MMM YYYY')}
-                {project.endDate && ` - ${moment(project.endDate).format('MMM YYYY')}`}
-              </span>
-            </div>
-          )}
+
         </div>
 
         {/* Action Buttons */}
         <div className="flex gap-2">
           {project.url ? (
-            <Button 
-              variant="default" 
-              size="sm" 
+            <Button
+              variant="default"
+              size="sm"
               className="flex-1 text-xs h-8 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               onClick={(e) => {
                 e.stopPropagation()
@@ -141,9 +132,9 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, className }) => {
               Visit Project
             </Button>
           ) : (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="flex-1 text-xs h-8 border-neutral-300 dark:border-neutral-600"
               disabled
             >
@@ -157,11 +148,6 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, className }) => {
         <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700">
           <div className="flex items-center justify-between text-xs text-neutral-400 dark:text-neutral-500">
             <span>Project</span>
-            {project.endDate && (
-              <span>
-                Updated {moment(project.endDate).fromNow()}
-              </span>
-            )}
           </div>
         </div>
       </div>

@@ -9,7 +9,15 @@ import { Toaster } from 'react-hot-toast'
 import Context from './context'
 import { PanelProvider } from './panel-context'
 
-export const queryClient = new QueryClient()
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      // refetchOnMount: false,
+      // refetchInterval: false,
+    }
+  }
+})
 
 const Providers = ({ children }: { children: ReactNode }) => {
   return (

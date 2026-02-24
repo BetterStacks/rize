@@ -69,7 +69,6 @@ export const WorkExperienceForm: FC<WorkExperienceFormProps> = ({
 
   const upsertMutation = useMutation({ mutationFn: upsertExperience });
   const mutateUpsert = upsertMutation.mutateAsync;
-
   useEffect(() => {
     if (!defaultValues) return;
     try {
@@ -89,6 +88,29 @@ export const WorkExperienceForm: FC<WorkExperienceFormProps> = ({
       console.error("Error populating experience form defaults", err);
     }
   }, [defaultValues, form]);
+  // ── Local Storage Persistence ──────────────────────────────────────────
+  useEffect(() => {
+    if (!!defaultValues?.id) return; // Skip if editing
+    const saved = localStorage.getItem("experience-form-draft");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.startDate) parsed.startDate = new Date(parsed.startDate);
+        if (parsed.endDate) parsed.endDate = new Date(parsed.endDate);
+        form.reset(parsed);
+      } catch (e) {
+        console.error("Error loading saved experience draft", e);
+      }
+    }
+  }, [defaultValues, form]);
+
+  useEffect(() => {
+    if (!!defaultValues?.id) return; // Skip if editing
+    const subscription = form.watch((value) => {
+      localStorage.setItem("experience-form-draft", JSON.stringify(value));
+    });
+    return () => subscription.unsubscribe();
+  }, [form, defaultValues]);
 
   async function onSubmit(values: WorkExperienceFormData) {
     try {
@@ -100,6 +122,9 @@ export const WorkExperienceForm: FC<WorkExperienceFormProps> = ({
 
       await mutateUpsert(payload, {
         onSuccess: async () => {
+          if (!activeTab?.id) {
+            localStorage.removeItem("experience-form-draft");
+          }
           setActiveTab({ id: null, tab: "experience" });
           await queryClient.invalidateQueries({
             queryKey: ["get-all-experience", username],

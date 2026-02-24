@@ -34,8 +34,8 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
       id="writings"
       className="w-full my-12 px-2 md:px-4 flex flex-col items-center justify-start"
     >
-      <div className="max-w-2xl w-full flex mb-2 md:mb-4 items-center justify-between">
-        <h2 className="text-lg md:text-xl font-medium ">Writings</h2>
+      <div className="max-w-2xl w-full flex mb-4 items-center justify-between">
+        <h2 className="md:text-lg font-medium ">Writings</h2>
         {isMine && (
           <Button
             className="rounded-lg scale-90 text-sm"
@@ -48,7 +48,7 @@ const Writings = ({ isMine, writings }: WritingsProps) => {
           </Button>
         )}
       </div>
-      <div className={cn("w-full max-w-2xl mt-4 grid grid-cols-1 ", isFetching ? "gap-4" : "gap-6")}>
+      <div className={cn("w-full max-w-2xl mt-2 flex flex-col space-y-4 ")}>
         {isFetching ? (
           [...Array.from({ length: 4 })].map((_, i) => (
             <Skeleton

@@ -23,18 +23,21 @@ import {
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useProfileDialog } from './dialog-provider'
 import { Button } from './ui/button'
 import { cn } from "@/lib/utils"
+import { signOut } from "@/lib/auth-client"
 
 const Menu = () => {
   const [open, setOpen] = useState(false)
   const session = useSession()
-  const params = useParams()
-  const isMine = session?.data?.user?.username === params?.username
-  const setProfileDialogOpen = useProfileDialog()[1]
+  const pathname = usePathname()
+  const isProjectPage = pathname.includes('/project/')
+  // const params = useParams()
+  // const isMine = session?.data?.user?.username === params?.username
+  // const setProfileDialogOpen = useProfileDialog()[1]
   const ref = useClickOutside(() => {
     setOpen(false)
   })
@@ -119,10 +122,10 @@ const Menu = () => {
         <Button
           variant={'outline'}
           size={'icon'}
-          className={cn(" relative overflow-hidden size-10 ", session?.data && "rounded-full")}
+          className={cn(" relative overflow-hidden size-10 ", session?.data && "rounded-full", session?.isLoading && "bg-neutral-200 dark:bg-dark-border", isProjectPage && "rounded-full")}
           onClick={() => setOpen(true)}
         >
-          {session?.data ? <Image src={session?.data?.user?.profileImage || session?.data?.user?.image || '/'} alt="Profile" className='rounded-lg size-full' width={24} height={24} priority /> :
+          {session?.isLoading ? <div className="size-full" /> : session?.data ? <Image src={session?.data?.user?.profileImage || session?.data?.user?.image || '/'} alt="Profile" className='rounded-lg size-full' width={24} height={24} priority /> :
             open ? (
               <X strokeWidth={1.5} className="size-5 opacity-70" />
             ) : (
@@ -130,7 +133,7 @@ const Menu = () => {
             )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64 mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-2xl" align="end">
+      <DropdownMenuContent className={cn("w-64 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-2xl", isProjectPage ? "ml-4 mb-4" : "mt-2")} align="end">
         <DropdownMenuGroup className='p-3'>
           {session?.data ? (
             <>
@@ -182,7 +185,10 @@ const Menu = () => {
             <DropdownMenuShortcut>⇧⌘T</DropdownMenuShortcut>
           </DropdownMenuItem>
           {session?.data && (
-            <DropdownMenuItem className='text-red-500'>
+            <DropdownMenuItem onClick={() => {
+              signOut()
+              router.refresh()
+            }} className='text-red-500'>
               <LogOut /> Log out
               <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
             </DropdownMenuItem>

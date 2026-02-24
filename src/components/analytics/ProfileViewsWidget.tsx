@@ -92,12 +92,12 @@ export default function ProfileViewsWidget({ className }: { className?: string }
 
 	const total = data?.total ?? 0
 	const values = data?.series?.data ?? []
-  const countries = data?.topCountries ?? []
-  const cities = data?.topCities ?? []
+	const countries = data?.topCountries ?? []
+	const cities = data?.topCities ?? []
 	const loading = authLoading || !username || queryLoading
 
 	return (
-		<div className={cn('w-full max-w-sm rounded-3xl border border-neutral-300/60 dark:border-dark-border/80', className)}>
+		<div className={cn('w-full max-w-sm rounded-3xl border border-neutral-200 dark:border-dark-border', className)}>
 			<CardHeader className="pb-2">
 				<div className="flex items-center justify-between">
 					<CardTitle className="text-base">Profile views</CardTitle>

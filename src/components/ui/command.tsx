@@ -64,9 +64,10 @@ const CommandList = React.forwardRef<
   <CommandPrimitive.List
     ref={ref}
     className={cn(
-      'max-h-[380px] overflow-y-hidden overflow-x-hidden',
+      'max-h-[300px] overflow-y-auto overflow-x-hidden',
       className
     )}
+    onWheel={(e) => e.stopPropagation()}
     {...props}
   />
 ))

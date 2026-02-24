@@ -1,13 +1,11 @@
 "use client";
 import { getAllProjects } from "@/actions/project-actions";
-import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
+import { useActiveSidebarTab } from "@/lib/context";
 import { GetAllProjects } from "@/lib/types";
-import { useMediaQuery } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Brain, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useQueryState } from "nuqs";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
@@ -27,9 +25,6 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
     queryKey: ["get-projects", username],
     initialData: projects,
     queryFn: () => getAllProjects(username),
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    staleTime: Infinity,
   });
   const [selectedProject, setSelectedProject] = useState<GetAllProjects | null>(
     null
@@ -53,7 +48,7 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
       />
       <ProjectDrawer />
       <div className="w-full max-w-2xl mb-4 flex items-center justify-between">
-        <h2 className="text-lg md:text-xl font-medium">Projects</h2>
+        <h2 className="text-lg md:text-lg font-medium">Projects</h2>
         {isMine && (
           <Button
             variant={"outline"}
@@ -68,7 +63,7 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
           </Button>
         )}
       </div>
-      <div className="w-full grid grid-cols-1  max-w-2xl gap-4 ">
+      <div className="w-full flex flex-col mt-2 max-w-2xl space-y-4 ">
         {isFetching ? (
           [...Array.from({ length: 4 })].map((_, i) => (
             <Skeleton
