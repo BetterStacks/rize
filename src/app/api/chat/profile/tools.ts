@@ -173,8 +173,6 @@ export const getProfileTools = (profileId: string | undefined, username: string,
                 await db.insert(projects).values({
                     profileId,
                     ...args,
-                    startDate: args.startDate ? new Date(args.startDate) : null,
-                    endDate: args.endDate ? new Date(args.endDate) : null,
                 });
                 await revalidatePageOnClient(`/${username}`);
                 return { success: true };
@@ -189,8 +187,6 @@ export const getProfileTools = (profileId: string | undefined, username: string,
                 await db.update(projects)
                     .set({
                         ...data,
-                        startDate: data.startDate ? new Date(data.startDate) : undefined,
-                        endDate: data.endDate ? new Date(data.endDate) : undefined,
                     })
                     .where(and(eq(projects.id, id), eq(projects.profileId, profileId)));
                 await revalidatePageOnClient(`/${username}`);

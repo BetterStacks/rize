@@ -53,7 +53,7 @@ const BottomBanner: FC<BottomBannerProps> = ({
           badgeClassName="rounded-xl 5"
           buttonClassName="rounded-xl"
           className={cn(
-            ' dark:bg-neutral-800  max-w-xl rounded-2xl border-neutral-300/60'
+            ' dark:bg-neutral-800 w-full rounded-2xl border-neutral-300/60'
           )}
         />
       </div>

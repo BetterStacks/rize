@@ -596,8 +596,6 @@ export const addProjectSchema = z.object({
     .string()
     .optional()
     .describe("The media ID or URL for the project logo"),
-  startDate: z.string().optional().describe("When the project started"),
-  endDate: z.string().optional().describe("When the project ended or was shipped"),
 });
 
 export const updateProjectSchema = addProjectSchema.partial().extend({

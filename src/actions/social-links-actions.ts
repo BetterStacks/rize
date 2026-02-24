@@ -49,19 +49,19 @@ interface LetrazResponse {
 
 function parseDate(dateString: string | undefined): Date | undefined {
   if (!dateString) return undefined
-  
+
   // Handle formats like "Jan 2024", "2024", "Jan 2024 - Dec 2024"
   try {
     // If it's just a year
     if (/^\d{4}$/.test(dateString)) {
       return new Date(`Jan 1, ${dateString}`)
     }
-    
+
     // If it's "Mon YYYY" format
     if (/^[A-Za-z]{3} \d{4}$/.test(dateString)) {
       return new Date(`${dateString} 1`)
     }
-    
+
     return new Date(dateString)
   } catch (error) {
     console.error('Error parsing date:', dateString, error)
@@ -80,7 +80,7 @@ async function processLinkedInData(profileId: string, linkedinUrl: string) {
     }
 
     console.log('Fetching LinkedIn data for URL:', linkedinUrl)
-    
+
     const response = await fetch(`${letrazUrl}/api/linkedin/parse/`, {
       method: 'POST',
       headers: {
@@ -96,7 +96,7 @@ async function processLinkedInData(profileId: string, linkedinUrl: string) {
     }
 
     const letrazData: LetrazResponse = await response.json()
-    
+
     if (!letrazData.data) {
       console.error('No data received from Letraz')
       return
@@ -152,14 +152,12 @@ async function processLinkedInData(profileId: string, linkedinUrl: string) {
         try {
           // Skip empty projects
           if (!project.title) continue
-          
+
           await db.insert(projects).values({
             profileId,
             name: project.title,
             description: project.description || '',
             url: project.url || null,
-            startDate: parseDate(project.start_date),
-            endDate: project.end_date ? parseDate(project.end_date) : null,
             status: project.end_date ? 'completed' : 'wip',
           })
           console.log('Added project:', project.title)
@@ -170,7 +168,7 @@ async function processLinkedInData(profileId: string, linkedinUrl: string) {
     }
 
     console.log('Successfully processed LinkedIn data for profile:', profileId)
-    
+
   } catch (error) {
     console.error('Error processing LinkedIn data:', error)
   }

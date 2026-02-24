@@ -13,6 +13,9 @@ import { ProjectDialogOptions } from "./projects/ProjectDetailsDialog";
 import ProjectDrawer from "./projects/ProjectDrawer";
 import { Button } from "./ui/button";
 import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
+import BottomBanner from "./bottom-banner";
+import { Separator } from "./ui/separator";
 
 type ProjectPageProps = {
     id: string;
@@ -23,6 +26,7 @@ const ProjectPage: FC<ProjectPageProps> = ({
     initialProjectData,
     id,
 }) => {
+    const session = useSession()
     const { data: project } = useQuery({
         initialData: initialProjectData,
         queryKey: ["get-project-by-id", id],
@@ -125,7 +129,7 @@ const ProjectPage: FC<ProjectPageProps> = ({
                                 {medias.map((media, i) => (
                                     <div
                                         key={media.id}
-                                        className="relative min-w-[calc(50%-8px)] aspect-[16/10] border-2 border-neutral-100 dark:border-dark-border rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 shadow-sm flex-shrink-0"
+                                        className="relative min-w-[calc(50%-8px)] aspect-[16/10] border-2 border-neutral-200 dark:border-dark-border rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 shadow-sm flex-shrink-0"
                                     >
                                         {media.type === "video" ? (
                                             <video
@@ -243,6 +247,11 @@ const ProjectPage: FC<ProjectPageProps> = ({
 
 
                 </div>
+                {!session?.data && <div className="px-4 flex flex-col gap-2 mt-12 justify-center">
+                    <div className=" w-full h-2 border-t dark:border-dark-border/60 border-neutral-200" />
+                    <BottomBanner className="max-w-3xl w-full" />
+                </div>
+                }
             </div>
         </div>
     );
