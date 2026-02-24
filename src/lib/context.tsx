@@ -11,6 +11,22 @@ type TAppContext = {
   setIsRightSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isPageSidebarOpen: boolean;
   setIsPageSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  projectDraft: {
+    name: string;
+    url: string;
+    tagline: string;
+    description?: string;
+    logo?: string | null;
+  } | null;
+  setProjectDraft: React.Dispatch<
+    React.SetStateAction<{
+      name: string;
+      url: string;
+      tagline: string;
+      description?: string;
+      logo?: string | null;
+    } | null>
+  >;
 };
 
 const AppContext = createContext<TAppContext>({
@@ -20,6 +36,8 @@ const AppContext = createContext<TAppContext>({
   setIsRightSidebarOpen: () => { },
   isPageSidebarOpen: false,
   setIsPageSidebarOpen: () => { },
+  projectDraft: null,
+  setProjectDraft: () => { },
 })
 
 export const useRightSidebar = () => {
@@ -38,6 +56,12 @@ export const useActiveSidebarTab = () => {
   return [ctx.activeSidebarTab, ctx.setActiveSidebarTab] as const
 }
 
+export const useProjectDraft = () => {
+  const ctx = useContext(AppContext)
+
+  return [ctx.projectDraft, ctx.setProjectDraft] as const
+}
+
 const Context = ({ children }: { children: ReactNode }) => {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [isPageSidebarOpen, setIsPageSidebarOpen] = useState(false)
@@ -48,6 +72,13 @@ const Context = ({ children }: { children: ReactNode }) => {
     key: "activeSidebarTab",
     defaultValue: { id: null, tab: 'gallery' },
   })
+  const [projectDraft, setProjectDraft] = useState<{
+    name: string;
+    url: string;
+    tagline: string;
+    description?: string;
+    logo?: string | null;
+  } | null>(null)
 
   return (
     <div className="w-full ">
@@ -59,6 +90,8 @@ const Context = ({ children }: { children: ReactNode }) => {
           setIsRightSidebarOpen,
           isPageSidebarOpen,
           setIsPageSidebarOpen,
+          projectDraft,
+          setProjectDraft,
         }}
       >
         {children}

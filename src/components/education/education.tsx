@@ -38,12 +38,12 @@ const Education = ({ isMine, education }: EducationProps) => {
       className="w-full my-12 px-2 md:px-4 flex flex-col items-center justify-start"
     >
       <EducationDrawer />
-      <div className="w-full max-w-2xl mb-2 flex items-center justify-between">
-        <h2 className="text-xl font-medium mb-2 md:mb-4">Education</h2>
+      <div className="w-full max-w-2xl mb-4 flex items-center justify-between">
+        <h2 className="md:text-lg font-medium ">Education</h2>
         {isMine && (
           <Button
             variant={"outline"}
-            className="  rounded-lg scale-90 text-sm"
+            className="rounded-lg scale-90 text-sm"
             size={"sm"}
             onClick={() => {
               setActiveTab({ id: null, tab: "education" });
@@ -58,7 +58,7 @@ const Education = ({ isMine, education }: EducationProps) => {
           </Button>
         )}
       </div>
-      <div className="w-full flex flex-col max-w-2xl gap-4 ">
+      <div className="w-full flex flex-col mt-2 max-w-2xl space-y-4 ">
         {isFetching ? (
           [...Array.from({ length: 4 })].map((_, i) => (
             <Skeleton

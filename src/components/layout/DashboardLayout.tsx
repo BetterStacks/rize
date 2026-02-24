@@ -19,7 +19,7 @@ import { Sheet, SheetContent } from '../ui/sheet'
 import { cn } from '@/lib/utils'
 import { PanelProvider, usePanel } from '@/lib/panel-context'
 
-type LayoutVariant = 'profile' | 'explore' | 'post' | 'writing' | 'default'
+type LayoutVariant = 'profile' | 'explore' | 'post' | 'writing' | 'full' | 'default'
 
 type SidebarConfig = {
   left?: {
@@ -53,7 +53,7 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
   className,
   customNavbar,
   sidebarConfig,
-  showNavbar = true,
+  showNavbar,
   contentMaxWidth,
   contentPadding = 'px-3',
 }) => {
@@ -111,12 +111,21 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
             show: isDesktop,
           } : undefined
         }
+      case 'full':
+        return {
+          left: {
+            component: <Sidebar className="border-r w-full" />,
+            show: isDesktop,
+            className: 'max-w-[80px]'
+          }
+        }
       default:
         return {}
     }
   }
 
   const finalSidebarConfig = { ...getDefaultSidebarConfig(), ...sidebarConfig }
+  const finalShowNavbar = showNavbar !== undefined ? showNavbar : (variant === 'full' ? false : true)
 
   // Content styling based on variant
   const getContentStyling = () => {
@@ -137,6 +146,12 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
         return {
           maxWidth: contentMaxWidth || 'max-w-none',
           padding: contentPadding,
+          className: ''
+        }
+      case 'full':
+        return {
+          maxWidth: contentMaxWidth || 'max-w-none',
+          padding: contentPadding || 'px-0',
           className: ''
         }
       default:
@@ -168,7 +183,8 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
             maxSize={25}
             minSize={15}
             className={cn(
-              'h-screen flex items-center justify-end',
+              'h-screen flex items-center',
+              variant === 'full' ? 'justify-start' : 'justify-end',
               finalSidebarConfig.left.className
             )}
           >
@@ -186,8 +202,8 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
           )}
         >
           {/* Navbar */}
-          {showNavbar && (
-            customNavbar || <Navbar isMine={isMine} variant={variant} />
+          {finalShowNavbar && (
+            customNavbar || <Navbar isMine={isMine} variant={variant as any} />
           )}
 
           {/* Scrollable Content */}
@@ -195,7 +211,7 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
             <motion.div
               className={cn(
                 'w-full flex flex-col items-center justify-center',
-                showNavbar ? 'mt-20 md:mt-24' : 'mt-0',
+                finalShowNavbar ? 'mt-20 md:mt-24' : 'mt-0',
                 'mb-10',
                 contentStyles.padding
               )}

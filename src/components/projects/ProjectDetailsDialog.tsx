@@ -1,44 +1,43 @@
 "use client";
 
-import Image from "next/image";
-import { FC, useState } from "react";
+import { deleteProject } from "@/actions/project-actions";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose,
-  DialogTrigger,
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { useSession } from "@/lib/auth-client";
+import { GetAllProjects } from "@/lib/types";
+import { cleanUrl, cn } from "@/lib/utils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  X,
+  Bookmark,
   ChevronLeft,
   ChevronRight,
   Link2,
-  Dot,
-  MoreHorizontalIcon,
-  Bookmark,
   Loader,
-  Trash2,
+  MoreHorizontalIcon,
+  Trash2
 } from "lucide-react";
-import { GetAllProjects } from "@/lib/types";
-import { cleanUrl, cn } from "@/lib/utils";
-import { EmptyGalleryState } from "../gallery/gallery-empty-state";
-import { Separator } from "../ui/separator";
-import { deleteProject } from "@/actions/project-actions";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Image from "next/image";
+import { useParams } from "next/navigation";
+import { FC, useState } from "react";
 import toast from "react-hot-toast";
+import { useActiveSidebarTab } from "@/lib/context";
+import { toggleProjectBookmark } from "@/actions/project-actions";
+import { Share2, Edit2 } from "lucide-react";
+import { EmptyGalleryState } from "../gallery/gallery-empty-state";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { useParams } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
+import { queryClient } from "@/lib/providers";
 
 type Props = {
   open: boolean;
@@ -49,19 +48,6 @@ type Props = {
 const ProjectDetailsDialog: FC<Props> = ({ open, onOpenChange, project }) => {
   const [index, setIndex] = useState(0);
 
-  const formatDate = (d?: string | Date | null) => {
-    if (!d) return null;
-    try {
-      const date = typeof d === "string" ? new Date(d) : d;
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch (e) {
-      return null;
-    }
-  };
 
   if (!project) return null;
 
@@ -90,17 +76,6 @@ const ProjectDetailsDialog: FC<Props> = ({ open, onOpenChange, project }) => {
               >
                 <div className="flex items-center justify-start">
                   <span className="text-lg">{project.name}</span>
-                  <Dot className="size-4 opacity-70 leading-none" />
-                  <div>
-                    <div className="text-sm text-neutral-600 dark:text-neutral-500">
-                      {formatDate(project.startDate) || "—"}
-                      {project.endDate ? (
-                        <> — {formatDate(project.endDate)}</>
-                      ) : project.startDate ? (
-                        <> — Present</>
-                      ) : null}
-                    </div>
-                  </div>
                 </div>
                 {project.url && (
                   <span className="mt-2 px-2 py-1 rounded-full bg-neutral-200 dark:bg-dark-border w-fit flex items-center justify-start">
@@ -224,8 +199,8 @@ export const ProjectDialogOptions: FC<ProjectCardOptionsProps> = ({
   const { username } = useParams<{ username: string }>();
   const session = useSession();
   const isMyProject = profileId === session?.data?.user?.profileId;
-  const queryClient = useQueryClient();
-  const { mutate: handleDeleteProject, isPending } = useMutation({
+  const setActiveTab = useActiveSidebarTab()[1];
+  const { mutate: handleDeleteProject, isPending: isDeleting } = useMutation({
     mutationFn: deleteProject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-projects", username] });
@@ -235,6 +210,31 @@ export const ProjectDialogOptions: FC<ProjectCardOptionsProps> = ({
       toast.error("Failed to delete project");
     },
   });
+
+  const { mutate: handleToggleBookmark } = useMutation({
+    mutationFn: (bookmark: boolean) => toggleProjectBookmark(projectId, bookmark),
+    onSuccess: () => {
+      toast.success("Project saved to collection");
+    },
+  });
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/project/${projectId}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Check out this project",
+          url: url,
+        });
+      } catch (err) {
+        console.error("Error sharing", err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard");
+    }
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -245,7 +245,7 @@ export const ProjectDialogOptions: FC<ProjectCardOptionsProps> = ({
           <Button
             size={"smallIcon"}
             className="rounded-full aspect-square "
-            variant={"outline"}
+            variant={"ghost"}
           >
             <MoreHorizontalIcon
               className={cn(
@@ -254,27 +254,55 @@ export const ProjectDialogOptions: FC<ProjectCardOptionsProps> = ({
             />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="shadow-md shadow-black/20 dark:shadow-black/20 rounded-xl dark:bg-dark-bg border dark:border-dark-border border-neutral-300/60 bg-white p-0">
-          <DropdownMenuItem className="px-4 py-1.5 ">
-            <Link2 className="opacity-80 -rotate-45 size-4" />
+        <DropdownMenuContent align="end" className="mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
+          <DropdownMenuItem
+            onClick={() => {
+              const url = `${window.location.origin}/project/${projectId}`;
+              navigator.clipboard.writeText(url);
+              toast.success("Link copied to clipboard");
+            }}
+          >
+            <Link2 className=" -rotate-45 size-4" />
             <span>Copy Link</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border">
-            <Bookmark className="opacity-80  size-4" />
-            <span>Save</span>
+
+          <DropdownMenuItem
+
+            onClick={handleShare}
+          >
+            <Share2 className=" size-4" />
+            <span>Share</span>
           </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={() => handleToggleBookmark(true)}
+          >
+            <Bookmark className="  size-4" />
+            <span>Save to Collection</span>
+          </DropdownMenuItem>
+
           {isMyProject && (
-            <DropdownMenuItem
-              onClick={() => handleDeleteProject(projectId)}
-              className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border"
-            >
-              {isPending ? (
-                <Loader className="opacity-80 size-4 animate-spin" />
-              ) : (
-                <Trash2 className="opacity-80 size-4" />
-              )}
-              <span>Delete</span>
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem
+                onClick={() => {
+                  setActiveTab({ id: projectId, tab: "projects" });
+                }}
+              >
+                <Edit2 className=" size-4" />
+                <span>Edit Project</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDeleteProject(projectId)}
+                className=" text-red-500 hover:text-red-500"
+              >
+                {isDeleting ? (
+                  <Loader className=" size-4 animate-spin" />
+                ) : (
+                  <Trash2 className=" size-4" />
+                )}
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </>
           )}
         </DropdownMenuContent>
       </DropdownMenu>

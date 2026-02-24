@@ -27,7 +27,7 @@ import { Separator } from './ui/separator'
 import { Badge } from './ui/badge'
 import { ShareCard } from './profile/ShareCard'
 
-type LayoutVariant = 'profile' | 'explore' | 'post' | 'writing' | 'default'
+type LayoutVariant = 'profile' | 'explore' | 'post' | 'writing' | 'full' | 'default'
 
 type NavbarProps = {
   isMine: boolean;

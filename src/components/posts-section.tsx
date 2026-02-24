@@ -31,7 +31,7 @@ const PostSection: FC<Props> = ({ posts, isMine }) => {
       className="w-full my-12  px-2  flex flex-col items-center justify-start"
     >
       <div className="w-full max-w-2xl mb-4 flex items-center justify-between">
-        <h2 className="text-lg md:text-xl font-medium ">Popular Posts</h2>
+        <h2 className="md:text-lg font-medium ">Popular Posts</h2>
         {isMine && (
           <Button
             variant={'outline'}
@@ -46,13 +46,13 @@ const PostSection: FC<Props> = ({ posts, isMine }) => {
           </Button>
         )}
       </div>
-      <div className=" max-w-2xl w-full">
+      <div className=" max-w-2xl mt-2 w-full">
         {isFetching ? (
           <>Loading..</>
         ) : data?.length === 0 ? (
           <EmptyWritingState onCreateNew={() => setOpen(true)} />
         ) : (
-          <div className="w-full columns-1 md:columns-2 gap-y-8 md:gap-4 ">
+          <div className="w-full columns-1 md:columns-2 space-y-4 mt-2 ">
             {data?.map((post, i) => (
               <PostCard
                 // mediaContainerClassName="h-[350px]"
@@ -80,7 +80,7 @@ export function EmptyWritingState({
   title = 'Tell your stories & experiences via posts',
   description = 'Your ideas deserve to be shared. Create your first piece and let your words flow.',
   ctaText = 'Add New Post',
-  onCreateNew = () => {},
+  onCreateNew = () => { },
 }: EmptyPostsStateProps) {
   const [isHovering, setIsHovering] = useState(false)
 

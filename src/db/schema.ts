@@ -124,8 +124,8 @@ export const media = pgTable("media", {
     .$defaultFn(() => v4()),
   url: text("url").notNull(),
   type: MediaType("type").notNull(),
-  width: integer("width").notNull(),
-  height: integer("height").notNull(),
+  width: integer("width"),
+  height: integer("height"),
   profileId: uuid("profile_id")
     .notNull()
     .references(() => profile.id, { onDelete: "cascade" }),
@@ -238,6 +238,26 @@ export const bookmarks = pgTable(
   }
 );
 
+export const projectBookmarks = pgTable(
+  "project_bookmarks",
+  {
+    profileId: uuid("profile_id")
+      .references(() => profile.id, { onDelete: "cascade" })
+      .notNull(),
+    projectId: uuid("project_id")
+      .references(() => projects.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.profileId, table.projectId] }),
+    };
+  }
+);
+
 export const postMedia = pgTable("post_media", {
   id: uuid("id")
     .primaryKey()
@@ -290,9 +310,96 @@ export const projects = pgTable("projects", {
     onDelete: "cascade",
   }),
   url: text("url"),
-  startDate: timestamp("start_date"),
-  endDate: timestamp("end_date"),
 });
+
+export const categories = pgTable("categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+});
+
+export const projectCategories = pgTable(
+  "project_categories",
+  {
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+  },
+
+  (t) => ({
+    pk: primaryKey({ columns: [t.projectId, t.categoryId] }),
+  })
+);
+
+export const skills = pgTable("skills", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+});
+
+export const projectSkills = pgTable(
+  "project_skills",
+  {
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    skillId: uuid("skill_id")
+      .notNull()
+      .references(() => skills.id, { onDelete: "cascade" }),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.projectId, t.skillId] }),
+  })
+);
+
+export const projectCollaborators = pgTable(
+  "project_collaborators",
+  {
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.projectId, t.profileId] }),
+  })
+);
+
+export const projectCollaboratorsRelations = relations(
+  projectCollaborators,
+  ({ one }) => ({
+    project: one(projects, {
+      fields: [projectCollaborators.projectId],
+      references: [projects.id],
+    }),
+    profile: one(profile, {
+      fields: [projectCollaborators.profileId],
+      references: [profile.id],
+    }),
+  })
+);
+
+export const profileSkills = pgTable(
+  "profile_skills",
+  {
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    skillId: uuid("skill_id")
+      .notNull()
+      .references(() => skills.id, { onDelete: "cascade" }),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.profileId, t.skillId] }),
+  })
+);
 
 export const projectMedia = pgTable("project_media", {
   id: uuid("id")
@@ -437,6 +544,9 @@ export const postMediaRelations = relations(postMedia, ({ one }) => ({
     references: [media.id],
   }),
 }));
+
+
+
 export const projectMediaRelations = relations(projectMedia, ({ one }) => ({
   projects: one(projects, {
     fields: [projectMedia.projectId],
@@ -445,6 +555,52 @@ export const projectMediaRelations = relations(projectMedia, ({ one }) => ({
   media: one(media, {
     fields: [projectMedia.mediaId],
     references: [media.id],
+  }),
+}));
+
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  projects: many(projectCategories),
+}));
+
+export const projectCategoriesRelations = relations(
+  projectCategories,
+  ({ one }) => ({
+    project: one(projects, {
+      fields: [projectCategories.projectId],
+      references: [projects.id],
+    }),
+
+    category: one(categories, {
+      fields: [projectCategories.categoryId],
+      references: [categories.id],
+    }),
+  })
+);
+
+export const skillsRelations = relations(skills, ({ many }) => ({
+  projects: many(projectSkills),
+  profiles: many(profileSkills),
+}));
+
+export const projectSkillsRelations = relations(projectSkills, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectSkills.projectId],
+    references: [projects.id],
+  }),
+  skill: one(skills, {
+    fields: [projectSkills.skillId],
+    references: [skills.id],
+  }),
+}));
+
+export const profileSkillsRelations = relations(profileSkills, ({ one }) => ({
+  profile: one(profile, {
+    fields: [profileSkills.profileId],
+    references: [profile.id],
+  }),
+  skill: one(skills, {
+    fields: [profileSkills.skillId],
+    references: [skills.id],
   }),
 }));
 
@@ -458,6 +614,8 @@ export const projectUpvotesRelations = relations(projectUpvotes, ({ one }) => ({
     references: [projects.id],
   }),
 }));
+
+
 export const experienceRelations = relations(experience, ({ one }) => ({
   profile: one(profile, {
     fields: [experience.profileId],
@@ -524,6 +682,7 @@ export const profileRelations = relations(profile, ({ many, one }) => ({
   sections: many(profileSections),
   storyElements: many(storyElements),
   page: many(page),
+  skills: many(profileSkills),
 }));
 
 export const storyElementsRelations = relations(storyElements, ({ one }) => ({
@@ -550,6 +709,9 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   }),
   media: many(projectMedia),
   upvotes: many(projectUpvotes),
+  categories: many(projectCategories),
+  skills: many(projectSkills),
+  collaborators: many(projectCollaborators),
 }));
 // Better-auth required tables
 export const accounts = pgTable("account", {

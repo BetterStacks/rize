@@ -78,6 +78,20 @@
       "when": 1771347304736,
       "tag": "0012_known_frank_castle",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1771615047712,
+      "tag": "0013_brief_shocker",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1771844701162,
+      "tag": "0014_great_makkari",
+      "breakpoints": true
     }
   ]
 }

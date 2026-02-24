@@ -15,6 +15,7 @@ import {
   Loader,
   Minus,
   MoreHorizontal,
+  Tag,
   Trash2,
 } from "lucide-react";
 import Image from "next/image";
@@ -67,153 +68,78 @@ const ProjectCard: FC<ProjectCardProps> = ({
   });
   return (
     <motion.div
-      onClick={() => onOpenProject(project)}
-      className={cn("flex w-full group relative transition-all py-4 ")}
+      className={cn("flex w-full group relative transition-all ")}
     >
-      <div className="w-full inline-flex">
-        {project.logo ? (
-          <Image
-            width={50}
-            height={50}
-            className="aspect-square border border-neutral-300/60 dark:border-dark-border  rounded-full size-10 bg-white dark:bg-dark-border"
-            src={project.logo!}
-            alt={project.name}
-          />
-        ) : (
-          <div className="flex items-center justify-center aspect-square size-10 bg-neutral-200 dark:bg-dark-border rounded-full">
+      <Link href={`/project/${project.id}`} className="flex w-full items-center">
+        <div className=" flex border-2 border-neutral-200 mr-4 dark:border-dark-border items-center justify-center relative overflow-hidden h-16  w-20 rounded-lg aspect-square">
+          {project.logo ? (
+            <Image
+              fill
+              style={{ objectFit: "cover" }}
+              src={project.logo!}
+              alt={project.name}
+            />
+          ) : (
             <Globe strokeWidth={1.5} className="size-4 opacity-80" />
-          </div>
-        )}
-        <div className="flex w-full ml-4 flex-col">
-          <div className="flex items-center w-full justify-start ">
-            {project.url ? (
-              <Link href={project.url} target="_blank" className="flex">
-                <h2 className="font-medium text-lg text-nowrap tracking-tight leading-tight w-full">
-                  {project.name}
-                </h2>
-              </Link>
-            ) : (
-              <h2 className="font-medium text-lg flex tracking-tight leading-tight">
-                {project.name}
-              </h2>
-            )}
-            <div className="w-full flex items-center justify-start text-xs">
-              <Dot className="size-4 leading-none text-neutral-700 font-medium  dark:text-neutral-400" />
-
-              <span className=" text-neutral-700 font-medium  dark:text-neutral-400">
-                {project?.startDate
-                  ? new Date(project.startDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    year: "numeric",
-                  })
-                  : ""}
-              </span>
-              <Minus className=" text-neutral-700 font-medium size-3 mx-0.5 leading-none dark:text-neutral-400" />
-              <span className=" text-neutral-700 font-medium  dark:text-neutral-400">
-                {project?.endDate
-                  ? new Date(project.endDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    year: "numeric",
-                  })
-                  : ""}
-              </span>
-            </div>
-          </div>
-          {project.tagline && (
-            <span className="dark:text-neutral-200 mb-2 line-clamp-2 text-sm leading-tight">
-              {project.tagline}
-            </span>
           )}
-          <div>
-            <p
-              ref={descRef}
-              className={cn(
-                "dark:text-neutral-400 text-sm leading-tight",
-                !seeMore && "line-clamp-2"
-              )}
-            >
-              {project.description}
+        </div>
+        <div className="flex w-full py-2 items-start justify-center flex-col">
+          <h2 className="font-medium text-nowrap tracking-tight leading-tight flex items-center gap-1 group/link">
+            {project.name}
+          </h2>
+          {project.tagline && (
+            <p className="dark:text-neutral-300 text-neutral-700 line-clamp-1 mt-1 leading-tight">
+              {project.tagline}
             </p>
-            {project.description && isOverflowing && (
-              <div className="mt-2">
-                <Button
-                  variant={"ghost"}
-                  size={"sm"}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSeeMore((s) => !s);
-                  }}
-                >
-                  {seeMore ? "See less" : "See more"}
-                  {/* {seeMore ? (
-                    <ChevronUp className="size-4 opacity-80" />
-                  ) : (
-                    <ChevronDown className="size-4 opacity-80" />
-                  )} */}
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      {/* {isMine && (
-        <div className="space-x-2 absolute right-4 opacity-0 group-hover:opacity-100 flex items-center justify-center">
-          <Button
-            variant={"outline"}
-            className="rounded-full  text-sm"
-            size={"smallIcon"}
-            onClick={(e) => {
-              e.stopPropagation();
-              onEditProject(project.id);
-            }}
-          >
-            <Edit2 className="size-4 opacity-80" />
-          </Button>
-          <Button
-            variant={"outline"}
-            className="rounded-full  text-sm"
-            size={"smallIcon"}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteProject(project.id);
-            }}
-            disabled={isPending}
-          >
-            {isPending ? (
-              <Loader className="size-4 opacity-80 animate-spin" />
-            ) : (
-              <Trash2 className="size-4 opacity-80" />
-            )}
-          </Button>
-        </div>
-      )} */}
-      {isMine && (
+          )}
+          {project.categories && project.categories.length > 0 && <div className="flex items-center justify-start mt-1">
+            {/* <Tag className="size-4 " /> */}
+            <div className="flex gap-1">
+              {project.categories?.slice(0, 4).map((category, index) => (
+                <span key={category.id} className="group text-xs text-neutral-500 dark:text-neutral-400">
+                  #{category.name}
+                  {/* {index < project.categories!?.slice(0, 4)?.length - 1 && ","} */}
+                </span>
+              ))}
+              {/* {project.categories.length > 2 && (
+              <span className="text-sm text-neutral-500 dark:text-neutral-400">
+                +{project.categories.length - 2}
+              </span>
+            )} */}
+            </div>
+          </div>}
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild className="absolute right-2 ">
-            <Button variant={"outline"} size={"smallIcon"}>
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
-            <DropdownMenuItem onClick={(e) => {
-              e.stopPropagation();
-              onEditProject(project.id);
-            }}>
-              <Edit2 className="size-4" />
-              <span>Edit</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="stroke-red-500 text-red-500" onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteProject(project.id);
-            }}>
-              <Trash2 className="size-4" />
-              <span>Delete</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-    </motion.div>
+        </div>
+      </Link>
+      {
+        isMine && (
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild className="absolute right-2 ">
+              <Button variant={"outline"} size={"smallIcon"}>
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation();
+                onEditProject(project.id);
+              }}>
+                <Edit2 className="size-4" />
+                <span>Edit</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="stroke-red-500 text-red-500" onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteProject(project.id);
+              }}>
+                <Trash2 className="size-4" />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      }
+    </motion.div >
   );
 };
 

@@ -63,9 +63,9 @@ const UserAvatar = ({
           />
         )} */}
 
-        <button onClick={handleEditClick} className='group-hover:opacity-100 z-50 opacity-0 bg-white border-neutral-200 absolute inset-4 flex items-center justify-center rounded-full transition-all'>
+        {isMyProfile && <button onClick={handleEditClick} className='group-hover:opacity-100 z-50 opacity-0 bg-white border-neutral-200 absolute inset-4 flex items-center justify-center rounded-full transition-all'>
           <Upload className='size-4 md:size-6 stroke-neutral-800' />
-        </button>
+        </button>}
         {!isLoading && <Image src={url} alt="Profile" className='size-full' fill style={{ objectFit: "cover" }} priority quality={100} />}
       </div>
       <AvatarSelectionDialog file={file} setFile={setFile} />

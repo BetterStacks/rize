@@ -1,8 +1,7 @@
-import { TUploadFilesResponse } from "@/lib/types";
+import { TUploadFilesResponse, UploadFilesWithTypeResponse } from "@/lib/types";
 import { NextRequest } from "next/server";
 import { uploadToS3 } from "@/lib/s3";
 
-type UploadFilesWithTypeResponse = TUploadFilesResponse & { type: string };
 
 export async function POST(req: NextRequest) {
   try {

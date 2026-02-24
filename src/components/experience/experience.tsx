@@ -40,11 +40,11 @@ const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
     >
       <WorkExperienceDrawer />
       <div className="max-w-2xl mb-4 w-full flex items-center justify-between">
-        <h2 className="text-lg md:text-xl font-medium">Work Experience</h2>
+        <h2 className="md:text-lg font-medium">Work Experience</h2>
         {isMine && (
           <Button
             variant={"outline"}
-            className="  rounded-lg scale-90 text-sm"
+            className="rounded-lg scale-90 text-sm"
             size={"sm"}
             onClick={() => {
               setActiveTab({ id: null, tab: "experience" });
@@ -58,7 +58,7 @@ const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
           </Button>
         )}
       </div>
-      <div className="w-full flex flex-col max-w-2xl gap-4 relative">
+      <div className="w-full flex flex-col max-w-2xl space-y-4 mt-2 relative">
         {isFetching ? (
           [...Array.from({ length: 4 })].map((_, i) => (
             <Skeleton
