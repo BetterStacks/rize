@@ -368,9 +368,9 @@ const newPostSchema = z
 
 export const createPost = async (payload: z.infer<typeof newPostSchema>) => {
   const userProfileId = await requireProfile();
-  const { success, data } = newPostSchema.safeParse(payload);
+  const { success, data, error } = newPostSchema.safeParse(payload);
   if (!success) {
-    throw new Error("Invalid payload");
+    throw new Error(error?.message);
   }
   await db.transaction(async (tx) => {
     const [newPost] = await tx

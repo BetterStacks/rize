@@ -61,7 +61,7 @@ const SocialLinks = ({ isMine }: { isMine: boolean }) => {
   return (
     <>
       <div className="w-full  flex items-center justify-center ">
-        <div data-social-links className="md:max-w-2xl social-links w-full gap-x-0.5 gap-y-1.5  text-sm md:text-base flex flex-wrap  mt-4 items-center justify-start">
+        <div data-social-links className="md:max-w-2xl social-links w-full gap-2  text-sm md:text-base flex flex-wrap  mt-4 items-center justify-start">
           {isLoading ? (
             <SocialLinkSkeleton />
           ) : links?.length === 0 ? (
@@ -147,27 +147,28 @@ export const SocialLinkButton = ({
   }
   return (
     <NextLink
-      className={cn('scale-95', className)}
+      className={cn('', className)}
       href={hasLink ? url : '#'}
       target={hasLink ? '_blank' : undefined}
       onClick={handleClick}
     >
       <Button
         variant={'outline'}
-        className={cn('bg-white rounded-md shadow-sm', buttonClassName)}
+        size={"sm"}
+        className={cn('bg-white rounded-md gap-2', buttonClassName)}
       >
         <Image
           src={`/${getIcon(platform as any)}`}
-          className="aspect-square size-5"
+          className={cn("aspect-square size-4", platform === "twitter" && "dark:invert")}
           alt={platform}
           width={20}
           height={20}
           loading="eager"
           quality={100}
         />
-        <span className="ml-2 dark:text-neutral-300 text-neutral-800 font-medium  tracking-tight leading-snug mr-2 ">
-          {capitalizeFirstLetter(platform)}
-        </span>
+        {/* <span className="ml-2 dark:text-neutral-300 text-neutral-800 font-medium  tracking-tight leading-snug mr-2 "> */}
+        {capitalizeFirstLetter(platform)}
+        {/* </span> */}
       </Button>
     </NextLink>
   )

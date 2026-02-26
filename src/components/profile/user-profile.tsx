@@ -41,6 +41,7 @@ import Profile from './profile';
 import { ProfileCompletionWidget } from './ProfileCompletionWidget';
 import ResumeRoaster from './ResumeRoaster';
 import SocialLinks from './social-links';
+import ProfileDrawer from './ProfileDrawer';
 import { motion } from "framer-motion";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import toast from "react-hot-toast";
@@ -254,6 +255,7 @@ const UserProfile = ({
     <div className="w-full flex relative flex-col items-center mb-32 justify-start">
       <Profile isMine={isMine} data={profileData!} isLoading={isLoading} username={profileData?.username || params.username} />
       <SocialLinks isMine={isMine} />
+      {isMine && <ProfileDrawer />}
 
       {isMine && (
         <div className='w-full max-w-2xl'>

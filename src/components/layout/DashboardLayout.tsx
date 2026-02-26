@@ -101,8 +101,17 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
           left: {
             component: <Sidebar className="border-none w-full" />,
             show: isDesktop,
-            className: 'max-w-sm'
+            className: 'max-w-xl'
+          },
+          right: {
+            component: (
+              <div className="hidden z-40 bg-white dark:bg-dark-bg lg:flex  max-w-xl lg:flex-col w-full h-screen">
+                {/* Recently Joined or other sidebar content */}
+              </div>
+            ),
+            show: isDesktop,
           }
+
         }
       case 'writing':
         return {

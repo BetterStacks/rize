@@ -124,6 +124,7 @@ export type GetProfileByUsername =
     image: string;
     name: string;
     email: string;
+    skills: Array<TSkill>;
   })
   | null;
 export type GalleryItemProps = typeof TMedia & {
