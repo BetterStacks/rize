@@ -1,13 +1,13 @@
 'use client'
 
+import { useActiveSidebarTab } from '@/lib/context'
 import { GetProfileByUsername } from '@/lib/types'
-import UserAvatar from '../user-avatar'
 import { cleanUrl, cn } from '@/lib/utils'
-import QRcode from './QRcode'
-import { Link2, Pencil } from 'lucide-react';
-import { useActiveSidebarTab } from '@/lib/context';
-import { Button } from '../ui/button';
+import { Link2 } from 'lucide-react'
 import Link from 'next/link'
+import { Button } from '../ui/button'
+import UserAvatar from '../user-avatar'
+import QRcode from './QRcode'
 
 type ProfileProps = {
     data: GetProfileByUsername;
@@ -18,7 +18,7 @@ type ProfileProps = {
 };
 
 export const defaultBio = `I'm still setting up, but this is where it all starts 🌱.\n
-A place to share what I do, what I love, and where I'm headed.It's quiet for now, but trust me—it won't stay that way for long.`
+A place to share what I do, what I love, and where I'm headed.It's quiet for now, but trust me, it won't stay that way for long.`
 
 const Profile = ({
     data,

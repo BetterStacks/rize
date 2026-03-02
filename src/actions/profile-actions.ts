@@ -11,6 +11,7 @@ import { GetProfileByUsername, profileSchema } from "@/lib/types";
 import { and, desc, eq, getTableColumns, not, sql, lt } from "drizzle-orm";
 import { cache } from "react";
 import { z } from "zod";
+import { getEnrichedSession } from "./auth-actions";
 
 export async function updateProfile(data: z.infer<typeof profileSchema>) {
   try {
@@ -342,7 +343,7 @@ export const getRecentlyJoinedProfiles = async (limit: number = 5) => {
 
 export const getRecentlyJoinedProfilesCached = cache(
   async (limit: number = 5) => {
-    const session = await requireAuth();
+    const session = await getEnrichedSession()
 
     return await db
       .select({
@@ -351,6 +352,7 @@ export const getRecentlyJoinedProfilesCached = cache(
         profileImage: profile.profileImage,
         image: users.image,
         name: users.name,
+        createdAt: profile.createdAt,
       })
       .from(profile)
       .innerJoin(users, eq(profile.userId, users.id))

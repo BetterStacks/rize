@@ -9,6 +9,7 @@ import { getAllProjects } from "@/actions/project-actions";
 import { getStoryElementsByUsername } from "@/actions/story-actions";
 import { getAllCertificates } from "@/actions/certificate-actions";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import RightSidebar from "@/components/sidebar/RightSidebar";
 import { getServerSession } from "@/lib/auth";
 import SectionContextProvider from "@/lib/section-context";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ import ViewTracker from "./analytics/ViewTracker";
 import PhoneCollectionModal from "./onboarding/phone-collection-modal";
 import { TStoryElement } from "@/lib/types";
 import toast from "react-hot-toast";
+import Sidebar from "./sidebar/Sidebar";
 
 type Props = {
   username: string;
@@ -105,7 +107,15 @@ const ProfilePage: FC<Props> = async ({ username }) => {
         certificates={certificates}
         profileSections={sections}
       >
-        <DashboardLayout variant="profile" isMine={isMine}>
+        <DashboardLayout variant="profile" isMine={isMine}
+          leftSidebarSlot={{ content: <Sidebar className='border-none w-full' />, size: 5, minSize: 5, maxSize: 5 }}
+          rightSidebarSlot={isMine ? {
+            content: <RightSidebar className="w-full" />,
+            size: 35,
+            maxSize: 30,
+            minSize: 25,
+
+          } : undefined}>
           {/* {shouldStartWalkthrough && <Walkthrough />} */}
           <UserProfile
             isMine={isMine}

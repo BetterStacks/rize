@@ -1,10 +1,11 @@
 import ExploreRedesigned from "@/components/explore/explore-redesigned";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 
 const Page = async () => {
   return (
-    <div>
+    <DashboardLayout variant="explore" >
       <ExploreRedesigned />
-    </div>
+    </DashboardLayout>
   );
 };
 

@@ -2,7 +2,7 @@
 import { useSession } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
-import { Compass, Edit3, Plus, Search, Settings, UserRound } from 'lucide-react'
+import { Bell, ChartLine, Compass, Edit3, Plus, Search, Settings, UserRound } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -22,11 +22,28 @@ const Sidebar = ({ className }: { className?: string }) => {
   const setIsAuthDialogOpen = useAuthDialog()[1]
   const setIsSearchDialogOpen = useSearchDialog()[1]
 
+  const options = [
+    { name: "Explore", icon: Compass, href: "/explore", needAuth: false },
+    { name: "Search", icon: Search, href: "/search", needAuth: false },
+    { name: "Notifications", icon: Bell, href: "/notifications", needAuth: true },
+    {
+      name: "Plus", icon: Plus, onClick: () => {
+        if (!session?.data) {
+          setIsAuthDialogOpen(true)
+          return
+        }
+        setIsPostDialogOpen(true)
+      },
+      needAuth: true
+    },
+    { name: "Settings", icon: Settings, href: "/settings", needAuth: true }
+  ]
+
   return (
     <div
       className={cn(
         className,
-        'h-screen w-[90px] bg-light-bg dark:bg-dark-bg border-r border-neutral-300/60  dark:border-dark-border/60  hidden md:flex flex-col items-center justify-between px-2 z-40 py-4'
+        'h-screen w-full bg-light-bg dark:bg-dark-bg border-r border-neutral-300/60  dark:border-dark-border/60  hidden md:flex flex-col items-center justify-between px-2 z-40 py-4'
       )}
     >
       <div className="flex w-full flex-col mt-4 items-center justify-center gap-y-2 ">
@@ -35,23 +52,16 @@ const Sidebar = ({ className }: { className?: string }) => {
             <Image
               width={42}
               height={42}
-              className="rounded-xl hidden dark:flex size-10"
+              className="rounded-xl size-10"
               alt=""
               src={'/logo-dark.png'}
-            />
-            <Image
-              width={42}
-              height={42}
-              className="rounded-xl  dark:hidden flex size-10"
-              alt=""
-              src={'/logo-light.png'}
             />
           </Link>
         </div>
       </div>
 
       <div className="mb-8 flex flex-col gap-y-4">
-        <Button
+        {/* <Button
           variant={'ghost'}
           className="rounded-full size-10 group relative"
           size={'icon'}
@@ -101,7 +111,31 @@ const Sidebar = ({ className }: { className?: string }) => {
               <Settings strokeWidth={1.4} className="size-5 opacity-80 group-hover:opacity-100 transition-opacity" />
             </Button>
           </>
-        )}
+        )} */}
+        {(session?.data ? options : options.filter((option, i) => !option.needAuth)).map((option, i) => (
+          option?.href ? <Link key={i} href={option.href}>
+            <Button
+              variant={'ghost'}
+              className="rounded-full size-10 group relative"
+              size={'icon'}
+              onClick={() => {
+                router.push('/')
+              }}
+              title={option?.name}
+            >
+              <option.icon strokeWidth={2} className="size-5 opacity-80 group-hover:opacity-100 transition-opacity" />
+            </Button>
+          </Link> : <Button
+            key={i}
+            variant={'ghost'}
+            className="rounded-full size-10 group relative"
+            size={'icon'}
+            onClick={option.onClick}
+            title={option?.name}
+          >
+            <option.icon strokeWidth={2} className="size-5 opacity-80 group-hover:opacity-100 transition-opacity" />
+          </Button>
+        ))}
         <Separator className='w-6 h-px mb-2 mt-1 bg-neutral-200 dark:bg-dark-border mx-auto' />
         <Menu />
         {/* {session?.data && (

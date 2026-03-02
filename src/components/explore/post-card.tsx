@@ -105,14 +105,14 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
   return (
     <PostCardContainer
       handlePostClick={handleViewPost}
-      className="group shadow-md"
+      className="group shadow-none"
     >
       <div onClick={(e) => e.stopPropagation()} className="">
         {(post.media as TPostMedia) && (
           <div
             key={(post?.media as TPostMedia)?.id}
             className={cn(
-              "relative border-b border-neutral-300/80  w-full rounded-t-3xl overflow-hidden ",
+              "relative border-b border-neutral-300/80  w-full overflow-hidden ",
               "dark:border-dark-border",
               mediaContainerClassName
             )}
@@ -217,7 +217,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
           </Link>
           <div
             className={cn(
-              "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 "
+              "flex items-center justify-start dark:text-gray-400 text-sm leading-snug text-gray-700 "
             )}
           >
             <p className={cn("mr-1")}>@{post.username}</p>
@@ -234,20 +234,14 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
       </div>
 
       {post?.content && (
-        <p
+        <div
           className={cn(
-            "text-neutral-600 leading-snug line-clamp-[10]  font-medium  text-sm p-4  ",
-            "dark:text-neutral-400 "
+            "prose-gray-800 leading-snug line-clamp-[10] font-medium text-sm p-4",
+            "dark:prose-gray-300",
+            "prose prose-sm dark:prose-invert max-w-none break-words overflow-hidden"
           )}
-        >
-          {post?.content?.split("\n").map((line, i) => {
-            return (
-              <span className={cn("")} key={i}>
-                {line} <br className="" />
-              </span>
-            );
-          })}
-        </p>
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
       )}
       {post?.link && (
         <div className="mt-4">
@@ -290,7 +284,7 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
   return (
     <PostCardContainer
       handlePostClick={handleViewPost}
-      className="group shadow-md"
+      className="group shadow-none"
     >
       <div
         className={cn(
@@ -324,20 +318,14 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
           profileId={post?.profileId as string}
         />
       </div>
-      <p
+      <div
         className={cn(
-          "text-neutral-600 leading-snug line-clamp-[10] mb-2 font-medium  text-sm p-4  ",
-          "dark:text-neutral-400 "
+          "text-neutral-600 leading-snug line-clamp-[10] mb-2 font-medium text-sm p-4",
+          "dark:text-neutral-400",
+          "prose prose-sm dark:prose-invert max-w-none"
         )}
-      >
-        {post?.content?.split("\n").map((line, i) => {
-          return (
-            <span className={cn("")} key={i}>
-              {line} <br className="" />
-            </span>
-          );
-        })}
-      </p>
+        dangerouslySetInnerHTML={{ __html: post?.content ?? "" }}
+      />
       {post?.link && <PostLinkCard {...post?.link} />}
       <PostInteractions
         likeCount={likeCount}
@@ -361,7 +349,7 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
   return (
     <PostCardContainer
       handlePostClick={handleViewPost}
-      className=" relative group shadow-md "
+      className=" relative group shadow-none "
     >
       <div className="bg-gradient-to-b transition-all duration-75 ease-in group-hover:opacity-100 opacity-0 w-full from-black via-black/60 to-transparent h-40 absolute z-[6] inset-0" />
       <div

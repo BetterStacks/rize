@@ -86,20 +86,13 @@ const PostPage: FC<PostPageProps> = ({
         </CardHeader>
         <CardContent className="px-0 mb-2 mt-4">
           {post?.content && (
-            <p
+            <div
               className={cn(
                 "text-neutral-600 leading-snug mb-8 mt-4 px-4  ",
-                "dark:text-neutral-300 "
+                "dark:text-neutral-300  prose dark:prose-invert dark:prose-gray-300"
               )}
-            >
-              {post?.content?.split("\n").map((line, i) => {
-                return (
-                  <span className={cn("")} key={i}>
-                    {line} <br className="" />
-                  </span>
-                );
-              })}
-            </p>
+              dangerouslySetInnerHTML={{ __html: post?.content ?? "" }}
+            />
           )}
           <div className="overflow-x-auto px-4 w-full flex items-center justify-center">
             {post.media && (

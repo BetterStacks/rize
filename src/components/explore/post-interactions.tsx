@@ -8,6 +8,7 @@ import {
   Link2,
   Loader,
   MoreHorizontalIcon,
+  Share2,
   Trash2,
   X,
 } from "lucide-react";
@@ -269,24 +270,28 @@ export const PostCardOptions: FC<PostCardOptionsProps> = ({
             />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="shadow-md shadow-black/20 dark:shadow-black/20 rounded-xl dark:bg-dark-bg border dark:border-dark-border border-neutral-300/60 bg-white p-0">
-          <DropdownMenuItem className="px-4 py-1.5 ">
-            <Link2 className="opacity-80 -rotate-45 size-4" />
+        <DropdownMenuContent className={cn("w-52 dark:bg-dark-bg dark:border-dark-border border-neutral-300/80 mt-2 rounded-xl")} align="end">
+          <DropdownMenuItem >
+            <Link2 className=" -rotate-45 size-4" />
             <span>Copy Link</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border">
-            <Bookmark className="opacity-80  size-4" />
-            <span>Save</span>
+          <DropdownMenuItem className="">
+            <Bookmark className="  size-4" />
+            <span>Bookmark</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="">
+            <Share2 className="  size-4" />
+            <span>Share</span>
           </DropdownMenuItem>
           {isMine && (
             <DropdownMenuItem
               onClick={() => mutate(postId)}
-              className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border"
+              className='text-red-500'
             >
               {isPending ? (
-                <Loader className="opacity-80 size-4 animate-spin" />
+                <Loader className="size-4 animate-spin" />
               ) : (
-                <Trash2 className="opacity-80 size-4" />
+                <Trash2 className="size-4" />
               )}
               <span>Delete</span>
             </DropdownMenuItem>
@@ -313,8 +318,8 @@ export const PostCardContainer: FC<PostCardContainerProps> = ({
     <div
       onClick={handlePostClick}
       className={cn(
-        " first:mt-0 mt-4 shadow-xl bg-white w-full border cursor-pointer overflow-hidden break-inside-avoid  border-neutral-200   rounded-3xl ",
-        "dark:bg-neutral-800 dark:border-dark-border",
+        " first:mt-0 mt-4 bg-white w-full border cursor-pointer overflow-hidden break-inside-avoid  border-neutral-200  ",
+        "dark:bg-neutral-800/80 dark:border-dark-border rounded-2xl",
         className
       )}
     >
@@ -341,7 +346,7 @@ export const PostLinkCard: FC<PostLinkCardProps> = ({
       className={cn(
         !hasRemove && "mx-4",
         hasRemove && "max-w-xs",
-        " rounded-2xl z-[6] mt-4 relative overflow-hidden  border border-neutral-300/80 dark:border-dark-border",
+        " rounded-2xl z-[6] mt-4 relative transition-all duration-200 ease-in-out overflow-hidden  border border-neutral-300/80 dark:border-dark-border",
         className
       )}
     >
@@ -378,7 +383,7 @@ export const PostLinkCard: FC<PostLinkCardProps> = ({
           target="_blank"
           className="w-full "
         >
-          <h4 className="font-medium line-clamp-2 dark:text-neutral-300 text-neutral-600 leading-tight tracking-tight">
+          <h4 className="font-medium line-clamp-2 dark:text-neutral-300 text-neutral-600 text-sm">
             {data?.title}
           </h4>
         </Link>

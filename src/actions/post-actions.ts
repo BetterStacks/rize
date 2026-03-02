@@ -8,14 +8,17 @@ import {
   postLinks,
   postMedia,
   posts,
+  postTopics,
   profile,
+  topics,
 } from "@/db/schema";
 import {
   requireAuth,
-  requireProfile,
-  requireAuthWithProfile,
+  requireProfile
 } from "@/lib/auth";
+import instance from "@/lib/axios-instance";
 import db from "@/lib/db";
+import { deleteFromS3, getS3KeyFromUrl } from "@/lib/s3";
 import {
   AddCommentPayload,
   GetCommentWithProfile,
@@ -23,16 +26,25 @@ import {
   TAddNewComment,
 } from "@/lib/types";
 import { isImageUrl } from "@/lib/utils";
-import { and, asc, desc, eq, getTableColumns, SQL, sql, inArray } from "drizzle-orm";
-import { deleteFromS3, getS3KeyFromUrl } from "@/lib/s3";
+import { and, or, asc, desc, eq, getTableColumns, inArray, SQL, sql } from "drizzle-orm";
 import { Result } from "url-metadata";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
-import instance from "@/lib/axios-instance";
 
 const PAGE_SIZE = 8;
 
-export const getExploreFeed = async (pageParam: number = 0) => {
+export const getTopics = async () => {
+  return db.select().from(topics).orderBy(topics.name);
+};
+
+export type FeedSort = "recent" | "trending";
+
+export const getExploreFeed = async (
+  pageParam: number = 0,
+  sort: FeedSort = "recent",
+  topicIds: string[] = [],
+  profileIds: string[] = []
+) => {
   const { ...rest } = getTableColumns(posts);
   // Optional auth - show different content for logged in vs anonymous users
   let session = null;
@@ -45,6 +57,30 @@ export const getExploreFeed = async (pageParam: number = 0) => {
   }
 
   const offset = pageParam * PAGE_SIZE;
+
+  // Build the WHERE clause
+  const conditions: SQL[] = [];
+
+  if (topicIds.length > 0 || profileIds.length > 0) {
+    const filters: SQL[] = [];
+    if (profileIds.length > 0) {
+      filters.push(inArray(posts.profileId, profileIds));
+    }
+    if (topicIds.length > 0) {
+      const topicSubquery = db
+        .select({ one: sql`1` })
+        .from(postTopics)
+        .where(
+          and(
+            eq(postTopics.postId, posts.id),
+            inArray(postTopics.topicId, topicIds)
+          )
+        );
+      filters.push(sql`EXISTS (${topicSubquery})`);
+    }
+    conditions.push(or(...filters)!);
+  }
+
   const query = db
     .select({
       ...rest,
@@ -98,6 +134,7 @@ export const getExploreFeed = async (pageParam: number = 0) => {
     .leftJoin(comments, eq(posts.id, comments.postId))
     .leftJoin(media, eq(postMedia.mediaId, media.id))
     .leftJoin(postLinks, eq(posts.id, postLinks.postId))
+    .where(and(...conditions))
     .groupBy(
       posts.id,
       profile.username,
@@ -106,17 +143,22 @@ export const getExploreFeed = async (pageParam: number = 0) => {
       media.id,
       postLinks.id
     )
-    .orderBy(desc(posts.createdAt))
+    .orderBy(
+      sort === "trending"
+        ? desc(sql<number>`(COUNT(DISTINCT ${likes.profileId}) + COUNT(DISTINCT ${comments.id}))`)
+        : desc(posts.createdAt)
+    )
     .limit(PAGE_SIZE)
     .offset(offset);
 
   const postsData = await query;
 
-  const [{ count }] = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(posts);
+  const [{ totalCount }] = await db
+    .select({ totalCount: sql<number>`count(*)` })
+    .from(posts)
+    .where(and(...conditions));
 
-  const hasMore = offset + postsData.length < count;
+  const hasMore = offset + postsData.length < totalCount;
 
   return {
     posts: postsData as GetExplorePosts[],
@@ -331,8 +373,9 @@ export const getPostById = async (id: string) => {
 
 const newPostSchema = z
   .object({
-    content: z.string().max(500).optional(),
+    content: z.string().max(5000).optional(),
     link: z.string().url().optional(),
+    topicIds: z.array(z.string().uuid()).max(5).optional(),
     file: z
       .object({
         url: z.string().url(),
@@ -416,6 +459,11 @@ export const createPost = async (payload: z.infer<typeof newPostSchema>) => {
         postId: newPost?.id,
         mediaId: newMediaItem[0].id,
       });
+    }
+    if (data.topicIds && data.topicIds.length > 0) {
+      await tx.insert(postTopics).values(
+        data.topicIds.map((topicId) => ({ postId: newPost.id, topicId }))
+      );
     }
   });
 };

@@ -700,6 +700,7 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
     references: [profile.id],
   }),
   media: many(postMedia),
+  topics: many(postTopics),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -712,6 +713,131 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   categories: many(projectCategories),
   skills: many(projectSkills),
   collaborators: many(projectCollaborators),
+}));
+
+// ── Topics ────────────────────────────────────────────────────────────────
+export const topics = pgTable("topics", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  emoji: text("emoji"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+/** Many-to-many: posts ↔ topics */
+export const postTopics = pgTable(
+  "post_topics",
+  {
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    topicId: uuid("topic_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.postId, t.topicId] }) })
+);
+
+/** Users can subscribe to topics for their personalised feed */
+export const profileTopicSubscriptions = pgTable(
+  "profile_topic_subscriptions",
+  {
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    topicId: uuid("topic_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.profileId, t.topicId] }) })
+);
+
+/** Users can follow other profiles (for personalised feed) */
+export const profileFollows = pgTable(
+  "profile_follows",
+  {
+    followerId: uuid("follower_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    followingId: uuid("following_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.followerId, t.followingId] }) })
+);
+
+// Relations
+export const topicsRelations = relations(topics, ({ many }) => ({
+  posts: many(postTopics),
+  subscribers: many(profileTopicSubscriptions),
+}));
+
+export const postTopicsRelations = relations(postTopics, ({ one }) => ({
+  post: one(posts, { fields: [postTopics.postId], references: [posts.id] }),
+  topic: one(topics, { fields: [postTopics.topicId], references: [topics.id] }),
+}));
+
+export const profileTopicSubscriptionsRelations = relations(
+  profileTopicSubscriptions,
+  ({ one }) => ({
+    profile: one(profile, { fields: [profileTopicSubscriptions.profileId], references: [profile.id] }),
+    topic: one(topics, { fields: [profileTopicSubscriptions.topicId], references: [topics.id] }),
+  })
+);
+
+export const profileFollowsRelations = relations(profileFollows, ({ one }) => ({
+  follower: one(profile, { fields: [profileFollows.followerId], references: [profile.id], relationName: "follower" }),
+  following: one(profile, { fields: [profileFollows.followingId], references: [profile.id], relationName: "following" }),
+}));
+
+// ── Custom Feeds ───────────────────────────────────────────────────────────
+export const customFeeds = pgTable("custom_feeds", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => profile.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 100 }).notNull(),
+  description: text("description"),
+  isPublic: boolean("is_public").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const customFeedTopics = pgTable(
+  "custom_feed_topics",
+  {
+    feedId: uuid("feed_id").notNull().references(() => customFeeds.id, { onDelete: "cascade" }),
+    topicId: uuid("topic_id").notNull().references(() => topics.id, { onDelete: "cascade" }),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.feedId, t.topicId] }) })
+);
+
+export const customFeedProfiles = pgTable(
+  "custom_feed_profiles",
+  {
+    feedId: uuid("feed_id").notNull().references(() => customFeeds.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profile.id, { onDelete: "cascade" }),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.feedId, t.profileId] }) })
+);
+
+export const customFeedsRelations = relations(customFeeds, ({ one, many }) => ({
+  profile: one(profile, { fields: [customFeeds.profileId], references: [profile.id] }),
+  topics: many(customFeedTopics),
+  profiles: many(customFeedProfiles),
+}));
+
+export const customFeedTopicsRelations = relations(customFeedTopics, ({ one }) => ({
+  feed: one(customFeeds, { fields: [customFeedTopics.feedId], references: [customFeeds.id] }),
+  topic: one(topics, { fields: [customFeedTopics.topicId], references: [topics.id] }),
+}));
+
+export const customFeedProfilesRelations = relations(customFeedProfiles, ({ one }) => ({
+  feed: one(customFeeds, { fields: [customFeedProfiles.feedId], references: [customFeeds.id] }),
+  profile: one(profile, { fields: [customFeedProfiles.profileId], references: [profile.id] }),
 }));
 // Better-auth required tables
 export const accounts = pgTable("account", {
