@@ -3,7 +3,7 @@
 import {
   bookmarks,
   comments,
-  likes,
+  postVotes,
   media,
   postLinks,
   postMedia,
@@ -87,14 +87,13 @@ export const getExploreFeed = async (
       username: profile.username,
       name: profile.displayName,
       avatar: profile.profileImage,
-      likeCount: sql<number>`COUNT(DISTINCT likes.profile_id)`.as("likesCount"),
-      commentCount: sql<number>`COUNT(DISTINCT comments.id)`.as("commentCount"),
-      liked:
+      upvoteCount: sql<number>`COALESCE(SUM(CASE WHEN ${postVotes.value} = 1 THEN 1 ELSE 0 END), 0)`.as("upvoteCount"),
+      downvoteCount: sql<number>`COALESCE(SUM(CASE WHEN ${postVotes.value} = -1 THEN 1 ELSE 0 END), 0)`.as("downvoteCount"),
+      commentCount: sql<number>`COUNT(DISTINCT ${comments.id})`.as("commentCount"),
+      userVote:
         session && userProfileId
-          ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${userProfileId}), false)`.as(
-            "liked"
-          )
-          : sql<boolean>`false`.as("liked"),
+          ? sql<number | null>`MAX(CASE WHEN ${postVotes.profileId} = ${userProfileId} THEN ${postVotes.value} ELSE NULL END)`.as("userVote")
+          : sql<number | null>`NULL`.as("userVote"),
 
       commented:
         session && userProfileId
@@ -102,6 +101,10 @@ export const getExploreFeed = async (
             "commented"
           )
           : sql<boolean>`false`.as("commented"),
+      bookmarked:
+        session && userProfileId
+          ? sql<boolean>`COALESCE(bool_or(${bookmarks.profileId} = ${userProfileId}), false)`.as("bookmarked")
+          : sql<boolean>`false`.as("bookmarked"),
       media: sql`
       CASE 
         WHEN media.id IS NOT NULL THEN json_build_object(
@@ -130,10 +133,11 @@ export const getExploreFeed = async (
     .from(posts)
     .innerJoin(profile, eq(posts.profileId, profile.id))
     .leftJoin(postMedia, eq(posts.id, postMedia.postId))
-    .leftJoin(likes, eq(posts.id, likes.postId))
+    .leftJoin(postVotes, eq(posts.id, postVotes.postId))
     .leftJoin(comments, eq(posts.id, comments.postId))
     .leftJoin(media, eq(postMedia.mediaId, media.id))
     .leftJoin(postLinks, eq(posts.id, postLinks.postId))
+    .leftJoin(bookmarks, eq(posts.id, bookmarks.postId))
     .where(and(...conditions))
     .groupBy(
       posts.id,
@@ -145,7 +149,7 @@ export const getExploreFeed = async (
     )
     .orderBy(
       sort === "trending"
-        ? desc(sql<number>`(COUNT(DISTINCT ${likes.profileId}) + COUNT(DISTINCT ${comments.id}))`)
+        ? desc(sql<number>`(SUM(CASE WHEN ${postVotes.value} = 1 THEN 1 WHEN ${postVotes.value} = -1 THEN -1 ELSE 0 END) + COUNT(DISTINCT ${comments.id}))`)
         : desc(posts.createdAt)
     )
     .limit(PAGE_SIZE)
@@ -186,14 +190,13 @@ export const getUserPosts = async (username: string) => {
       username: profile.username,
       name: profile.displayName,
       avatar: profile.profileImage,
-      likeCount: sql<number>`COUNT(DISTINCT likes.profile_id)`.as("likesCount"),
-      commentCount: sql<number>`COUNT(DISTINCT comments.id)`.as("commentCount"),
-      liked:
+      upvoteCount: sql<number>`COALESCE(SUM(CASE WHEN ${postVotes.value} = 1 THEN 1 ELSE 0 END), 0)`.as("upvoteCount"),
+      downvoteCount: sql<number>`COALESCE(SUM(CASE WHEN ${postVotes.value} = -1 THEN 1 ELSE 0 END), 0)`.as("downvoteCount"),
+      commentCount: sql<number>`COUNT(DISTINCT ${comments.id})`.as("commentCount"),
+      userVote:
         session && currentUserProfileId
-          ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${currentUserProfileId}), false)`.as(
-            "liked"
-          )
-          : sql<boolean>`false`.as("liked"),
+          ? sql<number | null>`MAX(CASE WHEN ${postVotes.profileId} = ${currentUserProfileId} THEN ${postVotes.value} ELSE NULL END)`.as("userVote")
+          : sql<number | null>`NULL`.as("userVote"),
 
       commented:
         session && currentUserProfileId
@@ -201,6 +204,10 @@ export const getUserPosts = async (username: string) => {
             "commented"
           )
           : sql<boolean>`false`.as("commented"),
+      bookmarked:
+        session && currentUserProfileId
+          ? sql<boolean>`COALESCE(bool_or(${bookmarks.profileId} = ${currentUserProfileId}), false)`.as("bookmarked")
+          : sql<boolean>`false`.as("bookmarked"),
       media: sql`
       CASE 
         WHEN media.id IS NOT NULL THEN json_build_object(
@@ -229,10 +236,11 @@ export const getUserPosts = async (username: string) => {
     .from(posts)
     .innerJoin(profile, eq(posts.profileId, profile.id))
     .leftJoin(postMedia, eq(posts.id, postMedia.postId))
-    .leftJoin(likes, eq(posts.id, likes.postId))
+    .leftJoin(postVotes, eq(posts.id, postVotes.postId))
     .leftJoin(comments, eq(posts.id, comments.postId))
     .leftJoin(media, eq(postMedia.mediaId, media.id))
     .leftJoin(postLinks, eq(posts.id, postLinks.postId))
+    .leftJoin(bookmarks, eq(posts.id, bookmarks.postId))
     .where(eq(posts.profileId, targetProfileId.id))
     .groupBy(
       posts.id,
@@ -243,7 +251,7 @@ export const getUserPosts = async (username: string) => {
       postLinks.id
     )
     .orderBy(
-      sql`COUNT(DISTINCT comments.id) + COUNT(DISTINCT likes.profile_id) DESC`
+      sql`COUNT(DISTINCT ${comments.id}) + SUM(CASE WHEN ${postVotes.value} = 1 THEN 1 WHEN ${postVotes.value} = -1 THEN -1 ELSE 0 END) DESC`
     )
     .limit(4);
 
@@ -309,14 +317,13 @@ export const getPostById = async (id: string) => {
       username: profile.username,
       name: profile.displayName,
       avatar: profile.profileImage,
-      likeCount: sql<number>`COUNT(DISTINCT likes.profile_id)`.as("likesCount"),
-      commentCount: sql<number>`COUNT(DISTINCT comments.id)`.as("commentCount"),
-      liked:
+      upvoteCount: sql<number>`COALESCE(SUM(CASE WHEN ${postVotes.value} = 1 THEN 1 ELSE 0 END), 0)`.as("upvoteCount"),
+      downvoteCount: sql<number>`COALESCE(SUM(CASE WHEN ${postVotes.value} = -1 THEN 1 ELSE 0 END), 0)`.as("downvoteCount"),
+      commentCount: sql<number>`COUNT(DISTINCT ${comments.id})`.as("commentCount"),
+      userVote:
         session && currentUserProfileId
-          ? sql<boolean>`COALESCE(BOOL_OR(${likes.profileId} = ${currentUserProfileId}), false)`.as(
-            "liked"
-          )
-          : sql<boolean>`false`.as("liked"),
+          ? sql<number | null>`MAX(CASE WHEN ${postVotes.profileId} = ${currentUserProfileId} THEN ${postVotes.value} ELSE NULL END)`.as("userVote")
+          : sql<number | null>`NULL`.as("userVote"),
 
       commented:
         session && currentUserProfileId
@@ -324,6 +331,10 @@ export const getPostById = async (id: string) => {
             "commented"
           )
           : sql<boolean>`false`.as("commented"),
+      bookmarked:
+        session && currentUserProfileId
+          ? sql<boolean>`COALESCE(bool_or(${bookmarks.profileId} = ${currentUserProfileId}), false)`.as("bookmarked")
+          : sql<boolean>`false`.as("bookmarked"),
       media: sql`
         CASE 
           WHEN media.id IS NOT NULL THEN json_build_object(
@@ -351,10 +362,11 @@ export const getPostById = async (id: string) => {
     .from(posts)
     .innerJoin(profile, eq(posts.profileId, profile.id))
     .leftJoin(postMedia, eq(posts.id, postMedia.postId))
-    .leftJoin(likes, eq(posts.id, likes.postId))
+    .leftJoin(postVotes, eq(posts.id, postVotes.postId))
     .leftJoin(comments, eq(posts.id, comments.postId))
     .leftJoin(media, eq(postMedia.mediaId, media.id))
     .leftJoin(postLinks, eq(posts.id, postLinks.postId))
+    .leftJoin(bookmarks, eq(posts.id, bookmarks.postId))
     .where(eq(posts.id, id))
     .groupBy(
       posts.id,
@@ -468,17 +480,23 @@ export const createPost = async (payload: z.infer<typeof newPostSchema>) => {
   });
 };
 
-export async function toggleLike(postId: string, like: boolean) {
+export async function votePost(postId: string, value: number) {
   const userProfileId = await requireProfile();
-  if (like) {
+
+  if (value === 0) {
+    // Remove vote
     await db
-      .insert(likes)
-      .values({ postId, profileId: userProfileId })
-      .onConflictDoNothing();
+      .delete(postVotes)
+      .where(and(eq(postVotes.postId, postId), eq(postVotes.profileId, userProfileId)));
   } else {
+    // Upsert vote
     await db
-      .delete(likes)
-      .where(and(eq(likes.postId, postId), eq(likes.profileId, userProfileId)));
+      .insert(postVotes)
+      .values({ postId, profileId: userProfileId, value })
+      .onConflictDoUpdate({
+        target: [postVotes.profileId, postVotes.postId],
+        set: { value },
+      });
   }
 }
 

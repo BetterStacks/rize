@@ -1,5 +1,4 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import ExploreSidebar from '@/components/sidebar/ExploreSidebar'
 import Sidebar from '@/components/sidebar/Sidebar'
 import React from 'react'
 

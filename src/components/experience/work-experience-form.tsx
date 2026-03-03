@@ -2,21 +2,30 @@
 
 import { upsertExperience } from "@/actions/experience-actions";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
 // import { DateRangePicker } from "@/components/ui/calendar";
-import { useActiveSidebarTab } from "@/lib/context";
+import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
 import { queryClient } from "@/lib/providers";
+import { EMPLOYMENT_TYPES } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import { useParams } from "next/navigation";
 import { FC, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 import { DateRangePicker } from "../sidebar/components/DateRangePicker";
@@ -61,6 +70,7 @@ export const WorkExperienceForm: FC<WorkExperienceFormProps> = ({
 }) => {
   console.log(defaultValues);
   const [activeTab, setActiveTab] = useActiveSidebarTab();
+  const setIsRightSidebarOpen = useRightSidebar()[1];
   const { username } = useParams<{ username: string }>();
 
   const form = useForm<WorkExperienceFormData>({
@@ -125,7 +135,8 @@ export const WorkExperienceForm: FC<WorkExperienceFormProps> = ({
           if (!activeTab?.id) {
             localStorage.removeItem("experience-form-draft");
           }
-          setActiveTab({ id: null, tab: "experience" });
+          setActiveTab({ id: null, tab: "gallery" });
+          setIsRightSidebarOpen(false);
           await queryClient.invalidateQueries({
             queryKey: ["get-all-experience", username],
           });
@@ -193,9 +204,23 @@ export const WorkExperienceForm: FC<WorkExperienceFormProps> = ({
               <Label className="dark:text-neutral-300 text-neutral-700">
                 Employment Type
               </Label>
-              <Input
-                placeholder="Full-time / Internship / Freelance"
-                {...form.register("employmentType")}
+              <Controller
+                control={form.control}
+                name="employmentType"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select employment type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EMPLOYMENT_TYPES.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
             </div>
           </div>
@@ -216,10 +241,11 @@ export const WorkExperienceForm: FC<WorkExperienceFormProps> = ({
             <Label className="dark:text-neutral-300 text-neutral-700">
               Description
             </Label>
-            <Textarea
-              rows={5}
+            <RichTextEditor
+              value={form.watch("description") || ""}
+              onChange={(val) => form.setValue("description", val, { shouldDirty: true, shouldTouch: true })}
               placeholder="Describe your responsibilities, projects, and achievements"
-              {...form.register("description")}
+              minHeight="150px"
             />
           </div>
 
@@ -229,6 +255,34 @@ export const WorkExperienceForm: FC<WorkExperienceFormProps> = ({
             endName="endDate"
             className="mt-4 grid grid-cols-2 gap-4"
           />
+          <div className="flex items-center gap-2">
+            <Controller
+              name="currentlyWorking"
+              control={form.control}
+              render={({ field }) => (
+                <Checkbox
+                  id="currentlyWorking"
+                  checked={field.value}
+                  onCheckedChange={(checked) => {
+                    const isChecked = checked === true;
+                    field.onChange(isChecked);
+                    if (isChecked) {
+                      form.setValue("endDate", undefined, {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
+                    }
+                  }}
+                />
+              )}
+            />
+            <Label
+              htmlFor="currentlyWorking"
+              className="dark:text-neutral-300 text-neutral-700"
+            >
+              Are you currently working here?
+            </Label>
+          </div>
 
           <div className="flex justify-end">
             <Button

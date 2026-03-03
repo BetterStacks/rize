@@ -1,3 +1,4 @@
+import { getAllCertificates } from "@/actions/certificate-actions";
 import { getAllEducation } from "@/actions/education-actions";
 import { getAllExperience } from "@/actions/experience-actions";
 import { getGalleryItems } from "@/actions/gallery-actions";
@@ -7,23 +8,19 @@ import { getUserPosts } from "@/actions/post-actions";
 import { getProfileByUsername } from "@/actions/profile-actions";
 import { getAllProjects } from "@/actions/project-actions";
 import { getStoryElementsByUsername } from "@/actions/story-actions";
-import { getAllCertificates } from "@/actions/certificate-actions";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import RightSidebar from "@/components/sidebar/RightSidebar";
 import { getServerSession } from "@/lib/auth";
-import SectionContextProvider from "@/lib/section-context";
-import { cn } from "@/lib/utils";
 import { isUsernameReserved } from "@/lib/reserved-usernames";
+import SectionContextProvider from "@/lib/section-context";
+import { TStoryElement } from "@/lib/types";
 import { notFound } from "next/navigation";
 import { FC } from "react";
-import UserProfile from "./profile/user-profile";
-import Walkthrough from "./walkthrough";
-import ScrollFixWrapper from "./scroll-fix-wrapper";
-import ProfileNotFound from "./profile-not-found";
 import ViewTracker from "./analytics/ViewTracker";
 import PhoneCollectionModal from "./onboarding/phone-collection-modal";
-import { TStoryElement } from "@/lib/types";
-import toast from "react-hot-toast";
+import ProfileNotFound from "./profile-not-found";
+import UserProfile from "./profile/user-profile";
+import ScrollFixWrapper from "./scroll-fix-wrapper";
 import Sidebar from "./sidebar/Sidebar";
 
 type Props = {
@@ -108,11 +105,11 @@ const ProfilePage: FC<Props> = async ({ username }) => {
         profileSections={sections}
       >
         <DashboardLayout variant="profile" isMine={isMine}
-          leftSidebarSlot={{ content: <Sidebar className='border-none w-full' />, size: 5, minSize: 5, maxSize: 5 }}
+          leftSidebarSlot={session ? { content: <Sidebar className='border-none w-full' />, size: 5, minSize: 5, maxSize: 5 } : undefined}
           rightSidebarSlot={isMine ? {
             content: <RightSidebar className="w-full" />,
-            size: 35,
-            maxSize: 30,
+            size: 25,
+            maxSize: 25,
             minSize: 25,
 
           } : undefined}>

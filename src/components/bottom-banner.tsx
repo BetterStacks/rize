@@ -26,7 +26,7 @@ const BottomBanner: FC<BottomBannerProps> = ({
   return (
     <div
       className={cn(
-        'w-full max-w-2xl mb-20 p-6 gap-x-4 mt-4 rounded-xl border border-neutral-300/60 dark:border-neutral-800/80 flex flex-col items-start bg-neutral-100 dark:bg-neutral-900',
+        'w-full max-w-2xl mb-20 p-6 gap-x-4 mt-4 rounded-xl border border-neutral-300/80 dark:border-dark-border flex flex-col items-start bg-neutral-100 dark:bg-neutral-900',
         className
       )}
     >

@@ -365,7 +365,7 @@ function PostCard({ item }: { item: any }) {
     return (
         <Link
             href={`/post/${item.id}`}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
+            className="flex items-start gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
         >
             <Image
                 src={item.profileImage || '/placeholder.png'}
@@ -375,13 +375,20 @@ function PostCard({ item }: { item: any }) {
                 className="size-8 rounded-full border border-neutral-200 dark:border-neutral-700 object-cover shrink-0"
             />
             <div className="flex-1 min-w-0">
+                <p className="text-sm text-neutral-800 dark:text-neutral-200 mb-0.5">
+                    {item.displayName}
+                </p>
                 <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-0.5">
                     @{item.username}
                 </p>
-                <p className="text-sm truncate">
-                    {item.content?.substring(0, 100)}
-                    {item.content?.length > 100 ? '...' : ''}
-                </p>
+                <div
+                    className={cn(
+                        "prose-gray-800 mt-2 leading-snug line-clamp-[10] font-medium text-sm",
+                        "dark:prose-gray-300",
+                        "prose prose-sm dark:prose-invert max-w-none break-words overflow-hidden"
+                    )}
+                    dangerouslySetInnerHTML={{ __html: item.content.substring(0, 100) }}
+                />
             </div>
             <ArrowRight className="size-4 opacity-0 group-hover:opacity-50 transition-opacity shrink-0" />
         </Link>

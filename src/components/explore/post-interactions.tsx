@@ -11,12 +11,16 @@ import {
   Share2,
   Trash2,
   X,
+  ArrowBigUp,
+  ArrowBigDown,
+  MessageCircleMore,
+  MessageSquareText,
 } from "lucide-react";
 import moment from "moment";
 import { useSession } from "@/lib/auth-client";
 import Image from "next/image";
 import Link from "next/link";
-import { FC } from "react";
+import { FC, useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { Result } from "url-metadata";
 import { CreativeAvatar } from "../ui/creative-avatar";
@@ -30,76 +34,171 @@ import {
 } from "../ui/dropdown-menu";
 
 type PostInteractionsProps = {
-  likeCount: number;
-  isLiked: boolean;
-  handleLikeClick: () => void;
+  className?: string;
+  upvoteCount: number;
+  downvoteCount: number;
+  userVote: number | null;
+  handleVoteClick: (value: number) => void;
   commentCount: number;
   hasCommented?: boolean;
   handleCommentClick?: () => void;
+  isBookmarked?: boolean;
+  handleBookmarkClick?: () => void;
+  handleShareClick?: () => void;
 };
 
 const PostInteractions: FC<PostInteractionsProps> = ({
-  isLiked,
-  likeCount,
+  userVote,
+  upvoteCount,
+  downvoteCount,
   commentCount,
   handleCommentClick,
   hasCommented,
-  handleLikeClick,
+  handleVoteClick,
+  isBookmarked,
+  handleBookmarkClick,
+  handleShareClick,
+  className
 }) => {
   const [open, setOpen] = useAuthDialog();
   const session = useSession();
+
+  const score = upvoteCount - downvoteCount;
+
+  const [localVote, setLocalVote] = useState(userVote);
+  const [localScore, setLocalScore] = useState(upvoteCount - downvoteCount);
+  const [localIsBookmarked, setLocalIsBookmarked] = useState(isBookmarked);
+
+  useEffect(() => {
+    setLocalVote(userVote);
+    setLocalScore(upvoteCount - downvoteCount);
+    setLocalIsBookmarked(isBookmarked);
+  }, [userVote, upvoteCount, downvoteCount, isBookmarked]);
+
+  const handleAction = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation();
+    if (!session?.data) {
+      setOpen(true);
+      return;
+    }
+    action();
+  };
+
+  const onVote = (e: React.MouseEvent, val: number) => {
+    handleAction(e, () => {
+      const isRemove = localVote === val;
+      const delta = isRemove ? -val : val - (localVote || 0);
+      setLocalVote(isRemove ? null : val);
+      setLocalScore(s => s + delta);
+      handleVoteClick(val);
+    });
+  };
+
+  const onBookmark = (e: React.MouseEvent) => {
+    handleAction(e, () => {
+      setLocalIsBookmarked(!localIsBookmarked);
+      handleBookmarkClick?.();
+    });
+  };
+
   return (
-    <div className=" mb-4  flex justify-start w-full gap-x-2 p-4">
+    <div className={cn("flex items-center justify-between w-full mt-4 px-6 py-2 border-t border-neutral-100 dark:border-dark-border", className)}>
+      {/* Voting Section */}
+      <div className="flex items-center gap-x-2">
+        <div
+          onClick={(e) => onVote(e, 1)}
+          className={cn(
+            "cursor-pointer transition-colors p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-dark-border",
+            localVote === 1 && "text-blue-500"
+          )}
+        >
+          <ArrowBigUp
+            className={cn(
+              "size-5",
+              localVote === 1 ? "fill-blue-500 stroke-blue-500" : "stroke-neutral-500 dark:stroke-neutral-400"
+            )}
+          />
+        </div>
+
+        <span className={cn(
+          "text-sm font-bold min-w-[1rem] text-center",
+          localVote !== null ? "text-blue-500" : "text-neutral-500 dark:text-neutral-400"
+        )}>
+          {localScore}
+        </span>
+
+        <div
+          onClick={(e) => onVote(e, -1)}
+          className={cn(
+            "cursor-pointer transition-colors p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-dark-border",
+            localVote === -1 && "text-blue-500"
+          )}
+        >
+          <ArrowBigDown
+            className={cn(
+              "size-5",
+              localVote === -1 ? "fill-blue-500 stroke-blue-500" : "stroke-neutral-500 dark:stroke-neutral-400"
+            )}
+          />
+        </div>
+      </div>
+
+      {/* Comment Section */}
       <div
         onClick={(e) => {
           e.stopPropagation();
-          if (!session?.data) {
-            setOpen(true);
-            return;
-          }
-          handleLikeClick();
+          handleCommentClick?.();
         }}
-        className={cn(
-          " flex border dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 py-1.5 px-3 rounded-3xl items-center justify-center gap-x-2",
-          isLiked && "bg-red-400/10"
-        )}
+        className="flex items-center gap-x-2 cursor-pointer group"
       >
-        <HeartIcon
-          strokeWidth={1.2}
-          className={cn(
-            "size-5",
-            isLiked
-              ? "stroke-red-600 fill-red-600"
-              : "stroke-neutral-500 dark:stroke-neutral-400"
-          )}
-        />
-        <span className="text-sm text-neutral-500 dark:text-neutral-400">
-          {likeCount}
+        <div className="p-1 rounded-md transition-colors hover:bg-neutral-100 dark:hover:bg-dark-border">
+          <MessageSquareText
+            className={cn(
+              "size-5",
+              hasCommented
+                ? "stroke-blue-500 fill-blue-500"
+                : "stroke-neutral-500 dark:stroke-neutral-400"
+            )}
+          />
+        </div>
+        <span className={cn(
+          "text-sm font-bold",
+          hasCommented ? "text-blue-500" : "text-neutral-500 dark:text-neutral-400"
+        )}>
+          {commentCount}
         </span>
       </div>
 
+      {/* Save Button */}
+      <div
+        onClick={onBookmark}
+        className="flex items-center cursor-pointer group"
+      >
+        <div className="p-1 rounded-md transition-colors hover:bg-neutral-100 dark:hover:bg-dark-border">
+          <Bookmark
+            className={cn(
+              "size-5",
+              localIsBookmarked
+                ? "fill-blue-500 stroke-blue-500"
+                : "stroke-neutral-500 dark:stroke-neutral-400"
+            )}
+          />
+        </div>
+      </div>
+
+      {/* Copy Link Button */}
       <div
         onClick={(e) => {
           e.stopPropagation();
-          handleCommentClick!();
+          handleShareClick?.();
         }}
-        className={cn(
-          "flex border  dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 py-1 px-3 rounded-3xl items-center justify-center gap-x-2",
-          hasCommented && "bg-blue-400/10"
-        )}
+        className="flex items-center cursor-pointer group"
       >
-        <MessageIcon
-          strokeWidth={1.2}
-          className={cn(
-            "size-5",
-            hasCommented
-              ? "stroke-blue-500 fill-blue-500"
-              : "stroke-neutral-500 dark:stroke-neutral-400"
-          )}
-        />
-        <span className="text-sm text-neutral-500 dark:text-neutral-400">
-          {commentCount}
-        </span>
+        <div className="p-1 rounded-md transition-colors hover:bg-neutral-100 dark:hover:bg-dark-border">
+          <Link2
+            className="size-5 stroke-neutral-500 dark:stroke-neutral-400 -rotate-45"
+          />
+        </div>
       </div>
     </div>
   );
@@ -117,22 +216,6 @@ export const MessageIcon = (props: React.SVGProps<SVGSVGElement>) => {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z"
-      />
-    </svg>
-  );
-};
-export const HeartIcon = (props: React.SVGProps<SVGSVGElement>) => {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      {...props}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
       />
     </svg>
   );
@@ -161,7 +244,7 @@ export const PostAvatar: FC<PostaAvatarProps> = ({
       name={name}
       size="md"
       variant="auto"
-      className={className}
+      className={cn(className, "size-9")}
       showHoverEffect={false}
     />
   );
@@ -318,7 +401,7 @@ export const PostCardContainer: FC<PostCardContainerProps> = ({
     <div
       onClick={handlePostClick}
       className={cn(
-        " first:mt-0 mt-4 bg-white w-full border cursor-pointer overflow-hidden break-inside-avoid  border-neutral-200  ",
+        " first:mt-0 mt-4 bg-neutral-50 w-full border cursor-pointer overflow-hidden break-inside-avoid  border-neutral-200  ",
         "dark:bg-neutral-800/80 dark:border-dark-border rounded-2xl",
         className
       )}
@@ -329,7 +412,8 @@ export const PostCardContainer: FC<PostCardContainerProps> = ({
 };
 
 type PostLinkCardProps = {
-  data: Result;
+  data?: Result;
+  url?: string;
   onRemove?: () => void;
   hasRemove?: boolean;
   className?: string;
@@ -337,10 +421,14 @@ type PostLinkCardProps = {
 
 export const PostLinkCard: FC<PostLinkCardProps> = ({
   data,
+  url,
   onRemove,
   hasRemove,
   className,
 }) => {
+  const displayUrl = data?.url || url;
+  if (!displayUrl) return null;
+
   return (
     <div
       className={cn(
@@ -359,12 +447,12 @@ export const PostLinkCard: FC<PostLinkCardProps> = ({
             <X className="size-4 opacity-80  " />
           </button>
         )}
-        {data["og:image"] ? (
+        {data?.["og:image"] ? (
           <Image
-            alt={data?.title}
+            alt={data?.title || "Link preview"}
             fill
             style={{ objectFit: "cover" }}
-            src={data["og:image"]}
+            src={data["og:image"] as string}
             draggable={false}
             loading="lazy"
           />
@@ -376,7 +464,7 @@ export const PostLinkCard: FC<PostLinkCardProps> = ({
       </div>
       <div className="px-4 pt-4 mb-6  border-t border-neutral-300/80 dark:border-dark-border">
         <Link
-          href={data?.url}
+          href={displayUrl}
           onClick={(e) => {
             e.stopPropagation(); // prevent handleViewPost from firing
           }}
@@ -384,7 +472,7 @@ export const PostLinkCard: FC<PostLinkCardProps> = ({
           className="w-full "
         >
           <h4 className="font-medium line-clamp-2 dark:text-neutral-300 text-neutral-600 text-sm">
-            {data?.title}
+            {data?.title || displayUrl}
           </h4>
         </Link>
       </div>

@@ -45,6 +45,7 @@ import ProfileDrawer from './ProfileDrawer';
 import { motion } from "framer-motion";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import toast from "react-hot-toast";
+import EmptyFeed from "../ui/empty-feed";
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -284,6 +285,11 @@ const UserProfile = ({
               )}{" "}
               hasn't added any content yet. 🍃
             </p>
+            {/* <EmptyFeed
+              title="No Content Yet"
+              description={`${profileData?.displayName?.split(" ")[0]} hasn't added any content yet.
+              `}
+            /> */}
           </div>
         </>
       )}

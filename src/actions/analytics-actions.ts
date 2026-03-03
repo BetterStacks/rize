@@ -1,15 +1,15 @@
 'use server'
 
 import db from '@/lib/db'
-import { 
-  profileViews, 
-  engagementMetrics, 
-  clickTracking, 
-  profile, 
-  posts, 
-  likes, 
-  comments, 
-  bookmarks 
+import {
+  profileViews,
+  engagementMetrics,
+  clickTracking,
+  profile,
+  posts,
+  postVotes,
+  comments,
+  bookmarks
 } from '@/db/schema'
 import { eq, sql, desc, and, gte } from 'drizzle-orm'
 import { getServerSession } from '@/lib/auth'
@@ -20,7 +20,7 @@ export async function trackProfileView(username: string) {
   try {
     const session = await getServerSession()
     const headersList = headers()
-    
+
     // Get profile data
     const profileData = await db
       .select({ id: profile.id })
@@ -31,7 +31,7 @@ export async function trackProfileView(username: string) {
     if (!profileData.length) return { success: false, error: 'Profile not found' }
 
     const profileId = profileData[0].id
-    
+
     // Don't track views from the profile owner
     if (session?.user?.username === username) {
       return { success: true, message: 'Owner view not tracked' }
@@ -45,7 +45,7 @@ export async function trackProfileView(username: string) {
         .from(profile)
         .where(eq(profile.username, session.user.username))
         .limit(1)
-      
+
       if (viewer.length) {
         viewerProfileId = viewer[0].id
       }
@@ -53,9 +53,9 @@ export async function trackProfileView(username: string) {
 
     // Get IP and user agent
     const headersData = await headersList
-    const ipAddress = headersData.get('x-forwarded-for') || 
-                     headersData.get('x-real-ip') || 
-                     'unknown'
+    const ipAddress = headersData.get('x-forwarded-for') ||
+      headersData.get('x-real-ip') ||
+      'unknown'
     const userAgent = headersData.get('user-agent') || 'unknown'
     const referrer = headersData.get('referer') || null
 
@@ -80,14 +80,14 @@ export async function trackProfileView(username: string) {
 
 // Track clicks on profile elements (social links, projects, etc.)
 export async function trackClick(
-  username: string, 
+  username: string,
   elementType: 'social_link' | 'project' | 'writing' | 'email' | 'resume',
   elementId?: string
 ) {
   try {
     const session = await getServerSession()
     const headersList = headers()
-    
+
     // Get profile data
     const profileData = await db
       .select({ id: profile.id })
@@ -107,16 +107,16 @@ export async function trackClick(
         .from(profile)
         .where(eq(profile.username, session.user.username))
         .limit(1)
-      
+
       if (clicker.length) {
         clickerProfileId = clicker[0].id
       }
     }
 
     const headersData = await headersList
-    const ipAddress = headersData.get('x-forwarded-for') || 
-                     headersData.get('x-real-ip') || 
-                     'unknown'
+    const ipAddress = headersData.get('x-forwarded-for') ||
+      headersData.get('x-real-ip') ||
+      'unknown'
 
     // Insert click tracking
     await db.insert(clickTracking).values({
@@ -138,7 +138,7 @@ export async function trackClick(
 export async function getProfileAnalytics(username: string, timeframe: '7d' | '30d' | '90d' = '30d') {
   try {
     const session = await getServerSession()
-    
+
     // Only allow profile owner to view analytics
     if (session?.user?.username !== username) {
       return { success: false, error: 'Unauthorized' }
@@ -154,7 +154,7 @@ export async function getProfileAnalytics(username: string, timeframe: '7d' | '3
     if (!profileData.length) return { success: false, error: 'Profile not found' }
 
     const profileId = profileData[0].id
-    
+
     // Calculate date range
     const days = timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90
     const startDate = new Date()
@@ -187,7 +187,7 @@ export async function getProfileAnalytics(username: string, timeframe: '7d' | '3
 
     // Get likes, comments, bookmarks count
     const [likesCount, commentsCount, bookmarksCount] = await Promise.all([
-      db.select({ count: sql<number>`count(*)`.mapWith(Number) }).from(likes).where(sql`${likes.postId} = ANY(${postIds})`),
+      db.select({ count: sql<number>`count(*)`.mapWith(Number) }).from(postVotes).where(sql`${postVotes.postId} = ANY(${postIds})`),
       db.select({ count: sql<number>`count(*)`.mapWith(Number) }).from(comments).where(sql`${comments.postId} = ANY(${postIds})`),
       db.select({ count: sql<number>`count(*)`.mapWith(Number) }).from(bookmarks).where(sql`${bookmarks.postId} = ANY(${postIds})`)
     ])
@@ -292,7 +292,7 @@ async function updateDailyEngagementMetrics(profileId: string) {
         date: today,
         totalViews: 1,
         uniqueViews: 1,
-        totalLikes: 0,
+        totalVotes: 0,
         totalComments: 0,
         totalBookmarks: 0,
         profileClicks: 0,

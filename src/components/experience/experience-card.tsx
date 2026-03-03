@@ -137,9 +137,12 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
           <span className="">{experience?.employmentType}</span>
         </div>
         {experience?.description && (
-          <p className="mt-3 text-sm dark:text-neutral-300 text-neutral-700 leading-relaxed">
-            {experience.description}
-          </p>
+          <div
+            className={cn(
+              "prose prose-sm dark:prose-invert max-w-none mt-3",
+              "prose-p:leading-relaxed prose-headings:font-semibold prose-headings:tracking-tight ")}
+            dangerouslySetInnerHTML={{ __html: experience.description }}
+          />
         )}
       </div>
     </motion.div>

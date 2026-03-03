@@ -1,6 +1,6 @@
 'use client'
 
-import PostForm from '../explore/post-form'
+import PostDrawer from '../posts/PostDrawer'
 // import ExperienceDialog from './ExperienceDialog'
 // import PostDialog from './PostDialog'
 import SearchDialog from './SearchDialog'
@@ -13,11 +13,9 @@ const Dialogs = () => {
     <>
       <ProfileUpdateDialog />
       <SearchDialog />
-      <PostForm />
+      <PostDrawer />
       <AuthDialog />
       <AIDialogPrompt />
-      {/* <ExperienceDialog /> */}
-      {/* <PostDialog /> */}
     </>
   )
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { getAllCategories, getAllSkills, getProjectByID, upsertProject } from "@/actions/project-actions";
+import { getAllTopics, getAllSkills, getProjectByID, upsertProject } from "@/actions/project-actions";
 import { searchProfiles } from "@/actions/profile-actions";
 import { fetchImageAsBase64 } from "@/actions/project-metadata-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -40,8 +40,8 @@ import toast from "react-hot-toast";
 import { z } from "zod";
 import ProjectLinkImportCard from "../sidebar/components/ProjectLinkImportCard";
 import { uploadMedia } from "@/actions/client-actions";
+import { RichTextEditor } from "../ui/rich-text-editor";
 
-// ── Schema ────────────────────────────────────────────────────────────────
 const ProjectSchema = z.object({
     name: z.string().min(1, "Project name is required"),
     tagline: z
@@ -50,7 +50,7 @@ const ProjectSchema = z.object({
         .max(120, "Tagline must not exceed 120 characters"),
     url: z.string().url("Invalid URL"),
     description: z.string().optional(),
-    categoryIds: z.array(z.string()).max(3, "Maximum 3 categories allowed").optional(),
+    topicIds: z.array(z.string()).max(3, "Maximum 3 topics allowed").optional(),
     skillIds: z.array(z.string()).max(10, "Maximum 10 skills allowed").optional(),
     collaboratorProfileIds: z.array(z.string()).max(6, "Maximum 6 collaborators allowed").optional(),
 });
@@ -84,9 +84,9 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
     const [openCollaboratorSearch, setOpenCollaboratorSearch] = useState(false);
 
     // ── Fetch existing data (edit mode) ────────────────────────────────────
-    const { data: categoriesData } = useQuery({
-        queryKey: ["get-all-categories"],
-        queryFn: () => getAllCategories(),
+    const { data: topicsData } = useQuery({
+        queryKey: ["get-all-topics"],
+        queryFn: () => getAllTopics(),
     });
 
     const { data: skillsData } = useQuery({
@@ -107,7 +107,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
             tagline: "",
             url: "",
             description: "",
-            categoryIds: [],
+            topicIds: [],
             skillIds: [],
             collaboratorProfileIds: [],
         },
@@ -132,7 +132,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                 tagline: defaultValues.tagline ?? "",
                 url: defaultValues.url ?? "",
                 description: defaultValues.description ?? "",
-                categoryIds: defaultValues.categories?.map((c: any) => c.id) || [],
+                topicIds: defaultValues.topics?.map((t: any) => t.id) || [],
                 skillIds: defaultValues.skills?.map((s: any) => s.id) || [],
                 collaboratorProfileIds: defaultValues.collaborators?.map((c: any) => c.id) || [],
             });
@@ -305,7 +305,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                 tagline: data.tagline,
                 description: data.description || "",
                 url: data.url,
-                categoryIds: data.categoryIds,
+                topicIds: data.topicIds,
                 skillIds: data.skillIds,
                 collaboratorProfileIds: data.collaboratorProfileIds,
                 ...(mode === "edit" && { id: projectId }),
@@ -462,9 +462,9 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                         )}
                     </div>
 
-                    {/* Categories */}
+                    {/* Topics */}
                     <div className="space-y-2">
-                        <Label className="dark:text-neutral-300 text-neutral-700">Categories</Label>
+                        <Label className="dark:text-neutral-300 text-neutral-700">Topics</Label>
                         <Popover>
                             <PopoverTrigger asChild>
                                 <div
@@ -475,28 +475,28 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                                     )}
                                 >
                                     <div className="flex flex-wrap gap-2">
-                                        {form.watch("categoryIds") && form.watch("categoryIds")!.length > 0 ? (
-                                            form.watch("categoryIds")!.map((catId) => {
-                                                const category = categoriesData?.find((c) => c.id === catId);
+                                        {form.watch("topicIds") && form.watch("topicIds")!.length > 0 ? (
+                                            form.watch("topicIds")!.map((topicId) => {
+                                                const topic = topicsData?.find((t) => t.id === topicId);
                                                 return (
                                                     <Button
-                                                        key={catId}
+                                                        key={topicId}
                                                         size={"sm"}
                                                         variant="outline"
                                                         className="flex items-center"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            const current = form.getValues("categoryIds") || [];
-                                                            form.setValue("categoryIds", current.filter((id) => id !== catId));
+                                                            const current = form.getValues("topicIds") || [];
+                                                            form.setValue("topicIds", current.filter((id) => id !== topicId));
                                                         }}
                                                     >
-                                                        {category?.name}
+                                                        {topic?.name}
                                                         <X className="size-4 ml-2" />
                                                     </Button>
                                                 );
                                             })
                                         ) : (
-                                            <span className="text-neutral-400 font-normal">Select categories...</span>
+                                            <span className="text-neutral-400 font-normal">Select topics...</span>
                                         )}
                                     </div>
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -504,35 +504,35 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                             </PopoverTrigger>
                             <PopoverContent className="w-[var(--radix-popover-trigger-width)] dark:border-dark-border sm:rounded-lg max-h-[260px] h-auto p-0" align="start">
                                 <Command>
-                                    <CommandInput placeholder="Search categories..." />
+                                    <CommandInput placeholder="Search topics..." />
                                     <CommandList className="max-h-[220px] overflow-y-auto">
-                                        <CommandEmpty>No category found.</CommandEmpty>
+                                        <CommandEmpty>No topic found.</CommandEmpty>
                                         <CommandGroup>
-                                            {categoriesData?.filter(cat => !(form.watch("categoryIds") || []).includes(cat.id)).map((category) => (
+                                            {topicsData?.filter(topic => !(form.watch("topicIds") || []).includes(topic.id)).map((topic) => (
                                                 <CommandItem
                                                     className="rounded-md"
-                                                    key={category.id}
-                                                    value={category.name}
+                                                    key={topic.id}
+                                                    value={topic.name}
                                                     onSelect={() => {
-                                                        const current = form.getValues("categoryIds") || [];
-                                                        if (!current.includes(category.id)) {
+                                                        const current = form.getValues("topicIds") || [];
+                                                        if (!current.includes(topic.id)) {
                                                             if (current.length >= 3) {
-                                                                toast.error("Maximum 3 categories allowed");
+                                                                toast.error("Maximum 3 topics allowed");
                                                                 return;
                                                             }
-                                                            form.setValue("categoryIds", [...current, category.id]);
+                                                            form.setValue("topicIds", [...current, topic.id]);
                                                         }
                                                     }}
                                                 >
                                                     <Check
                                                         className={cn(
                                                             "mr-2 h-4 w-4",
-                                                            (form.watch("categoryIds") || []).includes(category.id)
+                                                            (form.watch("topicIds") || []).includes(topic.id)
                                                                 ? "opacity-100"
                                                                 : "opacity-0"
                                                         )}
                                                     />
-                                                    {category.name}
+                                                    {topic.name}
                                                 </CommandItem>
                                             ))}
                                         </CommandGroup>
@@ -540,9 +540,9 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                                 </Command>
                             </PopoverContent>
                         </Popover>
-                        {form.formState.errors.categoryIds && (
+                        {form.formState.errors.topicIds && (
                             <p className="text-sm text-red-500">
-                                {form.formState.errors.categoryIds.message}
+                                {form.formState.errors.topicIds.message}
                             </p>
                         )}
                     </div>
@@ -720,12 +720,25 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                     </div>
 
                     {/* Description */}
-                    <div>
+                    <div className="space-y-2">
                         <Separator className="my-6" />
                         <Label className="dark:text-neutral-300 text-neutral-700">
                             Description
                         </Label>
-                        <Textarea rows={6} {...form.register("description")} />
+                        <RichTextEditor
+                            value={form.watch("description") || ""}
+                            onChange={(val) => form.setValue("description", val, {
+                                shouldDirty: true,
+                                shouldTouch: true
+                            })}
+                            placeholder="Tell us about your project..."
+                            minHeight="200px"
+                        />
+                        {form.formState.errors.description && (
+                            <p className="text-sm text-red-500">
+                                {form.formState.errors.description.message}
+                            </p>
+                        )}
                     </div>
 
                     {/* Attachments */}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, CheckCircle2, Circle, ArrowRight, Check, MessageSquareText } from 'lucide-react'
+import { ChevronDown, CheckCircle2, Circle, ArrowRight, Check, MessageSquareText, Sparkle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
@@ -197,7 +197,7 @@ export function ProfileCompletionWidget({
                 >
                     <div className="flex items-center gap-3">
                         {isAllCompleted ? (
-                            <MessageSquareText className="size-5 text-green-500" />
+                            <Sparkle className="size-5 fill-green-500 text-green-500" />
                         ) : (
                             <div className="relative size-5">
                                 {/* Circular progress background */}

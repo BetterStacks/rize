@@ -2,7 +2,7 @@
 import { useSession } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
-import { Bell, ChartLine, Compass, Edit3, Plus, Search, Settings, UserRound } from 'lucide-react'
+import { Bell, Compass, Edit3, Plus, Search, Settings, UserRound } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'

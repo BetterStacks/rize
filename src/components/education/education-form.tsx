@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -21,7 +22,7 @@ import { toIsoString } from "@/lib/date";
 import toast from "react-hot-toast";
 import { FC, useEffect, useState } from "react";
 import { Loader } from "lucide-react";
-import { useActiveSidebarTab } from "@/lib/context";
+import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
 import { useParams } from "next/navigation";
 import { DateRangePicker } from "../sidebar/components/DateRangePicker";
 
@@ -62,6 +63,7 @@ export const EducationForm: FC<EducationFormProps> = ({
   isFetchingValues,
 }) => {
   const [activeTab, setActiveTab] = useActiveSidebarTab();
+  const setIsRightSidebarOpen = useRightSidebar()[1];
   const id = activeTab?.id as string | undefined;
   const { username } = useParams<{ username: string }>();
   const form = useForm<EducationFormData>({
@@ -132,6 +134,7 @@ export const EducationForm: FC<EducationFormProps> = ({
         });
         toast.success(`Education ${id ? "updated" : "added"} successfully`);
         setActiveTab({ id: null, tab: "gallery" });
+        setIsRightSidebarOpen(false);
       },
       onError: (error) => {
         toast.error(
@@ -210,10 +213,11 @@ export const EducationForm: FC<EducationFormProps> = ({
             <Label className="dark:text-neutral-300 text-neutral-700">
               Description
             </Label>
-            <Textarea
-              rows={5}
+            <RichTextEditor
+              value={form.watch("description") || ""}
+              onChange={(val) => form.setValue("description", val, { shouldDirty: true, shouldTouch: true })}
               placeholder="Describe your coursework, projects, or academic achievements."
-              {...form.register("description")}
+              minHeight="150px"
             />
           </div>
 

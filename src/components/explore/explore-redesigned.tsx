@@ -32,7 +32,10 @@ const ExploreRedesigned = () => {
         const allPosts = pages.flatMap((page) => page.posts || []);
         // Sort by likes and get top 20
         return allPosts
-          .sort((a, b) => Number(b.likeCount) - Number(a.likeCount))
+          .sort((a, b) =>
+            (Number(b.upvoteCount || 0) - Number(b.downvoteCount || 0)) -
+            (Number(a.upvoteCount || 0) - Number(a.downvoteCount || 0))
+          )
           .slice(0, 20);
       } catch (error) {
         console.error("Error fetching top posts:", error);
@@ -77,7 +80,7 @@ const ExploreRedesigned = () => {
       </div>
 
       {/* Discover by Skills CTA */}
-      <div className="w-full max-w-6xl px-6 mb-12 mx-auto">
+      {/* <div className="w-full max-w-6xl px-6 mb-12 mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -106,7 +109,7 @@ const ExploreRedesigned = () => {
             </div>
           </Link>
         </motion.div>
-      </div>
+      </div> */}
 
       {/* People Section */}
       <div className="w-full max-w-6xl px-6 mb-16 mx-auto">

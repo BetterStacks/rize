@@ -1,26 +1,10 @@
 "use client";
 
 import { createCustomFeed, updateCustomFeed } from "@/actions/custom-feed-actions";
-import type { CustomFeedPayload } from "@/lib/schemas/custom-feed";
 import { getTopics } from "@/actions/post-actions";
 import { searchProfiles } from "@/actions/profile-actions";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-} from "@/components/ui/sheet";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, Globe, Loader, Lock, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-import { CreativeAvatar } from "@/components/ui/creative-avatar";
 import {
     Command,
     CommandEmpty,
@@ -29,13 +13,28 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
+import { CreativeAvatar } from "@/components/ui/creative-avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+} from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import type { CustomFeedPayload } from "@/lib/schemas/custom-feed";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, ChevronsUpDown, Globe, Loader, Lock, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 interface Props {
     open: boolean;

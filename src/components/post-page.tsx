@@ -1,24 +1,24 @@
 "use client";
-import { getPostById, toggleLike } from "@/actions/post-actions";
-import { queryClient } from "@/lib/providers";
+import { getPostById } from "@/actions/post-actions";
+import { useTogglePostBookmark } from "@/hooks/useTogglePostBookmark";
+import { useVotePost } from "@/hooks/useVotePost";
+import { useSession } from "@/lib/auth-client";
 import { GetCommentWithProfile, GetExplorePosts } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
+import { useQuery } from "@tanstack/react-query";
+
 import Image from "next/image";
 import Link from "next/link";
-import { FC, useState } from "react";
+import { FC } from "react";
+import toast from "react-hot-toast";
 import Comments from "./comments";
 import { useAuthDialog } from "./dialog-provider";
-import {
-  HeartIcon,
-  MessageIcon,
+import PostInteractions, {
   PostAvatar,
   PostCardOptions,
   PostLinkCard,
 } from "./explore/post-interactions";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
-import { useToggleLikePost } from "@/hooks/useToggleLike";
 
 type PostPageProps = {
   id: string;
@@ -38,14 +38,42 @@ const PostPage: FC<PostPageProps> = ({
     queryFn: () => getPostById(id),
   });
   const setOpen = useAuthDialog()[1];
-  const mutation = useToggleLikePost({
-    liked: Boolean(post.liked),
+  const mutation = useVotePost({
+    userVote: post.userVote ?? null,
     postId: id,
   });
 
-  const handleLikeClick = () => {
-    mutation.mutate();
+  const bookmarkMutation = useTogglePostBookmark({
+    postId: id,
+    isBookmarked: !!post.bookmarked,
+  });
+
+  const handleVoteClick = (value: number) => {
+    mutation.mutate(value);
   };
+
+  const handleBookmarkClick = () => {
+    bookmarkMutation.mutate();
+  };
+
+  const handleShareClick = async () => {
+    const url = `${window.location.origin}/post/${id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Post by ${post.name}`,
+          url: url,
+        });
+      } catch (err) {
+        console.error("Error sharing", err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard");
+    }
+  };
+
+  const score = (post.upvoteCount || 0) - (post.downvoteCount || 0);
   return (
     <div className="w-full">
       <Card className="w-full shadow-none bg-transparent dark:bg-transparent border-none">
@@ -161,54 +189,19 @@ const PostPage: FC<PostPageProps> = ({
           </div>
         </CardContent>
         <CardFooter className="flex border-y border-neutral-200 dark:border-dark-border flex-col p-0">
-          <div className=" mb-4  flex justify-start w-full gap-x-2 px-4 pt-4">
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!session?.data) {
-                  setOpen(true);
-                  return;
-                }
-                handleLikeClick();
-              }}
-              className=" flex  text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer  py-1.5 px-3 rounded-3xl items-center justify-center gap-x-2"
-            >
-              <HeartIcon
-                strokeWidth={1.2}
-                className={cn(
-                  "size-6 ",
-                  (post.liked as boolean)
-                    ? "stroke-red-600 fill-red-600"
-                    : "stroke-neutral-500 dark:stroke-neutral-400"
-                )}
-              />
-              <span className="mr-1 text-neutral-500 dark:text-neutral-400">
-                {Number(post.likeCount)}
-              </span>
-            </div>
-
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-              className={cn(
-                "flex text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer  py-1 px-3 rounded-3xl items-center justify-center gap-x-2"
-              )}
-            >
-              <MessageIcon
-                strokeWidth={1.2}
-                className={cn(
-                  "size-6 ",
-                  post.commented
-                    ? "stroke-blue-600 fill-blue-600"
-                    : "stroke-neutral-500 dark:stroke-neutral-400"
-                )}
-              />
-              <span className="mr-1 text-neutral-500 dark:text-neutral-400">
-                {post?.commentCount}
-              </span>
-            </div>
-          </div>
+          <PostInteractions
+            className="border-none mt-0 py-4"
+            upvoteCount={Number(post.upvoteCount)}
+            downvoteCount={Number(post.downvoteCount)}
+            userVote={post.userVote ?? null}
+            handleVoteClick={handleVoteClick}
+            commentCount={Number(post.commentCount)}
+            hasCommented={Boolean(post.commented)}
+            handleCommentClick={() => { }}
+            isBookmarked={!!post.bookmarked}
+            handleBookmarkClick={handleBookmarkClick}
+            handleShareClick={handleShareClick}
+          />
         </CardFooter>
         <Comments
           commentCount={post?.commentCount}

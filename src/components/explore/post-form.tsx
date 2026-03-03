@@ -13,6 +13,7 @@ import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
 import TextArea from "react-textarea-autosize";
+import { RichTextEditor } from "../ui/rich-text-editor";
 import { v4 } from "uuid";
 import { usePostsDialog } from "../dialog-provider";
 import { Button } from "../ui/button";
@@ -187,17 +188,15 @@ const PostForm = () => {
         </DialogHeader>
         <input {...getInputProps()} />
         <div className="w-full h-full px-4 mt-2 flex flex-1 flex-col">
-          <TextArea
-            disabled={isPending}
-            className="appearance-none  bg-transparent text-neutral-600 dark:text-neutral-400 tracking-tight font-medium w-full  focus-visible:outline-none resize-none"
-            value={content.substring(0, MAX_WORD_COUNT)}
-            minRows={1}
-            onChange={(e) => {
-              setContent(e.target.value);
-            }}
+          <RichTextEditor
+            value={content}
+            onChange={(val) => setContent(val)}
             placeholder={`What's on your mind, ${capitalizeFirstLetter(
               data?.name?.split(" ")[0] as string
             )}?`}
+            minHeight="100px"
+            className="p-0"
+            containerClassName="p-0 border-none shadow-none dark:bg-transparent"
           />
 
           {showLinkInput && !link && (

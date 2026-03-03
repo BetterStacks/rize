@@ -1,9 +1,9 @@
 "use server";
 
 import {
-  categories,
+  topics,
   media,
-  projectCategories,
+  projectTopics,
   projectMedia,
   projects,
   skills,
@@ -11,8 +11,9 @@ import {
   profile,
   projectBookmarks,
   projectCollaborators,
+  projectVotes,
 } from "@/db/schema";
-import { requireProfile } from "@/lib/auth";
+import { requireAuth, requireProfile } from "@/lib/auth";
 import db from "@/lib/db";
 import {
   GetAllProjects,
@@ -26,8 +27,8 @@ import { getProfileIdByUsername } from "./profile-actions";
 import { deleteFromS3, getS3KeyFromUrl } from "@/lib/s3";
 import { asc } from "drizzle-orm";
 
-export const getAllCategories = async () => {
-  return await db.select().from(categories).orderBy(asc(categories.name));
+export const getAllTopics = async () => {
+  return await db.select().from(topics).orderBy(asc(topics.name));
 };
 
 export const getAllSkills = async () => {
@@ -40,11 +41,28 @@ export const getAllProjects = async (username: string) => {
   if (!profileId) {
     throw new Error("Profile not found");
   }
+
+  let session = null;
+  let userProfileId: string | null = null;
+  try {
+    const s = await requireAuth();
+    session = s;
+    userProfileId = s.user.profileId || null;
+  } catch { }
+
   const { ...rest } = getTableColumns(projects);
   const allProjects = await db
     .select({
       ...rest,
       logo: media.url,
+      upvoteCount: sql<number>`(SELECT COALESCE(SUM(CASE WHEN value = 1 THEN 1 ELSE 0 END), 0) FROM project_votes WHERE project_id = ${projects.id} )`.as("upvoteCount"),
+      downvoteCount: sql<number>`(SELECT COALESCE(SUM(CASE WHEN value = -1 THEN 1 ELSE 0 END), 0) FROM project_votes WHERE project_id = ${projects.id} )`.as("downvoteCount"),
+      userVote: userProfileId
+        ? sql<number | null>`(SELECT value FROM project_votes WHERE project_id = ${projects.id} AND profile_id = ${userProfileId} LIMIT 1)`.as("userVote")
+        : sql<number | null>`NULL`.as("userVote"),
+      bookmarked: userProfileId
+        ? sql<boolean>`EXISTS (SELECT 1 FROM project_bookmarks WHERE project_id = ${projects.id} AND profile_id = ${userProfileId})`.as("bookmarked")
+        : sql<boolean>`false`.as("bookmarked"),
       attachments: sql`
         (
           SELECT
@@ -62,21 +80,21 @@ export const getAllProjects = async (username: string) => {
           WHERE pm.project_id = projects.id
         )
       `.as("attachments"),
-      categories: sql`
+      topics: sql`
         (
           SELECT
             CASE WHEN COUNT(*) = 0 THEN NULL
             ELSE json_agg(json_build_object(
-              'id', c.id,
-              'name', c.name,
-              'slug', c.slug
+              'id', t.id,
+              'name', t.name,
+              'slug', t.slug
             ))
             END
-          FROM project_categories pc
-          JOIN categories c ON pc.category_id = c.id
-          WHERE pc.project_id = projects.id
+          FROM project_topics pt
+          JOIN topics t ON pt.topic_id = t.id
+          WHERE pt.project_id = projects.id
         )
-      `.as("categories"),
+      `.as("topics"),
       skills: sql`
         (
           SELECT
@@ -119,12 +137,26 @@ export const getAllProjects = async (username: string) => {
 };
 
 export const getProjectByID = async (id: string) => {
+  let userProfileId: string | null = null;
+  try {
+    const s = await requireAuth();
+    userProfileId = s.user.profileId || null;
+  } catch { }
+
   const { ...rest } = getTableColumns(projects);
   const allProjects = await db
     .select({
       ...rest,
       logo: media.url,
       username: profile.username,
+      upvoteCount: sql<number>`(SELECT COALESCE(SUM(CASE WHEN value = 1 THEN 1 ELSE 0 END), 0) FROM project_votes WHERE project_id = ${projects.id} )`.as("upvoteCount"),
+      downvoteCount: sql<number>`(SELECT COALESCE(SUM(CASE WHEN value = -1 THEN 1 ELSE 0 END), 0) FROM project_votes WHERE project_id = ${projects.id} )`.as("downvoteCount"),
+      userVote: userProfileId
+        ? sql<number | null>`(SELECT value FROM project_votes WHERE project_id = ${projects.id} AND profile_id = ${userProfileId} LIMIT 1)`.as("userVote")
+        : sql<number | null>`NULL`.as("userVote"),
+      bookmarked: userProfileId
+        ? sql<boolean>`EXISTS (SELECT 1 FROM project_bookmarks WHERE project_id = ${projects.id} AND profile_id = ${userProfileId})`.as("bookmarked")
+        : sql<boolean>`false`.as("bookmarked"),
       attachments: sql`
         (
           SELECT
@@ -142,21 +174,21 @@ export const getProjectByID = async (id: string) => {
           WHERE pm.project_id = projects.id
         )
       `.as("attachments"),
-      categories: sql`
+      topics: sql`
         (
           SELECT
             CASE WHEN COUNT(*) = 0 THEN NULL
             ELSE json_agg(json_build_object(
-              'id', c.id,
-              'name', c.name,
-              'slug', c.slug
+              'id', t.id,
+              'name', t.name,
+              'slug', t.slug
             ))
             END
-          FROM project_categories pc
-          JOIN categories c ON pc.category_id = c.id
-          WHERE pc.project_id = projects.id
+          FROM project_topics pt
+          JOIN topics t ON pt.topic_id = t.id
+          WHERE pt.project_id = projects.id
         )
-      `.as("categories"),
+      `.as("topics"),
       skills: sql`
         (
           SELECT
@@ -303,20 +335,20 @@ export const upsertProject = async (
       });
     }
 
-    // ── handle categories ─────────────────────────────────────────────
-    if (payload.categoryIds) {
+    // ── handle topics ────────────────────────────────────────────────
+    if (payload.topicIds) {
       await db.transaction(async (tx) => {
-        // Clear existing categories if updating
+        // Clear existing topics if updating
         if (isUpdate) {
-          await tx.delete(projectCategories).where(eq(projectCategories.projectId, projectId));
+          await tx.delete(projectTopics).where(eq(projectTopics.projectId, projectId));
         }
 
-        // Insert new categories
-        if (payload.categoryIds!.length > 0) {
-          await tx.insert(projectCategories).values(
-            payload.categoryIds!.map(catId => ({
+        // Insert new topics
+        if (payload.topicIds!.length > 0) {
+          await tx.insert(projectTopics).values(
+            payload.topicIds!.map(topicId => ({
               projectId,
-              categoryId: catId,
+              topicId: topicId,
             }))
           );
         }
@@ -399,5 +431,25 @@ export async function toggleProjectBookmark(projectId: string, bookmark: boolean
           eq(projectBookmarks.profileId, userProfileId)
         )
       );
+  }
+}
+
+export async function voteProject(projectId: string, value: number) {
+  const userProfileId = await requireProfile();
+
+  if (value === 0) {
+    // Remove vote
+    await db
+      .delete(projectVotes)
+      .where(and(eq(projectVotes.projectId, projectId), eq(projectVotes.profileId, userProfileId)));
+  } else {
+    // Upsert vote
+    await db
+      .insert(projectVotes)
+      .values({ projectId, profileId: userProfileId, value })
+      .onConflictDoUpdate({
+        target: [projectVotes.profileId, projectVotes.projectId],
+        set: { value },
+      });
   }
 }

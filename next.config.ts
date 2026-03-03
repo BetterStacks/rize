@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
   images: {
     dangerouslyAllowSVG: true,
     remotePatterns: [{ hostname: "*" }],
+    qualities: [25, 50, 75, 100],
   },
   experimental: {
     serverActions: {
