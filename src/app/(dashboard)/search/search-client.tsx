@@ -2,7 +2,7 @@
 
 import { useDebouncedCallback } from '@mantine/hooks'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import axios from 'axios'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -17,10 +17,25 @@ import {
     Briefcase,
     Loader2,
     ArrowRight,
-    ExternalLink,
+    Check,
+    ChevronsUpDown,
+    X,
 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Input } from '@/components/ui/input'
+import { Button, buttonVariants } from '@/components/ui/button'
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
+import { getTopics } from '@/actions/post-actions'
+import { getAllSkills } from '@/actions/project-actions'
 
 const TABS = [
     { key: 'all', label: 'All', icon: Search },
@@ -59,25 +74,56 @@ export default function SearchPageClient() {
     const searchParams = useSearchParams()
     const initialQuery = searchParams.get('q') || ''
     const initialTab = (searchParams.get('tab') as TabKey) || 'all'
+    const initialTopicIds = (searchParams.get('topicIds') || '').split(',').map((id) => id.trim()).filter(Boolean)
+    const initialSkillIds = (searchParams.get('skillIds') || '').split(',').map((id) => id.trim()).filter(Boolean)
 
     const [query, setQuery] = useState(initialQuery)
     const [activeTab, setActiveTab] = useState<TabKey>(initialTab)
+    const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>(initialTopicIds)
+    const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>(initialSkillIds)
     const [results, setResults] = useState<SearchResults>(emptyResults)
     const [loading, setLoading] = useState(false)
     const [hasSearched, setHasSearched] = useState(false)
 
+    const { data: topicsData } = useQuery({
+        queryKey: ['topics'],
+        queryFn: getTopics,
+        staleTime: Infinity,
+    })
+
+    const { data: skillsData } = useQuery({
+        queryKey: ['get-all-skills'],
+        queryFn: () => getAllSkills(),
+        staleTime: Infinity,
+    })
+
+    const topics = topicsData ?? []
+    const skills = skillsData ?? []
+
+    const selectedTopics = useMemo(
+        () => topics.filter((t: any) => selectedTopicIds.includes(t.id)),
+        [topics, selectedTopicIds]
+    )
+
+    const selectedSkills = useMemo(
+        () => skills.filter((s: any) => selectedSkillIds.includes(s.id)),
+        [skills, selectedSkillIds]
+    )
+
     const updateUrl = useCallback(
-        (q: string, tab: TabKey) => {
+        (q: string, tab: TabKey, topicIds: string[], skillIds: string[]) => {
             const params = new URLSearchParams()
             if (q) params.set('q', q)
             if (tab !== 'all') params.set('tab', tab)
+            if (topicIds.length > 0) params.set('topicIds', topicIds.join(','))
+            if (skillIds.length > 0) params.set('skillIds', skillIds.join(','))
             const qs = params.toString()
             router.replace(`/search${qs ? `?${qs}` : ''}`, { scroll: false })
         },
         [router]
     )
 
-    const doSearch = useDebouncedCallback(async (q: string, tab: TabKey) => {
+    const doSearch = useDebouncedCallback(async (q: string, tab: TabKey, topicIds: string[], skillIds: string[]) => {
         if (!q.trim()) {
             setResults(emptyResults)
             setLoading(false)
@@ -88,7 +134,12 @@ export default function SearchPageClient() {
         setHasSearched(true)
         try {
             const res = await axios.get('/api/search', {
-                params: { query: q, type: tab === 'all' ? 'all' : tab },
+                params: {
+                    query: q,
+                    type: tab === 'all' ? 'all' : tab,
+                    topicIds: topicIds.length > 0 ? topicIds.join(',') : undefined,
+                    skillIds: skillIds.length > 0 ? skillIds.join(',') : undefined,
+                },
             })
             setResults(res.data)
         } catch {
@@ -100,23 +151,59 @@ export default function SearchPageClient() {
 
     useEffect(() => {
         if (initialQuery) {
-            doSearch(initialQuery, activeTab)
+            doSearch(initialQuery, activeTab, initialTopicIds, initialSkillIds)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const handleQueryChange = (value: string) => {
         setQuery(value)
-        updateUrl(value, activeTab)
-        doSearch(value, activeTab)
+        updateUrl(value, activeTab, selectedTopicIds, selectedSkillIds)
+        doSearch(value, activeTab, selectedTopicIds, selectedSkillIds)
     }
 
     const handleTabChange = (tab: TabKey) => {
         setActiveTab(tab)
-        updateUrl(query, tab)
+        updateUrl(query, tab, selectedTopicIds, selectedSkillIds)
         if (query.trim()) {
             setLoading(true)
-            doSearch(query, tab)
+            doSearch(query, tab, selectedTopicIds, selectedSkillIds)
+        }
+    }
+
+    const toggleTopic = (id: string) => {
+        const next = selectedTopicIds.includes(id)
+            ? selectedTopicIds.filter((topicId) => topicId !== id)
+            : [...selectedTopicIds, id]
+
+        setSelectedTopicIds(next)
+        updateUrl(query, activeTab, next, selectedSkillIds)
+        if (query.trim()) {
+            setLoading(true)
+            doSearch(query, activeTab, next, selectedSkillIds)
+        }
+    }
+
+    const toggleSkill = (id: string) => {
+        const next = selectedSkillIds.includes(id)
+            ? selectedSkillIds.filter((skillId) => skillId !== id)
+            : [...selectedSkillIds, id]
+
+        setSelectedSkillIds(next)
+        updateUrl(query, activeTab, selectedTopicIds, next)
+        if (query.trim()) {
+            setLoading(true)
+            doSearch(query, activeTab, selectedTopicIds, next)
+        }
+    }
+
+    const clearFilters = () => {
+        setSelectedTopicIds([])
+        setSelectedSkillIds([])
+        updateUrl(query, activeTab, [], [])
+        if (query.trim()) {
+            setLoading(true)
+            doSearch(query, activeTab, [], [])
         }
     }
 
@@ -186,6 +273,117 @@ export default function SearchPageClient() {
                             </button>
                         )
                     })}
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <div
+                                role="combobox"
+                                className={cn(
+                                    buttonVariants({ variant: 'outline' }),
+                                    'h-auto min-h-10 px-3 py-2 dark:border-dark-border dark:bg-transparent justify-between gap-2 cursor-pointer'
+                                )}
+                            >
+                                <div className="flex items-center gap-2 text-xs">
+                                    <span className="font-medium">Topics</span>
+                                    {selectedTopics.length > 0 && (
+                                        <span className="text-neutral-500 dark:text-neutral-400">
+                                            ({selectedTopics.length})
+                                        </span>
+                                    )}
+                                </div>
+                                <ChevronsUpDown className="size-3.5 opacity-50" />
+                            </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[280px] p-0 dark:border-dark-border" align="start">
+                            <Command>
+                                <CommandInput placeholder="Search topics..." />
+                                <CommandList className="max-h-[220px] overflow-y-auto">
+                                    <CommandEmpty>No topic found.</CommandEmpty>
+                                    <CommandGroup>
+                                        {topics.map((topic: any) => (
+                                            <CommandItem
+                                                key={topic.id}
+                                                value={topic.name}
+                                                onSelect={() => toggleTopic(topic.id)}
+                                                className="rounded-md"
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        'mr-2 h-4 w-4',
+                                                        selectedTopicIds.includes(topic.id) ? 'opacity-100' : 'opacity-0'
+                                                    )}
+                                                />
+                                                {topic.emoji ? `${topic.emoji} ` : ''}
+                                                {topic.name}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <div
+                                role="combobox"
+                                className={cn(
+                                    buttonVariants({ variant: 'outline' }),
+                                    'h-auto min-h-10 px-3 py-2 dark:border-dark-border dark:bg-transparent justify-between gap-2 cursor-pointer'
+                                )}
+                            >
+                                <div className="flex items-center gap-2 text-xs">
+                                    <span className="font-medium">Skills</span>
+                                    {selectedSkills.length > 0 && (
+                                        <span className="text-neutral-500 dark:text-neutral-400">
+                                            ({selectedSkills.length})
+                                        </span>
+                                    )}
+                                </div>
+                                <ChevronsUpDown className="size-3.5 opacity-50" />
+                            </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[280px] p-0 dark:border-dark-border" align="start">
+                            <Command>
+                                <CommandInput placeholder="Search skills..." />
+                                <CommandList className="max-h-[220px] overflow-y-auto">
+                                    <CommandEmpty>No skill found.</CommandEmpty>
+                                    <CommandGroup>
+                                        {skills.map((skill: any) => (
+                                            <CommandItem
+                                                key={skill.id}
+                                                value={skill.name}
+                                                onSelect={() => toggleSkill(skill.id)}
+                                                className="rounded-md"
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        'mr-2 h-4 w-4',
+                                                        selectedSkillIds.includes(skill.id) ? 'opacity-100' : 'opacity-0'
+                                                    )}
+                                                />
+                                                {skill.name}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+
+                    {(selectedTopicIds.length > 0 || selectedSkillIds.length > 0) && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={clearFilters}
+                            className="h-9 px-2 text-xs text-neutral-500 dark:text-neutral-400"
+                        >
+                            Clear filters
+                            <X className="size-3 ml-1" />
+                        </Button>
+                    )}
                 </div>
             </div>
 

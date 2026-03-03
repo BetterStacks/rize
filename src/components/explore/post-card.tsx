@@ -151,13 +151,13 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
             className={cn(
               "relative border-b border-neutral-300/80  w-full overflow-hidden ",
               "dark:border-dark-border",
-              mediaContainerClassName
+              mediaContainerClassName,
             )}
             style={{
               // aspectRatio: 1 / 1,
               objectFit: "cover",
               height: post?.media?.height,
-              maxHeight: "500px"
+              maxHeight: "500px",
             }}
           >
             <div className="absolute top-2 z-[2] px-4 pt-2 w-full gap-x-2 flex items-center justify-between">
@@ -214,7 +214,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
         {!hasMedia && (
           <div
             className={cn(
-              "size-10 aspect-square  rounded-full  flex relative overflow-hidden"
+              "size-10 aspect-square  rounded-full  flex relative overflow-hidden",
             )}
           >
             {normalizeSrc(post?.avatar as string) ? (
@@ -244,7 +244,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
         <div
           className={cn(
             " flex flex-1 flex-col items-start",
-            !hasMedia && "ml-3"
+            !hasMedia && "ml-3",
           )}
         >
           <Link href={`/${post?.username}`}>
@@ -254,7 +254,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
           </Link>
           <div
             className={cn(
-              "flex items-center justify-start dark:text-gray-400 text-sm leading-snug text-gray-700 "
+              "flex items-center justify-start dark:text-gray-400 text-sm leading-snug text-gray-700 ",
             )}
           >
             <p className={cn("mr-1")}>@{post.username}</p>
@@ -273,15 +273,15 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
       {post?.content && (
         <div
           className={cn(
-            "prose-gray-800 leading-snug line-clamp-[10] font-medium text-sm p-4",
-            "dark:prose-gray-300",
-            "prose prose-sm dark:prose-invert max-w-none break-words overflow-hidden"
+            "text-neutral-600 leading-loose text-sm p-4",
+            "dark:text-neutral-400",
+            "prose prose-sm dark:prose-invert max-w-none",
           )}
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
       )}
       {post?.link && (
-        <div className="mt-4">
+        <div className={cn("")}>
           <PostLinkCard {...post?.link} />
         </div>
       )}
@@ -293,7 +293,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
         handleVoteClick={handleVoteClick}
         commentCount={Number(post?.commentCount)}
         hasCommented={Boolean(post?.commented)}
-        handleCommentClick={() => { }}
+        handleCommentClick={() => {}}
         isBookmarked={!!post.bookmarked}
         handleBookmarkClick={handleBookmarkClick}
         handleShareClick={handleShareClick}
@@ -337,7 +337,7 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
     >
       <div
         className={cn(
-          "flex w-full items-center justify-between   px-4 py-2 mt-4"
+          "flex w-full items-center justify-between   px-4 py-2 mt-4",
         )}
       >
         <div className="flex items-center justify-start">
@@ -353,7 +353,7 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
             </Link>
             <div
               className={cn(
-                "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 "
+                "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 ",
               )}
             >
               <p className={cn("mr-1")}>@{post.username}</p>
@@ -369,9 +369,9 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
       </div>
       <div
         className={cn(
-          "text-neutral-600 leading-snug line-clamp-[10] font-medium text-sm p-4",
+          "text-neutral-600 leading-normal line-clamp-[10] text-sm p-4",
           "dark:text-neutral-400",
-          "prose prose-sm dark:prose-invert max-w-none"
+          "prose prose-sm dark:prose-invert max-w-none",
         )}
         dangerouslySetInnerHTML={{ __html: post?.content ?? "" }}
       />
@@ -408,11 +408,13 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
       handlePostClick={handleViewPost}
       className=" relative group shadow-none "
     >
-      <div className="bg-gradient-to-b transition-all duration-75 ease-in group-hover:opacity-100 opacity-0 w-full dark:from-black dark:via-black/60
-      from-black/60 via-black/40 to-transparent h-40 absolute z-[6] inset-0" />
+      <div
+        className="bg-gradient-to-b transition-all duration-75 ease-in group-hover:opacity-100 opacity-0 w-full dark:from-black dark:via-black/60
+      from-black/60 via-black/40 to-transparent h-40 absolute z-[6] inset-0"
+      />
       <div
         className={cn(
-          "flex w-full group-hover:opacity-100 transition-all duration-75 ease-in opacity-0 absolute top-5 z-[8]   items-center justify-between   px-4 "
+          "flex w-full group-hover:opacity-100 transition-all duration-75 ease-in opacity-0 absolute top-5 z-[8]   items-center justify-between   px-4 ",
         )}
       >
         <div className="flex items-center justify-start">
@@ -426,7 +428,7 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
             </Link>
             <div
               className={cn(
-                "flex items-center justify-start text-neutral-400 text-sm font-light leading-snug  "
+                "flex items-center justify-start text-neutral-400 text-sm font-light leading-snug  ",
               )}
             >
               <p className={cn("mr-1")}>@{post.username}</p>
@@ -442,7 +444,7 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
       </div>
       <div
         style={{
-          aspectRatio: 9 / 16
+          aspectRatio: 9 / 16,
         }}
         className={cn("relative  overflow-hidden ")}
       >
@@ -482,7 +484,7 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
         handleVoteClick={handleVote!}
         commentCount={post.commentCount}
         hasCommented={post.commented}
-        handleCommentClick={() => { }}
+        handleCommentClick={() => {}}
         isBookmarked={isBookmarked}
         handleBookmarkClick={handleBookmark}
         handleShareClick={handleShare}

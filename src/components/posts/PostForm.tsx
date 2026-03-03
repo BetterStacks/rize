@@ -1,11 +1,23 @@
 "use client";
 
 import { createPost, getTopics } from "@/actions/post-actions";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { TUploadFilesResponse } from "@/lib/types";
 import { cn, isValidUrl } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,7 +29,13 @@ import { useDropzone } from "react-dropzone";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
-import { X, Loader, Image as ImageIcon, Hash } from "lucide-react";
+import {
+  X,
+  Loader,
+  Image as ImageIcon,
+  Check,
+  ChevronsUpDown,
+} from "lucide-react";
 import { queryClient } from "@/lib/providers";
 
 const PostSchema = z.object({
@@ -43,7 +61,6 @@ const stripHtml = (html: string) => html.replace(/<[^>]+>/g, "").trim();
 
 export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
   const [mediaFile, setMediaFile] = useState<MediaFile | undefined>();
-  const [showTopics, setShowTopics] = useState(false);
 
   const { data: topicsData, isLoading: isTopicsLoading } = useQuery({
     queryKey: ["topics"],
@@ -116,7 +133,7 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
     const hasFile = !!mediaFile;
     const hasLink = !!form.watch("link");
     if (hasFile && hasLink) return false;
-    if (!hasFile && !hasLink) return contentText.length > 5;
+    // if (!hasFile && !hasLink) return contentText.length ;
     return true;
   };
 
@@ -160,7 +177,6 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
       localStorage.removeItem("post-form-draft");
       form.reset({ content: "", link: "", topicIds: [] });
       setMediaFile(undefined);
-      setShowTopics(false);
       queryClient.invalidateQueries({ queryKey: ["get-user-posts"] });
       queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
       onSuccess?.();
@@ -171,7 +187,7 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
   });
 
   return (
-    <div className="w-full mx-auto p-6">
+    <div className="w-full max-w-xl mx-auto p-6">
       <h2 className="text-xl mt-2 tracking-tight font-medium">Create Post</h2>
       <span className="text-neutral-700 dark:text-neutral-300 text-sm">
         Share an update, media, or a link.
@@ -268,15 +284,119 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
           </div>
         )}
 
-        <div className="flex items-center justify-between">
-          <Button
-            type="button"
-            variant={showTopics ? "default" : "outline"}
-            onClick={() => setShowTopics((v) => !v)}
-            className="rounded-full"
-          >
-            <Hash className="size-4 mr-2" /> Topics
-          </Button>
+        <div className="space-y-2">
+          <Label className="dark:text-neutral-300 text-neutral-700">
+            Topics
+          </Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <div
+                role="combobox"
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "w-full dark:border-dark-border dark:bg-transparent justify-between h-auto min-h-10 px-3 py-2 flex-wrap gap-2 hover:bg-neutral-50 dark:hover:bg-dark-border/20 active:scale-100 cursor-pointer",
+                )}
+              >
+                <div className="flex flex-wrap gap-2">
+                  {(form.watch("topicIds") || []).length > 0 ? (
+                    (form.watch("topicIds") || []).map((topicId) => {
+                      const topic = topics.find((t: any) => t.id === topicId);
+                      return (
+                        <Button
+                          key={topicId}
+                          size="sm"
+                          variant="outline"
+                          className="flex items-center"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const current = form.getValues("topicIds") || [];
+                            form.setValue(
+                              "topicIds",
+                              current.filter((id) => id !== topicId),
+                            );
+                          }}
+                        >
+                          {topic?.emoji ? `${topic.emoji} ` : ""}
+                          {topic?.name}
+                          <X className="size-4 ml-2" />
+                        </Button>
+                      );
+                    })
+                  ) : (
+                    <span className="text-neutral-400 font-normal">
+                      Select topics...
+                    </span>
+                  )}
+                </div>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </div>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-[var(--radix-popover-trigger-width)] dark:border-dark-border sm:rounded-lg max-h-[260px] h-auto p-0"
+              align="start"
+            >
+              <Command>
+                <CommandInput placeholder="Search topics..." />
+                <CommandList className="max-h-[220px] overflow-y-auto">
+                  <CommandEmpty>No topic found.</CommandEmpty>
+                  <CommandGroup>
+                    {isTopicsLoading ? (
+                      <div className="p-3 text-sm text-neutral-500">
+                        Loading topics...
+                      </div>
+                    ) : (
+                      topics
+                        .filter(
+                          (topic: any) =>
+                            !(form.watch("topicIds") || []).includes(topic.id),
+                        )
+                        .map((topic: any) => (
+                          <CommandItem
+                            className="rounded-md"
+                            key={topic.id}
+                            value={topic.name}
+                            onSelect={() => {
+                              const current = form.getValues("topicIds") || [];
+                              if (!current.includes(topic.id)) {
+                                if (current.length >= 5) {
+                                  toast.error("Maximum 5 topics allowed");
+                                  return;
+                                }
+                                form.setValue("topicIds", [
+                                  ...current,
+                                  topic.id,
+                                ]);
+                              }
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                (form.watch("topicIds") || []).includes(
+                                  topic.id,
+                                )
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              )}
+                            />
+                            {topic.emoji ? `${topic.emoji} ` : ""}
+                            {topic.name}
+                          </CommandItem>
+                        ))
+                    )}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          {form.formState.errors.topicIds && (
+            <p className="text-sm text-red-500">
+              {form.formState.errors.topicIds.message}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end">
           <Button
             type="button"
             variant="outline"
@@ -287,49 +407,6 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
             <ImageIcon className="size-4 mr-2" /> Add Media
           </Button>
         </div>
-
-        {showTopics && (
-          <div className="mt-2">
-            <p className="text-xs text-neutral-400 mb-2">Add up to 5 topics</p>
-            {isTopicsLoading ? (
-              <PostFormSkeleton />
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {topics.map((t: any) => {
-                  const active =
-                    form.watch("topicIds")?.includes(t.id) ?? false;
-                  return (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => {
-                        const current = form.getValues("topicIds") || [];
-                        if (active) {
-                          form.setValue(
-                            "topicIds",
-                            current.filter((id) => id !== t.id),
-                          );
-                          return;
-                        }
-                        if (current.length >= 5) return;
-                        form.setValue("topicIds", [...current, t.id]);
-                      }}
-                      className={cn(
-                        "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all",
-                        active
-                          ? "bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 border-neutral-900 dark:border-white"
-                          : "border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:border-neutral-400",
-                      )}
-                    >
-                      {t.emoji && <span>{t.emoji}</span>}
-                      {t.name}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
 
         <Button
           type="submit"
@@ -349,11 +426,3 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
     </div>
   );
 };
-
-const PostFormSkeleton = () => (
-  <div className="space-y-2">
-    {[...Array(4)].map((_, i) => (
-      <Skeleton key={i} className="h-6 w-24 rounded-lg" />
-    ))}
-  </div>
-);

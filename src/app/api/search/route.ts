@@ -1,12 +1,14 @@
 import { searchProfiles } from '@/actions/profile-actions'
 import db from '@/lib/db'
-import { posts, projects, profile, page, education, experience } from '@/db/schema'
-import { ilike, or, and, eq, isNotNull, desc } from 'drizzle-orm'
+import { posts, projects, profile, page, education, experience, postTopics, projectTopics, projectSkills, profileSkills } from '@/db/schema'
+import { ilike, or, and, eq, isNotNull, desc, inArray, sql, type SQL } from 'drizzle-orm'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const query = searchParams.get('query') || ''
   const type = searchParams.get('type') || 'all'
+  const topicIds = (searchParams.get('topicIds') || '').split(',').map((id) => id.trim()).filter(Boolean)
+  const skillIds = (searchParams.get('skillIds') || '').split(',').map((id) => id.trim()).filter(Boolean)
 
   try {
     const results: { people: any[]; posts: any[]; projects: any[]; pages: any[]; education: any[]; experience: any[]; total: number } = {
@@ -20,11 +22,60 @@ export async function GET(request: Request) {
     }
 
     if (type === 'all' || type === 'people') {
-      const profileResults = await searchProfiles(query)
-      results.people = profileResults.slice(0, 10)
+      if (skillIds.length > 0) {
+        const profileResults = await db
+          .select({
+            id: profile.id,
+            userId: profile.userId,
+            username: profile.username,
+            displayName: profile.displayName,
+            profileImage: profile.profileImage,
+            bio: profile.bio,
+            location: profile.location,
+            website: profile.website,
+            createdAt: profile.createdAt,
+            updatedAt: profile.updatedAt,
+          })
+          .from(profile)
+          .where(
+            and(
+              or(
+                ilike(profile.displayName, `%${query}%`),
+                ilike(profile.username, `%${query}%`),
+                ilike(profile.bio, `%${query}%`)
+              ),
+              sql`EXISTS (
+                SELECT 1
+                FROM ${profileSkills}
+                WHERE ${profileSkills.profileId} = ${profile.id}
+                AND ${inArray(profileSkills.skillId, skillIds)}
+              )`
+            )
+          )
+          .limit(10)
+
+        results.people = profileResults
+      } else {
+        const profileResults = await searchProfiles(query)
+        results.people = profileResults.slice(0, 10)
+      }
     }
 
     if (type === 'all' || type === 'posts') {
+      const postConditions: SQL[] = [
+        ilike(posts.content, `%${query}%`),
+        isNotNull(posts.content),
+      ]
+
+      if (topicIds.length > 0) {
+        postConditions.push(sql`EXISTS (
+          SELECT 1
+          FROM ${postTopics}
+          WHERE ${postTopics.postId} = ${posts.id}
+          AND ${inArray(postTopics.topicId, topicIds)}
+        )`)
+      }
+
       const postResults = await db
         .select({
           id: posts.id,
@@ -37,12 +88,7 @@ export async function GET(request: Request) {
         })
         .from(posts)
         .innerJoin(profile, eq(posts.profileId, profile.id))
-        .where(
-          and(
-            ilike(posts.content, `%${query}%`),
-            isNotNull(posts.content)
-          )
-        )
+        .where(and(...postConditions))
         .limit(10)
         .orderBy(desc(posts.createdAt))
 
@@ -50,6 +96,31 @@ export async function GET(request: Request) {
     }
 
     if (type === 'all' || type === 'projects') {
+      const projectConditions: SQL[] = [
+        or(
+          ilike(projects.name, `%${query}%`),
+          ilike(projects.description, `%${query}%`)
+        )!,
+      ]
+
+      if (topicIds.length > 0) {
+        projectConditions.push(sql`EXISTS (
+          SELECT 1
+          FROM ${projectTopics}
+          WHERE ${projectTopics.projectId} = ${projects.id}
+          AND ${inArray(projectTopics.topicId, topicIds)}
+        )`)
+      }
+
+      if (skillIds.length > 0) {
+        projectConditions.push(sql`EXISTS (
+          SELECT 1
+          FROM ${projectSkills}
+          WHERE ${projectSkills.projectId} = ${projects.id}
+          AND ${inArray(projectSkills.skillId, skillIds)}
+        )`)
+      }
+
       const projectResults = await db
         .select({
           id: projects.id,
@@ -65,12 +136,7 @@ export async function GET(request: Request) {
         })
         .from(projects)
         .innerJoin(profile, eq(projects.profileId, profile.id))
-        .where(
-          or(
-            ilike(projects.name, `%${query}%`),
-            ilike(projects.description, `%${query}%`)
-          )
-        )
+        .where(and(...projectConditions))
         .limit(10)
 
       results.projects = projectResults
