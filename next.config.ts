@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ hostname: "*" }],
     qualities: [25, 50, 75, 100],
   },
+  serverExternalPackages: ["ws"],
   experimental: {
     serverActions: {
       bodySizeLimit: "3mb",

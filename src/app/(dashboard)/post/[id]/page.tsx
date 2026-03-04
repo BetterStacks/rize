@@ -1,24 +1,29 @@
-import { getPostById, getPostComments } from '@/actions/post-actions'
-import PostPage from '@/components/post-page'
-import DashboardLayout from '@/components/layout/DashboardLayout'
-import React, { FC } from 'react'
+import { getPostById, getPostComments } from "@/actions/post-actions";
+import PostPage from "@/components/post-page";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import Sidebar from "@/components/sidebar/Sidebar";
+import React, { FC } from "react";
 
 type PageProps = {
   params: Promise<{ id: string }>;
 };
 
 const Page: FC<PageProps> = async ({ params }) => {
-  const id = (await params)?.id as string
+  const id = (await params)?.id as string;
   const [data, commments] = await Promise.all([
     getPostById(id),
-    getPostComments(id, 'newest'),
-  ])
-  
+    getPostComments(id, "newest"),
+  ]);
+
   return (
-    <DashboardLayout 
-      variant="post"
+    <DashboardLayout
+      variant="full"
       contentMaxWidth="max-w-2xl"
       contentPadding="px-0"
+      leftSidebarSlot={{
+        content: <Sidebar className=" w-full" />,
+        className: "border-none",
+      }}
     >
       <PostPage
         initialPostData={data}
@@ -26,7 +31,7 @@ const Page: FC<PageProps> = async ({ params }) => {
         id={id}
       />
     </DashboardLayout>
-  )
-}
+  );
+};
 
-export default Page
+export default Page;

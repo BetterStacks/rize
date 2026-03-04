@@ -75,7 +75,7 @@ const PostPage: FC<PostPageProps> = ({
 
   const score = (post.upvoteCount || 0) - (post.downvoteCount || 0);
   return (
-    <div className="w-full">
+    <div className="w-full max-w-2xl mx-auto">
       <Card className="w-full shadow-none bg-transparent dark:bg-transparent border-none">
         <CardHeader className="px-0  mt-4 z-50 top-0 dark:bg-dark-bg/80 pt-0 backdrop-blur-md bg-white/80 border-b border-neutral-200 dark:border-dark-border pb-4">
           <div className={cn("flex items-center justify-between px-4 mt-4")}>
@@ -91,7 +91,7 @@ const PostPage: FC<PostPageProps> = ({
                   <h2
                     className={cn(
                       " leading-tight text-black  ",
-                      "dark:text-white"
+                      "dark:text-white",
                     )}
                   >
                     {post.name}
@@ -99,7 +99,7 @@ const PostPage: FC<PostPageProps> = ({
                 </Link>
                 <div
                   className={cn(
-                    "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 "
+                    "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 ",
                   )}
                 >
                   <p className={cn("mr-1")}>@{post.username}</p>
@@ -117,7 +117,7 @@ const PostPage: FC<PostPageProps> = ({
             <div
               className={cn(
                 "text-neutral-600 leading-snug mb-8 mt-4 px-4  ",
-                "dark:text-neutral-300  prose dark:prose-invert dark:prose-gray-300"
+                "dark:text-neutral-300  prose dark:prose-invert dark:prose-gray-300",
               )}
               dangerouslySetInnerHTML={{ __html: post?.content ?? "" }}
             />
@@ -127,7 +127,7 @@ const PostPage: FC<PostPageProps> = ({
               <div
                 className={cn(
                   "relative border  border-neutral-200 aspect-video  w-full rounded-2xl overflow-hidden ",
-                  "dark:border-dark-border"
+                  "dark:border-dark-border",
                 )}
                 style={{
                   objectFit: "cover",
@@ -168,7 +168,7 @@ const PostPage: FC<PostPageProps> = ({
           <div
             className={cn(
               "px-4 text-sm  text-neutral-500 dark:text-neutral-400 mt-2",
-              (post?.media || post?.link) && "mt-4 px-6"
+              (post?.media || post?.link) && "mt-4 px-6",
             )}
           >
             <span className="mr-1.5">
@@ -197,7 +197,7 @@ const PostPage: FC<PostPageProps> = ({
             handleVoteClick={handleVoteClick}
             commentCount={Number(post.commentCount)}
             hasCommented={Boolean(post.commented)}
-            handleCommentClick={() => { }}
+            handleCommentClick={() => {}}
             isBookmarked={!!post.bookmarked}
             handleBookmarkClick={handleBookmarkClick}
             handleShareClick={handleShareClick}

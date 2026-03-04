@@ -5,7 +5,7 @@ import { getGalleryItems } from "@/actions/gallery-actions";
 import { getSections } from "@/actions/general-actions";
 import { getAllPages } from "@/actions/page-actions";
 import { getUserPosts } from "@/actions/post-actions";
-import { getProfileByUsername } from "@/actions/profile-actions";
+import { getProfileByUsername, getProfileByUsernameCached } from "@/actions/profile-actions";
 import { getAllProjects } from "@/actions/project-actions";
 import { getStoryElementsByUsername } from "@/actions/story-actions";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -25,10 +25,10 @@ import Sidebar from "./sidebar/Sidebar";
 
 type Props = {
   username: string;
-  initialUser?: Awaited<ReturnType<typeof getProfileByUsername>> | null;
+  // initialUser?: Awaited<ReturnType<typeof getProfileByUsername>> | null;
 };
 
-const ProfilePage: FC<Props> = async ({ username, initialUser = null }) => {
+const ProfilePage: FC<Props> = async ({ username }) => {
   // Check if username is reserved - if so, show 404
   if (isUsernameReserved(username)) {
     notFound();
@@ -36,7 +36,7 @@ const ProfilePage: FC<Props> = async ({ username, initialUser = null }) => {
 
   const [session, fetchedUser] = await Promise.all([
     getServerSession(),
-    initialUser ? Promise.resolve(initialUser) : getProfileByUsername(username),
+    getProfileByUsernameCached(username),
   ]);
   const user = fetchedUser;
 
@@ -59,7 +59,7 @@ const ProfilePage: FC<Props> = async ({ username, initialUser = null }) => {
       pages.map((page) => ({
         ...page,
         avatar: page.thumbnail || "", // Provide a default or derived avatar value
-      }))
+      })),
     ),
     getAllProjects(username),
     getAllEducation(username),
@@ -81,9 +81,11 @@ const ProfilePage: FC<Props> = async ({ username, initialUser = null }) => {
     : null;
 
   const shouldShowPhoneModal =
-    isMine && session?.user && !hasSkipped
-    && !session.user.phoneNumberVerified && !session.user.onboardingCallId
-
+    isMine &&
+    session?.user &&
+    !hasSkipped &&
+    !session.user.phoneNumberVerified &&
+    !session.user.onboardingCallId;
 
   return (
     <ScrollFixWrapper>
@@ -107,15 +109,30 @@ const ProfilePage: FC<Props> = async ({ username, initialUser = null }) => {
         certificates={certificates}
         profileSections={sections}
       >
-        <DashboardLayout variant="profile" isMine={isMine}
-          leftSidebarSlot={session ? { content: <Sidebar className='border-none w-full' />, size: 5, minSize: 5, maxSize: 5 } : undefined}
-          rightSidebarSlot={isMine ? {
-            content: <RightSidebar className="w-full" />,
-            size: 25,
-            maxSize: 25,
-            minSize: 25,
-
-          } : undefined}>
+        <DashboardLayout
+          variant="profile"
+          isMine={isMine}
+          leftSidebarSlot={
+            session
+              ? {
+                content: <Sidebar className="border-none w-full" />,
+                size: 5,
+                minSize: 5,
+                maxSize: 5,
+              }
+              : undefined
+          }
+          rightSidebarSlot={
+            isMine
+              ? {
+                content: <RightSidebar className="w-full" />,
+                size: 25,
+                maxSize: 25,
+                minSize: 25,
+              }
+              : undefined
+          }
+        >
           {/* {shouldStartWalkthrough && <Walkthrough />} */}
           <UserProfile
             isMine={isMine}
@@ -127,7 +144,9 @@ const ProfilePage: FC<Props> = async ({ username, initialUser = null }) => {
             workExperience={workExperience}
             posts={posts}
             storyElements={
-              (storyElements?.success ? storyElements.data || [] : []) as TStoryElement[]
+              (storyElements?.success
+                ? storyElements.data || []
+                : []) as TStoryElement[]
             }
             certificates={certificates}
           />

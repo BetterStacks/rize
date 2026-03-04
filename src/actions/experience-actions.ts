@@ -6,7 +6,7 @@ import { experience } from "@/db/schema";
 import db from "@/lib/db";
 import { and, eq } from "drizzle-orm";
 import { requireProfile } from "@/lib/auth";
-import { TExperience } from "@/lib/types";
+import { EMPLOYMENT_TYPES, TExperience } from "@/lib/types";
 import { getProfileIdByUsername } from "./profile-actions";
 
 const experienceSchema = z.object({
@@ -14,7 +14,7 @@ const experienceSchema = z.object({
   title: z.string().min(1),
   company: z.string().min(1),
   location: z.string().optional(),
-  employmentType: z.enum(["Full-time", "Part-time", "Internship", "Consultant", "Freelance", "Volunteer"]).optional(),
+  employmentType: z.enum(EMPLOYMENT_TYPES),
   website: z.string().url().optional().or(z.literal("")),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
@@ -35,7 +35,18 @@ export async function upsertExperience(data: z.infer<typeof experienceSchema>) {
       .where(eq(experience?.id, validated.id));
   } else {
     const { id, ...insertData } = validated;
-    await db.insert(experience).values({ ...insertData, profileId: profileId });
+    await db.insert(experience).values({
+      title: insertData.title,
+      company: insertData.company,
+      location: insertData.location,
+      employmentType: insertData.employmentType,
+      website: insertData.website,
+      startDate: insertData.startDate,
+      endDate: insertData.endDate,
+      currentlyWorking: insertData.currentlyWorking,
+      description: insertData.description,
+      profileId: profileId,
+    });
   }
 
   // revalidatePath("/[username]");

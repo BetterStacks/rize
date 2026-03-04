@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 // import { DateRangePicker } from "@/components/ui/calendar";
 import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
 import { queryClient } from "@/lib/providers";
-import { EMPLOYMENT_TYPES } from "@/lib/types";
+import { EMPLOYMENT_TYPES, EmploymentType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -35,7 +35,7 @@ const experienceSchema = z.object({
   title: z.string().min(1, "Job title is required"),
   company: z.string().min(1, "Company name is required"),
   location: z.string().optional(),
-  employmentType: z.string().optional(),
+  employmentType: z.enum(EMPLOYMENT_TYPES, { required_error: "Employment type is required" }),
   website: z.string().url().optional().or(z.literal("")),
   description: z.string().optional(),
   startDate: z.date({ required_error: "Start date is required" }),
@@ -87,7 +87,7 @@ export const WorkExperienceForm: FC<WorkExperienceFormProps> = ({
         title: defaultValues.title ?? "",
         company: defaultValues.company ?? "",
         location: defaultValues.location ?? "",
-        employmentType: defaultValues.employmentType ?? "",
+        employmentType: (defaultValues.employmentType as EmploymentType) ?? undefined,
         website: defaultValues.website ?? "",
         description: defaultValues.description ?? "",
         startDate: defaultValues.startDate ?? undefined,

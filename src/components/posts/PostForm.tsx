@@ -37,6 +37,8 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { queryClient } from "@/lib/providers";
+import UserAvatar from "../user-avatar";
+import { useSession } from "@/lib/auth-client";
 
 const PostSchema = z.object({
   content: z.string().max(5000).optional(),
@@ -61,7 +63,7 @@ const stripHtml = (html: string) => html.replace(/<[^>]+>/g, "").trim();
 
 export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
   const [mediaFile, setMediaFile] = useState<MediaFile | undefined>();
-
+  const session = useSession();
   const { data: topicsData, isLoading: isTopicsLoading } = useQuery({
     queryKey: ["topics"],
     queryFn: getTopics,

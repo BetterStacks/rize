@@ -132,6 +132,7 @@ async function processLinkedInData(profileId: string, linkedinUrl: string) {
             profileId,
             title: exp.title,
             company: exp.company,
+            employmentType: 'Full-time' as const,
             location: exp.location || null,
             startDate: parseDate(exp.start_date),
             endDate: exp.end_date ? parseDate(exp.end_date) : null,

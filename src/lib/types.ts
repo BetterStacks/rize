@@ -448,8 +448,7 @@ export const addExperienceSchema = z.object({
     .optional()
     .describe("The geographic location (e.g., 'San Francisco, CA' or 'Remote')"),
   employmentType: z
-    .string()
-    .optional()
+    .enum(EMPLOYMENT_TYPES)
     .describe("The type of employment (e.g., 'Full-time', 'Contract')"),
   startDate: z
     .string()
