@@ -14,7 +14,7 @@ const experienceSchema = z.object({
   title: z.string().min(1),
   company: z.string().min(1),
   location: z.string().optional(),
-  employmentType: z.string().optional(),
+  employmentType: z.enum(["Full-time", "Part-time", "Internship", "Consultant", "Freelance", "Volunteer"]).optional(),
   website: z.string().url().optional().or(z.literal("")),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
@@ -28,12 +28,14 @@ export async function upsertExperience(data: z.infer<typeof experienceSchema>) {
   const validated = experienceSchema.parse(data);
 
   if (validated.id) {
+    const { id, ...updateData } = validated;
     await db
       .update(experience)
-      .set({ ...validated })
+      .set(updateData)
       .where(eq(experience?.id, validated.id));
   } else {
-    await db.insert(experience).values({ ...validated, profileId: profileId });
+    const { id, ...insertData } = validated;
+    await db.insert(experience).values({ ...insertData, profileId: profileId });
   }
 
   // revalidatePath("/[username]");

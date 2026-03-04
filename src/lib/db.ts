@@ -16,6 +16,16 @@ if (!connectionString || connectionString.trim() === '') {
 
 const pool = new Pool({
   connectionString,
+  connectionTimeoutMillis: 8000,
+  idleTimeoutMillis: 30000,
+  query_timeout: 15000,
+  statement_timeout: 15000,
+  keepAlive: true,
+  max: 20,
+})
+
+pool.on('error', (err) => {
+  console.error('[db] Unexpected idle client error:', err)
 })
 
 const db = drizzle({ client: pool, schema: tables })

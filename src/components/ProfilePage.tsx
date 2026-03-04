@@ -25,17 +25,20 @@ import Sidebar from "./sidebar/Sidebar";
 
 type Props = {
   username: string;
+  initialUser?: Awaited<ReturnType<typeof getProfileByUsername>> | null;
 };
 
-const ProfilePage: FC<Props> = async ({ username }) => {
+const ProfilePage: FC<Props> = async ({ username, initialUser = null }) => {
   // Check if username is reserved - if so, show 404
   if (isUsernameReserved(username)) {
     notFound();
   }
 
-  const session = await getServerSession();
-  // console.log(session);
-  const user = await getProfileByUsername(username);
+  const [session, fetchedUser] = await Promise.all([
+    getServerSession(),
+    initialUser ? Promise.resolve(initialUser) : getProfileByUsername(username),
+  ]);
+  const user = fetchedUser;
 
   if (!user) {
     return <ProfileNotFound username={username} />;

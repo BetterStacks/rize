@@ -148,10 +148,16 @@ export type EnrichedSession = {
 
 // Export server-side session helper with enriched user data
 export const getServerSession = async (): Promise<EnrichedSession | null> => {
-  const { headers } = await import("next/headers");
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  let session: BetterAuthSession | null = null;
+  try {
+    const { headers } = await import("next/headers");
+    session = await auth.api.getSession({
+      headers: await headers(),
+    });
+  } catch (error) {
+    console.error("Error fetching auth session:", error);
+    return null;
+  }
 
   if (!session) return null;
 

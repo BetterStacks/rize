@@ -9,29 +9,23 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
+const isBlockedUsername = (username: string) =>
+  username.includes('.') || username === 'favicon' || username.startsWith('_next')
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const username = (await params).username
 
   // Block requests for static files that might slip through
-  if (username.includes('.') || username === 'favicon' || username.startsWith('_next')) {
+  if (isBlockedUsername(username)) {
     return {
       title: 'Not Found - Rize',
       description: 'Page not found',
     }
   }
 
-  const user = await getProfileByUsername(username)
-
-  if (!user) {
-    return {
-      title: 'Profile Not Found - Rize',
-      description: 'This profile could not be found',
-    }
-  }
-
   return {
-    title: `${user?.displayName || 'User'} | Rize`,
-    description: `${user?.bio}`,
+    title: `@${username} | Rize`,
+    description: `Explore ${username}'s profile on Rize.`,
   }
 }
 
@@ -39,11 +33,17 @@ const Page: FC<Props> = async ({ params }) => {
   const username = (await params).username
 
   // Block requests for static files that might slip through
-  if (username.includes('.') || username === 'favicon' || username.startsWith('_next')) {
+  if (isBlockedUsername(username)) {
     return notFound()
   }
 
-  return <ProfilePage username={username} />
+  const user = await getProfileByUsername(username)
+
+  if (!user) {
+    return notFound()
+  }
+
+  return <ProfilePage username={username} initialUser={user} />
 }
 
 export default Page
