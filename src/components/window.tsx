@@ -89,6 +89,10 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
                     url: project.link,
                     id: "",
                     profileId: "",
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    upvoteCount: 0,
+                    downvoteCount: 0,
                   }}
                   onOpenProject={() => { }}
                   onEditProject={() => { }}

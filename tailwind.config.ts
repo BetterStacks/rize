@@ -11,7 +11,7 @@ export default {
 		extend: {
 			colors: {
 				'dark-border': '#323232',
-				'dark-bg': '#181818',
+				'dark-bg': '#171717',
 				'light-bg': '#ffffff',
 				'main-yellow': '#FFD936',
 				background: 'hsl(var(--background))',
@@ -97,5 +97,5 @@ export default {
 			}
 		}
 	},
-	plugins: [require('tailwindcss-animate'), scrollbarHide],
+	plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography'), scrollbarHide],
 } satisfies Config

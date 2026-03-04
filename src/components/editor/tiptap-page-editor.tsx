@@ -62,7 +62,7 @@ const TiptapPageEditor = ({ author, isMyPage }: TiptapPageEditorProps) => {
   const { state, setState } = useEditorState()
   const params = useParams()
   const [isSaving, setIsSaving] = useState(false)
-  
+
   // Initialize Tiptap editor
   const editor = useEditor({
     immediatelyRender: false,
@@ -150,9 +150,9 @@ const TiptapPageEditor = ({ author, isMyPage }: TiptapPageEditorProps) => {
   // Set initial content from state
   const initializeContent = useCallback(() => {
     if (!editor || !state?.content) return
-    
+
     let htmlContent = '<p></p>'
-    
+
     try {
       // Check if content is already HTML
       if (state.content.startsWith('<')) {
@@ -201,7 +201,7 @@ const TiptapPageEditor = ({ author, isMyPage }: TiptapPageEditorProps) => {
       console.error('Error parsing content:', error)
       htmlContent = '<p></p>'
     }
-    
+
     editor.commands.setContent(htmlContent, { emitUpdate: false })
   }, [editor, state?.content])
 
@@ -220,12 +220,12 @@ const TiptapPageEditor = ({ author, isMyPage }: TiptapPageEditorProps) => {
 
   const handleSave = useCallback(async () => {
     if (!state?.id || !editor || isSaving) return
-    
+
     setIsSaving(true)
     try {
       // Get current content directly from the editor
       const currentContent = editor.getHTML()
-      
+
       const result = await updatePage({
         id: state.id,
         title: state.title,
@@ -344,8 +344,8 @@ const TiptapPageEditor = ({ author, isMyPage }: TiptapPageEditorProps) => {
             <div className="tiptap-container">
               {/* Editor Content */}
               <div className="relative">
-                <EditorContent 
-                  editor={editor} 
+                <EditorContent
+                  editor={editor}
                   className="min-h-screen"
                 />
               </div>
@@ -354,92 +354,85 @@ const TiptapPageEditor = ({ author, isMyPage }: TiptapPageEditorProps) => {
         </div>
       </div>
 
-        {/* Fixed Bottom Toolbar - Only for page owners */}
-        {isMyPage && editor && (
-          <div className="absolute bottom-0 left-0 right-0 pointer-events-none z-50">
-            {/* Opacity gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-white/30 to-transparent dark:from-gray-900/70 dark:via-gray-900/30 dark:to-transparent"></div>
-            
-            <div className="relative flex justify-center pb-6">
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2 shadow-xl pointer-events-auto">
+      {/* Fixed Bottom Toolbar - Only for page owners */}
+      {isMyPage && editor && (
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none z-50">
+          {/* Opacity gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-white/30 to-transparent dark:from-gray-900/70 dark:via-gray-900/30 dark:to-transparent"></div>
+
+          <div className="relative flex justify-center pb-6">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2 shadow-xl pointer-events-auto">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => editor.chain().focus().toggleBold().run()}
-                  className={`p-2 rounded-lg transition-colors ${
-                    editor.isActive('bold')
+                  className={`p-2 rounded-lg transition-colors ${editor.isActive('bold')
                       ? 'bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
+                    }`}
                 >
                   <strong>B</strong>
                 </button>
                 <button
                   onClick={() => editor.chain().focus().toggleItalic().run()}
-                  className={`p-2 rounded-lg transition-colors ${
-                    editor.isActive('italic')
+                  className={`p-2 rounded-lg transition-colors ${editor.isActive('italic')
                       ? 'bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
+                    }`}
                 >
                   <em>I</em>
                 </button>
                 <button
                   onClick={() => editor.chain().focus().toggleUnderline().run()}
-                  className={`p-2 rounded-lg transition-colors ${
-                    editor.isActive('underline')
+                  className={`p-2 rounded-lg transition-colors ${editor.isActive('underline')
                       ? 'bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
+                    }`}
                 >
                   <u>U</u>
                 </button>
                 <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
                 <button
                   onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                  className={`px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
-                    editor.isActive('heading', { level: 1 })
+                  className={`px-3 py-2 rounded-lg transition-colors text-sm font-medium ${editor.isActive('heading', { level: 1 })
                       ? 'bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
+                    }`}
                 >
                   H1
                 </button>
                 <button
                   onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                  className={`px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
-                    editor.isActive('heading', { level: 2 })
+                  className={`px-3 py-2 rounded-lg transition-colors text-sm font-medium ${editor.isActive('heading', { level: 2 })
                       ? 'bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
+                    }`}
                 >
                   H2
                 </button>
                 <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
                 <button
                   onClick={() => editor.chain().focus().toggleBulletList().run()}
-                  className={`p-2 rounded-lg transition-colors ${
-                    editor.isActive('bulletList')
+                  className={`p-2 rounded-lg transition-colors ${editor.isActive('bulletList')
                       ? 'bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
+                    }`}
                 >
                   •
                 </button>
                 <button
                   onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                  className={`p-2 rounded-lg transition-colors ${
-                    editor.isActive('orderedList')
+                  className={`p-2 rounded-lg transition-colors ${editor.isActive('orderedList')
                       ? 'bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
+                    }`}
                 >
                   1.
                 </button>
               </div>
-              </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
     </div>
   )

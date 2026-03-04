@@ -1,16 +1,25 @@
 "use server";
 
-import { accounts, profile, profileSections, users, profileSkills, skills } from "@/db/schema";
+import {
+  accounts,
+  profile,
+  profileSections,
+  users,
+  profileSkills,
+  skills,
+} from "@/db/schema";
 import {
   requireAuth,
   requireAuthWithProfile,
   requireProfile,
+  type EnrichedSession,
 } from "@/lib/auth";
 import db from "@/lib/db";
 import { GetProfileByUsername, profileSchema } from "@/lib/types";
 import { and, desc, eq, getTableColumns, not, sql, lt } from "drizzle-orm";
 import { cache } from "react";
 import { z } from "zod";
+import { getEnrichedSession } from "./auth-actions";
 
 export async function updateProfile(data: z.infer<typeof profileSchema>) {
   try {
@@ -42,13 +51,15 @@ export async function updateProfile(data: z.infer<typeof profileSchema>) {
       // Handle skills
       if (skillIds) {
         await db.transaction(async (tx) => {
-          await tx.delete(profileSkills).where(eq(profileSkills.profileId, profileId));
+          await tx
+            .delete(profileSkills)
+            .where(eq(profileSkills.profileId, profileId));
           if (skillIds.length > 0) {
             await tx.insert(profileSkills).values(
               skillIds.map((skillId: string) => ({
                 profileId,
                 skillId,
-              }))
+              })),
             );
           }
         });
@@ -82,6 +93,10 @@ export const getProfileById = async (id: string) => {
   }
   return p[0];
 };
+
+export const getProfileByUsernameCached = cache(async (username: string) =>
+  getProfileByUsername(username),
+);
 
 export const getProfileByUsername = async (username: string) => {
   const { ...rest } = getTableColumns(profile);
@@ -211,7 +226,7 @@ export const searchProfiles = async (query: string) => {
     })
     .from(profile)
     .where(
-      sql`(${profile.displayName} ILIKE ${'%' + q + '%'} OR ${profile.username} ILIKE ${'%' + q + '%'})`
+      sql`(${profile.displayName} ILIKE ${"%" + q + "%"} OR ${profile.username} ILIKE ${"%" + q + "%"})`,
     )
     .limit(10);
 };
@@ -225,7 +240,7 @@ export const getProfileIdByUsername = async (username: string) => {
     throw new Error("Profile not found");
   }
   return profileId[0];
-}
+};
 
 export const getProfileByUserId = async (userId: string) => {
   const userProfile = await db
@@ -239,61 +254,74 @@ export const getProfileByUserId = async (userId: string) => {
 };
 
 export const getCurrentUserProfile = async () => {
-  const session = await requireAuth();
-  const { ...rest } = getTableColumns(profile);
-
-  const userProfile = await db
-    .select({
-      ...rest,
-      email: users.email,
-      image: users.image,
-      name: users.name,
-      isOnboarded: users.isOnboarded,
-      letrazId: users.letrazId,
-      skills: sql`
-        (
-          SELECT
-            CASE WHEN COUNT(*) = 0 THEN NULL
-            ELSE json_agg(json_build_object(
-              'id', s.id,
-              'name', s.name,
-              'slug', s.slug
-            ))
-            END
-          FROM profile_skills ps
-          JOIN skills s ON ps.skill_id = s.id
-          WHERE ps.profile_id = profile.id
-        )
-      `.as("skills"),
-    })
-    .from(users)
-    .leftJoin(profile, eq(profile.userId, users.id))
-    .where(eq(users.id, session.user.id))
-    .limit(1);
-
-  if (!userProfile || userProfile.length === 0) {
+  let session: EnrichedSession;
+  try {
+    session = await requireAuth();
+  } catch {
+    // Read-only session enrichment path: treat auth failures as signed-out
+    // so callers don't fail with 500 on transient auth session errors.
     return null;
   }
 
-  const base = userProfile[0];
-
-  // Determine auth method from connected accounts; fallback to 'email'
-  let authMethod: "google" | "github" | "linkedin" | "email" = "email";
   try {
-    const userAccounts = await db
-      .select({ providerId: accounts.providerId })
-      .from(accounts)
-      .where(eq(accounts.userId, session.user.id));
+    const { ...rest } = getTableColumns(profile);
 
-    const providers = userAccounts.map((a) => a.providerId);
-    if (providers.includes("google")) authMethod = "google";
-    else if (providers.includes("github")) authMethod = "github";
-    else if (providers.includes("linkedin")) authMethod = "linkedin";
-  } catch (e) {
-    // ignore
+    const userProfile = await db
+      .select({
+        ...rest,
+        email: users.email,
+        image: users.image,
+        name: users.name,
+        isOnboarded: users.isOnboarded,
+        letrazId: users.letrazId,
+        skills: sql`
+          (
+            SELECT
+              CASE WHEN COUNT(*) = 0 THEN NULL
+              ELSE json_agg(json_build_object(
+                'id', s.id,
+                'name', s.name,
+                'slug', s.slug
+              ))
+              END
+            FROM profile_skills ps
+            JOIN skills s ON ps.skill_id = s.id
+            WHERE ps.profile_id = profile.id
+          )
+        `.as("skills"),
+      })
+      .from(users)
+      .leftJoin(profile, eq(profile.userId, users.id))
+      .where(eq(users.id, session.user.id))
+      .limit(1);
+
+    if (!userProfile || userProfile.length === 0) {
+      return null;
+    }
+
+    const base = userProfile[0];
+
+    // Determine auth method from connected accounts; fallback to 'email'
+    let authMethod: "google" | "github" | "linkedin" | "email" = "email";
+    try {
+      const userAccounts = await db
+        .select({ providerId: accounts.providerId })
+        .from(accounts)
+        .where(eq(accounts.userId, session.user.id));
+
+      const providers = userAccounts.map((a) => a.providerId);
+      if (providers.includes("google")) authMethod = "google";
+      else if (providers.includes("github")) authMethod = "github";
+      else if (providers.includes("linkedin")) authMethod = "linkedin";
+    } catch {
+      // ignore account provider lookup failures and keep fallback
+    }
+
+    return { ...base, authMethod };
+  } catch (error) {
+    console.error("Error fetching current user profile:", error);
+    return null;
   }
-
-  return { ...base, authMethod };
 };
 
 const sectionSchema = z.object({
@@ -303,7 +331,7 @@ const sectionSchema = z.object({
 });
 
 export async function updateSectionsAction(
-  sections: z.infer<typeof sectionSchema>[]
+  sections: z.infer<typeof sectionSchema>[],
 ) {
   const profileId = await requireProfile();
 
@@ -318,10 +346,10 @@ export async function updateSectionsAction(
         .where(
           and(
             eq(profileSections.profileId, profileId),
-            eq(profileSections.slug, section.slug)
-          )
-        )
-    )
+            eq(profileSections.slug, section.slug),
+          ),
+        ),
+    ),
   );
 }
 
@@ -342,7 +370,7 @@ export const getRecentlyJoinedProfiles = async (limit: number = 5) => {
 
 export const getRecentlyJoinedProfilesCached = cache(
   async (limit: number = 5) => {
-    const session = await requireAuth();
+    const session = await getEnrichedSession();
 
     return await db
       .select({
@@ -351,17 +379,18 @@ export const getRecentlyJoinedProfilesCached = cache(
         profileImage: profile.profileImage,
         image: users.image,
         name: users.name,
+        createdAt: profile.createdAt,
       })
       .from(profile)
       .innerJoin(users, eq(profile.userId, users.id))
       .where(
         session && session.user.username
           ? not(eq(profile.username, session.user.username))
-          : undefined
+          : undefined,
       )
       .orderBy(desc(profile.createdAt))
       .limit(limit);
-  }
+  },
 );
 
 /**

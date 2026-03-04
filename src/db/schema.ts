@@ -1,9 +1,11 @@
+import { EmploymentType as TEmploymentType } from "@/lib/types";
 import { relations } from "drizzle-orm";
 import {
   boolean,
   customType,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   primaryKey,
   text,
@@ -38,6 +40,11 @@ const PageStatus = customType<{ data: TPageStatus }>({
   },
 });
 const ProjectStatus = customType<{ data: TProjectStatus }>({
+  dataType() {
+    return "text";
+  },
+});
+const EmploymentType = customType<{ data: TEmploymentType }>({
   dataType() {
     return "text";
   },
@@ -177,8 +184,8 @@ export const postLinks = pgTable("post_links", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const likes = pgTable(
-  "likes",
+export const postVotes = pgTable(
+  "post_votes",
   {
     profileId: uuid("profile_id")
       .references(() => profile.id, { onDelete: "cascade" })
@@ -186,6 +193,7 @@ export const likes = pgTable(
     postId: uuid("post_id")
       .references(() => posts.id, { onDelete: "cascade" })
       .notNull(),
+    value: integer("value").notNull().default(1), // 1 for upvote, -1 for downvote
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -194,7 +202,7 @@ export const likes = pgTable(
     return {
       pk: primaryKey({ columns: [table.profileId, table.postId] }),
     };
-  }
+  },
 );
 
 export const comments = pgTable("comments", {
@@ -235,7 +243,7 @@ export const bookmarks = pgTable(
     return {
       pk: primaryKey({ columns: [table.profileId, table.postId] }),
     };
-  }
+  },
 );
 
 export const projectBookmarks = pgTable(
@@ -255,7 +263,7 @@ export const projectBookmarks = pgTable(
     return {
       pk: primaryKey({ columns: [table.profileId, table.projectId] }),
     };
-  }
+  },
 );
 
 export const postMedia = pgTable("post_media", {
@@ -310,29 +318,26 @@ export const projects = pgTable("projects", {
     onDelete: "cascade",
   }),
   url: text("url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$onUpdate(() => new Date()),
 });
 
-export const categories = pgTable("categories", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull().unique(),
-  slug: text("slug").notNull().unique(),
-});
-
-export const projectCategories = pgTable(
-  "project_categories",
+export const projectTopics = pgTable(
+  "project_topics",
   {
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
 
-    categoryId: uuid("category_id")
+    topicId: uuid("topic_id")
       .notNull()
-      .references(() => categories.id, { onDelete: "cascade" }),
+      .references(() => topics.id, { onDelete: "cascade" }),
   },
-
   (t) => ({
-    pk: primaryKey({ columns: [t.projectId, t.categoryId] }),
-  })
+    pk: primaryKey({ columns: [t.projectId, t.topicId] }),
+  }),
 );
 
 export const skills = pgTable("skills", {
@@ -353,7 +358,7 @@ export const projectSkills = pgTable(
   },
   (t) => ({
     pk: primaryKey({ columns: [t.projectId, t.skillId] }),
-  })
+  }),
 );
 
 export const projectCollaborators = pgTable(
@@ -369,7 +374,7 @@ export const projectCollaborators = pgTable(
   },
   (t) => ({
     pk: primaryKey({ columns: [t.projectId, t.profileId] }),
-  })
+  }),
 );
 
 export const projectCollaboratorsRelations = relations(
@@ -383,7 +388,7 @@ export const projectCollaboratorsRelations = relations(
       fields: [projectCollaborators.profileId],
       references: [profile.id],
     }),
-  })
+  }),
 );
 
 export const profileSkills = pgTable(
@@ -398,7 +403,7 @@ export const profileSkills = pgTable(
   },
   (t) => ({
     pk: primaryKey({ columns: [t.profileId, t.skillId] }),
-  })
+  }),
 );
 
 export const projectMedia = pgTable("project_media", {
@@ -413,8 +418,8 @@ export const projectMedia = pgTable("project_media", {
   }),
 });
 
-export const projectUpvotes = pgTable(
-  "project_upvotes",
+export const projectVotes = pgTable(
+  "project_votes",
   {
     profileId: uuid("profile_id")
       .references(() => profile.id, { onDelete: "cascade" })
@@ -422,6 +427,7 @@ export const projectUpvotes = pgTable(
     projectId: uuid("project_id")
       .references(() => projects.id, { onDelete: "cascade" })
       .notNull(),
+    value: integer("value").notNull().default(1), // 1 for upvote, -1 for downvote
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -430,7 +436,7 @@ export const projectUpvotes = pgTable(
     return {
       pk: primaryKey({ columns: [table.profileId, table.projectId] }),
     };
-  }
+  },
 );
 
 export const education = pgTable("education", {
@@ -462,7 +468,7 @@ export const experience = pgTable("experience", {
   title: varchar("title", { length: 255 }).notNull(),
   company: varchar("company", { length: 255 }).notNull(),
   location: varchar("location", { length: 255 }),
-  employmentType: varchar("employment_type", { length: 100 }),
+  employmentType: EmploymentType("employment_type").notNull(),
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
   currentlyWorking: boolean("currently_working").notNull().default(false),
@@ -513,7 +519,7 @@ export const profileSectionsRelations = relations(
       fields: [profileSections.profileId],
       references: [profile.id],
     }),
-  })
+  }),
 );
 
 export const storyElements = pgTable("story_elements", {
@@ -545,8 +551,6 @@ export const postMediaRelations = relations(postMedia, ({ one }) => ({
   }),
 }));
 
-
-
 export const projectMediaRelations = relations(projectMedia, ({ one }) => ({
   projects: one(projects, {
     fields: [projectMedia.projectId],
@@ -558,24 +562,17 @@ export const projectMediaRelations = relations(projectMedia, ({ one }) => ({
   }),
 }));
 
-export const categoriesRelations = relations(categories, ({ many }) => ({
-  projects: many(projectCategories),
+export const projectTopicsRelations = relations(projectTopics, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectTopics.projectId],
+    references: [projects.id],
+  }),
+
+  topic: one(topics, {
+    fields: [projectTopics.topicId],
+    references: [topics.id],
+  }),
 }));
-
-export const projectCategoriesRelations = relations(
-  projectCategories,
-  ({ one }) => ({
-    project: one(projects, {
-      fields: [projectCategories.projectId],
-      references: [projects.id],
-    }),
-
-    category: one(categories, {
-      fields: [projectCategories.categoryId],
-      references: [categories.id],
-    }),
-  })
-);
 
 export const skillsRelations = relations(skills, ({ many }) => ({
   projects: many(projectSkills),
@@ -604,17 +601,27 @@ export const profileSkillsRelations = relations(profileSkills, ({ one }) => ({
   }),
 }));
 
-export const projectUpvotesRelations = relations(projectUpvotes, ({ one }) => ({
+export const postVotesRelations = relations(postVotes, ({ one }) => ({
   profile: one(profile, {
-    fields: [projectUpvotes.profileId],
+    fields: [postVotes.profileId],
     references: [profile.id],
   }),
-  project: one(projects, {
-    fields: [projectUpvotes.projectId],
-    references: [projects.id],
+  post: one(posts, {
+    fields: [postVotes.postId],
+    references: [posts.id],
   }),
 }));
 
+export const projectVotesRelations = relations(projectVotes, ({ one }) => ({
+  profile: one(profile, {
+    fields: [projectVotes.profileId],
+    references: [profile.id],
+  }),
+  project: one(projects, {
+    fields: [projectVotes.projectId],
+    references: [projects.id],
+  }),
+}));
 
 export const experienceRelations = relations(experience, ({ one }) => ({
   profile: one(profile, {
@@ -678,11 +685,12 @@ export const profileRelations = relations(profile, ({ many, one }) => ({
   education: many(education),
   certificates: many(certificates),
   projects: many(projects),
-  projectUpvotes: many(projectUpvotes),
+  projectVotes: many(projectVotes),
   sections: many(profileSections),
   storyElements: many(storyElements),
   page: many(page),
   skills: many(profileSkills),
+  votes: many(postVotes),
 }));
 
 export const storyElementsRelations = relations(storyElements, ({ one }) => ({
@@ -700,6 +708,8 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
     references: [profile.id],
   }),
   media: many(postMedia),
+  topics: many(postTopics),
+  votes: many(postVotes),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -708,11 +718,180 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
     references: [profile.id],
   }),
   media: many(projectMedia),
-  upvotes: many(projectUpvotes),
-  categories: many(projectCategories),
+  votes: many(projectVotes),
+  topics: many(projectTopics),
   skills: many(projectSkills),
   collaborators: many(projectCollaborators),
 }));
+
+// ── Topics ────────────────────────────────────────────────────────────────
+export const topics = pgTable("topics", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  emoji: text("emoji"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+/** Many-to-many: posts ↔ topics */
+export const postTopics = pgTable(
+  "post_topics",
+  {
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    topicId: uuid("topic_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.postId, t.topicId] }) }),
+);
+
+/** Users can subscribe to topics for their personalised feed */
+export const profileTopicSubscriptions = pgTable(
+  "profile_topic_subscriptions",
+  {
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    topicId: uuid("topic_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.profileId, t.topicId] }) }),
+);
+
+/** Users can follow other profiles (for personalised feed) */
+export const profileFollows = pgTable(
+  "profile_follows",
+  {
+    followerId: uuid("follower_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    followingId: uuid("following_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.followerId, t.followingId] }) }),
+);
+
+// Relations
+export const topicsRelations = relations(topics, ({ many }) => ({
+  posts: many(postTopics),
+  projects: many(projectTopics),
+  subscribers: many(profileTopicSubscriptions),
+}));
+
+export const postTopicsRelations = relations(postTopics, ({ one }) => ({
+  post: one(posts, { fields: [postTopics.postId], references: [posts.id] }),
+  topic: one(topics, { fields: [postTopics.topicId], references: [topics.id] }),
+}));
+
+export const profileTopicSubscriptionsRelations = relations(
+  profileTopicSubscriptions,
+  ({ one }) => ({
+    profile: one(profile, {
+      fields: [profileTopicSubscriptions.profileId],
+      references: [profile.id],
+    }),
+    topic: one(topics, {
+      fields: [profileTopicSubscriptions.topicId],
+      references: [topics.id],
+    }),
+  }),
+);
+
+export const profileFollowsRelations = relations(profileFollows, ({ one }) => ({
+  follower: one(profile, {
+    fields: [profileFollows.followerId],
+    references: [profile.id],
+    relationName: "follower",
+  }),
+  following: one(profile, {
+    fields: [profileFollows.followingId],
+    references: [profile.id],
+    relationName: "following",
+  }),
+}));
+
+// ── Custom Feeds ───────────────────────────────────────────────────────────
+export const customFeeds = pgTable("custom_feeds", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  profileId: uuid("profile_id")
+    .notNull()
+    .references(() => profile.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 100 }).notNull(),
+  description: text("description"),
+  isPublic: boolean("is_public").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const customFeedTopics = pgTable(
+  "custom_feed_topics",
+  {
+    feedId: uuid("feed_id")
+      .notNull()
+      .references(() => customFeeds.id, { onDelete: "cascade" }),
+    topicId: uuid("topic_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.feedId, t.topicId] }) }),
+);
+
+export const customFeedProfiles = pgTable(
+  "custom_feed_profiles",
+  {
+    feedId: uuid("feed_id")
+      .notNull()
+      .references(() => customFeeds.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.feedId, t.profileId] }) }),
+);
+
+export const customFeedsRelations = relations(customFeeds, ({ one, many }) => ({
+  profile: one(profile, {
+    fields: [customFeeds.profileId],
+    references: [profile.id],
+  }),
+  topics: many(customFeedTopics),
+  profiles: many(customFeedProfiles),
+}));
+
+export const customFeedTopicsRelations = relations(
+  customFeedTopics,
+  ({ one }) => ({
+    feed: one(customFeeds, {
+      fields: [customFeedTopics.feedId],
+      references: [customFeeds.id],
+    }),
+    topic: one(topics, {
+      fields: [customFeedTopics.topicId],
+      references: [topics.id],
+    }),
+  }),
+);
+
+export const customFeedProfilesRelations = relations(
+  customFeedProfiles,
+  ({ one }) => ({
+    feed: one(customFeeds, {
+      fields: [customFeedProfiles.feedId],
+      references: [customFeeds.id],
+    }),
+    profile: one(profile, {
+      fields: [customFeedProfiles.profileId],
+      references: [profile.id],
+    }),
+  }),
+);
 // Better-auth required tables
 export const accounts = pgTable("account", {
   id: text("id")
@@ -789,7 +968,7 @@ export const engagementMetrics = pgTable("engagement_metrics", {
   date: timestamp("date").notNull().defaultNow(),
   totalViews: integer("total_views").notNull().default(0),
   uniqueViews: integer("unique_views").notNull().default(0),
-  totalLikes: integer("total_likes").notNull().default(0),
+  totalVotes: integer("total_votes").notNull().default(0),
   totalComments: integer("total_comments").notNull().default(0),
   totalBookmarks: integer("total_bookmarks").notNull().default(0),
   profileClicks: integer("profile_clicks").notNull().default(0), // clicks on social links, projects, etc.
@@ -853,7 +1032,9 @@ export const roastAnalytics = pgTable("roast_analytics", {
   firstRoastAt: timestamp("first_roast_at"),
   lastRoastAt: timestamp("last_roast_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$onUpdate(() => new Date()),
 });
 
 export const roastHistory = pgTable("roast_history", {

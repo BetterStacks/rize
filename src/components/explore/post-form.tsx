@@ -1,17 +1,19 @@
 "use client";
 import { createPost } from "@/actions/post-actions";
+import { getTopics } from "@/actions/post-actions";
 import { queryClient } from "@/lib/providers";
 import { TUploadFilesResponse } from "@/lib/types";
 import { capitalizeFirstLetter, cn, isValidUrl } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { Link2, Loader, X } from "lucide-react";
+import { Hash, Link2, Loader, X } from "lucide-react";
 import { useSession } from "@/hooks/useAuth";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-hot-toast";
 import TextArea from "react-textarea-autosize";
+import { RichTextEditor } from "../ui/rich-text-editor";
 import { v4 } from "uuid";
 import { usePostsDialog } from "../dialog-provider";
 import { Button } from "../ui/button";
@@ -39,10 +41,19 @@ const PostForm = () => {
   const [content, setContent] = React.useState<string>("");
   const [showLinkInput, setShowLinkInput] = useState(false)
   const [linkInput, setLinkInput] = useState("")
+  const [showTopics, setShowTopics] = useState(false)
+  const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([])
   const session = useSession();
   const [open, setOpen] = usePostsDialog();
   const [link, setLink] = useState<string | null>();
   const data = session?.data?.user;
+
+  const { data: topicsData } = useQuery({
+    queryKey: ["topics"],
+    queryFn: getTopics,
+    staleTime: Infinity,
+  });
+  const topics = topicsData ?? [];
 
   const onDrop = (acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map((file) => ({
@@ -96,6 +107,7 @@ const PostForm = () => {
       content: content || undefined,
       file: media || undefined,
       link: link || undefined,
+      topicIds: selectedTopicIds.length > 0 ? selectedTopicIds : undefined,
     });
   };
   const { isPending, mutate } = useMutation({
@@ -153,6 +165,8 @@ const PostForm = () => {
       setLink(undefined);
       setShowLinkInput(false)
       setLinkInput("")
+      setSelectedTopicIds([])
+      setShowTopics(false)
       queryClient.setQueryData(["get-link-metadata"], null);
     }
   }, [open]);
@@ -174,17 +188,15 @@ const PostForm = () => {
         </DialogHeader>
         <input {...getInputProps()} />
         <div className="w-full h-full px-4 mt-2 flex flex-1 flex-col">
-          <TextArea
-            disabled={isPending}
-            className="appearance-none  bg-transparent text-neutral-600 dark:text-neutral-400 tracking-tight font-medium w-full  focus-visible:outline-none resize-none"
-            value={content.substring(0, MAX_WORD_COUNT)}
-            minRows={1}
-            onChange={(e) => {
-              setContent(e.target.value);
-            }}
+          <RichTextEditor
+            value={content}
+            onChange={(val) => setContent(val)}
             placeholder={`What's on your mind, ${capitalizeFirstLetter(
               data?.name?.split(" ")[0] as string
             )}?`}
+            minHeight="100px"
+            className="p-0"
+            containerClassName="p-0 border-none shadow-none dark:bg-transparent"
           />
 
           {showLinkInput && !link && (
@@ -283,6 +295,42 @@ const PostForm = () => {
               </div>
             )}
           </div>
+
+          {/* Topic selector */}
+          {showTopics && (
+            <div className="mt-3">
+              <p className="text-xs text-neutral-400 mb-2">Add up to 5 topics</p>
+              <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                {topics.map((t) => {
+                  const active = selectedTopicIds.includes(t.id);
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() =>
+                        setSelectedTopicIds((prev) =>
+                          active
+                            ? prev.filter((id) => id !== t.id)
+                            : prev.length < 5
+                              ? [...prev, t.id]
+                              : prev
+                        )
+                      }
+                      className={cn(
+                        "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all",
+                        active
+                          ? "bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 border-neutral-900 dark:border-white"
+                          : "border-neutral-200 dark:border-dark-border text-neutral-600 dark:text-neutral-400 hover:border-neutral-400"
+                      )}
+                    >
+                      {t.emoji && <span>{t.emoji}</span>}
+                      {t.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
         <DialogFooter className="px-4 pb-2">
           <div className="w-full mt-4 gap-x-2 flex items-center justify-between">
@@ -317,6 +365,19 @@ const PostForm = () => {
               >
                 <Link2 strokeWidth={1.4} className="-rotate-45 opacity-80" />
               </Button>
+              <Button
+                size={"icon"}
+                className="rounded-full"
+                variant={showTopics ? "default" : "ghost"}
+                disabled={isPending}
+                onClick={() => setShowTopics((v) => !v)}
+                title="Add topics"
+              >
+                <Hash strokeWidth={1.4} className="size-4 opacity-80" />
+              </Button>
+              {selectedTopicIds.length > 0 && (
+                <span className="text-xs text-neutral-400">{selectedTopicIds.length} topic{selectedTopicIds.length > 1 ? 's' : ''}</span>
+              )}
             </div>
             <div>
               <Button

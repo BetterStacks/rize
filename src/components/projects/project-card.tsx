@@ -7,8 +7,6 @@ import { useMediaQuery } from "@mantine/hooks";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
-  ChevronDown,
-  ChevronUp,
   Dot,
   Edit2,
   Globe,
@@ -18,7 +16,12 @@ import {
   Tag,
   Tags,
   Trash2,
+  ArrowBigUp,
+  ArrowBigDown,
 } from "lucide-react";
+import { useVoteProject } from "@/hooks/useVoteProject";
+import { useSession } from "@/lib/auth-client";
+import { useAuthDialog } from "../dialog-provider";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -26,6 +29,9 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import ProjectInteractions from "./ProjectInteractions";
+import { useToggleProjectBookmark } from "@/hooks/useToggleProjectBookmark";
+import { Share2 } from "lucide-react";
 
 type ProjectCardProps = {
   project: GetAllProjects;
@@ -67,11 +73,60 @@ const ProjectCard: FC<ProjectCardProps> = ({
       toast.error("Failed to delete project");
     },
   });
+
+  const session = useSession();
+  const [authOpen, setAuthOpen] = useAuthDialog();
+
+  const mutation = useVoteProject({
+    projectId: project.id,
+    userVote: project.userVote ?? null,
+  });
+
+  const bookmarkMutation = useToggleProjectBookmark({
+    projectId: project.id,
+    isBookmarked: !!project.bookmarked,
+  });
+
+  const handleBookmarkClick = () => {
+    bookmarkMutation.mutate();
+  };
+
+  const handleShareClick = async () => {
+    const url = `${window.location.origin}/project/${project.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: project.name,
+          url: url,
+        });
+      } catch (err) {
+        console.error("Error sharing", err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard");
+    }
+  };
+
+  const score = (project.upvoteCount || 0) - (project.downvoteCount || 0);
+
   return (
     <motion.div
-      className={cn("flex w-full group relative transition-all ")}
+      className={cn("flex w-full group relative transition-all items-center")}
     >
-      <Link href={`/project/${project.id}`} className="flex w-full items-center">
+      {/* <ProjectInteractions
+        upvoteCount={project.upvoteCount}
+        downvoteCount={project.downvoteCount}
+        userVote={project.userVote ?? null}
+        handleVoteClick={(value) => mutation.mutate(value)}
+        isBookmarked={!!project.bookmarked}
+        handleBookmarkClick={handleBookmarkClick}
+        handleShareClick={handleShareClick}
+        compact
+        className="flex-col mr-3"
+      /> */}
+
+      <Link href={`/project/${project.id}`} target="_blank" className="flex flex-1 items-center">
         <div className=" flex border-2 border-neutral-200 mr-4 dark:border-dark-border items-center justify-center relative overflow-hidden h-16  w-20 rounded-lg aspect-square">
           {project.logo ? (
             <Image
@@ -93,14 +148,14 @@ const ProjectCard: FC<ProjectCardProps> = ({
               {project.tagline}
             </p>
           )}
-          {project?.categories!?.length > 0 && <div className="flex items-center justify-start dark:text-gray-400 text-gray-700 gap-1 mt-1">
+          {project?.topics!?.length > 0 && <div className="flex items-center justify-start dark:text-gray-400 text-gray-700 gap-1 mt-1">
             <Tags className="mr-1 size-4" />
-            {project?.categories!?.map((category, index) => (
-              <React.Fragment key={category.id} >
+            {project?.topics!?.map((topic, index) => (
+              <React.Fragment key={topic.id} >
                 <span className="cursor-pointer hover:dark:text-main-yellow hover:text-yellow-500 hover:underline transition-all ease-in duration-75 underline-offset-2 text-sm">
-                  {category.name}
+                  {topic.name}
                 </span>
-                {project.categories!.length - 1 !== index && <span className="">•</span>}
+                {project.topics!.length - 1 !== index && <span className="">•</span>}
               </React.Fragment>
             ))}
           </div>}

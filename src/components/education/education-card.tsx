@@ -96,9 +96,15 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
         {formatDate(education?.startDate?.toString())} –{' '}
         {formatDate(education?.endDate?.toString())}
       </span>
-      <span className="text-sm mt-3 ">
-        {education?.description}
-      </span>
+      {education?.description && (
+        <div
+          className={cn(
+            "prose prose-sm dark:prose-invert max-w-none mt-3",
+            "prose-p:leading-relaxed prose-headings:font-semibold prose-headings:tracking-tight",
+          )}
+          dangerouslySetInnerHTML={{ __html: education.description }}
+        />
+      )}
     </motion.div>
   )
 }

@@ -1,7 +1,7 @@
 'use server'
 import { requireProfile } from '@/lib/auth'
 import db from '@/lib/db'
-import { education, experience, profile, projects, users } from '@/db/schema'
+import { education, experience, profile, projects, skills, users } from '@/db/schema'
 import { ExtractedData } from '@/lib/resume-parser'
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
@@ -39,7 +39,7 @@ export async function processResumeData(resumeData: ExtractedData, resumeFileUrl
         title: exp.title,
         company: exp.company,
         location: exp.location,
-        employmentType: 'Full-time', // Default, could be extracted from resume
+        employmentType: 'Full-time' as const, // Default, could be extracted from resume
         startDate: parseDate(exp.startDate),
         endDate: parseDate(exp.endDate),
         currentlyWorking: exp.currentlyWorking || false,

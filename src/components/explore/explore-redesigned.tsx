@@ -4,7 +4,7 @@ import { getExploreFeed } from "@/actions/post-actions";
 import { getRecentlyJoinedProfiles } from "@/actions/profile-actions";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { TrendingUp, Users } from "lucide-react";
+import { TrendingUp, Users, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import PostCard from "./post-card";
@@ -32,7 +32,10 @@ const ExploreRedesigned = () => {
         const allPosts = pages.flatMap((page) => page.posts || []);
         // Sort by likes and get top 20
         return allPosts
-          .sort((a, b) => Number(b.likeCount) - Number(a.likeCount))
+          .sort((a, b) =>
+            (Number(b.upvoteCount || 0) - Number(b.downvoteCount || 0)) -
+            (Number(a.upvoteCount || 0) - Number(a.downvoteCount || 0))
+          )
           .slice(0, 20);
       } catch (error) {
         console.error("Error fetching top posts:", error);
@@ -76,6 +79,38 @@ const ExploreRedesigned = () => {
         </motion.div>
       </div>
 
+      {/* Discover by Skills CTA */}
+      {/* <div className="w-full max-w-6xl px-6 mb-12 mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <Link href="/explore/people">
+            <div className="group relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-gradient-to-r from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-900 p-6 md:p-8 cursor-pointer hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="size-12 rounded-2xl bg-neutral-900 dark:bg-white flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Sparkles className="size-6 text-white dark:text-neutral-900" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
+                      Discover people by skills
+                    </h3>
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
+                      Find and connect with others who share your expertise
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" className="hidden sm:flex rounded-full group-hover:bg-neutral-900 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-neutral-900 transition-all duration-300">
+                  Explore
+                </Button>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+      </div> */}
+
       {/* People Section */}
       <div className="w-full max-w-6xl px-6 mb-16 mx-auto">
         <motion.div
@@ -100,27 +135,27 @@ const ExploreRedesigned = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {profilesLoading
               ? // Show skeleton loaders
-                Array.from({ length: 8 }).map((_, i) => (
-                  <motion.div
-                    key={`profile-skeleton-${i}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: i * 0.05 }}
-                  >
-                    <ProfileCardSkeleton />
-                  </motion.div>
-                ))
+              Array.from({ length: 8 }).map((_, i) => (
+                <motion.div
+                  key={`profile-skeleton-${i}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.05 }}
+                >
+                  <ProfileCardSkeleton />
+                </motion.div>
+              ))
               : // Show actual profiles
-                profiles.map((profile, i) => (
-                  <motion.div
-                    key={`profile-${i}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
-                  >
-                    <ProfileCard profile={profile} />
-                  </motion.div>
-                ))}
+              profiles.map((profile, i) => (
+                <motion.div
+                  key={`profile-${i}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
+                >
+                  <ProfileCard profile={profile} />
+                </motion.div>
+              ))}
           </div>
 
           {profiles.length === 0 && !profilesLoading && (
@@ -159,34 +194,34 @@ const ExploreRedesigned = () => {
           >
             {postsLoading
               ? // Show skeleton loaders
-                Array.from({ length: 12 }).map((_, i) => (
-                  <motion.div
-                    key={`post-skeleton-${i}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: i * 0.03 }}
-                    className="break-inside-avoid"
-                  >
-                    {/* Mix different skeleton types for variety */}
-                    {i % 3 === 0 ? (
-                      <PostCardSkeletonWithImage />
-                    ) : (
-                      <PostCardSkeleton />
-                    )}
-                  </motion.div>
-                ))
+              Array.from({ length: 12 }).map((_, i) => (
+                <motion.div
+                  key={`post-skeleton-${i}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.03 }}
+                  className="break-inside-avoid"
+                >
+                  {/* Mix different skeleton types for variety */}
+                  {i % 3 === 0 ? (
+                    <PostCardSkeletonWithImage />
+                  ) : (
+                    <PostCardSkeleton />
+                  )}
+                </motion.div>
+              ))
               : // Show actual posts
-                topPosts.map((post, i) => (
-                  <motion.div
-                    key={`post-${i}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.2 + i * 0.02 }}
-                    className="break-inside-avoid"
-                  >
-                    <PostCard post={post} />
-                  </motion.div>
-                ))}
+              topPosts.map((post, i) => (
+                <motion.div
+                  key={`post-${i}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.2 + i * 0.02 }}
+                  className="break-inside-avoid"
+                >
+                  <PostCard post={post} />
+                </motion.div>
+              ))}
           </motion.div>
 
           {topPosts.length === 0 && !postsLoading && (

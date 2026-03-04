@@ -1,7 +1,7 @@
 import { addComment, deleteComment } from "@/actions/post-actions";
-import { GetExplorePosts, TAddNewComment } from "@/lib/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/hooks/useAuth";
+import { TAddNewComment } from "@/lib/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { v4 } from "uuid";
 
@@ -56,22 +56,38 @@ export const useComment = ({ postId, orderBy }: UseCommentProps) => {
         };
       });
 
-      // Optimistically update explore feed (infinite pages)
-      queryClient.setQueryData(["explore-top-posts"], (old: any) => {
+      const updatePostInFeed = (post: any) =>
+        post.id === postId
+          ? {
+            ...post,
+            commentCount: Number(post.commentCount) + 1,
+            commented: true,
+          }
+          : post;
+
+      // Optimistically update all explore-related feeds
+      queryClient.setQueriesData({ queryKey: ["explore-top-posts"] }, (old: any) => {
         if (!old) return old;
+        if (Array.isArray(old)) return old.map(updatePostInFeed);
+        if (old.pages) {
+          return {
+            ...old,
+            pages: old.pages.map((page: any) => ({
+              ...page,
+              posts: page.posts.map(updatePostInFeed),
+            })),
+          };
+        }
+        return old;
+      });
+
+      queryClient.setQueriesData({ queryKey: ["explore-feed"] }, (old: any) => {
+        if (!old || !old.pages) return old;
         return {
           ...old,
           pages: old.pages.map((page: any) => ({
             ...page,
-            posts: page.posts.map((post: any) =>
-              post.id === postId
-                ? {
-                    ...post,
-                    commentCount: Number(post.commentCount) + 1,
-                    commented: true,
-                  }
-                : post
-            ),
+            posts: page.posts.map(updatePostInFeed),
           })),
         };
       });
@@ -152,7 +168,7 @@ export const useComment = ({ postId, orderBy }: UseCommentProps) => {
         );
       }
       if (context?.previousPosts) {
-        queryClient.setQueryData(["explore-feed"], context.previousPosts);
+        queryClient.setQueriesData({ queryKey: ["explore-top-posts"] }, context.previousPosts);
       }
       if (context?.previousComments) {
         // previousComments is the cached data for the specific key
@@ -196,17 +212,39 @@ export const useComment = ({ postId, orderBy }: UseCommentProps) => {
         };
       });
 
-      queryClient.setQueryData(["explore-top-posts"], (old: any) => {
+      const revertPostInFeed = (post: any) =>
+        post.id === postId
+          ? {
+            ...post,
+            commentCount: Math.max(Number(post.commentCount) - 1, 0),
+            commented: Math.max(Number(post.commentCount) - 1, 0) > 0,
+          }
+          : post;
+
+      queryClient.setQueriesData({ queryKey: ["explore-top-posts"] }, (old: any) => {
         if (!old) return old;
-        return (old as GetExplorePosts[]).map((post) => {
-          post.id === postId
-            ? {
-                ...post,
-                commentCount: Math.max(Number(post.commentCount) - 1, 0),
-                commented: Math.max(Number(post.commentCount) - 1, 0) > 0,
-              }
-            : post;
-        });
+        if (Array.isArray(old)) return old.map(revertPostInFeed);
+        if (old.pages) {
+          return {
+            ...old,
+            pages: old.pages.map((page: any) => ({
+              ...page,
+              posts: page.posts.map(revertPostInFeed),
+            })),
+          };
+        }
+        return old;
+      });
+
+      queryClient.setQueriesData({ queryKey: ["explore-feed"] }, (old: any) => {
+        if (!old || !old.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            posts: page.posts.map(revertPostInFeed),
+          })),
+        };
       });
 
       return { previousPost, previousPosts };

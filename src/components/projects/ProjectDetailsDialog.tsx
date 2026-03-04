@@ -21,8 +21,12 @@ import {
   Link2,
   Loader,
   MoreHorizontalIcon,
-  Trash2
+  Trash2,
+  ArrowBigUp,
+  ArrowBigDown,
 } from "lucide-react";
+import { useVoteProject } from "@/hooks/useVoteProject";
+import { useAuthDialog } from "../dialog-provider";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { FC, useState } from "react";
@@ -38,6 +42,8 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { queryClient } from "@/lib/providers";
+import ProjectInteractions from "./ProjectInteractions";
+import { useToggleProjectBookmark } from "@/hooks/useToggleProjectBookmark";
 
 type Props = {
   open: boolean;
@@ -47,15 +53,52 @@ type Props = {
 
 const ProjectDetailsDialog: FC<Props> = ({ open, onOpenChange, project }) => {
   const [index, setIndex] = useState(0);
+  const [authOpen, setAuthOpen] = useAuthDialog();
+  const session = useSession();
 
+  const mutation = useVoteProject({
+    projectId: project?.id ?? "",
+    userVote: project?.userVote ?? null,
+  });
+
+  const bookmarkMutation = useToggleProjectBookmark({
+    projectId: project?.id ?? "",
+    isBookmarked: !!project?.bookmarked,
+  });
+
+  const handleVoteClick = (value: number) => {
+    mutation.mutate(value);
+  };
+
+  const handleBookmarkClick = () => {
+    bookmarkMutation.mutate();
+  };
+
+  const handleShareClick = async () => {
+    if (!project) return;
+    const url = `${window.location.origin}/project/${project.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: project.name,
+          url: url,
+        });
+      } catch (err) {
+        console.error("Error sharing", err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard");
+    }
+  };
+
+  const score = project ? (project.upvoteCount || 0) - (project.downvoteCount || 0) : 0;
 
   if (!project) return null;
 
   const medias = project.attachments || [];
-
   const prev = () => setIndex((i) => Math.max(0, i - 1));
   const next = () => setIndex((i) => Math.min(medias.length - 1, i + 1));
-  // console.log(medias);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -175,12 +218,19 @@ const ProjectDetailsDialog: FC<Props> = ({ open, onOpenChange, project }) => {
           />
         )}
 
-        <DialogFooter className="mt-4">
-          <div className="w-full flex justify-end">
-            <Button variant="secondary" onClick={() => onOpenChange(false)}>
-              Close
-            </Button>
-          </div>
+        <DialogFooter className="mt-8 flex items-center justify-between sm:justify-between w-full">
+          <ProjectInteractions
+            upvoteCount={project.upvoteCount}
+            downvoteCount={project.downvoteCount}
+            userVote={project.userVote ?? null}
+            handleVoteClick={handleVoteClick}
+            isBookmarked={!!project.bookmarked}
+            handleBookmarkClick={handleBookmarkClick}
+            handleShareClick={handleShareClick}
+          />
+          <Button variant="secondary" className="rounded-xl px-6" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

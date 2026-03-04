@@ -1,5 +1,5 @@
 import { useSession } from '@/hooks/useAuth'
-import { useRightSidebar } from '@/lib/context'
+import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
 import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@mantine/hooks'
 import { motion } from 'framer-motion'
@@ -59,7 +59,7 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
   const session = useSession()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [activeTab, setActiveTab] = useState<string>(variant)
-  const { setTheme, theme } = useTheme()
+  const setActiveSidebarTab = useActiveSidebarTab()[1]
   // Navigation items for Gen Z/Alpha users
   const navItems = [
     {
@@ -198,7 +198,7 @@ const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
               variant="outline"
               size="icon"
               className=""
-              onClick={() => router.push('/settings')}
+              onClick={() => setActiveSidebarTab({ id: null, tab: 'edit-profile' })}
             >
               <Edit3 className="size-4" />
             </Button>

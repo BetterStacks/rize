@@ -122,7 +122,7 @@ const Menu = () => {
         <Button
           variant={'outline'}
           size={'icon'}
-          className={cn(" relative overflow-hidden size-10 ", session?.data && "rounded-full", session?.isLoading && "bg-neutral-200 dark:bg-dark-border", isProjectPage && "rounded-full")}
+          className={cn(" relative overflow-hidden size-10 rounded-full", session?.isLoading && "bg-neutral-200 dark:bg-dark-border", isProjectPage && "rounded-full")}
           onClick={() => setOpen(true)}
         >
           {session?.isLoading ? <div className="size-full" /> : session?.data ? <Image src={session?.data?.user?.profileImage || session?.data?.user?.image || '/'} alt="Profile" className='rounded-lg size-full' width={24} height={24} priority /> :
@@ -133,7 +133,7 @@ const Menu = () => {
             )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className={cn("w-64 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-2xl", isProjectPage ? "ml-4 mb-4" : "mt-2")} align="end">
+      <DropdownMenuContent className={cn("w-64 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-2xl", "ml-4 mb-4")} align="end">
         <DropdownMenuGroup className='p-3'>
           {session?.data ? (
             <>

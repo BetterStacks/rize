@@ -1,49 +1,48 @@
-import { getProfileByUsername } from '@/actions/profile-actions'
-import ProfilePage from '@/components/ProfilePage'
-import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { FC } from 'react'
+import { getProfileByUsernameCached } from "@/actions/profile-actions";
+import ProfilePage from "@/components/ProfilePage";
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { FC } from "react";
 
 type Props = {
   params: Promise<{ username: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
+const isBlockedUsername = (username: string) =>
+  username.includes(".") ||
+  username === "favicon" ||
+  username.startsWith("_next");
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const username = (await params).username
+  const username = (await params).username;
 
   // Block requests for static files that might slip through
-  if (username.includes('.') || username === 'favicon' || username.startsWith('_next')) {
+  if (isBlockedUsername(username)) {
     return {
-      title: 'Not Found - Rize',
-      description: 'Page not found',
-    }
+      title: "Not Found - Rize",
+      description: "Page not found",
+    };
   }
 
-  const user = await getProfileByUsername(username)
-
-  if (!user) {
-    return {
-      title: 'Profile Not Found - Rize',
-      description: 'This profile could not be found',
-    }
-  }
+  const user = await getProfileByUsernameCached(username);
+  const titleName = user?.displayName?.trim() || username;
 
   return {
-    title: `${user?.displayName || 'User'} - Rize`,
-    description: `${user?.bio}`,
-  }
+    title: `${titleName} | Rize`,
+    description: `Explore ${username}'s profile on Rize.`,
+  };
 }
 
 const Page: FC<Props> = async ({ params }) => {
-  const username = (await params).username
+  const username = (await params).username;
 
   // Block requests for static files that might slip through
-  if (username.includes('.') || username === 'favicon' || username.startsWith('_next')) {
-    return notFound()
+  if (isBlockedUsername(username)) {
+    return notFound();
   }
 
-  return <ProfilePage username={username} />
-}
+  return <ProfilePage username={username} />;
+};
 
-export default Page
+export default Page;

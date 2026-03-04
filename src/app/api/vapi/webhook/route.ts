@@ -120,6 +120,7 @@ export async function POST(req: Request) {
                     profileId: userProfile.id,
                     title: exp.title,
                     company: exp.company,
+                    employmentType: exp.employmentType,
                     description: exp.description,
                     startDate: exp.startDate ? new Date(exp.startDate) : null,
                     endDate: exp.endDate ? new Date(exp.endDate) : null,

@@ -99,9 +99,10 @@ export type GetExplorePosts = {
   profileId: string | null;
   createdAt: Date;
   updatedAt: Date;
-  liked?: boolean;
+  userVote?: number | null; // 1 | -1 | null
   bookmarked?: boolean;
-  likeCount: number;
+  upvoteCount: number;
+  downvoteCount: number;
 };
 
 export type TSection = {
@@ -124,6 +125,7 @@ export type GetProfileByUsername =
     image: string;
     name: string;
     email: string;
+    skills: Array<TSkill>;
   })
   | null;
 export type GalleryItemProps = typeof TMedia & {
@@ -145,7 +147,7 @@ export type GetAllProjects = TProject & {
     width: number;
     height: number;
   }> | null;
-  categories?: Array<{
+  topics?: Array<{
     id: string;
     name: string;
     slug: string;
@@ -162,6 +164,10 @@ export type GetAllProjects = TProject & {
     profileImage: string | null;
   }> | null;
   username?: string | null;
+  upvoteCount: number;
+  downvoteCount: number;
+  userVote?: number | null; // 1 | -1 | null
+  bookmarked?: boolean;
 };
 
 export type SocialPlatform =
@@ -243,6 +249,16 @@ export type ParagraphElement = {
   children: Descendant[];
 };
 
+export const EMPLOYMENT_TYPES = [
+  "Full-time",
+  "Part-time",
+  "Internship",
+  "Consultant",
+  "Freelance",
+  "Volunteer",
+] as const;
+
+export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number];
 // export type TableElement = { type: "table"; children: TableRow[] };
 
 // export type TableCellElement = { type: "table-cell"; children: CustomText[] };
@@ -402,7 +418,7 @@ export const newProjectSchema = z.object({
   width: z.string().optional(),
   height: z.string().optional(),
   media: z.array(fileSchema).optional(),
-  categoryIds: z.array(z.string()).max(3, "Maximum 3 categories allowed").optional(),
+  topicIds: z.array(z.string()).max(3, "Maximum 3 topics allowed").optional(),
   skillIds: z.array(z.string()).max(10, "Maximum 10 skills allowed").optional(),
   collaboratorProfileIds: z.array(z.string()).max(6, "Maximum 6 collaborators allowed").optional(),
 });
@@ -432,8 +448,7 @@ export const addExperienceSchema = z.object({
     .optional()
     .describe("The geographic location (e.g., 'San Francisco, CA' or 'Remote')"),
   employmentType: z
-    .string()
-    .optional()
+    .enum(EMPLOYMENT_TYPES)
     .describe("The type of employment (e.g., 'Full-time', 'Contract')"),
   startDate: z
     .string()

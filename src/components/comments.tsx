@@ -48,7 +48,7 @@ const Comments: FC<CommentsProps> = ({
   commented,
 }) => {
   const [orderBy, setOrderBy] = useState<"newest" | "oldest" | "popular">(
-    "newest"
+    "newest",
   );
   const session = useSession();
   const { data: comments, isLoading } = useQuery({
@@ -176,7 +176,7 @@ const CommentForm: FC<TCommentForm> = ({ id, orderBy }) => {
       {...getRootProps()}
       className={cn(
         "pt-4 pb-6 border-b border-neutral-300 dark:border-dark-border px-6 group flex items-center justify-center w-full",
-        isDragActive && "bg-blue-400/20"
+        isDragActive && "bg-blue-400/20",
       )}
     >
       <input {...getInputProps()} className="hidden" />
@@ -202,7 +202,7 @@ const CommentForm: FC<TCommentForm> = ({ id, orderBy }) => {
           autoFocus
           className={cn(
             "appearance-none  px-2 text-sm md:text-base w-full bg-transparent text-neutral-600 dark:text-neutral-200 tracking-tight font-medium focus-visible:outline-none shadow-none resize-none border-none",
-            (content?.length > 0 || file) && "mb-4"
+            (content?.length > 0 || file) && "mb-4",
           )}
           value={content}
           onChange={(e) => {
@@ -277,7 +277,7 @@ const CommentForm: FC<TCommentForm> = ({ id, orderBy }) => {
         <div
           className={cn(
             "hidden items-center mt-4 justify-between w-full",
-            (content?.length > 0 || file) && "flex"
+            (content?.length > 0 || file) && "flex",
           )}
         >
           <div className="space-x-2 ">
@@ -371,7 +371,7 @@ const CommentForm: FC<TCommentForm> = ({ id, orderBy }) => {
                     setLink(prevValues.link);
                     toast.error(_err?.message || "Failed to post comment");
                   },
-                }
+                },
               );
             }}
             disabled={
@@ -405,12 +405,12 @@ const CommentCard: FC<CommentCardProps> = ({
   const session = useSession();
   const isMine =
     (session?.data?.user as any)?.profileId === (comment?.profileId as string);
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  // const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   return (
     <div
       className={cn(
-        "w-full border-t first:border-none border-neutral-300 dark:border-dark-border px-2 md:px-6 py-4 flex  items-center justify-start"
+        "w-full border-t first:border-none border-neutral-300 dark:border-dark-border px-2 md:px-6 py-4 flex  items-center justify-start",
       )}
     >
       {/* {isDesktop && ( */}
@@ -452,7 +452,7 @@ const CommentCard: FC<CommentCardProps> = ({
               >
                 <MoreHorizontalIcon
                   className={cn(
-                    "text-neutral-500 size-4 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
+                    "text-neutral-500 size-4 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300",
                   )}
                 />
               </Button>
@@ -497,7 +497,7 @@ const CommentCard: FC<CommentCardProps> = ({
             <div
               className={cn(
                 "relative border  border-neutral-300/80 aspect-video  w-full rounded-xl overflow-hidden ",
-                "dark:border-dark-border"
+                "dark:border-dark-border",
               )}
               style={{
                 objectFit: "cover",

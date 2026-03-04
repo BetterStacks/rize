@@ -7,7 +7,6 @@ import { FC, ReactNode, useState, useEffect } from 'react'
 import { useEnsureScroll } from '@/hooks/useScrollFix'
 import GalleryContextProvider from '../gallery/gallery-context'
 import Navbar from '../navbar'
-import RightSidebar from '../sidebar/RightSidebar'
 import Sidebar from '../sidebar/Sidebar'
 import {
   ResizableHandle,
@@ -17,21 +16,24 @@ import {
 import { ScrollArea } from '../ui/scroll-area'
 import { Sheet, SheetContent } from '../ui/sheet'
 import { cn } from '@/lib/utils'
-import { PanelProvider, usePanel } from '@/lib/panel-context'
+import { usePanel } from '@/lib/panel-context'
 
 type LayoutVariant = 'profile' | 'explore' | 'post' | 'writing' | 'full' | 'default'
 
-type SidebarConfig = {
-  left?: {
-    component?: ReactNode;
-    show?: boolean;
-    className?: string;
-  };
-  right?: {
-    component?: ReactNode;
-    show?: boolean;
-    className?: string;
-  };
+/** Config for customising a sidebar slot */
+type SidebarSlot = {
+  /** The content to render inside the sidebar */
+  content: ReactNode;
+  /** Extra classes merged onto the ResizablePanel / Sheet container */
+  className?: string;
+  /** ResizablePanel size (percentage). Defaults: left=5, right=25 */
+  size?: number;
+  /** Min size for the panel */
+  minSize?: number;
+  /** Max size for the panel */
+  maxSize?: number;
+  /** Classes for the mobile Sheet (right sidebar only) */
+  mobileSheetClassName?: string;
 }
 
 type DashboardLayoutProps = {
@@ -40,10 +42,15 @@ type DashboardLayoutProps = {
   isMine?: boolean;
   className?: string;
   customNavbar?: ReactNode;
-  sidebarConfig?: SidebarConfig;
   showNavbar?: boolean;
   contentMaxWidth?: string;
   contentPadding?: string;
+  /** Extra className applied to the direct children wrapper div */
+  childrenClassName?: string;
+  /** Left sidebar slot — omit to hide */
+  leftSidebarSlot?: SidebarSlot;
+  /** Right sidebar slot — omit to hide */
+  rightSidebarSlot?: SidebarSlot;
 };
 
 const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
@@ -52,10 +59,12 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
   isMine = false,
   className,
   customNavbar,
-  sidebarConfig,
   showNavbar,
   contentMaxWidth,
   contentPadding = 'px-3',
+  childrenClassName,
+  leftSidebarSlot,
+  rightSidebarSlot,
 }) => {
   const [rightSidebarOpen, setRightSidebarOpen] = useRightSidebar()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
@@ -67,67 +76,10 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
     setMounted(true)
   }, [])
 
-  // Ensure scroll works properly
   useEnsureScroll()
 
-  // Default sidebar configurations based on variant
-  const getDefaultSidebarConfig = (): SidebarConfig => {
-    switch (variant) {
-      case 'profile':
-        return {
-          right: isMine ? {
-            component: <RightSidebar className="w-full" />,
-            show: isDesktop,
-          } : undefined
-        }
-      case 'explore':
-        return {
-          left: {
-            component: <Sidebar className="border-none w-full" />,
-            show: isDesktop,
-            className: 'max-w-sm'
-          },
-          right: {
-            component: (
-              <div className="border-l hidden z-40 bg-white dark:bg-dark-bg lg:flex border-neutral-300/60 dark:border-dark-border max-w-[280px] lg:flex-col w-full h-screen">
-                {/* Recently Joined or other sidebar content */}
-              </div>
-            ),
-            show: isDesktop,
-          }
-        }
-      case 'post':
-        return {
-          left: {
-            component: <Sidebar className="border-none w-full" />,
-            show: isDesktop,
-            className: 'max-w-sm'
-          }
-        }
-      case 'writing':
-        return {
-          right: isMine ? {
-            component: <RightSidebar className="w-full" />,
-            show: isDesktop,
-          } : undefined
-        }
-      case 'full':
-        return {
-          left: {
-            component: <Sidebar className="border-r w-full" />,
-            show: isDesktop,
-            className: 'max-w-[80px]'
-          }
-        }
-      default:
-        return {}
-    }
-  }
-
-  const finalSidebarConfig = { ...getDefaultSidebarConfig(), ...sidebarConfig }
   const finalShowNavbar = showNavbar !== undefined ? showNavbar : (variant === 'full' ? false : true)
 
-  // Content styling based on variant
   const getContentStyling = () => {
     switch (variant) {
       case 'post':
@@ -176,19 +128,19 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
     >
       <GalleryContextProvider>
         {/* Left Sidebar */}
-        {finalSidebarConfig.left?.show && (
+        {leftSidebarSlot && isDesktop && (
           <ResizablePanel
             id="dashboard-left-sidebar"
-            defaultSize={20}
-            maxSize={25}
-            minSize={15}
+            defaultSize={leftSidebarSlot.size ?? 5}
+            maxSize={leftSidebarSlot.maxSize ?? leftSidebarSlot.size ?? 5}
+            minSize={leftSidebarSlot.minSize ?? leftSidebarSlot.size ?? 5}
             className={cn(
               'h-screen flex items-center',
-              variant === 'full' ? 'justify-start' : 'justify-end',
-              finalSidebarConfig.left.className
+              'justify-start max-w-[80px] border-r border-neutral-300/60 dark:border-dark-border',
+              leftSidebarSlot.className
             )}
           >
-            {finalSidebarConfig.left.component}
+            {leftSidebarSlot.content}
           </ResizablePanel>
         )}
 
@@ -201,16 +153,14 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
             className
           )}
         >
-          {/* Navbar */}
-          {finalShowNavbar && (
+          {/* {finalShowNavbar && (
             customNavbar || <Navbar isMine={isMine} variant={variant as any} />
-          )}
+          )} */}
 
-          {/* Scrollable Content */}
-          <ScrollArea className="h-screen overflow-y-auto relative w-full">
+          <ScrollArea className="h-full overflow-y-auto relative w-full">
             <motion.div
               className={cn(
-                'w-full flex flex-col items-center justify-center',
+                'w-full flex flex-col items-center h-full justify-start',
                 finalShowNavbar ? 'mt-20 md:mt-24' : 'mt-0',
                 'mb-10',
                 contentStyles.padding
@@ -219,7 +169,7 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
             >
-              <div className={cn('w-full', contentStyles.maxWidth)}>
+              <div className={cn('w-full', contentStyles.maxWidth, childrenClassName)}>
                 {children}
               </div>
             </motion.div>
@@ -227,33 +177,37 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
         </ResizablePanel>
 
         {/* Right Sidebar - Desktop */}
-        {finalSidebarConfig.right?.show && isDesktop && (
+        {rightSidebarSlot && isDesktop && (
           <>
-            {finalSidebarConfig.left?.show && <ResizableHandle />}
+            <ResizableHandle />
             <ResizablePanel
               ref={rightPanelRef}
               id="dashboard-right-sidebar"
-              defaultSize={26}
-              maxSize={30}
-              minSize={20}
+              defaultSize={rightSidebarSlot.size ?? 25}
+              maxSize={rightSidebarSlot.maxSize ?? rightSidebarSlot.size ?? 25}
+              minSize={rightSidebarSlot.minSize ?? rightSidebarSlot.size ?? 25}
               collapsible
               collapsedSize={0}
               className={cn(
                 'border-l border-neutral-200/80 dark:border-neutral-800 flex flex-col items-center justify-center h-screen',
-                finalSidebarConfig.right.className
+                rightSidebarSlot.className
               )}
             >
               <ScrollArea className="relative h-screen w-full overflow-y-auto flex flex-col items-center justify-start">
-                {finalSidebarConfig.right.component}
+                {rightSidebarSlot.content}
               </ScrollArea>
             </ResizablePanel>
           </>
         )}
 
-        {finalSidebarConfig.right?.component && (isMine || variant === 'explore') && (
+        {/* Right Sidebar - Mobile Sheet */}
+        {rightSidebarSlot && !isDesktop && (
           <Sheet open={rightSidebarOpen} onOpenChange={setRightSidebarOpen}>
-            <SheetContent className="max-w-[90%] sm:max-w-md md:max-w-lg w-full h-screen p-0 bg-white dark:bg-dark-border/80 border border-neutral-200 dark:border-dark-border/60 dark:bg-dark-bg">
-              {finalSidebarConfig.right.component}
+            <SheetContent className={cn(
+              'max-w-[90%] sm:max-w-md md:max-w-lg w-full h-screen p-0 bg-white dark:bg-dark-border/80 border border-neutral-200 dark:border-dark-border/60 dark:bg-dark-bg',
+              rightSidebarSlot.mobileSheetClassName
+            )}>
+              {rightSidebarSlot.content}
             </SheetContent>
           </Sheet>
         )}

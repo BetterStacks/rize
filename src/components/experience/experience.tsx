@@ -35,7 +35,7 @@ const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
 
   return (
     <div
-      id="projects"
+      id="work-experience"
       className="w-full my-12 px-2 md:px-4 flex flex-col items-center justify-start"
     >
       <WorkExperienceDrawer />
@@ -61,10 +61,7 @@ const WorkExperience = ({ isMine, workExperience }: WorkExperienceProps) => {
       <div className="w-full flex flex-col max-w-2xl space-y-4 mt-2 relative">
         {isFetching ? (
           [...Array.from({ length: 4 })].map((_, i) => (
-            <Skeleton
-              key={i}
-              className="w-full h-[80px] rounded-xl"
-            />
+            <Skeleton key={i} className="w-full h-[80px] rounded-xl" />
           ))
         ) : data?.length === 0 ? (
           <EmptyWritingState
@@ -98,7 +95,7 @@ export function EmptyWritingState({
   title = "Share your Work Experience ",
   description = "Your ideas deserve to be shared. Create your first piece and let your words flow.",
   ctaText = "Add Experience",
-  onCreateNew = () => { },
+  onCreateNew = () => {},
 }: EmptyWorkExperienceStateProps) {
   const [isHovering, setIsHovering] = useState(false);
 

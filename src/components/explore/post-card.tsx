@@ -1,4 +1,5 @@
-import { useToggleLikePost } from "@/hooks/useToggleLike";
+import { useTogglePostBookmark } from "@/hooks/useTogglePostBookmark";
+import { useVotePost } from "@/hooks/useVotePost";
 import { GetExplorePosts, TPostMedia } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import moment from "moment";
@@ -6,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FC } from "react";
+import toast from "react-hot-toast";
 import PostInteractions, {
   PostAvatar,
   PostCardContainer,
@@ -49,14 +51,41 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
 
   const router = useRouter();
 
-  const mutation = useToggleLikePost({
-    liked: Boolean(post.liked),
+  const mutation = useVotePost({
+    userVote: post.userVote ?? null,
     postId: post.id,
   });
 
-  const handleLikeClick = () => {
-    mutation.mutate();
+  const bookmarkMutation = useTogglePostBookmark({
+    postId: post.id,
+    isBookmarked: !!post.bookmarked,
+  });
+
+  const handleVoteClick = (value: number) => {
+    mutation.mutate(value);
   };
+
+  const handleBookmarkClick = () => {
+    bookmarkMutation.mutate();
+  };
+
+  const handleShareClick = async () => {
+    const url = `${window.location.origin}/post/${post.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Post by ${post.name}`,
+          url: url,
+        });
+      } catch (err) {
+        console.error("Error sharing", err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard");
+    }
+  };
+
   const handleViewPost = () => {
     router.push(`/post/${post?.id}`);
   };
@@ -81,46 +110,54 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
     return (
       <OnlyContentCard
         handleViewPost={handleViewPost}
-        likeCount={Number(post.likeCount)}
-        liked={Boolean(post?.liked)}
+        upvoteCount={Number(post.upvoteCount)}
+        downvoteCount={Number(post.downvoteCount)}
+        userVote={post?.userVote ?? null}
         post={post}
-        handleLike={handleLikeClick}
+        handleVote={handleVoteClick}
         commentCount={Number(post?.commentCount)}
         commented={Boolean(post?.commented)}
+        isBookmarked={!!post.bookmarked}
+        handleBookmark={handleBookmarkClick}
+        handleShare={handleShareClick}
       />
     );
   } else if (onlyMedia) {
     return (
       <OnlyMediaCard
         handleViewPost={handleViewPost}
-        likeCount={Number(post.likeCount)}
-        liked={Boolean(post?.liked)}
+        upvoteCount={Number(post.upvoteCount)}
+        downvoteCount={Number(post.downvoteCount)}
+        userVote={post?.userVote ?? null}
         post={post}
-        handleLike={handleLikeClick}
+        handleVote={handleVoteClick}
         commentCount={Number(post?.commentCount)}
         commented={Boolean(post?.commented)}
+        isBookmarked={!!post.bookmarked}
+        handleBookmark={handleBookmarkClick}
+        handleShare={handleShareClick}
       />
     );
   }
   return (
     <PostCardContainer
       handlePostClick={handleViewPost}
-      className="group shadow-md"
+      className="group shadow-none"
     >
       <div onClick={(e) => e.stopPropagation()} className="">
         {(post.media as TPostMedia) && (
           <div
             key={(post?.media as TPostMedia)?.id}
             className={cn(
-              "relative border-b border-neutral-300/80  w-full rounded-t-3xl overflow-hidden ",
+              "relative border-b border-neutral-300/80  w-full overflow-hidden ",
               "dark:border-dark-border",
-              mediaContainerClassName
+              mediaContainerClassName,
             )}
             style={{
               // aspectRatio: 1 / 1,
               objectFit: "cover",
               height: post?.media?.height,
-              maxHeight: "500px"
+              maxHeight: "500px",
             }}
           >
             <div className="absolute top-2 z-[2] px-4 pt-2 w-full gap-x-2 flex items-center justify-between">
@@ -177,7 +214,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
         {!hasMedia && (
           <div
             className={cn(
-              "size-10 aspect-square  rounded-full  flex relative overflow-hidden"
+              "size-10 aspect-square  rounded-full  flex relative overflow-hidden",
             )}
           >
             {normalizeSrc(post?.avatar as string) ? (
@@ -207,7 +244,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
         <div
           className={cn(
             " flex flex-1 flex-col items-start",
-            !hasMedia && "ml-3"
+            !hasMedia && "ml-3",
           )}
         >
           <Link href={`/${post?.username}`}>
@@ -217,7 +254,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
           </Link>
           <div
             className={cn(
-              "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 "
+              "flex items-center justify-start dark:text-gray-400 text-sm leading-snug text-gray-700 ",
             )}
           >
             <p className={cn("mr-1")}>@{post.username}</p>
@@ -234,67 +271,73 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
       </div>
 
       {post?.content && (
-        <p
+        <div
           className={cn(
-            "text-neutral-600 leading-snug line-clamp-[10]  font-medium  text-sm p-4  ",
-            "dark:text-neutral-400 "
+            "text-neutral-600 leading-loose text-sm p-4",
+            "dark:text-neutral-400",
+            "prose prose-sm dark:prose-invert max-w-none",
           )}
-        >
-          {post?.content?.split("\n").map((line, i) => {
-            return (
-              <span className={cn("")} key={i}>
-                {line} <br className="" />
-              </span>
-            );
-          })}
-        </p>
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
       )}
       {post?.link && (
-        <div className="mt-4">
+        <div className={cn("")}>
           <PostLinkCard {...post?.link} />
         </div>
       )}
 
       <PostInteractions
-        likeCount={Number(post.likeCount)}
-        isLiked={Boolean(post?.liked)}
-        handleLikeClick={handleLikeClick}
+        upvoteCount={Number(post.upvoteCount)}
+        downvoteCount={Number(post.downvoteCount)}
+        userVote={post?.userVote ?? null}
+        handleVoteClick={handleVoteClick}
         commentCount={Number(post?.commentCount)}
         hasCommented={Boolean(post?.commented)}
-        handleCommentClick={() => { }}
+        handleCommentClick={() => {}}
+        isBookmarked={!!post.bookmarked}
+        handleBookmarkClick={handleBookmarkClick}
+        handleShareClick={handleShareClick}
       />
     </PostCardContainer>
   );
 };
 type GeneralPostProps = {
-  handleLike?: () => void;
+  handleVote?: (value: number) => void;
   post: GetExplorePosts;
-  likeCount: number;
-  liked: boolean;
+  upvoteCount: number;
+  downvoteCount: number;
+  userVote: number | null;
   commentCount: number;
   commented: boolean;
   handleComment?: () => void;
   handleViewPost: () => void;
+  isBookmarked: boolean;
+  handleBookmark: () => void;
+  handleShare: () => void;
 };
 
 const OnlyContentCard: FC<GeneralPostProps> = ({
   post,
-  likeCount,
-  liked,
-  handleLike,
+  upvoteCount,
+  downvoteCount,
+  userVote,
+  handleVote,
   commentCount,
   commented,
   handleComment,
   handleViewPost,
+  isBookmarked,
+  handleBookmark,
+  handleShare,
 }) => {
   return (
     <PostCardContainer
       handlePostClick={handleViewPost}
-      className="group shadow-md"
+      className="group shadow-none"
     >
       <div
         className={cn(
-          "flex w-full items-center justify-between   px-4 py-2 mt-4"
+          "flex w-full items-center justify-between   px-4 py-2 mt-4",
         )}
       >
         <div className="flex items-center justify-start">
@@ -310,7 +353,7 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
             </Link>
             <div
               className={cn(
-                "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 "
+                "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 ",
               )}
             >
               <p className={cn("mr-1")}>@{post.username}</p>
@@ -324,49 +367,54 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
           profileId={post?.profileId as string}
         />
       </div>
-      <p
+      <div
         className={cn(
-          "text-neutral-600 leading-snug line-clamp-[10] mb-2 font-medium  text-sm p-4  ",
-          "dark:text-neutral-400 "
+          "text-neutral-600 leading-normal line-clamp-[10] text-sm p-4",
+          "dark:text-neutral-400",
+          "prose prose-sm dark:prose-invert max-w-none",
         )}
-      >
-        {post?.content?.split("\n").map((line, i) => {
-          return (
-            <span className={cn("")} key={i}>
-              {line} <br className="" />
-            </span>
-          );
-        })}
-      </p>
+        dangerouslySetInnerHTML={{ __html: post?.content ?? "" }}
+      />
       {post?.link && <PostLinkCard {...post?.link} />}
       <PostInteractions
-        likeCount={likeCount}
-        isLiked={liked as boolean}
-        handleLikeClick={handleLike!}
+        upvoteCount={upvoteCount}
+        downvoteCount={downvoteCount}
+        userVote={userVote}
+        handleVoteClick={handleVote!}
         commentCount={commentCount}
         hasCommented={post?.commented}
         handleCommentClick={handleComment!}
+        isBookmarked={isBookmarked}
+        handleBookmarkClick={handleBookmark}
+        handleShareClick={handleShare}
       />
     </PostCardContainer>
   );
 };
 const OnlyMediaCard: FC<GeneralPostProps> = ({
   post,
-  likeCount,
-  liked,
-  handleLike,
+  upvoteCount,
+  downvoteCount,
+  userVote,
+  handleVote,
   handleViewPost,
+  isBookmarked,
+  handleBookmark,
+  handleShare,
 }) => {
   const media = post?.media;
   return (
     <PostCardContainer
       handlePostClick={handleViewPost}
-      className=" relative group shadow-md "
+      className=" relative group shadow-none "
     >
-      <div className="bg-gradient-to-b transition-all duration-75 ease-in group-hover:opacity-100 opacity-0 w-full from-black via-black/60 to-transparent h-40 absolute z-[6] inset-0" />
+      <div
+        className="bg-gradient-to-b transition-all duration-75 ease-in group-hover:opacity-100 opacity-0 w-full dark:from-black dark:via-black/60
+      from-black/60 via-black/40 to-transparent h-40 absolute z-[6] inset-0"
+      />
       <div
         className={cn(
-          "flex w-full group-hover:opacity-100 transition-all duration-75 ease-in opacity-0 absolute top-5 z-[8]   items-center justify-between   px-4 "
+          "flex w-full group-hover:opacity-100 transition-all duration-75 ease-in opacity-0 absolute top-5 z-[8]   items-center justify-between   px-4 ",
         )}
       >
         <div className="flex items-center justify-start">
@@ -380,7 +428,7 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
             </Link>
             <div
               className={cn(
-                "flex items-center justify-start text-neutral-400 text-sm font-light leading-snug  "
+                "flex items-center justify-start text-neutral-400 text-sm font-light leading-snug  ",
               )}
             >
               <p className={cn("mr-1")}>@{post.username}</p>
@@ -396,7 +444,7 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
       </div>
       <div
         style={{
-          aspectRatio: 9 / 16
+          aspectRatio: 9 / 16,
         }}
         className={cn("relative  overflow-hidden ")}
       >
@@ -428,11 +476,19 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
         )}
       </div>
 
-      {/* <PostInteractions
-        likeCount={likeCount}
-        isLiked={liked as boolean}
-        handleLikeClick={handleLike!}
-      /> */}
+      <PostInteractions
+        className="mt-0"
+        upvoteCount={upvoteCount}
+        downvoteCount={downvoteCount}
+        userVote={userVote}
+        handleVoteClick={handleVote!}
+        commentCount={post.commentCount}
+        hasCommented={post.commented}
+        handleCommentClick={() => {}}
+        isBookmarked={isBookmarked}
+        handleBookmarkClick={handleBookmark}
+        handleShareClick={handleShare}
+      />
     </PostCardContainer>
   );
 };
