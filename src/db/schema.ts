@@ -95,6 +95,7 @@ export const profile = pgTable("profile", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
@@ -122,6 +123,7 @@ export const socialLinks = pgTable("social_links", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
@@ -293,6 +295,7 @@ export const page = pgTable("page", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
@@ -321,6 +324,7 @@ export const projects = pgTable("projects", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
@@ -468,7 +472,7 @@ export const experience = pgTable("experience", {
   title: varchar("title", { length: 255 }).notNull(),
   company: varchar("company", { length: 255 }).notNull(),
   location: varchar("location", { length: 255 }),
-  employmentType: EmploymentType("employment_type").notNull(),
+  employmentType: EmploymentType("employment_type").notNull().default("Full-time"),
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
   currentlyWorking: boolean("currently_working").notNull().default(false),
@@ -537,6 +541,7 @@ export const storyElements = pgTable("story_elements", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
