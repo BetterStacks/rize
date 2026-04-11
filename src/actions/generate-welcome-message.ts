@@ -3,7 +3,7 @@
 import { getServerSession } from '@/lib/auth'
 import db from '@/lib/db'
 import { profile, projects, experience, education } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { google } from '@ai-sdk/google'
 import { generateText } from 'ai'
 
@@ -22,17 +22,17 @@ export async function generateWelcomeMessage() {
         return "Hi! I'm Rize.ai, your AI profile builder. Let's create an amazing profile together! To get started, what do you do professionally?"
     }
 
-    // Fetch profile data counts
-    const [userExperience, userEducation, userProjects] = await Promise.all([
-        db.query.experience.findMany({
-            where: eq(experience.profileId, userProfile.id),
-        }),
-        db.query.education.findMany({
-            where: eq(education.profileId, userProfile.id),
-        }),
-        db.query.projects.findMany({
-            where: eq(projects.profileId, userProfile.id),
-        }),
+    // Fetch profile data counts efficiently
+    const countQuery = (table: any, column: any) =>
+        db.select({ count: sql<number>`count(*)`.mapWith(Number) })
+          .from(table)
+          .where(eq(column, userProfile.id))
+          .then(r => r[0]?.count ?? 0)
+
+    const [experienceCount, educationCount, projectsCount] = await Promise.all([
+        countQuery(experience, experience.profileId),
+        countQuery(education, education.profileId),
+        countQuery(projects, projects.profileId),
     ])
 
     const displayName = userProfile.displayName || 'there'
@@ -41,9 +41,9 @@ export async function generateWelcomeMessage() {
     const missingBio = !userProfile.bio
     const missingLocation = !userProfile.location
     const missingPersonalMission = !userProfile.personalMission
-    const missingWorkExperience = userExperience.length === 0
-    const missingEducation = userEducation.length === 0
-    const missingProjects = userProjects.length === 0
+    const missingWorkExperience = experienceCount === 0
+    const missingEducation = educationCount === 0
+    const missingProjects = projectsCount === 0
 
     // Generate AI welcome message
     const prompt = `You are Rize.ai, a friendly AI profile builder assistant. Generate a warm, personalized welcome message for ${displayName}.
@@ -52,9 +52,9 @@ Profile Status:
 - Bio: ${missingBio ? 'MISSING' : 'Complete'}
 - Location: ${missingLocation ? 'MISSING' : 'Complete'}
 - Personal Mission: ${missingPersonalMission ? 'MISSING' : 'Complete'}
-- Work Experience: ${missingWorkExperience ? 'MISSING (0 entries)' : `Complete (${userExperience.length} entries)`}
-- Education: ${missingEducation ? 'MISSING (0 entries)' : `Complete (${userEducation.length} entries)`}
-- Projects: ${missingProjects ? 'MISSING (0 entries)' : `Complete (${userProjects.length} entries)`}
+- Work Experience: ${missingWorkExperience ? 'MISSING (0 entries)' : `Complete (${experienceCount} entries)`}
+- Education: ${missingEducation ? 'MISSING (0 entries)' : `Complete (${educationCount} entries)`}
+- Projects: ${missingProjects ? 'MISSING (0 entries)' : `Complete (${projectsCount} entries)`}
 
 Priority order for questions:
 1. Bio (if missing)

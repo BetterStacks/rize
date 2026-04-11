@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
 import { parseResumeContent, ExtractedData } from '@/lib/resume-parser'
 import db from '@/lib/db'
 import { users, profile, experience, education, socialLinks } from '@/db/schema'
@@ -19,7 +20,8 @@ export async function POST(request: NextRequest) {
   try {
     // Simple API key authentication for bulk operations
     const apiKey = request.headers.get('x-api-key')
-    if (apiKey !== process.env.BULK_IMPORT_API_KEY) {
+    const expected = process.env.BULK_IMPORT_API_KEY
+    if (!apiKey || !expected || !timingSafeEqual(Buffer.from(apiKey), Buffer.from(expected))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

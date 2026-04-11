@@ -3,6 +3,7 @@
 import { useDebouncedCallback } from '@mantine/hooks'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState, useCallback, useMemo } from 'react'
+import { sanitizeHtml } from '@/lib/sanitize'
 import axios from 'axios'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -585,7 +586,7 @@ function PostCard({ item }: { item: any }) {
                         "dark:prose-gray-300",
                         "prose prose-sm dark:prose-invert max-w-none break-words overflow-hidden"
                     )}
-                    dangerouslySetInnerHTML={{ __html: item.content.substring(0, 100) }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content.substring(0, 100)) }}
                 />
             </div>
             <ArrowRight className="size-4 opacity-0 group-hover:opacity-50 transition-opacity shrink-0" />

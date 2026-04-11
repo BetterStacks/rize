@@ -99,6 +99,60 @@ export async function uploadToS3(
 }
 
 /**
+ * Optimize image for web delivery:
+ * - Converts to WebP (80% quality) for significant size reduction
+ * - Resizes if exceeds max dimensions (preserves aspect ratio)
+ * - Strips metadata (EXIF, etc.)
+ */
+export async function optimizeImage(
+    buffer: Buffer,
+    options: { maxWidth?: number; maxHeight?: number; quality?: number } = {}
+): Promise<{ buffer: Buffer; contentType: string; width?: number; height?: number }> {
+    const { maxWidth = 2048, maxHeight = 2048, quality = 80 } = options
+
+    const pipeline = sharp(buffer)
+        .rotate() // auto-rotate based on EXIF
+        .resize(maxWidth, maxHeight, {
+            fit: 'inside',
+            withoutEnlargement: true,
+        })
+        .webp({ quality })
+
+    const optimized = await pipeline.toBuffer()
+    const metadata = await sharp(optimized).metadata()
+
+    return {
+        buffer: optimized,
+        contentType: 'image/webp',
+        width: metadata.width,
+        height: metadata.height,
+    }
+}
+
+/**
+ * Generate a thumbnail for an image
+ */
+export async function generateThumbnail(
+    buffer: Buffer,
+    size: number = 400
+): Promise<{ buffer: Buffer; contentType: string; width?: number; height?: number }> {
+    const optimized = await sharp(buffer)
+        .rotate()
+        .resize(size, size, { fit: 'cover' })
+        .webp({ quality: 60 })
+        .toBuffer()
+
+    const metadata = await sharp(optimized).metadata()
+
+    return {
+        buffer: optimized,
+        contentType: 'image/webp',
+        width: metadata.width,
+        height: metadata.height,
+    }
+}
+
+/**
  * Get image dimensions using sharp
  */
 async function getImageDimensions(buffer: Buffer): Promise<{ width?: number, height?: number }> {

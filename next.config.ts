@@ -14,8 +14,14 @@ const nextConfig: NextConfig = {
     return config;
   },
   images: {
-    dangerouslyAllowSVG: true,
-    remotePatterns: [{ hostname: "*" }],
+    remotePatterns: [
+      { hostname: "*.amazonaws.com" },
+      { hostname: "*.supabase.co" },
+      { hostname: "*.googleusercontent.com" },
+      { hostname: "lh3.googleusercontent.com" },
+      { hostname: "avatars.githubusercontent.com" },
+      { hostname: "media.licdn.com" },
+    ],
     qualities: [25, 50, 75, 100],
   },
   serverExternalPackages: ["ws"],

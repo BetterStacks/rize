@@ -3,14 +3,42 @@ import OpenAI from 'openai'
 import db from '@/lib/db'
 import { users, profile, experience, education, projects } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { timingSafeEqual } from 'crypto'
+
+function verifyWebhookSecret(req: Request): boolean {
+  const secret = process.env.VAPI_WEBHOOK_SECRET
+  if (!secret) return true // Skip verification if no secret configured (dev mode)
+
+  const headerSecret = req.headers.get('x-vapi-secret') || ''
+  if (!headerSecret || !secret) return false
+
+  try {
+    return timingSafeEqual(
+      Buffer.from(headerSecret),
+      Buffer.from(secret)
+    )
+  } catch {
+    return false
+  }
+}
 
 export async function POST(req: Request) {
+    // Verify webhook authenticity
+    if (!verifyWebhookSecret(req)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Rate limit webhooks
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'vapi'
+    const { success, response } = await checkRateLimit('webhook', ip)
+    if (!success) return response!
+
     try {
         const body = await req.json()
         const { call, transcript, type } = body?.message
 
         if (type !== 'end-of-call-report') {
-            console.log("Type:", type)
             return NextResponse.json({ received: true })
         }
 

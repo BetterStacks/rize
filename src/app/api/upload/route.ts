@@ -1,9 +1,16 @@
 import { requireAuth } from '@/lib/auth'
 import { NextRequest } from 'next/server'
 import { uploadToS3 } from '@/lib/s3'
+import { checkRateLimit } from '@/lib/rate-limit'
 import sharp from 'sharp'
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
+  const { success, response } = await checkRateLimit('upload', ip);
+  if (!success) return response!;
+
   try {
     const data = await req.formData()
     const type = data.get('type') as string
@@ -87,7 +94,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('S3 upload error:', error)
     return Response.json(
-      { message: 'S3 upload failed', error: error.message },
+      { message: 'Upload failed. Please try again.' },
       { status: 500 }
     )
   }

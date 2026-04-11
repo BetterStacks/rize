@@ -3,6 +3,7 @@ import { getPostById } from "@/actions/post-actions";
 import { useTogglePostBookmark } from "@/hooks/useTogglePostBookmark";
 import { useVotePost } from "@/hooks/useVotePost";
 import { useSession } from "@/lib/auth-client";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { GetCommentWithProfile, GetExplorePosts } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -119,7 +120,7 @@ const PostPage: FC<PostPageProps> = ({
                 "text-neutral-600 leading-snug mb-8 mt-4 px-4  ",
                 "dark:text-neutral-300  prose dark:prose-invert dark:prose-gray-300",
               )}
-              dangerouslySetInnerHTML={{ __html: post?.content ?? "" }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(post?.content ?? "") }}
             />
           )}
           <div className="overflow-x-auto px-4 w-full flex items-center justify-center">

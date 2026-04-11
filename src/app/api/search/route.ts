@@ -2,8 +2,14 @@ import { searchProfiles } from '@/actions/profile-actions'
 import db from '@/lib/db'
 import { posts, projects, profile, page, education, experience, postTopics, projectTopics, projectSkills, profileSkills } from '@/db/schema'
 import { ilike, or, and, eq, isNotNull, desc, inArray, sql, type SQL } from 'drizzle-orm'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function GET(request: Request) {
+  // Rate limit by IP
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous'
+  const { success, response } = await checkRateLimit('search', ip)
+  if (!success) return response!
+
   const { searchParams } = new URL(request.url)
   const query = searchParams.get('query') || ''
   const type = searchParams.get('type') || 'all'

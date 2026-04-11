@@ -3,7 +3,7 @@
 import { getServerSession } from '@/lib/auth'
 import db from '@/lib/db'
 import { profile, education, experience, projects, storyElements } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 
 export async function getProfileCompletionData() {
     const session = await getServerSession()
@@ -19,19 +19,17 @@ export async function getProfileCompletionData() {
         return null
     }
 
+    const countQuery = (table: any, column: any) =>
+        db.select({ count: sql<number>`count(*)`.mapWith(Number) })
+          .from(table)
+          .where(eq(column, userProfile.id))
+          .then(r => r[0]?.count ?? 0)
+
     const [educationCount, experienceCount, projectsCount, storyElementsCount] = await Promise.all([
-        db.query.education.findMany({
-            where: eq(education.profileId, userProfile.id),
-        }).then(items => items.length),
-        db.query.experience.findMany({
-            where: eq(experience.profileId, userProfile.id),
-        }).then(items => items.length),
-        db.query.projects.findMany({
-            where: eq(projects.profileId, userProfile.id),
-        }).then(items => items.length),
-        db.query.storyElements.findMany({
-            where: eq(storyElements.profileId, userProfile.id),
-        }).then(items => items.length),
+        countQuery(education, education.profileId),
+        countQuery(experience, experience.profileId),
+        countQuery(projects, projects.profileId),
+        countQuery(storyElements, storyElements.profileId),
     ])
 
     return {

@@ -11,6 +11,12 @@ if (!connectionString || connectionString.trim() === '') {
   throw new Error('DATABASE_URL environment variable is not set or is empty.');
 }
 
-const pool = new Pool({ connectionString });
+const pool = new Pool({
+  connectionString,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
+
 const db = drizzle({ client: pool, schema: tables });
 export default db

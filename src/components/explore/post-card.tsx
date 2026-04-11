@@ -2,6 +2,7 @@ import { useTogglePostBookmark } from "@/hooks/useTogglePostBookmark";
 import { useVotePost } from "@/hooks/useVotePost";
 import { GetExplorePosts, TPostMedia } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { sanitizeHtml } from "@/lib/sanitize";
 import moment from "moment";
 import Image from "next/image";
 import Link from "next/link";
@@ -277,7 +278,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
             "dark:text-neutral-400",
             "prose prose-sm dark:prose-invert max-w-none",
           )}
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content ?? "") }}
         />
       )}
       {post?.link && (
@@ -373,7 +374,7 @@ const OnlyContentCard: FC<GeneralPostProps> = ({
           "dark:text-neutral-400",
           "prose prose-sm dark:prose-invert max-w-none",
         )}
-        dangerouslySetInnerHTML={{ __html: post?.content ?? "" }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(post?.content ?? "") }}
       />
       {post?.link && <PostLinkCard {...post?.link} />}
       <PostInteractions

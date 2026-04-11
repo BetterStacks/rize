@@ -2,6 +2,7 @@
 
 import { getProjectByID } from "@/actions/project-actions";
 import { useSession } from "@/lib/auth-client";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { GetAllProjects } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -248,7 +249,7 @@ const ProjectPage: FC<ProjectPageProps> = ({
                                     "dark:prose-gray-300 prose-headings:font-semibold prose-h1:text-xl  prose-headings:tracking-tight prose-h2:text-lg ",
                                     "prose prose-base dark:prose-invert max-w-none break-words overflow-hidden"
                                 )}
-                                dangerouslySetInnerHTML={{ __html: project.description }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description ?? "") }}
                             />
                         )}
 

@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
 import db from '@/lib/db'
 import { users, profile, education, experience, projects } from '@/db/schema'
 import { eq, inArray } from 'drizzle-orm'
+
+function verifyApiKey(provided: string | null, expected: string | undefined): boolean {
+  if (!provided || !expected) return false
+  try {
+    return timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
+  } catch {
+    return false
+  }
+}
 
 export async function GET(
   request: NextRequest,
@@ -11,7 +21,7 @@ export async function GET(
     const adminKeyHeader = request.headers.get('x-admin-api-key')
     const adminKey = process.env.ADMIN_API_KEY
 
-    if (!adminKey || !adminKeyHeader || adminKeyHeader !== adminKey) {
+    if (!verifyApiKey(adminKeyHeader, adminKey)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

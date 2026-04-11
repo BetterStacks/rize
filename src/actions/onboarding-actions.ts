@@ -3,6 +3,7 @@
 import { users } from "@/db/schema";
 import { getServerSession } from "@/lib/auth";
 import db from "@/lib/db";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { VAPI_ASSISTANT_CONFIG } from "@/lib/vapi-config";
 import axios from "axios";
 import { eq } from "drizzle-orm";
@@ -14,6 +15,12 @@ export async function initiateOnboardingCall(phoneNumber: string) {
 
     if (!session?.user?.id) {
       return { success: false, error: "Not authenticated" };
+    }
+
+    // Rate limit: max 3 call initiations per user per day
+    const { success: withinLimit } = await checkRateLimit('call', session.user.id);
+    if (!withinLimit) {
+      return { success: false, error: "Too many call attempts. Please try again tomorrow." };
     }
 
     // Validate environment variables

@@ -3,6 +3,7 @@ import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
 import { queryClient } from '@/lib/providers'
 import { TEducation } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { sanitizeHtml } from '@/lib/sanitize'
 import { useMediaQuery } from '@mantine/hooks'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
@@ -102,7 +103,7 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
             "prose prose-sm dark:prose-invert max-w-none mt-3",
             "prose-p:leading-relaxed prose-headings:font-semibold prose-headings:tracking-tight",
           )}
-          dangerouslySetInnerHTML={{ __html: education.description }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(education.description ?? "") }}
         />
       )}
     </motion.div>
