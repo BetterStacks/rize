@@ -69,6 +69,18 @@ export const users = pgTable("user", {
   phoneNumber: text("phoneNumber").unique(),
   phoneNumberVerified: boolean("phoneNumberVerified").notNull().default(false),
   onboardingCallId: text("onboarding_call_id"),
+  dailyCallEnabled: boolean("daily_call_enabled").notNull().default(false),
+  preferredCallTime: text("preferred_call_time"), // "HH:MM", 24-hour, interpreted in UTC
+});
+
+export const dailyCheckins = pgTable("daily_checkins", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  callId: text("call_id"),
+  summary: text("summary"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const profile = pgTable("profile", {

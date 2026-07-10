@@ -28,7 +28,7 @@ export const register = async (
     throw new Error('User already exists')
   }
   const hashedPassword = hashSync(payload.password as string, 10)
-  const image = `https://api.dicebear.com/9.x/initials/svg?seed=${payload.name}`
+  const image = `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(payload.name as string)}`
   const [user] = await db
     .insert(users)
     .values({

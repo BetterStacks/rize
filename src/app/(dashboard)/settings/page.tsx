@@ -2,6 +2,7 @@ import { getServerSession } from '@/lib/auth'
 import { ProfileForm } from '@/components/settings/ProfileForm'
 import { StoryElementsForm } from '@/components/settings/StoryElementsForm'
 import { ResumeForm } from '@/components/settings/ResumeForm'
+import { DailyCheckinForm } from '@/components/settings/DailyCheckinForm'
 import { redirect } from 'next/navigation'
 import { ArrowLeft, BarChart3 } from 'lucide-react'
 import Link from 'next/link'
@@ -55,6 +56,7 @@ const Page = async () => {
 				</Card>
 
 				<ProfileForm />
+				<DailyCheckinForm />
 				<StoryElementsForm />
 				<ResumeForm />
 			</div>

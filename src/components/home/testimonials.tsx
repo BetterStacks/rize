@@ -96,7 +96,7 @@ const TestimonialsMarquee = () => {
                 </div>
                 <div className="flex w-full items-center pt-4  border-t border-neutral-300/60 dark:border-dark-border justify-start ">
                   <Image
-                    src={`https://api.dicebear.com/9.x/dylan/svg?seed=${testimonial.name}?scale=50`}
+                    src={`https://api.dicebear.com/9.x/dylan/svg?seed=${encodeURIComponent(testimonial.name)}&scale=50`}
                     alt={testimonial.name}
                     className="size-12 rounded-full"
                     width={50}
