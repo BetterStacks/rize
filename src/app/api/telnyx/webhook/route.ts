@@ -3,8 +3,13 @@ import { startAiAssistant } from "@/lib/telnyx";
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import db from "@/lib/db";
-import { dailyCheckins } from "@/db/schema";
+import { dailyCheckins, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { generateText } from "ai";
+import { embedText } from "@/lib/memory";
+
+const google = createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Minimal ASN.1/SPKI DER header for a raw 32-byte Ed25519 public key, so
 // Node's crypto module can import it without a third-party lib.
@@ -44,6 +49,31 @@ function decodeClientState(clientState?: string): { userId?: string; purpose?: s
   }
 }
 
+// Folds today's call summary into the user's existing rolling memory via one
+// LLM call, so the memory stays short/current instead of growing unbounded.
+async function synthesizeMemory(previousMemory: string | null, newSummary: string): Promise<string> {
+  const prompt =
+    "You maintain a short rolling memory of what a user has been focused on across daily check-in calls. " +
+    "Given the existing memory and a new call summary, produce an updated memory (3-4 sentences max) that " +
+    "folds in the new information and lets stale, no-longer-relevant details fade out.\n\n" +
+    `Existing memory: ${previousMemory ?? "(none yet — this is their first check-in)"}\n\n` +
+    `New summary from today's call: ${newSummary}\n\n` +
+    "Generate ONLY the updated memory text, nothing else.";
+
+  const { text } = await generateText({
+    model: google(process.env.GEMINI_MODEL || "gemini-2.5-flash"),
+    prompt,
+    maxOutputTokens: 300,
+    providerOptions: {
+      google: {
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    },
+  });
+
+  return text.trim() || newSummary;
+}
+
 export async function POST(req: Request) {
   const rawBody = await req.text();
 
@@ -58,13 +88,18 @@ export async function POST(req: Request) {
   const body = JSON.parse(rawBody);
   const eventType = body?.data?.event_type;
   const payload = body?.data?.payload;
-  const { purpose } = decodeClientState(payload?.client_state);
+  const { userId, purpose } = decodeClientState(payload?.client_state);
 
   if (eventType === "call.answered") {
     // Same assistant/conversation runs for both onboarding and daily check-in calls.
     if ((purpose === "daily_checkin" || purpose === "onboarding") && process.env.TELNYX_ASSISTANT_ID) {
+      let memoryContext: string | undefined;
+      if (userId) {
+        const [row] = await db.select({ memoryContext: users.memoryContext }).from(users).where(eq(users.id, userId)).limit(1);
+        memoryContext = row?.memoryContext ?? undefined;
+      }
       try {
-        await startAiAssistant(payload.call_control_id, process.env.TELNYX_ASSISTANT_ID);
+        await startAiAssistant(payload.call_control_id, process.env.TELNYX_ASSISTANT_ID, memoryContext);
       } catch (error: any) {
         console.error("startAiAssistant failed:", JSON.stringify(error?.response?.data ?? error?.message));
       }
@@ -74,10 +109,27 @@ export async function POST(req: Request) {
   if (eventType === "call.conversation_insights.generated") {
     const summary: string | undefined = payload?.results?.[0]?.result;
     if (summary && payload?.call_control_id) {
+      let embedding: number[] | undefined;
+      try {
+        embedding = await embedText(summary);
+      } catch (error) {
+        console.error("embedText failed:", error);
+      }
+
       await db
         .update(dailyCheckins)
-        .set({ summary })
+        .set({ summary, ...(embedding ? { embedding } : {}) })
         .where(eq(dailyCheckins.callId, payload.call_control_id));
+
+      if (userId) {
+        const [row] = await db.select({ memoryContext: users.memoryContext }).from(users).where(eq(users.id, userId)).limit(1);
+        try {
+          const updatedMemory = await synthesizeMemory(row?.memoryContext ?? null, summary);
+          await db.update(users).set({ memoryContext: updatedMemory }).where(eq(users.id, userId));
+        } catch (error) {
+          console.error("synthesizeMemory failed:", error);
+        }
+      }
     }
   }
 

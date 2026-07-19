@@ -9,7 +9,14 @@ import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getMyDailyCheckinSettings, updateDailyCheckinSettings } from '@/actions/daily-checkin-actions'
+
+const FREQUENCY_OPTIONS = [
+	{ value: '1', label: 'Daily' },
+	{ value: '3', label: 'Every 3 days' },
+	{ value: '7', label: 'Weekly' },
+]
 
 // Cron stores/matches time in UTC; the picker shows IST (UTC+5:30) — fixed
 // offset, not the browser's local timezone, since users are India-based.
@@ -34,10 +41,12 @@ export function DailyCheckinForm() {
 	const [enabled, setEnabled] = useState<boolean | null>(null)
 	const [time, setTime] = useState<string | null>(null)
 	const [phone, setPhone] = useState<string | null>(null)
+	const [intervalDays, setIntervalDays] = useState<number | null>(null)
 
 	const currentEnabled = enabled ?? data?.dailyCallEnabled ?? false
 	const currentTime = time ?? (data?.preferredCallTime ? utcToLocalHHMM(data.preferredCallTime) : '09:00')
 	const currentPhone = phone ?? data?.phoneNumber ?? ''
+	const currentIntervalDays = intervalDays ?? data?.callIntervalDays ?? 1
 	const hasValidPhone = !!currentPhone && isValidPhoneNumber(currentPhone)
 
 	const mutation = useMutation({
@@ -46,6 +55,7 @@ export function DailyCheckinForm() {
 				enabled: currentEnabled,
 				preferredCallTime: localToUtcHHMM(currentTime),
 				phoneNumber: currentPhone || undefined,
+				callIntervalDays: currentIntervalDays,
 			}),
 		onSuccess: (res) => {
 			if (res.success) {
@@ -95,16 +105,37 @@ export function DailyCheckinForm() {
 				</div>
 
 				{currentEnabled && (
-					<div className="flex items-center justify-between">
-						<Label htmlFor="daily-call-time">Preferred time (IST)</Label>
-						<Input
-							id="daily-call-time"
-							type="time"
-							value={currentTime}
-							onChange={(e) => setTime(e.target.value)}
-							className="w-32"
-						/>
-					</div>
+					<>
+						<div className="flex items-center justify-between">
+							<Label htmlFor="daily-call-time">Preferred time (IST)</Label>
+							<Input
+								id="daily-call-time"
+								type="time"
+								value={currentTime}
+								onChange={(e) => setTime(e.target.value)}
+								className="w-32"
+							/>
+						</div>
+
+						<div className="flex items-center justify-between">
+							<Label htmlFor="daily-call-frequency">How often</Label>
+							<Select
+								value={String(currentIntervalDays)}
+								onValueChange={(value) => setIntervalDays(Number(value))}
+							>
+								<SelectTrigger id="daily-call-frequency" className="w-40">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{FREQUENCY_OPTIONS.map((option) => (
+										<SelectItem key={option.value} value={option.value}>
+											{option.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+					</>
 				)}
 
 				<Button

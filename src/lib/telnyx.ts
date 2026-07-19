@@ -45,12 +45,26 @@ export async function placeTelnyxCall({
 
 // Attaches a pre-configured Telnyx AI Assistant to an already-answered call
 // — the assistant then takes over the conversation (STT, LLM, TTS) entirely.
-export async function startAiAssistant(callControlId: string, assistantId: string) {
+// `memoryContext`, when provided, is seeded as a user/assistant exchange pair
+// (a `system`-role message was tried first but Telnyx rejected it with
+// "Invalid message format" despite matching their published schema — this
+// user/assistant pair matches their only fully-documented working example).
+export async function startAiAssistant(callControlId: string, assistantId: string, memoryContext?: string) {
   const apiKey = requireApiKey();
 
   await axios.post(
     `https://api.telnyx.com/v2/calls/${callControlId}/actions/ai_assistant_start`,
-    { assistant: { id: assistantId } },
+    {
+      assistant: { id: assistantId },
+      ...(memoryContext
+        ? {
+            message_history: [
+              { role: "user", content: "What do you remember about me from our previous conversations?" },
+              { role: "assistant", content: `Here's what I remember: ${memoryContext}` },
+            ],
+          }
+        : {}),
+    },
     {
       headers: {
         Authorization: `Bearer ${apiKey}`,

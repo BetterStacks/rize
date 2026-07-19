@@ -7,15 +7,18 @@ import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 const TIME_FORMAT = /^([01]\d|2[0-3]):([0-5]\d)$/; // "HH:MM", 24-hour
+const ALLOWED_INTERVALS = [1, 3, 7] as const; // daily / every 3 days / weekly
 
 export async function updateDailyCheckinSettings({
   enabled,
   preferredCallTime,
   phoneNumber,
+  callIntervalDays,
 }: {
   enabled: boolean;
   preferredCallTime: string;
   phoneNumber?: string;
+  callIntervalDays: number;
 }) {
   const session = await requireAuth();
 
@@ -25,6 +28,10 @@ export async function updateDailyCheckinSettings({
 
   if (enabled && !phoneNumber) {
     return { success: false, error: "Add a phone number before enabling daily calls" };
+  }
+
+  if (!ALLOWED_INTERVALS.includes(callIntervalDays as any)) {
+    return { success: false, error: "Invalid call interval" };
   }
 
   if (phoneNumber) {
@@ -44,6 +51,7 @@ export async function updateDailyCheckinSettings({
     .set({
       dailyCallEnabled: enabled,
       preferredCallTime,
+      callIntervalDays,
       ...(phoneNumber ? { phoneNumber } : {}),
     })
     .where(eq(users.id, session.user.id));
@@ -60,12 +68,13 @@ export async function getMyDailyCheckinSettings() {
       dailyCallEnabled: users.dailyCallEnabled,
       preferredCallTime: users.preferredCallTime,
       phoneNumber: users.phoneNumber,
+      callIntervalDays: users.callIntervalDays,
     })
     .from(users)
     .where(eq(users.id, session.user.id))
     .limit(1);
 
-  return row ?? { dailyCallEnabled: false, preferredCallTime: null, phoneNumber: null };
+  return row ?? { dailyCallEnabled: false, preferredCallTime: null, phoneNumber: null, callIntervalDays: 1 };
 }
 
 export async function getMyDailyCheckins(limit: number = 30) {

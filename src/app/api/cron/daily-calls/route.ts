@@ -1,7 +1,7 @@
 import { initiateCall } from "@/actions/call-actions";
 import { dailyCheckins, users } from "@/db/schema";
 import db from "@/lib/db";
-import { and, eq, gt, gte, isNotNull, lte, or } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, lte, or } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 const toHHMM = (d: Date) => `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
@@ -27,21 +27,29 @@ export async function GET(req: Request) {
       : or(gt(users.preferredCallTime, windowStart), lte(users.preferredCallTime, windowEnd));
 
   const dueUsers = await db
-    .select({ id: users.id, phoneNumber: users.phoneNumber, preferredCallTime: users.preferredCallTime })
+    .select({
+      id: users.id,
+      phoneNumber: users.phoneNumber,
+      preferredCallTime: users.preferredCallTime,
+      callIntervalDays: users.callIntervalDays,
+    })
     .from(users)
     .where(and(eq(users.dailyCallEnabled, true), isNotNull(users.phoneNumber), inWindow));
 
-  const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const results = [];
 
   for (const user of dueUsers) {
-    const alreadyCalledToday = await db
-      .select({ id: dailyCheckins.id })
+    const [lastCheckin] = await db
+      .select({ createdAt: dailyCheckins.createdAt })
       .from(dailyCheckins)
-      .where(and(eq(dailyCheckins.userId, user.id), gte(dailyCheckins.createdAt, startOfDay)))
+      .where(eq(dailyCheckins.userId, user.id))
+      .orderBy(desc(dailyCheckins.createdAt))
       .limit(1);
 
-    if (alreadyCalledToday.length > 0) continue;
+    if (lastCheckin) {
+      const daysSinceLastCall = (now.getTime() - lastCheckin.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceLastCall < user.callIntervalDays) continue; // not due yet per their chosen frequency
+    }
 
     const result = await initiateCall({
       userId: user.id,

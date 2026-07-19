@@ -12,6 +12,7 @@ import {
   timestamp,
   uuid,
   varchar,
+  vector,
 } from "drizzle-orm/pg-core";
 // Define account types for better-auth compatibility
 export type AccountType = "oauth" | "oidc" | "email" | "webauthn";
@@ -71,6 +72,8 @@ export const users = pgTable("user", {
   onboardingCallId: text("onboarding_call_id"),
   dailyCallEnabled: boolean("daily_call_enabled").notNull().default(false),
   preferredCallTime: text("preferred_call_time"), // "HH:MM", 24-hour, interpreted in UTC
+  callIntervalDays: integer("call_interval_days").notNull().default(1), // 1 = daily, 3 = every 3 days, 7 = weekly
+  memoryContext: text("memory_context"), // rolling synthesized summary of past check-in calls
 });
 
 export const dailyCheckins = pgTable("daily_checkins", {
@@ -80,6 +83,7 @@ export const dailyCheckins = pgTable("daily_checkins", {
     .references(() => users.id, { onDelete: "cascade" }),
   callId: text("call_id"),
   summary: text("summary"),
+  embedding: vector("embedding", { dimensions: 768 }), // for semantic recall of past topics mid-call
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
