@@ -11,7 +11,12 @@ export default async function Icon({ params }: { params: Promise<{ username: str
     const username = (await params).username
     const user = await getProfileByUsername(username)
 
-    const profileImage = user?.profileImage || 'https://rize.lol/favicon.ico'
+    // Satori (used by ImageResponse) can't rasterize dicebear's SVG output —
+    // it lacks explicit width/height, only a viewBox. Use the PNG variant here.
+    const profileImage = (user?.profileImage || 'https://rize.lol/favicon.ico').replace(
+        '/9.x/initials/svg',
+        '/9.x/initials/png'
+    )
 
     return new ImageResponse(
         (
