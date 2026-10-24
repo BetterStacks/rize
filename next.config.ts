@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
       { hostname: "lh3.googleusercontent.com" },
       { hostname: "avatars.githubusercontent.com" },
       { hostname: "media.licdn.com" },
+      { hostname: "i.pinimg.com" },
     ],
     qualities: [25, 50, 75, 100],
   },
