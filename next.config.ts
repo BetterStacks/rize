@@ -26,6 +26,8 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ["ws"],
   experimental: {
+    // The persistent dev cache's writes/compactions starve the dev server on low-memory machines
+    turbopackFileSystemCacheForDev: false,
     serverActions: {
       bodySizeLimit: "3mb",
     },

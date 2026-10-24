@@ -22,7 +22,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSession } from '@/hooks/useAuth'
 import { useQuery } from '@tanstack/react-query'
-import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import ProfileChat from '../profile-builder/ProfileChat'
 import { ResumeForm } from '../settings/ResumeForm'
@@ -31,7 +30,6 @@ import { ResumeForm } from '../settings/ResumeForm'
 const RightSidebar = ({ className }: { className?: string }) => {
   const [active, setActive] = useActiveSidebarTab()
   const { data, isLoading: isSessionLoading } = useSession()
-  const { theme } = useTheme()
   const letrazBaseUrl = process.env.NEXT_PUBLIC_LETRAZ_URL
   const hasLetraz = !!data?.user?.letrazId
   const authMethod = data?.authMethod || 'email'
@@ -101,9 +99,14 @@ const RightSidebar = ({ className }: { className?: string }) => {
                 <Card className="max-w-sm w-full shadow-lg dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 rounded-3xl">
                   <CardHeader>
                     <Image
-                      src={theme === 'dark' ? letrazLogo : letrazLogoLight}
+                      src={letrazLogo}
                       alt="Letraz Logo"
-                      className="w-[40%]"
+                      className="w-[40%] hidden dark:block"
+                    />
+                    <Image
+                      src={letrazLogoLight}
+                      alt="Letraz Logo"
+                      className="w-[40%] dark:hidden"
                     />
                     <CardDescription className="text-left leading-snug">
                       Letraz helps you easily build unique resumes for each

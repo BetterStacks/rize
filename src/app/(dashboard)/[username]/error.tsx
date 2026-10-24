@@ -3,7 +3,6 @@
 import Logo from '@/components/logo'
 // import { Button } from '@/components/ui/button'
 import { setCookie } from 'cookies-next'
-import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
@@ -17,7 +16,6 @@ type ErrorPageProps = {
 export default function Error({ error, reset }: ErrorPageProps) {
   const params = useParams() // Access route params here
   const router = useRouter()
-  const { theme } = useTheme()
   useEffect(() => {
     console.error('Page error:', error)
   }, [error])
@@ -55,25 +53,22 @@ export default function Error({ error, reset }: ErrorPageProps) {
 
         <div className="w-full flex items-center justify-center absolute -bottom-[4%] md:-bottom-[20%]">
           <div className="aspect-video border border-neutral-300 shadow-2xl dark:border-dark-border rotate-6 max-w-3xl relative overflow-hidden rounded-3xl w-full">
-            {theme === 'light' ? (
-              <Image
-                src={'/minimal3.png'}
-                alt=""
-                quality={100}
-                className="md:scale-110"
-                style={{ objectFit: 'cover' }}
-                fill
-              />
-            ) : (
-              <Image
-                src={'/minimal2.png'}
-                alt=""
-                quality={100}
-                className="md:scale-110"
-                style={{ objectFit: 'cover' }}
-                fill
-              />
-            )}
+            <Image
+              src={'/minimal3.png'}
+              alt=""
+              quality={100}
+              className="md:scale-110 dark:hidden"
+              style={{ objectFit: 'cover' }}
+              fill
+            />
+            <Image
+              src={'/minimal2.png'}
+              alt=""
+              quality={100}
+              className="md:scale-110 hidden dark:block"
+              style={{ objectFit: 'cover' }}
+              fill
+            />
           </div>
         </div>
       </div>
