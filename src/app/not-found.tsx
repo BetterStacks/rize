@@ -2,11 +2,9 @@
 
 import Logo from '@/components/logo'
 import Link from 'next/link'
-import { useTheme } from 'next-themes'
 import Image from 'next/image'
 
 export default function NotFound() {
-  const { theme } = useTheme()
   
   return (
     <div className="flex flex-col items-center justify-start relative pt-24 h-[96vh] md:h-screen overflow-hidden w-full text-center px-4">
@@ -32,25 +30,22 @@ export default function NotFound() {
 
       <div className="w-full flex items-center justify-center absolute -bottom-[4%] md:-bottom-[20%]">
         <div className="aspect-video border border-neutral-300 shadow-2xl dark:border-dark-border rotate-6 max-w-3xl relative overflow-hidden rounded-3xl w-full opacity-50">
-          {theme === 'light' ? (
-            <Image
-              src={'/minimal3.png'}
-              alt="404 illustration"
-              quality={100}
-              className="md:scale-110"
-              style={{ objectFit: 'cover' }}
-              fill
-            />
-          ) : (
-            <Image
-              src={'/minimal2.png'}
-              alt="404 illustration"
-              quality={100}
-              className="md:scale-110"
-              style={{ objectFit: 'cover' }}
-              fill
-            />
-          )}
+          <Image
+            src={'/minimal3.png'}
+            alt="404 illustration"
+            quality={100}
+            className="md:scale-110 dark:hidden"
+            style={{ objectFit: 'cover' }}
+            fill
+          />
+          <Image
+            src={'/minimal2.png'}
+            alt="404 illustration"
+            quality={100}
+            className="md:scale-110 hidden dark:block"
+            style={{ objectFit: 'cover' }}
+            fill
+          />
         </div>
       </div>
     </div>
