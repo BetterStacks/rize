@@ -22,8 +22,16 @@ const nextConfig: NextConfig = {
       { hostname: "avatars.githubusercontent.com" },
       { hostname: "media.licdn.com" },
       { hostname: "i.pinimg.com" },
+      { hostname: "static.licdn.com" },
+      { hostname: "opengraph.githubassets.com" },
+      { hostname: "res.cloudinary.com" },
+      { hostname: "api.dicebear.com" },
     ],
     qualities: [25, 50, 75, 100],
+    // Default avatars are DiceBear SVGs; the CSP sandboxes any SVG served by the optimizer
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   serverExternalPackages: ["ws"],
   experimental: {
