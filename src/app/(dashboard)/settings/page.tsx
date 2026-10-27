@@ -3,7 +3,7 @@ import { ProfileForm } from '@/components/settings/ProfileForm'
 import { StoryElementsForm } from '@/components/settings/StoryElementsForm'
 import { ResumeForm } from '@/components/settings/ResumeForm'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, BarChart3 } from 'lucide-react'
+import { ArrowLeft, BarChart3, PhoneCall } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -49,6 +49,26 @@ const Page = async () => {
 						<Button asChild variant="default" className="w-full">
 							<Link href="/settings/analytics">
 								View Analytics Dashboard
+							</Link>
+						</Button>
+					</CardContent>
+				</Card>
+
+				{/* Voice Journal Card */}
+				<Card className="w-full">
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<PhoneCall className="h-5 w-5" />
+							Voice Journal
+						</CardTitle>
+						<CardDescription>
+							Get a call, talk about your work in Hindi or English, and get draft posts in your own words
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<Button asChild variant="default" className="w-full">
+							<Link href="/settings/voice">
+								Open Voice Journal
 							</Link>
 						</Button>
 					</CardContent>

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  initiateOnboardingCall,
-  skipOnboarding,
-} from "@/actions/onboarding-actions";
+import { skipOnboarding } from "@/actions/onboarding-actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,9 +8,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import PhoneVerifyForm from "@/components/voice/PhoneVerifyForm";
+import { startVoiceCall } from "@/components/voice/startVoiceCall";
 import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import { toast } from "react-hot-toast";
 
 type Props = {
@@ -28,31 +27,21 @@ export default function PhoneCollectionModal({
   onClose,
 }: Props) {
   const { data: session } = useSession()
-  const [phone, setPhone] = useState<string>(session?.user?.phoneNumber || "");
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
 
-    if (!phone || !isValidPhoneNumber(phone)) {
-      toast.error("Please enter a valid phone number");
-      return;
-    }
-
+  // After the number is verified, GPT-Live calls the user for the onboarding interview.
+  const handleVerified = async () => {
     setIsSubmitting(true);
-
-    try {
-      const result = await initiateOnboardingCall(phone);
-      if (!result.error && result.success) {
-        toast.success("Phone number saved! You will receive a call shortly.");
-        onClose?.();
-      } else {
-        toast.error(result.error || "Failed to save phone number");
-      }
-    } catch (error) {
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+    const result = await startVoiceCall("onboarding");
+    setIsSubmitting(false);
+    if (result.ok) {
+      toast.success("Verified! You will receive a call shortly.");
+      onClose?.();
+    } else {
+      toast.error(`${result.error} You can try again from Settings → Voice journal.`);
     }
+    router.refresh();
   };
 
   const handleSkip = async () => {
@@ -81,38 +70,15 @@ export default function PhoneCollectionModal({
 
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            We'll ask you a few questions to understand you better
+            We'll call you and ask a few questions to set up your profile. Hindi or English, your choice.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex h-10 w-full items-center rounded-lg border border-gray-300 dark:border-neutral-800  px-3 py-2 text-sm">
-              <PhoneInput
-                international
-                defaultCountry="IN"
-                value={phone}
-                onChange={(value) => setPhone(value || "")}
-                disabled={isSubmitting}
-                flagComponent={() => <span className="hidden" />}
-                internationalIconComponent={() => <></>}
-                addInternationalOption={false}
-                countrySelectProps={{
-                  className: "w-24 focus:outline-none dark:bg-neutral-900",
-                }}
-                numberInputProps={{
-                  className: "flex-1 ml-3 outline-none dark:bg-neutral-900",
-                }}
-                className="flex w-full items-center [&_.PhoneInputCountryIcon]:hidden"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              variant="secondary"
-              className="w-full"
-              disabled={!phone || !isValidPhoneNumber(phone) || isSubmitting}
-            >
-              {isSubmitting ? "Saving..." : "Continue →"}
-            </Button>
+          <div className="space-y-4">
+            <PhoneVerifyForm
+              initialPhone={session?.user?.phoneNumber || ""}
+              onVerified={handleVerified}
+              disabled={isSubmitting}
+            />
 
             <Button
               type="button"
@@ -123,7 +89,7 @@ export default function PhoneCollectionModal({
             >
               I'll do this later
             </Button>
-          </form>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
