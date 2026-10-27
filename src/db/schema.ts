@@ -3,6 +3,7 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   customType,
+  index,
   integer,
   jsonb,
   pgEnum,
@@ -1046,3 +1047,104 @@ export const roastHistory = pgTable("roast_history", {
     .references(() => profile.id, { onDelete: "cascade" }),
   roastedAt: timestamp("roasted_at").notNull().defaultNow(),
 });
+
+// Voice journaling (GPT-Live phone calls)
+export type TVoiceCallKind = "journal" | "onboarding";
+export type TVoiceCallStatus =
+  | "queued"
+  | "ringing"
+  | "in_progress"
+  | "completed"
+  | "failed"
+  | "no_answer";
+export type TVoiceDraftStatus = "draft" | "published" | "discarded";
+export type TTranscriptTurn = {
+  role: "user" | "assistant";
+  text: string;
+  startMs?: number;
+};
+
+const VoiceCallKind = customType<{ data: TVoiceCallKind }>({
+  dataType() {
+    return "text";
+  },
+});
+const VoiceCallStatus = customType<{ data: TVoiceCallStatus }>({
+  dataType() {
+    return "text";
+  },
+});
+const VoiceDraftStatus = customType<{ data: TVoiceDraftStatus }>({
+  dataType() {
+    return "text";
+  },
+});
+
+export const voiceCalls = pgTable(
+  "voice_calls",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => v4()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: VoiceCallKind("kind").notNull().default("journal"),
+    status: VoiceCallStatus("status").notNull().default("queued"),
+    language: text("language"),
+    twilioCallSid: text("twilio_call_sid").unique(),
+    openaiSessionId: text("openai_session_id").unique(),
+    transcript: jsonb("transcript").$type<TTranscriptTurn[]>(),
+    recordingKey: text("recording_key"),
+    recordingExpiresAt: timestamp("recording_expires_at"),
+    durationSeconds: integer("duration_seconds"),
+    closeReason: text("close_reason"),
+    error: text("error"),
+    draftsGeneratedAt: timestamp("drafts_generated_at"),
+    startedAt: timestamp("started_at"),
+    endedAt: timestamp("ended_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [index("idx_voice_calls_user_created").on(t.userId, t.createdAt)]
+);
+
+export const voiceDrafts = pgTable(
+  "voice_drafts",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .$defaultFn(() => v4()),
+    callId: uuid("call_id")
+      .notNull()
+      .references(() => voiceCalls.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    status: VoiceDraftStatus("status").notNull().default("draft"),
+    // Set once the user publishes; the published copy lives in `posts`
+    postId: uuid("post_id").references(() => posts.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [index("idx_voice_drafts_profile_status").on(t.profileId, t.status)]
+);
+
+export const voiceCallsRelations = relations(voiceCalls, ({ one, many }) => ({
+  user: one(users, { fields: [voiceCalls.userId], references: [users.id] }),
+  drafts: many(voiceDrafts),
+}));
+
+export const voiceDraftsRelations = relations(voiceDrafts, ({ one }) => ({
+  call: one(voiceCalls, {
+    fields: [voiceDrafts.callId],
+    references: [voiceCalls.id],
+  }),
+}));
