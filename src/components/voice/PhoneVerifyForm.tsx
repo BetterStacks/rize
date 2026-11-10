@@ -3,7 +3,7 @@
 import { confirmPhoneVerification, sendPhoneVerification } from "@/actions/voice-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 
@@ -18,9 +18,16 @@ export default function PhoneVerifyForm({ initialPhone, onVerified, disabled }: 
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [busy, setBusy] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
 
-  const sendCode = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendIn]);
+
+  const sendCode = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!isValidPhoneNumber(phone)) {
       toast.error("Please enter a valid phone number");
       return;
@@ -33,6 +40,8 @@ export default function PhoneVerifyForm({ initialPhone, onVerified, disabled }: 
       return;
     }
     setStep("code");
+    setCode("");
+    setResendIn(30);
     toast.success("Code sent by SMS");
   };
 
@@ -69,6 +78,14 @@ export default function PhoneVerifyForm({ initialPhone, onVerified, disabled }: 
             Change number
           </Button>
         </div>
+        <button
+          type="button"
+          onClick={() => sendCode()}
+          disabled={busy || disabled || resendIn > 0}
+          className="text-sm text-muted-foreground underline-offset-4 hover:underline disabled:no-underline disabled:opacity-60"
+        >
+          {resendIn > 0 ? `Resend code in ${resendIn}s` : "Resend code"}
+        </button>
       </form>
     );
   }
