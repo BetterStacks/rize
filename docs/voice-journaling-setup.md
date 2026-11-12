@@ -32,6 +32,10 @@ Nothing on the phone numbers changes.
 2. **Voice → Settings → General**: leave the defaults. Calls use inline TwiML, so no TwiML app or webhook is needed on the numbers.
 3. Note: some countries (including India) may block or rewrite a US toll-free caller ID. Test with one call to your own number first.
 
+### 2b. Dial-back (users calling the Rize number)
+So people can call back a missed call: Twilio → Phone Numbers → the `TWILIO_PHONE_NUMBER` number → **Voice configuration** → "A call comes in": **Webhook**, `https://www.rize.so/api/voice/twilio/incoming`, **HTTP POST**. Save.
+A caller whose number is verified on a Rize account gets the same AI as a "Call me" call (journal or onboarding, recorded, 12-minute cap). Anyone else hears a short message on how to verify their number.
+
 ### 3. Cloudflare R2
 1. Use the bucket in `R2_BUCKET`, kept private (no public access).
 2. Add the 7-day lifecycle rule (it keeps any rules already on the bucket):
