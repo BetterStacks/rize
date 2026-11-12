@@ -10,15 +10,31 @@ export async function POST(req: Request) {
   const params = await readTwilioForm(req);
   if (!params) return new NextResponse("Invalid signature", { status: 403 });
 
-  const callId = new URL(req.url).searchParams.get("callId");
-  if (!callId) return new NextResponse(null, { status: 204 });
+  const url = new URL(req.url);
+  const callId = url.searchParams.get("callId");
+  // Incoming calls report their end through the Dial `action`, which must
+  // answer with TwiML; outbound status callbacks just get a 204.
+  const fromDial = url.searchParams.get("source") === "dial";
+  const done = () =>
+    fromDial
+      ? new NextResponse("<Response><Hangup/></Response>", {
+          headers: { "Content-Type": "text/xml" },
+        })
+      : new NextResponse(null, { status: 204 });
+  if (!callId) return done();
 
   const call = await db.query.voiceCalls.findFirst({
     where: and(eq(voiceCalls.id, callId), eq(voiceCalls.twilioCallSid, params.CallSid)),
   });
-  if (!call) return new NextResponse(null, { status: 204 });
+  if (!call) return done();
 
-  const twilioStatus = params.CallStatus;
+  // DialCallStatus "answered" means the bridge ran and has now ended.
+  const twilioStatus = fromDial
+    ? params.DialCallStatus === "answered"
+      ? "completed"
+      : params.DialCallStatus
+    : params.CallStatus;
+  const callDuration = fromDial ? params.DialCallDuration : params.CallDuration;
   const notConnected = !call.openaiSessionId;
 
   if (twilioStatus === "ringing" && call.status === "queued") {
@@ -33,8 +49,8 @@ export async function POST(req: Request) {
       updates.error =
         twilioStatus === "completed" ? "The call ended before the AI joined" : `Twilio: ${twilioStatus}`;
     }
-    if (!call.durationSeconds && params.CallDuration) {
-      updates.durationSeconds = Number(params.CallDuration) || null;
+    if (!call.durationSeconds && callDuration) {
+      updates.durationSeconds = Number(callDuration) || null;
     }
     if (Object.keys(updates).length) {
       await db
@@ -52,5 +68,5 @@ export async function POST(req: Request) {
     }
   }
 
-  return new NextResponse(null, { status: 204 });
+  return done();
 }

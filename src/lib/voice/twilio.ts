@@ -57,6 +57,33 @@ export async function startOutboundCall(opts: { callId: string; to: string }) {
   });
 }
 
+// TwiML for a call the user places to TWILIO_PHONE_NUMBER: bridge it to OpenAI
+// the same way as an outbound call. Twilio reports the end of the call to the
+// Dial `action` URL, since an incoming call has no statusCallback of its own.
+export function incomingCallTwiml(callId: string) {
+  const base = publicBaseUrl();
+  const response = new twilio.twiml.VoiceResponse();
+  const dial = response.dial({
+    answerOnBridge: true,
+    timeLimit: CALL_TIME_LIMIT_SECONDS,
+    action: `${base}/api/voice/twilio/status?callId=${callId}&source=dial`,
+    method: "POST",
+    record: "record-from-answer",
+    recordingStatusCallback: `${base}/api/voice/twilio/recording?callId=${callId}`,
+    recordingStatusCallbackEvent: ["completed"],
+    recordingStatusCallbackMethod: "POST",
+  });
+  dial.sip(openAiSipUri(callId));
+  return response.toString();
+}
+
+export function sayAndHangupTwiml(message: string) {
+  const response = new twilio.twiml.VoiceResponse();
+  response.say(message);
+  response.hangup();
+  return response.toString();
+}
+
 // Validates X-Twilio-Signature against the exact public URL Twilio called.
 export async function readTwilioForm(req: Request): Promise<Record<string, string> | null> {
   const form = await req.formData();
