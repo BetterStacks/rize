@@ -1,19 +1,34 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
-import { FileText, Upload, X, CheckCircle, AlertCircle, Download, RefreshCw, Trash2 } from 'lucide-react'
+import { AlertCircle, CheckCircle, FileText, Loader2, Upload, X } from 'lucide-react'
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
 import { MAX_UPLOAD_BYTES, UPLOAD_MESSAGES } from '@/lib/prepare-upload'
 import { getResumeProcessingStatus, processResumeData, clearResumeData } from '@/actions/resume-actions'
 
-export function ResumeForm() {
+type ResumeFormProps = {
+  /** Leave out the card and heading: the settings page gives it a section. */
+  bare?: boolean
+}
+
+export function ResumeForm({ bare = false }: ResumeFormProps = {}) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'success' | 'error'>('idle')
   const [extractedData, setExtractedData] = useState<any>(null)
@@ -49,11 +64,11 @@ export function ResumeForm() {
     onSuccess: (data) => {
       setExtractedData(data)
       setUploadStatus('success')
-      toast.success('Resume processed successfully!')
+      toast.success('Resume read. Choose what to add.')
     },
     onError: (error) => {
       setUploadStatus('error')
-      toast.error('Failed to process resume: ' + error.message)
+      toast.error(`Couldn't read that resume: ${error.message}`)
     },
   })
 
@@ -61,17 +76,17 @@ export function ResumeForm() {
     mutationFn: ({ data, fileUrl }: { data: any, fileUrl?: string }) => processResumeData(data, fileUrl),
     onSuccess: (result) => {
       if (result.success) {
-        toast.success(`Resume data imported: ${result.stats?.experience || 0} experiences, ${result.stats?.education || 0} education entries`)
+        toast.success(`Added ${result.stats?.experience || 0} roles and ${result.stats?.education || 0} schools`)
         setUploadedFile(null)
         setUploadStatus('idle')
         setExtractedData(null)
         refetchStatus()
       } else {
-        toast.error('Failed to import resume data')
+        toast.error("Couldn't add that to your profile")
       }
     },
     onError: (error) => {
-      toast.error('Failed to process resume data')
+      toast.error("Couldn't add that to your profile")
     },
   })
 
@@ -79,14 +94,14 @@ export function ResumeForm() {
     mutationFn: clearResumeData,
     onSuccess: (result) => {
       if (result.success) {
-        toast.success('Resume data cleared successfully')
+        toast.success('Cleared')
         refetchStatus()
       } else {
-        toast.error('Failed to clear resume data')
+        toast.error("Couldn't clear that")
       }
     },
     onError: (error) => {
-      toast.error('Failed to clear resume data')
+      toast.error("Couldn't clear that")
     },
   })
 
@@ -146,237 +161,185 @@ export function ResumeForm() {
     )
   }
 
-  const getStatusIcon = () => {
-    switch (uploadStatus) {
-      case 'uploading':
-      case 'processing':
-        return <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"
-        />
-      case 'success':
-        return <CheckCircle className="w-5 h-5 text-green-500" />
-      case 'error':
-        return <AlertCircle className="w-5 h-5 text-red-500" />
-      default:
-        return <FileText className="w-5 h-5" />
-    }
-  }
-
   const getStatusText = () => {
     switch (uploadStatus) {
       case 'uploading':
-        return 'Uploading...'
+        return 'Uploading…'
       case 'processing':
-        return 'Processing resume...'
+        return 'Reading your resume…'
       case 'success':
-        return 'Resume processed successfully'
+        return 'Read. Choose what to add below.'
       case 'error':
-        return 'Failed to process resume'
+        return "Couldn't read this file"
       default:
         return ''
     }
   }
 
-  return (
-    <Card className='dark:bg-dark-bg dark:border-dark-border sm:rounded-3xl'>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="w-5 h-5" />
-          Resume Management
-        </CardTitle>
-        <CardDescription>
-          Upload your resume to automatically populate your profile with experience, education, and skills.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Current Resume Status */}
-        {resumeStatus?.success && (
-          <div className="rounded-lg w-full border p-4 bg-muted/50">
-            <div className="flex flex-col items-start">
-              <p className="font-medium text-sm">Current Resume Data</p>
-              <p className="text-xs text-muted-foreground">
-                {resumeStatus.experienceCount} work experiences • {resumeStatus.educationCount} education entries
-              </p>
-            </div>
-            {resumeStatus.hasResumeData && (
-              <div className="flex items-center mt-2 w-full justify-between gap-2">
-                <>
-                  <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Active
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="smallIcon"
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+  const busy = uploadStatus === 'uploading' || uploadStatus === 'processing' || isUploading
+
+  const body = (
+    <div className="space-y-6">
+      {/* What's on the profile now */}
+      {resumeStatus?.success && (
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl bg-subtle px-4 py-3">
+          <p className="text-sm text-ink-secondary">
+            On your profile now:{' '}
+            <span className="text-ink">
+              {plural(resumeStatus.experienceCount ?? 0, 'role', 'roles')} and{' '}
+              {plural(resumeStatus.educationCount ?? 0, 'school', 'schools')}
+            </span>
+          </p>
+          {resumeStatus.hasResumeData && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="touch-target -mr-2 text-ink-secondary hover:text-danger"
+                  disabled={isClearing}
+                >
+                  {isClearing ? 'Clearing…' : 'Clear'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear experience and education?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This removes every role and school on your profile, including ones you added by hand.
+                    It can&apos;t be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className={buttonVariants({ variant: 'destructive' })}
                     onClick={() => clearData()}
-                    disabled={isClearing}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
                   >
-                    {isClearing ? (
-                      <RefreshCw className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-3 h-3" />
-                    )}
-                  </Button>
-                </>
-              </div>
-            )}
-          </div>
-        )}
-
-        <Separator />
-
-        {/* Upload New Resume */}
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-medium">Upload New Resume</h3>
-            <p className="text-sm text-muted-foreground">
-              Upload a new resume to update your profile information
-            </p>
-          </div>
-
-          {!uploadedFile ? (
-            <Card
-              {...getRootProps()}
-              className={cn(
-                'border-2 border-dashed transition-all duration-200 bg-neutral-100 dark:bg-dark-bg cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600',
-                isDragActive && 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-              )}
-            >
-              <input {...getInputProps()} />
-              <CardContent className="p-8 text-center">
-                <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                  <Upload className="w-6 h-6 text-neutral-600 dark:text-neutral-400" />
-                </div>
-                <h3 className="font-medium mb-2">
-                  {isDragActive ? 'Drop your resume here' : 'Upload your resume'}
-                </h3>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">
-                  Drag & drop or click to browse
-                </p>
-                <p className="text-xs text-neutral-500">
-                  PDF, DOC or DOCX, up to 4 MB
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="border">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon()}
-                    <div>
-                      <p className="font-medium text-sm">{uploadedFile.name}</p>
-                      <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                        {getStatusText()}
-                      </p>
-                    </div>
-                  </div>
-                  {uploadStatus !== 'uploading' && uploadStatus !== 'processing' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={removeFile}
-                      className="h-8 w-8 p-0"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                    Clear
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
+      )}
 
-        {/* Extracted Data Preview */}
-        {uploadStatus === 'success' && extractedData && (
-          <div className="space-y-4">
-            <Separator />
-            <Card className="bg-green-50/50 dark:bg-green-950/10 border-green-200/50 dark:border-green-800/50">
-              <CardContent className="p-6">
-                <div className="text-sm">
-                  <p className="font-medium text-green-800 dark:text-green-200 mb-4 flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4" />
-                    Extraction complete! Select what you'd like to import:
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      { id: 'experience', label: 'Work Experience', count: extractedData.experience?.length },
-                      { id: 'education', label: 'Education', count: extractedData.education?.length },
-                      { id: 'skills', label: 'Skills', count: extractedData.skills?.length },
-                      { id: 'projects', label: 'Projects', count: extractedData.projects?.length },
-                    ].map((item) => (
-                      item.count > 0 && (
-                        <div
-                          key={item.id}
-                          onClick={() => toggleCategory(item.id)}
-                          className={cn(
-                            "flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer group",
-                            selectedCategories.includes(item.id)
-                              ? "bg-white dark:bg-neutral-900 border-green-500/50 shadow-sm"
-                              : "bg-transparent border-neutral-200 dark:border-neutral-800 opacity-60 grayscale"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={cn(
-                              "w-5 h-5 rounded-md border flex items-center justify-center transition-colors",
-                              selectedCategories.includes(item.id)
-                                ? "bg-green-500 border-green-500 text-white"
-                                : "border-neutral-300 dark:border-neutral-700"
-                            )}>
-                              {selectedCategories.includes(item.id) && <CheckCircle className="w-3.5 h-3.5" />}
-                            </div>
-                            <div>
-                              <p className="font-medium text-xs dark:text-neutral-200">{item.label}</p>
-                              <p className="text-[10px] text-neutral-500">{item.count} items found</p>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex gap-3">
-              <Button
-                onClick={removeFile}
-                variant="outline"
-                className="flex-1"
-                disabled={isProcessing}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleImportData}
-                className="flex-1"
-                disabled={isProcessing}
-              >
-                {isProcessing ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Importing...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" />
-                    Import Data
-                  </>
-                )}
-              </Button>
+      {/* Upload */}
+      {!uploadedFile ? (
+        <div
+          {...getRootProps({ 'aria-label': 'Upload a resume' })}
+          className={cn(
+            'flex cursor-pointer flex-col items-center gap-2 rounded-2xl border border-dashed border-hairline px-6 py-10 text-center',
+            'transition-colors duration-fast ease-calm hover:border-ink-secondary hover:bg-subtle',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-ground',
+            isDragActive && 'border-ink bg-subtle'
+          )}
+        >
+          <input {...getInputProps()} />
+          <Upload className="size-5 text-ink-secondary" aria-hidden />
+          <p className="text-sm font-medium text-ink">
+            {isDragActive ? 'Drop it here' : 'Drop your resume here, or choose a file'}
+          </p>
+          <p className="text-xs text-ink-secondary">PDF, DOC or DOCX, up to 4 MB</p>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-hairline px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            {busy ? (
+              <Loader2 className="size-4 shrink-0 animate-spin text-ink-secondary" aria-hidden />
+            ) : uploadStatus === 'success' ? (
+              <CheckCircle className="size-4 shrink-0 text-success" aria-hidden />
+            ) : uploadStatus === 'error' ? (
+              <AlertCircle className="size-4 shrink-0 text-danger" aria-hidden />
+            ) : (
+              <FileText className="size-4 shrink-0 text-ink-secondary" aria-hidden />
+            )}
+            <div className="min-w-0" aria-live="polite">
+              <p className="truncate text-sm font-medium text-ink">{uploadedFile.name}</p>
+              <p className="text-xs text-ink-secondary">{getStatusText()}</p>
             </div>
           </div>
-        )}
-
-        <div className="text-xs text-muted-foreground">
-          <p>• Your resume data is processed securely and used only to populate your profile</p>
-          <p>• You can review and edit all imported information before it appears on your profile</p>
-          <p>• Original resume files are stored securely and can be deleted at any time</p>
+          {!busy && (
+            <Button
+              variant="ghost"
+              size="smallIcon"
+              onClick={removeFile}
+              aria-label="Remove this file"
+              className="shrink-0 text-ink-secondary"
+            >
+              <X className="size-4" aria-hidden />
+            </Button>
+          )}
         </div>
-      </CardContent>
+      )}
+
+      {/* Pick what to add */}
+      {uploadStatus === 'success' && extractedData && (
+        <div className="space-y-4">
+          <p className="text-sm font-medium text-ink">Choose what to add to your profile</p>
+          <ul className="divide-y divide-hairline border-y border-hairline">
+            {[
+              { id: 'experience', label: 'Experience', count: extractedData.experience?.length },
+              { id: 'education', label: 'Education', count: extractedData.education?.length },
+              { id: 'skills', label: 'Skills', count: extractedData.skills?.length },
+              { id: 'projects', label: 'Projects', count: extractedData.projects?.length },
+            ].map((item) =>
+              item.count > 0 ? (
+                <li key={item.id}>
+                  <label className="flex min-h-11 cursor-pointer items-center gap-3 py-2.5 text-sm">
+                    <Checkbox
+                      checked={selectedCategories.includes(item.id)}
+                      onCheckedChange={() => toggleCategory(item.id)}
+                      disabled={isProcessing}
+                    />
+                    <span className="flex-1 text-ink">{item.label}</span>
+                    <span className="tabular-nums text-ink-secondary">{item.count} found</span>
+                  </label>
+                </li>
+              ) : null
+            )}
+          </ul>
+
+          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+            <Button onClick={removeFile} variant="outline" disabled={isProcessing}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleImportData}
+              disabled={isProcessing || selectedCategories.length === 0}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+                  Adding…
+                </>
+              ) : (
+                'Add to profile'
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <ul className="space-y-1 text-xs leading-relaxed text-ink-secondary">
+        <li>Your resume is only used to fill in your profile.</li>
+        <li>You can edit or remove anything it adds.</li>
+        <li>The file is stored securely and can be deleted at any time.</li>
+      </ul>
+    </div>
+  )
+
+  if (bare) return body
+
+  return (
+    <Card className="p-5 sm:p-6">
+      <h2 className="font-instrument text-[28px] leading-none text-ink">Resume</h2>
+      <p className="mb-6 mt-2 text-sm leading-relaxed text-ink-secondary">
+        Upload a resume to fill in your experience, education, skills and projects. You pick what gets added.
+      </p>
+      {body}
     </Card>
   )
 }
