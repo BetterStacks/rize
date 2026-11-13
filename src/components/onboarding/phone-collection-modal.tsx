@@ -70,7 +70,7 @@ export default function PhoneCollectionModal({
 
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Once your number is verified, Rize's AI calls you right away and asks a few questions to set up your profile, in Hindi or English. The call is recorded, and you can edit everything it fills in.
+            Once your number is verified, Rize's AI calls you right away and asks a few questions to set up your profile, in Hindi or English. The call is recorded. Afterwards you'll see what we heard and choose what goes on your profile.
           </p>
 
           <div className="space-y-4">

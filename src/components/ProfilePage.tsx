@@ -14,6 +14,8 @@ import { getServerSession } from "@/lib/auth";
 import { isUsernameReserved } from "@/lib/reserved-usernames";
 import SectionContextProvider from "@/lib/section-context";
 import { TStoryElement } from "@/lib/types";
+import { findPendingOnboardingSuggestions } from "@/lib/voice/pending-suggestions";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FC } from "react";
 import ViewTracker from "./analytics/ViewTracker";
@@ -87,6 +89,12 @@ const ProfilePage: FC<Props> = async ({ username }) => {
     !session.user.phoneNumberVerified &&
     !session.user.onboardingCallId;
 
+  // After an onboarding call, point the person to the suggestions waiting for review.
+  const hasCallSuggestions =
+    isMine && session?.user?.onboardingCallId
+      ? !!(await findPendingOnboardingSuggestions(session.user.id))
+      : false;
+
   return (
     <ScrollFixWrapper>
       <ViewTracker username={username} />
@@ -134,6 +142,16 @@ const ProfilePage: FC<Props> = async ({ username }) => {
           }
         >
           {/* {shouldStartWalkthrough && <Walkthrough />} */}
+          {hasCallSuggestions && (
+            <div className="px-4 pt-4 text-sm">
+              <Link
+                href="/settings/voice"
+                className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              >
+                Review what we heard on your call
+              </Link>
+            </div>
+          )}
           <UserProfile
             isMine={isMine}
             data={user}

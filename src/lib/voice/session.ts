@@ -1,7 +1,7 @@
 import { voiceCalls, type TTranscriptTurn } from "@/db/schema";
 import db from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { applyOnboardingTranscript, generateDraftsForCall } from "./after-call";
+import { saveOnboardingSuggestions, generateDraftsForCall } from "./after-call";
 import { runSideband } from "./openai-live";
 
 // Timeline inside one Vercel function (maxDuration 800s on Pro, Fluid Compute).
@@ -84,7 +84,7 @@ export async function holdCallSession(callId: string, sessionId: string, kind: "
 
   try {
     if (kind === "onboarding") {
-      await withTimeout(applyOnboardingTranscript(callId), POST_PROCESS_BUDGET_MS / 2);
+      await withTimeout(saveOnboardingSuggestions(callId), POST_PROCESS_BUDGET_MS / 2);
     }
     // Onboarding calls also produce drafts; the user decides what to post.
     await withTimeout(generateDraftsForCall(callId), POST_PROCESS_BUDGET_MS / 2);

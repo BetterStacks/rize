@@ -1,12 +1,15 @@
 "use client";
 
 import {
+  applyOnboardingSuggestions,
   deleteVoiceCall,
   deleteVoiceDraft,
+  dismissOnboardingSuggestions,
   publishVoiceDraft,
   removeMyPhoneNumber,
   retryDraftGeneration,
   updateVoiceDraft,
+  type OnboardingSuggestions,
 } from "@/actions/voice-actions";
 import {
   AlertDialog,
@@ -22,9 +25,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { TTranscriptTurn, TVoiceCallKind, TVoiceCallStatus, TVoiceDraftStatus } from "@/db/schema";
+import { SUGGESTION_TEXT_LIMITS } from "@/lib/voice/profile-suggestions";
 import { formatDistanceToNow } from "date-fns";
 import { Phone, PhoneCall } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -59,6 +64,7 @@ type Props = {
   phoneVerified: boolean;
   calls: VoiceCallRow[];
   drafts: VoiceDraftRow[];
+  suggestions: OnboardingSuggestions | null;
 };
 
 const STATUS_LABEL: Record<TVoiceCallStatus, string> = {
@@ -73,7 +79,7 @@ const STATUS_LABEL: Record<TVoiceCallStatus, string> = {
 const formatDuration = (s: number | null) =>
   s ? `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s` : null;
 
-export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts }: Props) {
+export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts, suggestions }: Props) {
   const router = useRouter();
   const [changingNumber, setChangingNumber] = useState(!phoneVerified);
   const [calling, setCalling] = useState(false);
@@ -106,6 +112,10 @@ export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts
 
   return (
     <div className="w-full space-y-6">
+      {suggestions && (
+        <SuggestionsCard key={suggestions.callId} data={suggestions} onDone={() => router.refresh()} />
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -210,6 +220,219 @@ export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+type TextField = "bio" | "personalMission" | "lifePhilosophy";
+const TEXT_FIELDS: { field: TextField; label: string; current: string }[] = [
+  { field: "bio", label: "Bio", current: "your current bio" },
+  { field: "personalMission", label: "Personal mission", current: "your current personal mission" },
+  { field: "lifePhilosophy", label: "Life philosophy", current: "your current life philosophy" },
+];
+
+const formatMonth = (value: string | null) => {
+  if (!value) return null;
+  const [y, m] = value.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleString("en", { month: "short", year: "numeric", timeZone: "UTC" });
+};
+const dateRange = (start: string | null, end: string | null, current = false) => {
+  const from = formatMonth(start);
+  const to = current ? "Now" : formatMonth(end);
+  if (!from && !to) return null;
+  return [from, to].filter(Boolean).join(" – ");
+};
+const allIndexes = (items: unknown[], on: boolean) => (on ? items.map((_, i) => i) : []);
+
+// Shows what the onboarding call heard. Nothing is on the profile until the
+// person ticks items and adds them.
+function SuggestionsCard({ data, onDone }: { data: OnboardingSuggestions; onDone: () => void }) {
+  const { suggestions: s, empty } = data;
+  const [text, setText] = useState<Record<TextField, string>>({
+    bio: s.bio ?? "",
+    personalMission: s.personalMission ?? "",
+    lifePhilosophy: s.lifePhilosophy ?? "",
+  });
+  const [checked, setChecked] = useState<Record<TextField, boolean>>({
+    bio: !!s.bio && empty.bio,
+    personalMission: !!s.personalMission && empty.personalMission,
+    lifePhilosophy: !!s.lifePhilosophy && empty.lifePhilosophy,
+  });
+  const [exp, setExp] = useState<number[]>(allIndexes(s.experience, empty.experience));
+  const [edu, setEdu] = useState<number[]>(allIndexes(s.education, empty.education));
+  const [proj, setProj] = useState<number[]>(allIndexes(s.projects, empty.projects));
+  const [busy, setBusy] = useState(false);
+
+  const toggle = (list: number[], i: number, on: boolean) =>
+    on ? Array.from(new Set([...list, i])) : list.filter((x) => x !== i);
+
+  const selectedCount =
+    TEXT_FIELDS.filter(({ field }) => checked[field] && text[field].trim()).length + exp.length + edu.length + proj.length;
+
+  const add = async () => {
+    setBusy(true);
+    const result = await applyOnboardingSuggestions(data.callId, {
+      bio: checked.bio,
+      personalMission: checked.personalMission,
+      lifePhilosophy: checked.lifePhilosophy,
+      experience: exp,
+      education: edu,
+      projects: proj,
+      edits: text,
+    });
+    setBusy(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Added to your profile");
+    onDone();
+  };
+
+  const dismiss = async () => {
+    setBusy(true);
+    const result = await dismissOnboardingSuggestions(data.callId);
+    setBusy(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    onDone();
+  };
+
+  const sectionNote = (isEmpty: boolean) =>
+    isEmpty ? null : <p className="text-xs text-muted-foreground">Added next to what's already on your profile.</p>;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>From your onboarding call</CardTitle>
+        <CardDescription>
+          This is what we heard on your call. None of it is on your profile yet. Tick what you want to add and
+          change the wording if you like.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {TEXT_FIELDS.filter(({ field }) => s[field]).map(({ field, label, current }) => (
+          <div key={field} className="space-y-2">
+            <label className="flex items-start gap-3 text-sm font-medium">
+              <Checkbox
+                className="mt-0.5"
+                checked={checked[field]}
+                disabled={busy}
+                onCheckedChange={(v) => setChecked((c) => ({ ...c, [field]: v === true }))}
+              />
+              <span>
+                {label}
+                {!empty[field] && (
+                  <span className="block text-xs font-normal text-muted-foreground">Replaces {current}</span>
+                )}
+              </span>
+            </label>
+            <Textarea
+              value={text[field]}
+              onChange={(e) => setText((t) => ({ ...t, [field]: e.target.value }))}
+              rows={3}
+              maxLength={SUGGESTION_TEXT_LIMITS[field]}
+              disabled={busy}
+            />
+            <p className="text-right text-xs text-muted-foreground">
+              {text[field].length}/{SUGGESTION_TEXT_LIMITS[field]}
+            </p>
+          </div>
+        ))}
+
+        {s.experience.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Experience</p>
+            {sectionNote(empty.experience)}
+            {s.experience.map((e, i) => (
+              <label key={i} className="flex items-start gap-3 text-sm">
+                <Checkbox
+                  className="mt-0.5"
+                  checked={exp.includes(i)}
+                  disabled={busy}
+                  onCheckedChange={(v) => setExp((l) => toggle(l, i, v === true))}
+                />
+                <span className="space-y-1">
+                  <span className="block font-medium">{[e.title, e.company].filter(Boolean).join(" at ")}</span>
+                  {dateRange(e.startDate, e.endDate, e.currentlyWorking) && (
+                    <span className="block text-xs text-muted-foreground">
+                      {dateRange(e.startDate, e.endDate, e.currentlyWorking)}
+                    </span>
+                  )}
+                  {e.description && <span className="block whitespace-pre-wrap">{e.description}</span>}
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        {s.education.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Education</p>
+            {sectionNote(empty.education)}
+            {s.education.map((e, i) => (
+              <label key={i} className="flex items-start gap-3 text-sm">
+                <Checkbox
+                  className="mt-0.5"
+                  checked={edu.includes(i)}
+                  disabled={busy}
+                  onCheckedChange={(v) => setEdu((l) => toggle(l, i, v === true))}
+                />
+                <span className="space-y-1">
+                  <span className="block font-medium">{e.school}</span>
+                  {(e.degree || e.fieldOfStudy) && (
+                    <span className="block">{[e.degree, e.fieldOfStudy].filter(Boolean).join(", ")}</span>
+                  )}
+                  {dateRange(e.startDate, e.endDate) && (
+                    <span className="block text-xs text-muted-foreground">{dateRange(e.startDate, e.endDate)}</span>
+                  )}
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        {s.projects.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Projects</p>
+            {sectionNote(empty.projects)}
+            {s.projects.map((p, i) => (
+              <label key={i} className="flex items-start gap-3 text-sm">
+                <Checkbox
+                  className="mt-0.5"
+                  checked={proj.includes(i)}
+                  disabled={busy}
+                  onCheckedChange={(v) => setProj((l) => toggle(l, i, v === true))}
+                />
+                <span className="space-y-1">
+                  <span className="block font-medium">
+                    {p.name}
+                    <Badge variant="outline" className="ml-2 align-middle font-normal">
+                      {p.status === "completed" ? "Finished" : "In progress"}
+                    </Badge>
+                  </span>
+                  {p.tagline && <span className="block text-muted-foreground">{p.tagline}</span>}
+                  {p.description && <span className="block whitespace-pre-wrap">{p.description}</span>}
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" onClick={add} disabled={busy || selectedCount === 0}>
+            Add selected to my profile
+          </Button>
+          <Button size="sm" variant="ghost" onClick={dismiss} disabled={busy}>
+            Dismiss
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Dismiss keeps your profile as it is. The call and its transcript stay in Call history until you delete them.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 

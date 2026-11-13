@@ -1,4 +1,4 @@
-import { getMyVoiceCalls, getMyVoiceDrafts } from '@/actions/voice-actions'
+import { getMyVoiceCalls, getMyVoiceDrafts, getOnboardingSuggestions } from '@/actions/voice-actions'
 import VoiceJournal from '@/components/voice/VoiceJournal'
 import { getServerSession } from '@/lib/auth'
 import { ArrowLeft } from 'lucide-react'
@@ -14,7 +14,11 @@ const VoiceJournalPage = async () => {
     redirect('/login')
   }
 
-  const [calls, drafts] = await Promise.all([getMyVoiceCalls(), getMyVoiceDrafts()])
+  const [calls, drafts, suggestions] = await Promise.all([
+    getMyVoiceCalls(),
+    getMyVoiceDrafts(),
+    getOnboardingSuggestions(),
+  ])
 
   return (
     <div className="w-full flex flex-col">
@@ -35,6 +39,7 @@ const VoiceJournalPage = async () => {
           phoneVerified={!!session.user.phoneNumberVerified}
           calls={calls}
           drafts={drafts}
+          suggestions={suggestions}
         />
       </div>
     </div>
