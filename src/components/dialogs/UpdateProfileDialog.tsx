@@ -196,7 +196,7 @@ const EditProfile = () => {
     formState: { errors },
   } = useForm<z.infer<typeof profileSchema>>({
     values: {
-      email: profile?.email || '',
+      email: profile?.email || undefined,
       displayName: profile?.displayName || '',
       username: profile?.username || '',
       bio: profile?.bio || '',
