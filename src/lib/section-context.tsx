@@ -26,6 +26,7 @@ import {
   TCertificate,
 } from './types'
 import { useQuery } from '@tanstack/react-query'
+import { PROFILE_STALE_TIME } from './profile-query'
 
 type SectionContextType = {
   sections: TSection[];
@@ -144,6 +145,8 @@ const SectionContextProvider: FC<SectionProviderProps> = ({
     queryKey: ['get-profile-sections', params?.username],
     initialData: profileSections,
     queryFn: () => getSections(params?.username),
+    staleTime: PROFILE_STALE_TIME,
+    refetchOnWindowFocus: false,
   })
 
   useEffect(() => {

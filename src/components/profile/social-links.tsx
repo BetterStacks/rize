@@ -1,18 +1,19 @@
 'use client'
 
 import { getSocialLinks } from '@/actions/social-links-actions'
+import { PROFILE_STALE_TIME } from '@/lib/profile-query'
+import { safeHref } from '@/lib/safe-href'
+import type { SocialPlatform } from '@/lib/types'
 import { capitalizeFirstLetter, cn, getIcon } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
+import { Pencil } from 'lucide-react'
 import Image from 'next/image'
-import NextLink from 'next/link'
 import { useParams } from 'next/navigation'
-import { Button } from '../ui/button'
-import { Skeleton } from '../ui/skeleton'
-import { toast } from 'react-hot-toast'
-import type { SocialPlatform } from '@/lib/types'
 import { useState } from 'react'
-import { EllipsisVertical } from 'lucide-react'
+import { toast } from 'react-hot-toast'
+import { Button } from '../ui/button'
 import { SocialLinksForm } from '../SocialLinksForm'
+import { EmptyLine } from './profile-section'
 
 export const dummyLinks: { platform: SocialPlatform; url: string }[] = [
   {
@@ -41,91 +42,80 @@ export const dummyLinks: { platform: SocialPlatform; url: string }[] = [
   },
 ]
 
-const SocialLinks = ({ isMine }: { isMine: boolean }) => {
+const platformLabel = (platform: string) =>
+  platform === 'twitter' ? 'X' : platform === 'other' ? 'Website' : capitalizeFirstLetter(platform)
+
+
+type SocialLink = { id?: string; platform: string; url: string }
+
+const SocialLinks = ({ isMine, initialLinks }: { isMine: boolean; initialLinks?: SocialLink[] }) => {
   const params = useParams<{ username: string }>()
   const [showEditDialog, setShowEditDialog] = useState(false)
 
-  const { data: links = [], isLoading } = useQuery({
+  const { data: links = [] } = useQuery({
     enabled: !!params?.username,
     queryKey: ['get-social-links', params?.username],
     queryFn: () => getSocialLinks(params?.username),
+    initialData: initialLinks,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    staleTime: Infinity,
+    staleTime: PROFILE_STALE_TIME,
   })
 
-  if (!isMine && links?.length === 0) {
-    return
+  const visibleLinks = (links as SocialLink[]).flatMap((link) => {
+    const href = safeHref(link.url)
+    return href ? [{ ...link, url: href }] : []
+  })
+
+  if (!isMine && visibleLinks.length === 0) {
+    return null
   }
 
   return (
     <>
-      <div className="w-full  flex items-center justify-center ">
-        <div data-social-links className="md:max-w-2xl social-links w-full gap-2  text-sm md:text-base flex flex-wrap  mt-4 items-center justify-start">
-          {isLoading ? (
-            <SocialLinkSkeleton />
-          ) : links?.length === 0 ? (
-            dummyLinks?.map((link, i) => (
-              <SocialLinkButton
-                key={i}
-                platform={link?.platform}
-                url={link?.url}
-                hasLink={false}
-                className="opacity-70"
-              />
-            ))
-          ) : (
-            dummyLinks?.map((dummyLink, i) => {
-              const userLink = links.find(l => l.platform === dummyLink.platform)
-              return (
-                <SocialLinkButton
-                  key={i}
-                  platform={dummyLink?.platform}
-                  url={userLink?.url || dummyLink?.url}
-                  hasLink={!!userLink}  // Add this
-                  className={!userLink ? 'opacity-70' : ''}
-                />
-              )
-            })
-          )}
-
-          {isMine && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowEditDialog(true)}
-              className='p-2 h-fit rounded-full'
-            >
-              <EllipsisVertical className="size-3.5" />
-            </Button>
-          )}
-
-        </div>
+      <div data-social-links className="social-links flex w-full flex-wrap items-center gap-2">
+        {visibleLinks.length === 0 ? (
+          <EmptyLine text="No links yet" actionLabel="Add links" onAction={() => setShowEditDialog(true)} />
+        ) : (
+          <>
+            {visibleLinks.map((link) => (
+              <SocialLinkButton key={link.id ?? link.url} platform={link.platform} url={link.url} />
+            ))}
+            {isMine && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowEditDialog(true)}
+                className="h-11 gap-1.5 rounded-lg px-3 text-sm text-[#5A5248] hover:text-[#1F1B16] dark:text-[#B3A999] dark:hover:text-[#F3EEE6] sm:h-9"
+              >
+                <Pencil className="size-3.5" aria-hidden />
+                Edit links
+              </Button>
+            )}
+          </>
+        )}
       </div>
 
       {showEditDialog && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-1 sm:p-4">
-          <div className="bg-white dark:bg-dark-bg rounded-3xl max-w-lg w-full border border-neutral-300/60 dark:border-dark-border sm:p-3 sm:py-6 py-6 mb-4 max-h-[90vh] overflow-y-auto">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Edit social links"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-1 backdrop-blur-sm sm:p-4"
+        >
+          <div className="mb-4 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[20px] border border-[#E7E2D8] bg-white py-6 dark:border-[#2E2923] dark:bg-[#1C1916] sm:p-3 sm:py-6">
             <SocialLinksForm onClose={() => setShowEditDialog(false)} />
           </div>
         </div>
       )}
     </>
-
   )
 }
 
 export default SocialLinks
 
-const SocialLinkSkeleton = () => {
-  return [...Array.from({ length: 12 })].map((_, i) => (
-    <Skeleton
-      key={i}
-      className="h-9 rounded-md px-3 w-[100px] m-1 bg-neutral-200/60 dark:bg-dark-border animate-none"
-    />
-  ))
-}
-
+/** A quiet icon + label chip linking out to one profile elsewhere. */
 export const SocialLinkButton = ({
   platform,
   url,
@@ -142,34 +132,29 @@ export const SocialLinkButton = ({
   const handleClick = (e: React.MouseEvent) => {
     if (!hasLink) {
       e.preventDefault()
-      toast.error(`Please add your ${capitalizeFirstLetter(platform)} link first`)
+      toast.error(`Add your ${platformLabel(platform)} link first`)
     }
   }
   return (
-    <NextLink
-      className={cn('', className)}
+    <a
+      className={cn(
+        'inline-flex h-11 items-center gap-2 rounded-lg border border-[#E7E2D8] px-3 text-sm font-medium text-[#1F1B16] transition-colors duration-150 hover:border-[#1F1B16]/30 hover:bg-[#FCFBF8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow dark:border-[#2E2923] dark:text-[#F3EEE6] dark:hover:border-[#F3EEE6]/30 dark:hover:bg-[#1C1916] sm:h-9',
+        className,
+        buttonClassName,
+      )}
       href={hasLink ? url : '#'}
       target={hasLink ? '_blank' : undefined}
+      rel={hasLink ? 'noopener noreferrer me' : undefined}
       onClick={handleClick}
     >
-      <Button
-        variant={'outline'}
-        size={"sm"}
-        className={cn('bg-white rounded-md gap-2', buttonClassName)}
-      >
-        <Image
-          src={`/${getIcon(platform as any)}`}
-          className={cn("aspect-square size-4", platform === "twitter" && "dark:invert")}
-          alt={platform}
-          width={20}
-          height={20}
-          loading="eager"
-          quality={100}
-        />
-        {/* <span className="ml-2 dark:text-neutral-300 text-neutral-800 font-medium  tracking-tight leading-snug mr-2 "> */}
-        {capitalizeFirstLetter(platform)}
-        {/* </span> */}
-      </Button>
-    </NextLink>
+      <Image
+        src={`/${getIcon(platform as SocialPlatform) || 'globe.svg'}`}
+        className={cn('size-4', (platform === 'twitter' || platform === 'github') && 'dark:invert')}
+        alt=""
+        width={16}
+        height={16}
+      />
+      {platformLabel(platform)}
+    </a>
   )
 }

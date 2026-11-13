@@ -2,35 +2,31 @@ import { deleteExperience } from "@/actions/experience-actions";
 import { useActiveSidebarTab, useRightSidebar } from "@/lib/context";
 import { queryClient } from "@/lib/providers";
 import { TExperience } from "@/lib/types";
+import { safeHref } from "@/lib/safe-href";
 import { cn } from "@/lib/utils";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { useMediaQuery } from "@mantine/hooks";
 import { useMutation } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { Edit2, Loader, MoreHorizontal, Trash2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { FC } from "react";
 import toast from "react-hot-toast";
-import { Button } from "../ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { OwnerItemMenu, TimelineItem } from "../profile/timeline-item";
 
 type ExperienceCardProps = {
   experience: TExperience;
   isMine: boolean;
 };
 
+const monthYear = (date?: Date | string | null) =>
+  date
+    ? new Date(date).toLocaleDateString("en-US", { year: "numeric", month: "short", timeZone: "UTC" })
+    : null;
+
 const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
   const session = useSession();
-  const [activeTab, setActiveTab] = useActiveSidebarTab();
+  const [, setActiveTab] = useActiveSidebarTab();
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const setOpen = useRightSidebar()[1];
-  const formatDate = (date?: string) =>
-    date
-      ? new Date(date).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-      })
-      : "—";
   const { mutate: handleDeleteExperience, isPending } = useMutation({
     mutationFn: deleteExperience,
     onSuccess() {
@@ -40,113 +36,66 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
           (session?.data?.user as any)?.username,
         ],
       });
-      toast.success("Experience deleted successfully");
+      toast.success("Experience deleted");
     },
     onError() {
-      toast.error("Failed to delete experience");
+      toast.error("Couldn’t delete that. Try again.");
     },
   });
-  return (
-    <motion.div
-      className={cn(
-        "flex relative items-start group py-3 rounded-lg transition-all"
-        // activeTab?.id === experience?.id &&
-        //   'dark:bg-amber-400/10 border-2 border-dashed bg-amber-400/15 border-amber-400/30 dark:border-amber-400/20'
-      )}
-    >
-      {isMine && (
-        // <div className="absolute group-hover:opacity-100 opacity-0 top-2 right-2 flex gap-x-2">
-        //   <Button
-        //     variant="outline"
-        //     size="smallIcon"
-        //     onClick={() => {
-        //       setActiveTab({
-        //         id: experience?.id,
-        //         tab: "experience",
-        //       });
-        //       // Only open sidebar on mobile devices
-        //       if (!isDesktop) {
-        //         setOpen(true);
-        //       }
-        //     }}
-        //   >
-        //     <Edit2 className="h-4 w-4 opacity-80" />
-        //   </Button>
-        //   <Button
-        //     variant="outline"
-        //     size="smallIcon"
-        //     onClick={() => {
-        //       handleDeleteExperience(experience?.id);
-        //     }}
-        //     disabled={isPending}
-        //   >
-        //     {isPending ? (
-        //       <Loader className="opacity-80 h-4 w-4 animate-spin" />
-        //     ) : (
-        //       <Trash2 className="opacity-80 h-4 w-4" />
-        //     )}
-        //   </Button>
-        // </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild className="absolute right-2 ">
-            <Button variant={"outline"} size={"smallIcon"}>
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
-            <DropdownMenuItem onClick={(e) => {
-              setActiveTab({
-                id: experience?.id,
-                tab: "experience",
-              });
-              if (!isDesktop) {
-                setOpen(true);
-              }
 
-            }}>
-              <Edit2 className="size-4" />
-              <span>Edit</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled={isPending} className="stroke-red-500 text-red-500" onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteExperience(experience?.id);
-            }}>
-              {isPending ? <Loader className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-              <span>Delete</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-      <div className="flex flex-col ">
-        <h3 className="md:text-lg font-medium tracking-tight">
-          {experience?.company}
-        </h3>
-        <span className=" leading-tight dark:text-neutral-400 text-neutral-600 font-medium text-sm">
-          {experience?.title}
-        </span>
-        <div className="inline-flex mt-3 text-sm gap-x-1 dark:text-neutral-400 text-neutral-600  items-center">
-          <span>
-            {" "}
-            {formatDate(experience?.startDate?.toString())} –{" "}
-            {!experience?.endDate || experience?.currentlyWorking
-              ? "Present"
-              : formatDate(experience?.endDate?.toString())}
-          </span>
-          <span>•</span>
-          <span className="">{experience?.location?.split(",")[0]}</span>
-          <span>•</span>
-          <span className="">{experience?.employmentType}</span>
-        </div>
-        {experience?.description && (
-          <div
-            className={cn(
-              "prose prose-sm dark:prose-invert max-w-none mt-3",
-              "prose-p:leading-relaxed prose-headings:font-semibold prose-headings:tracking-tight ")}
-            dangerouslySetInnerHTML={{ __html: sanitizeHtml(experience.description ?? "") }}
+  const start = monthYear(experience?.startDate);
+  const end =
+    !experience?.endDate || experience?.currentlyWorking
+      ? "Present"
+      : monthYear(experience?.endDate);
+  const dates = `${start ?? "—"} – ${end}`;
+  const meta = [experience?.location?.split(",")[0], experience?.employmentType]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <TimelineItem
+      title={experience?.title}
+      subtitle={
+        safeHref(experience?.website) ? (
+          <a
+            href={safeHref(experience?.website)!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline-offset-4 hover:underline"
+          >
+            {experience?.company}
+          </a>
+        ) : (
+          experience?.company
+        )
+      }
+      meta={meta || undefined}
+      dates={dates}
+      menu={
+        isMine ? (
+          <OwnerItemMenu
+            label={`${experience?.title} at ${experience?.company}`}
+            isDeleting={isPending}
+            onEdit={() => {
+              setActiveTab({ id: experience?.id, tab: "experience" });
+              if (!isDesktop) setOpen(true);
+            }}
+            onDelete={() => handleDeleteExperience(experience?.id)}
           />
-        )}
-      </div>
-    </motion.div>
+        ) : undefined
+      }
+    >
+      {experience?.description && (
+        <div
+          className={cn(
+            "prose prose-sm dark:prose-invert max-w-none mt-2 text-[#5A5248] dark:text-[#B3A999]",
+            "prose-p:my-1 prose-p:leading-relaxed",
+          )}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(experience.description ?? "") }}
+        />
+      )}
+    </TimelineItem>
   );
 };
 

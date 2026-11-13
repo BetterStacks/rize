@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FC } from "react";
+import { canOptimize } from "../profile/person-avatar";
 import toast from "react-hot-toast";
 import PostInteractions, {
   PostAvatar,
@@ -177,7 +178,9 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
                   <Image
                     fill
                     src={normalizeSrc((post?.media as TPostMedia).url)!}
+                    unoptimized={!canOptimize(normalizeSrc((post?.media as TPostMedia).url)!)}
                     alt="Post media"
+                    sizes="(min-width: 768px) 336px, 100vw"
                     loading="lazy"
                     style={{ objectFit: "cover" }}
                     draggable={false}
@@ -213,34 +216,7 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
       </div>
       <div className={cn("flex  gap-y-2 px-4 py-2 mt-4", !hasMedia && "mt-4")}>
         {!hasMedia && (
-          <div
-            className={cn(
-              "size-10 aspect-square  rounded-full  flex relative overflow-hidden",
-            )}
-          >
-            {normalizeSrc(post?.avatar as string) ? (
-              <Image
-                className=" "
-                src={normalizeSrc(post?.avatar as string)!}
-                fill
-                style={{
-                  objectFit: "cover",
-                }}
-                quality={100}
-                priority
-                alt={`${post?.name}`}
-              />
-            ) : (
-              // fallback plain img when next/image can't accept the src
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={post?.avatar as string}
-                alt={`${post?.name}`}
-                className="w-full h-full object-cover"
-                draggable={false}
-              />
-            )}
-          </div>
+          <PostAvatar avatar={post?.avatar as string} name={post?.name as string} />
         )}
         <div
           className={cn(
@@ -454,7 +430,9 @@ const OnlyMediaCard: FC<GeneralPostProps> = ({
             <Image
               fill
               src={(post?.media as TPostMedia).url}
+              unoptimized={!canOptimize((post?.media as TPostMedia).url)}
               alt="Post media"
+              sizes="(min-width: 768px) 336px, 100vw"
               draggable={false}
               loading="lazy"
               style={{ objectFit: "cover" }}

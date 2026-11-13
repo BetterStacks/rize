@@ -6,107 +6,71 @@ import { cn } from '@/lib/utils'
 import { sanitizeHtml } from '@/lib/sanitize'
 import { useMediaQuery } from '@mantine/hooks'
 import { useMutation } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
-import { Edit2, Loader, MoreHorizontal, Trash2 } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
 import { FC } from 'react'
 import toast from 'react-hot-toast'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
-import { Button } from '../ui/button'
+import { OwnerItemMenu, TimelineItem } from '../profile/timeline-item'
 
 type EducationCardProps = {
   education: TEducation;
   isMine: boolean;
 };
 
+const year = (date?: Date | string | null) =>
+  date ? new Date(date).toLocaleDateString('en-US', { year: 'numeric', timeZone: 'UTC' }) : null
+
 const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
-  const [tab, setTab] = useActiveSidebarTab()
+  const [, setTab] = useActiveSidebarTab()
   const session = useSession()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const setOpen = useRightSidebar()[1]
-  const formatDate = (date?: string) =>
-    date
-      ? new Date(date).toLocaleDateString(undefined, {
-        year: 'numeric',
-      })
-      : '—'
   const { mutate: handleDeleteEducation, isPending } = useMutation({
     mutationFn: deleteEducation,
     onSuccess() {
       queryClient.invalidateQueries({
         queryKey: ['get-education', (session?.data?.user as any)?.username],
       })
-      toast.success('Education deleted successfully')
+      toast.success('Education deleted')
     },
     onError() {
-      toast.error('Failed to delete Education')
+      toast.error('Couldn’t delete that. Try again.')
     },
   })
+
+  const start = year(education?.startDate)
+  const end = year(education?.endDate)
+  const dates = start || end ? `${start ?? '—'} – ${end ?? 'Present'}` : ''
+  const subtitle = [education?.degree, education?.fieldOfStudy].filter(Boolean).join(', ')
+
   return (
-    <motion.div
-      className={
-        cn(
-          'flex flex-col first:mt-2 relative group',
-        )
+    <TimelineItem
+      title={education?.school}
+      subtitle={subtitle || undefined}
+      dates={dates}
+      menu={
+        isMine ? (
+          <OwnerItemMenu
+            label={education?.school}
+            isDeleting={isPending}
+            onEdit={() => {
+              setTab({ id: education?.id, tab: 'education' })
+              if (!isDesktop) setOpen(true)
+            }}
+            onDelete={() => handleDeleteEducation(education.id)}
+          />
+        ) : undefined
       }
     >
-      <h3 className="md:text-lg font-medium tracking-tight">
-        {education?.school}
-      </h3>
-      {isMine && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild className="absolute right-2 ">
-            <Button variant={"outline"} size={"smallIcon"}>
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
-            <DropdownMenuItem onClick={(e) => {
-              setTab((prev) => ({
-                id: education?.id,
-                tab: 'education',
-              }))
-              if (!isDesktop) {
-                setOpen(true)
-              }
-
-            }}>
-              <Edit2 className="size-4" />
-              <span>Edit</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="stroke-red-500 text-red-500"
-              onClick={() => handleDeleteEducation(education.id)}
-              disabled={isPending}
-            >
-              {isPending ? (
-                <Loader className="size-4 opacity-80 animate-spin" />
-              ) : (
-                <Trash2 className="size-4 opacity-80" />
-              )}
-              <span>Delete</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-
-      <span className="dark:text-neutral-400 leading-none text-neutral-600 text-sm">
-        {education?.fieldOfStudy}
-      </span>
-      <span className="text-xs mt-3 opacity-70 ">
-        {' '}
-        {formatDate(education?.startDate?.toString())} –{' '}
-        {formatDate(education?.endDate?.toString())}
-      </span>
       {education?.description && (
         <div
           className={cn(
-            "prose prose-sm dark:prose-invert max-w-none mt-3",
-            "prose-p:leading-relaxed prose-headings:font-semibold prose-headings:tracking-tight",
+            'prose prose-sm dark:prose-invert max-w-none mt-2 text-[#5A5248] dark:text-[#B3A999]',
+            'prose-p:my-1 prose-p:leading-relaxed',
           )}
-          dangerouslySetInnerHTML={{ __html: sanitizeHtml(education.description ?? "") }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(education.description ?? '') }}
         />
       )}
-    </motion.div>
+    </TimelineItem>
   )
 }
 

@@ -15,8 +15,8 @@ interface EmptyGalleryStateProps {
 }
 
 export function EmptyGalleryState({
-  title = "Your Gallery Awaits",
-  description = "Add your first images to create a stunning gallery. Share your visual story with the world.",
+  title = "No images yet",
+  description = "Add a few photos of your work, your places and your people.",
   ctaText = "Add Images",
   onAddImages = () => {},
   disabled = false,

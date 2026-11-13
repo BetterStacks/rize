@@ -1,10 +1,9 @@
 import { deletePage } from '@/actions/page-actions'
 import { TPage } from '@/lib/types'
-import { cn } from '@/lib/utils'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { MoreHorizontal, Trash2, Edit, FileText } from 'lucide-react'
 import { useSession } from '@/hooks/useAuth'
-import Image from 'next/image'
+import SafeImage from '../profile/safe-image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { FC, useMemo } from 'react'
@@ -64,85 +63,86 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
     }
   }
 
+  const isDraft = (data as { status?: string })?.status === 'draft'
+  const created = data?.createdAt ? new Date(data.createdAt) : null
+
   return (
-    <article className="flex w-full group bg-white shadow-lg relative dark:bg-neutral-800 transition-all rounded-2xl border border-neutral-300/60 dark:border-dark-border overflow-hidden hover:shadow-xl hover:border-neutral-400 dark:hover:border-dark-border/80">
-      {/* Thumbnail */}
-      <div className="w-[120px] md:w-[160px] h-[120px] md:h-[140px] relative overflow-hidden border-r border-neutral-300/60 dark:border-dark-border bg-neutral-100 dark:bg-neutral-700 flex items-center justify-center">
-        {data?.thumbnail ? (
-          <Image
-            src={data.thumbnail}
-            alt={`${data.title} thumbnail`}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+    <article className="group relative flex w-full items-center gap-4 border-b border-[#E7E2D8] pb-4 last:border-b-0 last:pb-0 dark:border-[#2E2923]">
+      <Link
+        href={`/page/${data.id}`}
+        className="flex min-w-0 flex-1 items-center gap-4 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow"
+      >
+        <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E7E2D8] bg-[#FCFBF8] dark:border-[#2E2923] dark:bg-[#1C1916]">
+          <SafeImage
+            src={data?.thumbnail}
+            sizes="56px"
+            fallback={<FileText className="size-4 text-[#5A5248] dark:text-[#B3A999]" aria-hidden />}
           />
-        ) : (
-          <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-700 dark:to-neutral-800">
-            <FileText className="w-8 h-8 text-neutral-400 dark:text-neutral-500" />
-          </div>
-        )}
-      </div>
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="line-clamp-2 text-[15px] font-medium leading-snug text-[#1F1B16] group-hover:underline group-hover:underline-offset-4 dark:text-[#F3EEE6]">
+            {data?.title || 'Untitled'}
+          </h3>
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-sm text-[#5A5248] dark:text-[#B3A999]">
+            {isDraft && (
+              <>
+                <span className="rounded-md bg-[#FFF3C2] px-1.5 text-xs font-medium leading-5 text-[#1F1B16] dark:bg-[#3A3220] dark:text-[#F3EEE6]">
+                  Draft
+                </span>
+                <span aria-hidden>·</span>
+              </>
+            )}
+            <span>{time?.text}</span>
+            {created && (
+              <>
+                <span aria-hidden>·</span>
+                <span>
+                  {created.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: created.getUTCFullYear() !== new Date().getUTCFullYear() ? 'numeric' : undefined,
+                    timeZone: 'UTC',
+                  })}
+                </span>
+              </>
+            )}
+          </p>
+        </div>
+      </Link>
 
-      {/* Content */}
-      <div className="flex-1 flex flex-col justify-between p-4">
-        <Link href={`/page/${data.id}`} className="flex-1">
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors leading-tight line-clamp-2">
-              {data?.title || 'Untitled'}
-            </h3>
-            
-            <div className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-              <span>{time?.text}</span>
-              {data?.createdAt && (
-                <>
-                  <span>•</span>
-                  <span>
-                    {new Date(data.createdAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: data.createdAt.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-                    })}
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        </Link>
-
-        {/* Actions (only for own pages) */}
-        {isMine && (
-          <div className="flex items-center justify-end mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                  disabled={isDeleting}
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => router.push(`/page/${data.id}`)}
-                  className="flex items-center gap-2"
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit Page
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={confirmDelete}
-                  disabled={isDeleting}
-                  className="flex items-center gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {isDeleting ? 'Deleting...' : 'Delete Page'}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
-      </div>
+      {/* Actions (only for own pages) */}
+      {isMine && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`Options for ${data?.title || 'page'}`}
+              className="size-11 shrink-0 rounded-lg text-[#5A5248] dark:text-[#B3A999] sm:size-9"
+              disabled={isDeleting}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 rounded-xl">
+            <DropdownMenuItem
+              onClick={() => router.push(`/page/${data.id}`)}
+              className="flex items-center gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              Edit page
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="flex items-center gap-2 text-red-600 dark:text-red-400"
+            >
+              <Trash2 className="h-4 w-4" />
+              {isDeleting ? 'Deleting…' : 'Delete page'}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </article>
   )
 }

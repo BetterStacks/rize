@@ -23,7 +23,7 @@ import Link from "next/link";
 import { FC, useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { Result } from "url-metadata";
-import { CreativeAvatar } from "../ui/creative-avatar";
+import PersonAvatar, { usableImageSrc } from "../profile/person-avatar";
 import { useAlertDialog, useAuthDialog } from "../dialog-provider";
 import { Button } from "../ui/button";
 import {
@@ -238,16 +238,8 @@ export const PostAvatar: FC<PostaAvatarProps> = ({
   name,
   className,
 }) => {
-  return (
-    <CreativeAvatar
-      src={avatar}
-      name={name}
-      size="md"
-      variant="auto"
-      className={cn(className, "size-9")}
-      showHoverEffect={false}
-    />
-  );
+  // Photo, or initials on a soft yellow tint if there's none or it fails.
+  return <PersonAvatar src={avatar} name={name} size={36} className={className} />;
 };
 
 type PostCardHeaderProps = {
@@ -420,6 +412,25 @@ type PostLinkCardProps = {
   className?: string;
 };
 
+const LinkPreviewImage = ({ src }: { src?: string }) => {
+  const usable = usableImageSrc(src);
+  const [failed, setFailed] = useState(false);
+  if (!usable || failed) return null;
+  return (
+    <div className="relative aspect-video w-full">
+      <img
+        src={usable}
+        alt=""
+        loading="lazy"
+        draggable={false}
+        referrerPolicy="no-referrer"
+        className="absolute inset-0 size-full object-cover"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+};
+
 export const PostLinkCard: FC<PostLinkCardProps> = ({
   data,
   url,
@@ -439,7 +450,7 @@ export const PostLinkCard: FC<PostLinkCardProps> = ({
         className
       )}
     >
-      <div className="relative overflow-hidden w-full h-fit aspect-video">
+      <div className="relative overflow-hidden w-full h-fit">
         {hasRemove && (
           <button
             onClick={onRemove}
@@ -448,20 +459,9 @@ export const PostLinkCard: FC<PostLinkCardProps> = ({
             <X className="size-4 opacity-80  " />
           </button>
         )}
-        {data?.["og:image"] ? (
-          <Image
-            alt={data?.title || "Link preview"}
-            fill
-            style={{ objectFit: "cover" }}
-            src={data["og:image"] as string}
-            draggable={false}
-            loading="lazy"
-          />
-        ) : (
-          <div className="h-[180px]  w-full flex items-center justify-center">
-            <Globe strokeWidth={1.2} className="opacity-80 size-10" />
-          </div>
-        )}
+        {/* og:image comes from any site: load it directly, and drop the
+            image area entirely if it fails, rather than showing alt text. */}
+        <LinkPreviewImage src={data?.["og:image"] as string | undefined} />
       </div>
       <div className="px-4 pt-4 mb-6  border-t border-neutral-300/80 dark:border-dark-border">
         <Link
