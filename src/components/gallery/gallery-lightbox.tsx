@@ -66,7 +66,7 @@ export function GalleryLightbox({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogPortal>
         <DialogOverlay className="bg-black/90 backdrop-blur-sm" />
-        <DialogContent className="max-w-none w-screen h-screen max-h-screen p-0 border-0 bg-transparent shadow-none overflow-hidden">
+        <DialogContent showCloseButton={false} className="max-w-none w-screen h-screen max-h-screen p-0 border-0 bg-transparent shadow-none overflow-hidden">
           {/* Visually hidden title for accessibility */}
           <DialogTitle className="sr-only">
             Gallery Image {currentIndex + 1} of {items.length}

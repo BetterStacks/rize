@@ -1,0 +1,79 @@
+/*
+ * Rize design tokens: the one source of truth for colour, radius, shadow and
+ * motion. tailwind.config.ts maps these to classes (bg-surface, text-ink,
+ * border-hairline, bg-brand, shadow-float, ease-calm ...). See
+ * docs/DESIGN-SYSTEM.md for when to use what.
+ *
+ * Colours are stored as space-separated RGB channels so Tailwind opacity
+ * modifiers work (bg-ink/5, ring-brand/60). Use them in plain CSS as
+ * rgb(var(--ink)).
+ *
+ * Dark mode follows next-themes' `.dark` class on <html>.
+ *
+ * Contrast (WCAG 2.1), light: ink on ground 17.1:1, ink-secondary on ground
+ * 7.7:1, ink on brand 12.4:1, white on danger 6.6:1. Dark: ink on ground
+ * 16.2:1, ink-secondary on ground 8.1:1 and on surface 7.5:1.
+ */
+:root {
+  /* Colour */
+  --ground: 255 255 255;          /* page background */
+  --surface: 255 255 255;         /* floating layers: dialogs, popovers, toasts, cards */
+  --subtle: 245 242 236;          /* hover/selected fill, quiet wells */
+  --ink: 31 27 22;                /* #1F1B16 primary text, ink buttons */
+  --ink-secondary: 90 82 72;      /* #5A5248 secondary text, descriptions */
+  --hairline: 231 226 216;        /* #E7E2D8 borders and dividers */
+  --brand: 255 217 54;            /* #FFD936 Rize yellow */
+  --brand-ink: 31 27 22;          /* text on yellow: always near-black */
+  --on-ink: 255 255 255;          /* text on an ink fill */
+  --danger: 180 35 24;            /* #B42318 */
+  --success: 22 128 61;           /* #16803D */
+
+  /* Paper: the warm surface where a person's own words are the content
+     (draft review, journal). Pair with the Newsreader face (.rize-display). */
+  --paper: 255 253 248;           /* #FFFDF8 */
+  --paper-border: 227 218 203;    /* #E3DACB */
+  --highlight: 241 223 168;       /* #F1DFA8 yellow wash behind quoted words */
+
+  /* Radius: one scale. 8 controls, 12 fields/menus/toasts, 20 dialogs/cards */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  /* Shadow: only on floating layers */
+  --shadow-float: 0 1px 2px rgb(31 27 22 / 0.04), 0 8px 24px -4px rgb(31 27 22 / 0.10);
+  --shadow-raised: 0 1px 2px rgb(31 27 22 / 0.06), 0 2px 8px -2px rgb(31 27 22 / 0.06);
+
+  /* Motion: quick and quiet */
+  --ease-calm: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 220ms;
+
+  /* Overlay behind dialogs */
+  --overlay: 20 18 16;
+  --overlay-opacity: 0.32;
+}
+
+.dark {
+  --ground: 20 18 16;             /* #141210 */
+  --surface: 28 25 22;            /* #1C1916 */
+  --subtle: 37 33 29;             /* #25211D */
+  --ink: 243 238 230;             /* #F3EEE6 */
+  --ink-secondary: 179 169 153;   /* #B3A999 */
+  --hairline: 46 41 35;           /* #2E2923 */
+  --brand: 255 217 54;
+  --brand-ink: 31 27 22;
+  --on-ink: 20 18 16;
+  --danger: 249 112 102;          /* #F97066 */
+  --success: 74 222 128;
+
+  --paper: 30 27 23;              /* #1E1B17 */
+  --paper-border: 58 51 43;       /* #3A332B */
+  --highlight: 90 74 31;          /* #5A4A1F */
+
+  --shadow-float: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -6px rgb(0 0 0 / 0.55);
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 8px -2px rgb(0 0 0 / 0.35);
+
+  --overlay: 0 0 0;
+  --overlay-opacity: 0.55;
+}

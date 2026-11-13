@@ -60,7 +60,7 @@ export default function PhoneCollectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md sm:rounded-xl dark:bg-neutral-900">
+      <DialogContent showCloseButton={Boolean(onClose)} className="sm:max-w-md sm:rounded-xl dark:bg-neutral-900">
         <DialogHeader>
           <DialogTitle className="font-medium tracking-wide">
             Welcome,{" "}

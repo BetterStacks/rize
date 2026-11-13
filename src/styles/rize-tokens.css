@@ -1,33 +1,25 @@
 /*
- * Rize "paper" tokens: the warm surface, ink and highlight used where people's
- * own words are the content (draft review first). Reuse these on later screens
- * instead of new hex values. Dark mode follows the site's `.dark` class.
+ * Legacy names for the Rize "paper" tokens. The values now live in
+ * src/styles/tokens.css (loaded globally from globals.css), so light and dark
+ * come from one place. Keep using these names, or the Tailwind classes
+ * (bg-paper, border-paper-border, bg-highlight, text-ink, text-ink-secondary).
  *
  * Contrast (WCAG): ink on paper 16.8:1, secondary on paper 7.6:1, ink on
  * highlight 12.9:1; dark: 14.9:1, 7.4:1, 7.5:1.
  */
-:root {
-  --rize-paper: #fffdf8;
-  --rize-paper-border: #e3dacb;
-  --rize-ink: #1f1b16;
-  --rize-ink-secondary: #5a5248;
-  --rize-highlight: #f1dfa8;
-  --rize-button-fill: #1f1b16;
-  --rize-button-ink: #fffdf8;
-  --rize-radius-card: 20px;
+:root,
+.dark {
+  --rize-paper: rgb(var(--paper));
+  --rize-paper-border: rgb(var(--paper-border));
+  --rize-ink: rgb(var(--ink));
+  --rize-ink-secondary: rgb(var(--ink-secondary));
+  --rize-highlight: rgb(var(--highlight));
+  --rize-button-fill: rgb(var(--ink));
+  --rize-button-ink: rgb(var(--paper));
+  --rize-radius-card: var(--radius-lg);
 }
 
 /* Display serif for people's words. Needs `newsreader.variable` (src/lib/fonts.ts) on an ancestor. */
 .rize-display {
   font-family: var(--font-newsreader), "Iowan Old Style", Georgia, serif;
-}
-
-.dark {
-  --rize-paper: #1e1b17;
-  --rize-paper-border: #3a332b;
-  --rize-ink: #f3eee6;
-  --rize-ink-secondary: #b3a999;
-  --rize-highlight: #5a4a1f;
-  --rize-button-fill: #f3eee6;
-  --rize-button-ink: #1e1b17;
 }
