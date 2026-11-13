@@ -1,6 +1,7 @@
 import TiptapPageEditor from '@/components/editor/tiptap-page-editor'
 import EditorContextProvider from '@/components/editor/editor-context'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import { appSidebarSlot } from '@/components/layout/app-sidebar-slot'
 import { getServerSession } from '@/lib/auth'
 import { getProfileById } from '@/actions/profile-actions'
 import { Metadata } from 'next'
@@ -47,6 +48,7 @@ const Page: FC<PageProps> = async ({ params }) => {
         isMine={isMyPage}
         contentMaxWidth="max-w-4xl"
         contentPadding="px-6"
+        leftSidebarSlot={appSidebarSlot}
       >
         <TiptapPageEditor isMyPage={isMyPage} author={author || undefined} />
       </DashboardLayout>

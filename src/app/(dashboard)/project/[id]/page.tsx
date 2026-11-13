@@ -1,5 +1,6 @@
 import { getProjectByID } from '@/actions/project-actions';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { appSidebarSlot } from '@/components/layout/app-sidebar-slot'
 import ProjectPage from '@/components/project-details-page';
 import { Metadata } from 'next';
 import { FC } from 'react';
@@ -48,6 +49,7 @@ const Page: FC<PageProps> = async ({ params }) => {
                 variant="post"
                 contentMaxWidth="max-w-2xl"
                 contentPadding="px-0"
+                leftSidebarSlot={appSidebarSlot}
             >
                 <div className="flex flex-col items-center justify-center min-h-[50vh]">
                     <h1 className="text-2xl font-bold">Project not found</h1>

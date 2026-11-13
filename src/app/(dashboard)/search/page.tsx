@@ -1,4 +1,5 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import { appSidebarSlot } from '@/components/layout/app-sidebar-slot'
 import SearchPageClient from './search-client'
 
 
@@ -9,7 +10,7 @@ export const metadata = {
 
 export default function SearchPage() {
     return (
-        <DashboardLayout variant="default" contentMaxWidth="max-w-3xl">
+        <DashboardLayout variant="default" contentMaxWidth="max-w-3xl" leftSidebarSlot={appSidebarSlot}>
             <SearchPageClient />
         </DashboardLayout>
     )
