@@ -1,4 +1,5 @@
 import { google } from '@ai-sdk/google';
+import { GEMINI_MODEL_ID } from '@/lib/ai-model';
 import { streamText, convertToModelMessages, type UIMessage, stepCountIs, createUIMessageStream, createUIMessageStreamResponse } from 'ai';
 import { getServerSession } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
   });
 
   const result = streamText({
-    model: google('gemini-3.8-flash'),
+    model: google(GEMINI_MODEL_ID),
     system: systemPrompt,
     messages: await convertToModelMessages(messages),
     stopWhen: stepCountIs(5),
@@ -81,5 +82,16 @@ export async function POST(req: Request) {
   });
 
 
-  return result.toUIMessageStreamResponse()
+  // Errors from the model (a retired model id, a quota, a bad key) arrive inside
+  // the stream. Log the real one here; the person only sees a plain message,
+  // except in development where the real message helps.
+  return result.toUIMessageStreamResponse({
+    onError: (error) => {
+      console.error('[chat/profile] stream error', error);
+      if (process.env.NODE_ENV !== 'production') {
+        return error instanceof Error ? error.message : String(error);
+      }
+      return "Couldn't reach the assistant. Try again.";
+    },
+  });
 }
