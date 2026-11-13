@@ -3,7 +3,7 @@
 import { getPostViewerState } from "@/actions/post-actions";
 import type { NewFace } from "@/lib/explore-data";
 import type { GetExplorePosts } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
@@ -53,24 +53,30 @@ const EmptyState = ({ children }: { children: ReactNode }) => (
 );
 
 const ExploreRedesigned = ({ profiles, posts }: ExploreProps) => {
-  const postIds = useMemo(() => posts.map((p) => p.id), [posts]);
+  const queryClient = useQueryClient();
+  // Keyed by the server list so a fresh render replaces it. The vote and
+  // bookmark hooks patch every ["explore-top-posts", ...] query optimistically.
+  const queryKey = useMemo(
+    () => ["explore-top-posts", posts.map((p) => p.id).join(",")],
+    [posts],
+  );
 
-  // The post list is cached for everyone, so the viewer's own votes,
-  // comments and bookmarks are filled in after the page shows.
-  const { data: viewerState } = useQuery({
-    queryKey: ["explore-viewer-state", postIds],
-    queryFn: () => getPostViewerState(postIds),
-    enabled: postIds.length > 0,
+  // The list is cached for everyone, so the viewer's own votes, comments and
+  // bookmarks are filled in after the cards show. Merging into the current
+  // data keeps optimistic vote counts when the hooks invalidate this query.
+  const { data: postsWithViewer = posts } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const current =
+        queryClient.getQueryData<GetExplorePosts[]>(queryKey) ?? posts;
+      if (current.length === 0) return current;
+      const state = await getPostViewerState(current.map((p) => p.id));
+      return current.map((p) => ({ ...p, ...(state[p.id] ?? {}) }));
+    },
+    initialData: posts,
+    initialDataUpdatedAt: 0,
     staleTime: 60_000,
   });
-
-  const postsWithViewer = useMemo(
-    () =>
-      viewerState
-        ? posts.map((p) => ({ ...p, ...(viewerState[p.id] ?? {}) }))
-        : posts,
-    [posts, viewerState],
-  );
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6">
