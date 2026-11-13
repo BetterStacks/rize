@@ -58,7 +58,7 @@ export const updateCustomFeed = async (id: string, payload: CustomFeedPayload) =
     if (!success) throw new Error(error.message);
 
     await db.transaction(async (tx) => {
-        await tx
+        const updated = await tx
             .update(customFeeds)
             .set({
                 title: data.title,
@@ -66,7 +66,9 @@ export const updateCustomFeed = async (id: string, payload: CustomFeedPayload) =
                 isPublic: data.isPublic,
                 updatedAt: new Date(),
             })
-            .where(and(eq(customFeeds.id, id), eq(customFeeds.profileId, profileId)));
+            .where(and(eq(customFeeds.id, id), eq(customFeeds.profileId, profileId)))
+            .returning({ id: customFeeds.id });
+        if (updated.length === 0) throw new Error("Feed not found");
 
         // Topics
         await tx.delete(customFeedTopics).where(eq(customFeedTopics.feedId, id));

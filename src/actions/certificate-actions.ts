@@ -23,10 +23,11 @@ export async function upsertCertificate(data: z.infer<typeof certificateSchema>)
 
     const validated = certificateSchema.parse(data)
     if (validated.id) {
+        const { id, ...changes } = validated
         await db
             .update(certificates)
-            .set({ ...validated, updatedAt: new Date() })
-            .where(eq(certificates.id, validated.id))
+            .set({ ...changes, updatedAt: new Date() })
+            .where(and(eq(certificates.id, id), eq(certificates.profileId, profileId)))
     } else {
         await db.insert(certificates).values({ ...validated, profileId })
     }

@@ -44,10 +44,18 @@ export const createPage = async (title?: string) => {
 
 export const updatePage = async (payload: typeof TPage) => {
   try {
+    const profileId = await requireProfile()
+    if (!payload?.id) throw new Error('Provide a page ID')
+    // Only these fields can be changed from the editor.
+    const changes: Partial<typeof TPage> = {}
+    if (typeof payload.title === 'string') changes.title = payload.title
+    if (typeof payload.content === 'string') changes.content = payload.content
+    if (payload.thumbnail !== undefined) changes.thumbnail = payload.thumbnail
+    if (payload.status === 'draft' || payload.status === 'published') changes.status = payload.status
     const p = await db
       .update(page)
-      .set(payload)
-      .where(eq(page.id, payload.id!))
+      .set(changes)
+      .where(and(eq(page.id, payload.id), eq(page.profileId, profileId)))
       .returning()
     // console.log({ p });
     if (p.length === 0) {
@@ -119,7 +127,7 @@ export async function updatePageThumbnail(
   const newThumbnail = await db
     .update(page)
     .set({ thumbnail: newMedia[0].id })
-    .where(eq(page.id, payload?.pageId))
+    .where(and(eq(page.id, payload?.pageId), eq(page.profileId, profileId)))
     .returning()
 
   if (newThumbnail.length === 0) {
@@ -135,7 +143,7 @@ export async function removePageThumbnail({ pageId }: { pageId: string }) {
   const newThumbnail = await db
     .update(page)
     .set({ thumbnail: null })
-    .where(eq(page.id, pageId))
+    .where(and(eq(page.id, pageId), eq(page.profileId, profileId)))
     .returning()
 
   if (newThumbnail.length === 0) {

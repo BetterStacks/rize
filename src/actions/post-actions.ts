@@ -264,6 +264,13 @@ export const getUserPosts = async (username: string) => {
 export const deletePost = async (postId: string) => {
   const userProfileId = await requireProfile();
 
+  const [ownPost] = await db
+    .select({ id: posts.id })
+    .from(posts)
+    .where(and(eq(posts.id, postId), eq(posts.profileId, userProfileId)))
+    .limit(1);
+  if (!ownPost) throw new Error("Post not found");
+
   // Find associated media before deleting the post
   const associatedMedia = await db
     .select({ url: media.url })
@@ -560,7 +567,9 @@ export const getPostComments = async (id: string, sortBy: string) => {
 };
 
 export const addComment = async (payload: TAddNewComment) => {
-  const parsed = AddCommentPayload.safeParse(payload);
+  const userProfileId = await requireProfile();
+  // The commenter is always the signed-in user, whatever the payload says.
+  const parsed = AddCommentPayload.safeParse({ ...payload, profileId: userProfileId });
 
   if (!parsed.success) {
     throw new Error("Invalid comment payload");
@@ -586,9 +595,12 @@ export const addComment = async (payload: TAddNewComment) => {
     mediaId = mediaItem[0].id;
   }
 
-  await db
-    .insert(comments)
-    .values({ ...parsed.data, ...(mediaId ? { mediaId } : {}) });
+  await db.insert(comments).values({
+    content: parsed.data.content,
+    postId: parsed.data.postId,
+    profileId: userProfileId,
+    ...(mediaId ? { mediaId } : {}),
+  });
 };
 
 export const deleteComment = async (id: string) => {

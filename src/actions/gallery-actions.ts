@@ -5,7 +5,7 @@ import { requireAuthWithProfile } from '@/lib/auth'
 import db from '@/lib/db'
 import { GalleryItemProps, TUploadFilesResponse } from '@/lib/types'
 import { isImageUrl } from '@/lib/utils'
-import { eq, getTableColumns } from 'drizzle-orm'
+import { and, eq, getTableColumns } from 'drizzle-orm'
 import { getProfileIdByUsername } from './profile-actions'
 import { deleteFromS3, getS3KeyFromUrl } from '@/lib/s3'
 
@@ -90,7 +90,11 @@ export const removeGalleryItem = async (id: string) => {
   }
 
   // Get the item first to get the URL
-  const [item] = await db.select().from(media).where(eq(media.id, id)).limit(1)
+  const [item] = await db
+    .select()
+    .from(media)
+    .where(and(eq(media.id, id), eq(media.profileId, profileId)))
+    .limit(1)
   if (!item) {
     throw new Error('Gallery item not found')
   }
@@ -100,7 +104,10 @@ export const removeGalleryItem = async (id: string) => {
   await deleteFromS3(key)
 
   // Delete from DB
-  const deleted = await db.delete(media).where(eq(media.id, id)).returning()
+  const deleted = await db
+    .delete(media)
+    .where(and(eq(media.id, id), eq(media.profileId, profileId)))
+    .returning()
   if (deleted.length === 0) {
     throw new Error('Error deleting gallery item from database')
   }

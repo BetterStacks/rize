@@ -32,7 +32,7 @@ export async function upsertExperience(data: z.infer<typeof experienceSchema>) {
     await db
       .update(experience)
       .set(updateData)
-      .where(eq(experience?.id, validated.id));
+      .where(and(eq(experience.id, id), eq(experience.profileId, profileId)));
   } else {
     const { id, ...insertData } = validated;
     await db.insert(experience).values({

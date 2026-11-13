@@ -272,7 +272,7 @@ export const upsertProject = async (
       const [updated] = await db
         .update(projects)
         .set(updateData)
-        .where(eq(projects.id, payload.id!))
+        .where(and(eq(projects.id, payload.id!), eq(projects.profileId, profileId)))
         .returning();
 
       if (!updated) throw new Error("Error updating project");
@@ -324,15 +324,20 @@ export const upsertProject = async (
       payload.removeMediaPayload &&
       payload.removeMediaPayload.length > 0
     ) {
-      const ids = payload.removeMediaPayload.map((item) => item.id);
-      const deletePromises = payload.removeMediaPayload.map((item) => {
-        const key = getS3KeyFromUrl(item.url);
-        return deleteFromS3(key);
-      });
-      await Promise.allSettled(deletePromises);
-      await db.transaction(async (tx) => {
-        await tx.delete(media).where(inArray(media.id, ids));
-      });
+      // Only media this profile owns is removed, using the stored URL.
+      const requestedIds = payload.removeMediaPayload.map((item) => item.id);
+      const owned = await db
+        .select({ id: media.id, url: media.url })
+        .from(media)
+        .where(and(inArray(media.id, requestedIds), eq(media.profileId, profileId)));
+      if (owned.length > 0) {
+        await Promise.allSettled(owned.map((item) => deleteFromS3(getS3KeyFromUrl(item.url))));
+        await db.transaction(async (tx) => {
+          await tx.delete(media).where(
+            and(inArray(media.id, owned.map((item) => item.id)), eq(media.profileId, profileId))
+          );
+        });
+      }
     }
 
     // ── handle topics ────────────────────────────────────────────────
@@ -409,7 +414,11 @@ export const createProject = async (data: z.infer<typeof newProjectSchema>) =>
 export const updateProject = async (payload: any) => upsertProject(payload);
 
 export async function deleteProject(id: string) {
-  const p = await db.delete(projects).where(eq(projects.id, id!)).returning();
+  const profileId = await requireProfile();
+  const p = await db
+    .delete(projects)
+    .where(and(eq(projects.id, id), eq(projects.profileId, profileId)))
+    .returning();
   if (p.length === 0) {
     throw new Error("Error deleting page");
   }

@@ -26,10 +26,11 @@ export async function upsertEducation(data: z.infer<typeof educationSchema>) {
   
   const validated = educationSchema.parse(data)
   if (validated.id) {
+    const { id, ...changes } = validated
     await db
       .update(education)
-      .set({ ...validated, updatedAt: new Date() })
-      .where(eq(education.id, validated.id))
+      .set({ ...changes, updatedAt: new Date() })
+      .where(and(eq(education.id, id), eq(education.profileId, profileId)))
   } else {
     await db.insert(education).values({ ...validated, profileId })
   }
