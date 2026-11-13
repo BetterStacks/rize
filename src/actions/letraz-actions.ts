@@ -1,12 +1,25 @@
 'use server'
 
+import { getServerSession } from '@/lib/auth'
+
 /**
  * Server action to add a user to Letraz's allowlist
  * @param email - The user's email address
  * @returns Success status and optional error message
  */
-export async function addUserToLetrazAllowlist(email: string) {
+// The email argument is kept for existing callers but ignored: only the
+// signed-in user's own email is ever added.
+export async function addUserToLetrazAllowlist(_email?: string) {
   try {
+    const session = await getServerSession().catch(() => null)
+    const email = session?.user?.email
+    if (!email) {
+      return {
+        success: false,
+        error: 'Sign in to continue',
+      }
+    }
+
     const letrazBaseUrl = process.env.LETRAZ_ADMIN_URL
     const adminApiKey = process.env.LETRAZ_ADMIN_API_KEY
 
