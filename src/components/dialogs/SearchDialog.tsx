@@ -6,33 +6,60 @@ import { useQuery } from '@tanstack/react-query'
 import { signOut, useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import { useSearchDialog } from '../dialog-provider'
-import PersonAvatar from '../explore/person-avatar'
+import PersonAvatar from '../profile/person-avatar'
 
 import axios from 'axios'
-import { ArrowRight, FolderOpen, Hash, Loader, LogOut, MessageCircle, Moon, Sun, User, Users } from 'lucide-react'
+import { ArrowRight, Compass, FolderOpen, LogOut, Moon, Search, Sun, User } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useRef, useState } from 'react'
 import {
   CommandDialog,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
   CommandSeparator,
 } from '../ui/command'
-import { ScrollArea } from '../ui/scroll-area'
-import { Separator } from '../ui/separator'
+import { DialogDescription, DialogTitle } from '../ui/dialog'
+import { cn } from '@/lib/utils'
 
 type ProfileItemProps = Pick<
   TProfile,
   'username' | 'displayName' | 'profileImage'
 > & { image?: string; name?: string };
 
+// The ui/command defaults are neutral greys; these keep the palette on tokens.
+const groupClass =
+  'px-2 text-ink [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-ink-secondary'
+const itemClass =
+  'min-h-11 gap-3 rounded-lg px-2 py-2 text-ink data-[selected=true]:bg-subtle data-[selected=true]:text-ink dark:data-[selected=true]:bg-subtle dark:data-[selected=true]:text-ink'
+const separatorClass = 'mx-0 my-1 h-px bg-hairline dark:bg-hairline'
+
+const STATUS_LABEL: Record<string, string> = {
+  wip: 'In progress',
+  completed: 'Completed',
+  archived: 'Archived',
+}
+
+/** Post content is stored as HTML; show it as one plain-text line. */
+const plainText = (html?: string | null) =>
+  (html ?? '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const Kbd = ({ children }: { children: React.ReactNode }) => (
+  <kbd className="rounded-md border border-hairline bg-ground px-1.5 py-0.5 font-inter text-[11px] text-ink-secondary">
+    {children}
+  </kbd>
+)
+
 const SearchDialog = () => {
   const [open, setOpen] = useSearchDialog()
-  
-  // Add keyboard shortcut support
+
+  // Cmd/Ctrl+K opens the palette from anywhere.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -40,7 +67,7 @@ const SearchDialog = () => {
         setOpen(true)
       }
     }
-    
+
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [setOpen])
@@ -56,26 +83,25 @@ const SearchDialog = () => {
   const [hasSearched, setHasSearched] = useState(false)
   const [loading, setLoading] = useState(false)
   const latestSearch = useRef(0)
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['recently-joined-profiles'],
     queryFn: () => getRecentlyJoinedProfiles(),
     staleTime: 60_000,
     // Only needed once the dialog is open; it is mounted on every page.
     enabled: !!open,
   })
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+  const username = (session?.data?.user as any)?.username as string | undefined
 
-  const viewProfilePayload = {
-    displayName: (session?.data?.user as any)?.displayName || session?.data?.user?.name,
-    username: (session?.data?.user as any)?.username,
-    profileImage: (session?.data?.user as any)?.profileImage || session?.data?.user?.image,
-    image: session?.data?.user?.image,
-    name: session?.data?.user?.name,
+  const go = (href: string) => {
+    router.push(href)
+    setOpen(false)
   }
 
   const handleSearch = useDebouncedCallback(async (query: string) => {
     if (query.trim() === '') {
-      // setResults([]);
+      latestSearch.current++
       setLoading(false)
       setHasSearched(false)
       return
@@ -99,299 +125,245 @@ const SearchDialog = () => {
     }
   }, 300)
 
+  const trimmed = query.trim()
+  const seeAllHref = `/search?q=${encodeURIComponent(trimmed)}`
+
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
+      <DialogTitle className="sr-only">Search Rize</DialogTitle>
+      <DialogDescription className="sr-only">
+        Search people, posts and projects, or jump to a page.
+      </DialogDescription>
       <CommandInput
         value={query}
         onValueChange={(value) => {
           setQuery(value)
           handleSearch(value)
         }}
-        placeholder="Search people, posts, or type a command..."
+        aria-label="Search Rize"
+        placeholder="Search people, posts and projects…"
+        className="text-base text-ink placeholder:text-ink-secondary sm:text-sm dark:placeholder:text-ink-secondary"
       />
-      <ScrollArea className="overflow-y-auto max-h-[400px] h-fit">
-        <CommandList className="">
-          {loading ? (
-            <div className="flex items-center justify-center py-4">
-              <Loader className="animate-spin h-4 w-4" />
-            </div>
-          ) : results?.total > 0 ? (
-            <>
-              {results?.people?.length > 0 && (
-                <CommandGroup heading={`People (${results.people.length})`} className="">
-                  {results.people.slice(0, 5).map((profile) => (
-                    <CommandItem
-                      className="py-3"
-                      onSelect={() => {
-                        router.push(`/${profile?.username}`)
-                        setOpen(false)
-                      }}
-                      value={`${profile?.username} ${profile?.displayName} `}
-                      key={`person-${profile?.username}`}
-                    >
-                      <ProfileItem payload={{ ...profile } as any} />
-                      <ArrowRight className="ml-auto h-4 w-4 opacity-40" />
-                    </CommandItem>
-                  ))}
-                  {results.people.length > 5 && (
-                    <CommandItem
-                      className="text-center justify-center text-sm text-muted-foreground"
-                      value=""
-                    >
-                      +{results.people.length - 5} more people
-                    </CommandItem>
-                  )}
-                </CommandGroup>
-              )}
+      <CommandList className="max-h-[min(60vh,440px)] pb-2">
+        {loading ? (
+          <p role="status" className="px-4 py-6 text-sm text-ink-secondary">
+            Searching…
+          </p>
+        ) : results?.total > 0 && hasSearched ? (
+          <>
+            {results?.people?.length > 0 && (
+              <CommandGroup heading="People" className={groupClass}>
+                {results.people.slice(0, 5).map((profile) => (
+                  <CommandItem
+                    className={itemClass}
+                    onSelect={() => go(`/${profile?.username}`)}
+                    value={`${profile?.username} ${profile?.displayName} `}
+                    key={`person-${profile?.username}`}
+                  >
+                    <ProfileItem payload={{ ...profile } as any} />
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
 
-              {results?.posts?.length > 0 && (
-                <CommandGroup heading={`Posts (${results.posts.length})`} className="">
-                  {results.posts.slice(0, 3).map((post) => (
+            {results?.posts?.length > 0 && (
+              <CommandGroup heading="Posts" className={groupClass}>
+                {results.posts.slice(0, 3).map((post) => {
+                  const text = plainText(post?.content)
+                  return (
                     <CommandItem
-                      className="py-3 items-start"
-                      onSelect={() => {
-                        router.push(`/${post?.username}`)
-                        setOpen(false)
-                      }}
-                      value={`${post?.content} ${post?.displayName}`}
+                      className={cn(itemClass, 'items-start')}
+                      onSelect={() => go(`/post/${post?.id}`)}
+                      value={`${post?.id} ${text} ${post?.displayName}`}
                       key={`post-${post?.id}`}
                     >
-                      <MessageCircle className="h-4 w-4 mt-1 mr-3 flex-shrink-0 opacity-60" />
+                      <PersonAvatar
+                        src={post?.profileImage}
+                        name={post?.displayName || post?.username}
+                        size={32}
+                      />
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <PersonAvatar
-                            src={post?.profileImage}
-                            name={post?.displayName || post?.username}
-                            size={16}
-                          />
-                          <span className="text-xs text-muted-foreground">@{post?.username}</span>
-                        </div>
-                        <p className="text-sm truncate">
-                          {post?.content?.substring(0, 60)}{post?.content?.length > 60 ? '...' : ''}
+                        <p className="truncate text-xs text-ink-secondary">
+                          {post?.displayName || `@${post?.username}`}
                         </p>
+                        <p className="line-clamp-2 text-sm text-ink">{text}</p>
                       </div>
-                      <ArrowRight className="ml-auto h-4 w-4 opacity-40 flex-shrink-0" />
                     </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
+                  )
+                })}
+              </CommandGroup>
+            )}
 
-              {results?.projects?.length > 0 && (
-                <CommandGroup heading={`Projects (${results.projects.length})`} className="">
-                  {results.projects.slice(0, 3).map((project) => (
-                    <CommandItem
-                      className="py-3 items-start"
-                      onSelect={() => {
-                        if (project?.url) {
-                          window.open(project.url, '_blank')
-                        } else {
-                          router.push(`/${project?.username}`)
-                        }
-                        setOpen(false)
-                      }}
-                      value={`${project?.name} ${project?.description} ${project?.displayName}`}
-                      key={`project-${project?.id}`}
+            {results?.projects?.length > 0 && (
+              <CommandGroup heading="Projects" className={groupClass}>
+                {results.projects.slice(0, 3).map((project) => (
+                  <CommandItem
+                    className={cn(itemClass, 'items-start')}
+                    onSelect={() => go(`/project/${project?.id}`)}
+                    value={`${project?.id} ${project?.name} ${project?.description} ${project?.displayName}`}
+                    key={`project-${project?.id}`}
+                  >
+                    <span
+                      aria-hidden
+                      className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-subtle text-ink-secondary"
                     >
-                      <FolderOpen className="h-4 w-4 mt-1 mr-3 flex-shrink-0 opacity-60" />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-medium truncate">{project?.name}</span>
-                          <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                            project?.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
-                            project?.status === 'wip' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
-                            'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300'
-                          }`}>
-                            {project?.status}
+                      <FolderOpen className="size-4" strokeWidth={1.75} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="truncate text-sm font-medium">{project?.name}</span>
+                        {STATUS_LABEL[project?.status] && (
+                          <span className="shrink-0 rounded-full bg-subtle px-2 py-0.5 text-[11px] text-ink-secondary">
+                            {STATUS_LABEL[project.status]}
                           </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {project?.description?.substring(0, 50)}{project?.description?.length > 50 ? '...' : ''}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">by @{project?.username}</p>
+                        )}
                       </div>
-                      <ArrowRight className="ml-auto h-4 w-4 opacity-40 flex-shrink-0" />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
-            </>
-          ) : (
-            hasSearched && (
-              <CommandEmpty className="py-6 text-center">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-6 w-6 opacity-40" />
-                    <MessageCircle className="h-6 w-6 opacity-40" />
-                    <FolderOpen className="h-6 w-6 opacity-40" />
-                  </div>
-                  <p className="text-sm font-medium">No results found</p>
-                  <p className="text-xs text-muted-foreground">Try searching for people, posts, or projects</p>
-                </div>
-              </CommandEmpty>
-            )
-          )}
+                      <p className="truncate text-xs text-ink-secondary">
+                        {project?.tagline || project?.description}
+                      </p>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
 
-          {!hasSearched && session?.data && (
-            <CommandGroup heading="Go to">
+            <CommandSeparator className={separatorClass} />
+            <CommandGroup className={groupClass}>
               <CommandItem
-                onSelect={() => {
-                  const username = (session?.data?.user as any)?.username
-                  if (username) {
-                    router.push(`/${username}`)
-                  }
-                  setOpen(false)
-                }}
+                className={itemClass}
+                value={`see all results ${trimmed}`}
+                onSelect={() => go(seeAllHref)}
               >
-                <User className="mr-2 h-4 w-4" />
-                <span>Go to my profile</span>
-              </CommandItem>
-              <CommandItem
-                onSelect={() => {
-                  router.push('/explore')
-                  setOpen(false)
-                }}
-              >
-                <Hash className="mr-2 h-4 w-4" />
-                <span>Explore feed</span>
+                <Search className="text-ink-secondary" aria-hidden />
+                <span className="min-w-0 flex-1 truncate">
+                  See all results for &ldquo;{trimmed}&rdquo;
+                </span>
+                <ArrowRight className="text-ink-secondary" aria-hidden />
               </CommandItem>
             </CommandGroup>
-          )}
-          <CommandSeparator className="mt-1" />
-          {!hasSearched && (
-            <CommandGroup heading="Actions">
+          </>
+        ) : hasSearched ? (
+          <div className="px-2 pb-1">
+            <p className="px-2 pb-2 pt-5 text-sm text-ink-secondary">
+              No people, posts or projects match &ldquo;{trimmed}&rdquo;.
+            </p>
+            <CommandGroup className={cn(groupClass, 'px-0')}>
               <CommandItem
-                value={
-                  theme === 'light'
-                    ? 'Switch to dark mode'
-                    : 'Switch to light mode'
-                }
-                onSelect={() => {
-                  setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
-                }}
+                className={itemClass}
+                value={`search everywhere ${trimmed}`}
+                onSelect={() => go(seeAllHref)}
               >
-                {theme === 'light' ? (
-                  <Moon strokeWidth={1.2} className="mr-2 h-4 w-4" />
-                ) : (
-                  <Sun strokeWidth={1.2} className="mr-2 h-4 w-4" />
-                )}
-                <span>
-                  {theme === 'light'
-                    ? 'Switch to dark mode'
-                    : 'Switch to light mode'}
+                <Search className="text-ink-secondary" aria-hidden />
+                <span className="min-w-0 flex-1 truncate">
+                  Search schools, companies and pages too
                 </span>
+                <ArrowRight className="text-ink-secondary" aria-hidden />
+              </CommandItem>
+            </CommandGroup>
+          </div>
+        ) : null}
+
+        {!hasSearched && (
+          <>
+            {session?.data && (
+              <CommandGroup heading="Go to" className={groupClass}>
+                {username && (
+                  <CommandItem className={itemClass} onSelect={() => go(`/${username}`)}>
+                    <User className="text-ink-secondary" aria-hidden />
+                    <span>Your profile</span>
+                  </CommandItem>
+                )}
+                <CommandItem className={itemClass} onSelect={() => go('/explore')}>
+                  <Compass className="text-ink-secondary" aria-hidden />
+                  <span>Explore</span>
+                </CommandItem>
+                <CommandItem className={itemClass} value="Search page" onSelect={() => go('/search')}>
+                  <Search className="text-ink-secondary" aria-hidden />
+                  <span>Search page</span>
+                </CommandItem>
+              </CommandGroup>
+            )}
+
+            <CommandGroup heading="Actions" className={groupClass}>
+              <CommandItem
+                className={itemClass}
+                value={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                onSelect={() => setTheme(isDark ? 'light' : 'dark')}
+              >
+                {isDark ? (
+                  <Sun className="text-ink-secondary" aria-hidden />
+                ) : (
+                  <Moon className="text-ink-secondary" aria-hidden />
+                )}
+                <span>{isDark ? 'Switch to light mode' : 'Switch to dark mode'}</span>
               </CommandItem>
               {session?.data && (
                 <CommandItem
-                  value="Logout"
+                  className={itemClass}
+                  value="Log out"
                   onSelect={async () => {
                     try {
                       await signOut()
-                      // Redirect to home page after successful sign out
+                    } finally {
+                      // Back to the home page either way.
                       window.location.href = '/'
-                    } catch (error) {
-                      console.error('Sign out error:', error)
                     }
                   }}
                 >
-                  <LogOut strokeWidth={1.2} className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
+                  <LogOut className="text-ink-secondary" aria-hidden />
+                  <span>Log out</span>
                 </CommandItem>
               )}
             </CommandGroup>
-          )}
-          <CommandSeparator className="mt-1" />
 
-          {!hasSearched && (
-            <CommandGroup heading="Recently joined" className="">
-              {data && data.length > 0 &&
-                data
-                  ?.filter((p) => p?.username !== (session?.data?.user as any)?.username)
-                  ?.slice(0, 4)
-                  ?.map((profile) => {
-                    return (
-                      <CommandItem
-                        className="py-3"
-                        onSelect={() => {
-                          router.push(`/${profile?.username}`)
-                          setOpen(false)
-                        }}
-                        key={profile?.username}
-                      >
-                        <ProfileItem payload={{ ...profile } as any} />
-                        <ArrowRight className="ml-auto h-4 w-4 opacity-40" />
-                      </CommandItem>
-                    )
-                  })}
-            </CommandGroup>
-          )}
-          {/* </>
-          )} */}
-          <div className="mb-10" />
-        </CommandList>
-      </ScrollArea>
-      <Separator className="h-[0.5px]" />
-      <div className="flex items-center justify-between px-3 py-2 text-xs text-muted-foreground bg-muted/50">
-        <div className="flex items-center gap-2">
-          <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs">⌘K</kbd>
-          <span>to search</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs">↑↓</kbd>
-            <span>navigate</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 bg-background border rounded text-xs">↵</kbd>
-            <span>select</span>
-          </div>
-        </div>
+            {data && data.length > 0 && (
+              <CommandGroup heading="Recently joined" className={groupClass}>
+                {data
+                  .filter((p) => p?.username && p.username !== username)
+                  .slice(0, 4)
+                  .map((profile) => (
+                    <CommandItem
+                      className={itemClass}
+                      onSelect={() => go(`/${profile?.username}`)}
+                      value={`recent ${profile?.username} ${profile?.displayName ?? ''}`}
+                      key={profile?.username}
+                    >
+                      <ProfileItem payload={{ ...profile } as any} />
+                    </CommandItem>
+                  ))}
+              </CommandGroup>
+            )}
+          </>
+        )}
+      </CommandList>
+      <div className="hidden items-center justify-between border-t border-hairline px-4 py-2.5 text-xs text-ink-secondary sm:flex">
+        <span className="flex items-center gap-1.5">
+          <Kbd>⌘K</Kbd> to open
+        </span>
+        <span className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5">
+            <Kbd>↑↓</Kbd> to move
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Kbd>↵</Kbd> to open
+          </span>
+        </span>
       </div>
     </CommandDialog>
   )
 }
 
 const ProfileItem = ({ payload }: { payload: ProfileItemProps }) => {
+  const name = payload?.displayName || payload?.name || payload?.username
   return (
     <>
-      <PersonAvatar
-        src={payload?.profileImage || payload?.image}
-        name={payload?.displayName || payload?.name || payload?.username}
-        size={40}
-      />
-
-      <div className="ml-3 flex flex-col items-start justify-start min-w-0 flex-1">
-        <h3 className="leading-tight text-sm font-medium truncate">
-          {payload?.displayName || payload?.name}
-        </h3>
-        <span className="dark:text-neutral-400 text-neutral-600 text-xs leading-tight truncate">
-          @{payload?.username}
-        </span>
+      <PersonAvatar src={payload?.profileImage || payload?.image} name={name} size={36} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate font-instrument text-lg leading-tight text-ink">{name}</span>
+        <span className="truncate text-xs text-ink-secondary">@{payload?.username}</span>
       </div>
     </>
   )
 }
 
 export default SearchDialog
-
-// <Command.Dialog
-//   open={open}
-//   onOpenChange={setOpen}
-//   className="max-w-md fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 border border-neutral-300/80 dark:border-dark-border overflow-hidden  drop-shadow-2xl rounded-3xl w-full bg-dark-bg"
-// >
-//   <Command.Input />
-//   <Command.List>
-//     {/* {loading && <Command.Loading>Hang on…</Command.Loading>} */}
-
-//     <Command.Empty>No results found.</Command.Empty>
-
-//     <Command.Group heading="Fruits">
-//       <Command.Item>Apple</Command.Item>
-//       <Command.Item>Orange</Command.Item>
-//       <Command.Separator />
-//       <Command.Item>Pear</Command.Item>
-//       <Command.Item>Blueberry</Command.Item>
-//     </Command.Group>
-
-//     <Command.Item>Fish</Command.Item>
-//   </Command.List>
-// </Command.Dialog>

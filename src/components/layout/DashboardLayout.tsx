@@ -85,7 +85,7 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
         return {
           maxWidth: contentMaxWidth || 'max-w-2xl',
           padding: contentPadding,
-          className: 'border-x border-neutral-300/60 dark:border-dark-border'
+          className: 'border-x border-hairline'
         }
       case 'writing':
         return {
@@ -140,7 +140,7 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
             minSize={leftSidebarSlot.minSize ?? leftSidebarSlot.size ?? 5}
             className={cn(
               'h-screen hidden lg:flex items-center',
-              'justify-start max-w-[80px] border-r border-neutral-300/60 dark:border-dark-border',
+              'justify-start max-w-[80px] border-r border-hairline bg-ground',
               leftSidebarSlot.className
             )}
           >
@@ -193,7 +193,7 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
               collapsible
               collapsedSize={0}
               className={cn(
-                'border-l border-neutral-200/80 dark:border-neutral-800 hidden lg:flex flex-col items-center justify-center h-screen',
+                'border-l border-hairline hidden lg:flex flex-col items-center justify-center h-screen',
                 rightSidebarSlot.className
               )}
             >
@@ -208,7 +208,7 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
         {rightSidebarSlot && mounted && !isDesktop && (
           <Sheet open={rightSidebarOpen} onOpenChange={setRightSidebarOpen}>
             <SheetContent className={cn(
-              'max-w-[90%] sm:max-w-md md:max-w-lg w-full h-screen p-0 bg-white dark:bg-dark-border/80 border border-neutral-200 dark:border-dark-border/60 dark:bg-dark-bg',
+              'max-w-[90%] sm:max-w-md md:max-w-lg w-full h-screen p-0 bg-surface border-l border-hairline',
               rightSidebarSlot.mobileSheetClassName
             )}>
               {rightSidebarSlot.content}
