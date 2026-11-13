@@ -100,14 +100,7 @@ export default function ProfileChat(_props: ProfileChatProps) {
         send(message.text, message.files);
     };
 
-    const scrollRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollIntoView({ block: 'end', behavior: 'smooth' });
-        }
-    }, [messages, status, error]);
-
+    // Conversation (StickToBottom) keeps the newest message in view.
     useEffect(() => {
         if (messages?.length === 0) return;
         const latestMessage = messages[messages.length - 1];
@@ -328,7 +321,6 @@ export default function ProfileChat(_props: ProfileChatProps) {
                                     </Button>
                                 </div>
                             )}
-                            <div ref={scrollRef} />
                         </div>
                     </ConversationContent>
                 </Conversation>
