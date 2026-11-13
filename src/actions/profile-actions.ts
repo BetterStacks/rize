@@ -9,6 +9,7 @@ import {
   skills,
 } from "@/db/schema";
 import {
+  getServerSession,
   requireAuth,
   requireAuthWithProfile,
   requireProfile,
@@ -130,6 +131,14 @@ export const getProfileByUsername = async (username: string) => {
 
   if (!p || p.length === 0) {
     return null;
+  }
+
+  // The account email (for phone sign-ups it contains the phone number) is
+  // only returned to the profile's owner.
+  const session = await getServerSession().catch(() => null);
+  const isOwner = !!session?.user?.id && session.user.id === p[0].userId;
+  if (!isOwner) {
+    return { ...p[0], email: null } as unknown as GetProfileByUsername;
   }
 
   return p[0] as GetProfileByUsername;
