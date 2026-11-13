@@ -15,7 +15,7 @@ const faqItems = [
   {
     question: 'Is the call recorded, and who hears it?',
     answer:
-      'Yes, and it tells you at the start. The recording is turned into the transcript in your journal, and you are the only one who can play it back. The call runs through our phone and AI providers (Twilio and OpenAI). Recordings are deleted automatically after 7 days, and you can delete one sooner. Transcripts and drafts stay until you delete them.',
+      'Yes, and it tells you at the start. The call is transcribed into your journal, and you are the only one who can read it or play the recording back. Calls run through our phone and AI providers. Recordings are deleted automatically after 7 days, and you can delete one sooner. Transcripts and drafts stay until you delete them.',
   },
   {
     question: 'Who can see my journal?',
