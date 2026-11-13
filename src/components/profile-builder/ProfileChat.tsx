@@ -14,7 +14,7 @@ import { ChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useChat } from '@ai-sdk/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { DefaultChatTransport } from 'ai';
+import { DefaultChatTransport, lastAssistantMessageIsCompleteWithApprovalResponses, type ToolUIPart } from 'ai';
 import { CheckCircle2, CheckIcon, ChevronDown, ChevronLeft, ChevronUp, Copy, Plus, RefreshCcw, Trash2, XIcon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { FormEvent, Fragment, useEffect, useRef, useState } from 'react';
@@ -45,9 +45,21 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
         transport: new DefaultChatTransport({
             api: '/api/chat/profile',
         }),
+        // Every profile change needs approval. Once each proposed change in the
+        // latest step has an Approve or Reject, send them back so the server can
+        // run the approved ones and tell the model about the rejected ones.
+        sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
     });
 
     const isLoading = status === 'streaming';
+
+    // A proposed change that hasn't been approved or rejected yet. Sending a new
+    // message before answering it would leave the tool call without a result,
+    // which the AI SDK rejects, so the input waits until the card is answered.
+    const lastMessage = messages.at(-1);
+    const hasPendingApproval =
+        lastMessage?.role === 'assistant' &&
+        lastMessage.parts.some((part) => 'state' in part && part.state === 'approval-requested');
 
     const handleNewChat = () => {
         setChatId(v4());
@@ -86,7 +98,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
     };
 
     const handleFormSubmit = async (message: PromptInputMessage, event: FormEvent<HTMLFormElement>) => {
-        if (!message?.text.trim() || isLoading) return;
+        if (!message?.text.trim() || isLoading || hasPendingApproval) return;
 
         const currentInput = message.text;
         setInput('');
@@ -241,78 +253,16 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                 case "tool-deleteExperience":
                                                 case "tool-deleteProject":
                                                 case "tool-deleteGalleryItem":
-                                                    if ((part).state === "approval-requested" || (part).state === "approval-responded") {
-                                                        const isEducation = part.type === "tool-deleteEducation";
-                                                        const isExperience = part.type === "tool-deleteExperience";
-                                                        const isProject = part.type === "tool-deleteProject";
-                                                        const isGalleryItem = part.type === "tool-deleteGalleryItem";
-
-                                                        const toolArgs = part.input;
-
-                                                        let itemName = "this item";
-                                                        let itemType = "item";
-
-                                                        if (isEducation) {
-                                                            itemName = toolArgs.school;
-                                                            itemType = "education";
-                                                        } else if (isExperience) {
-                                                            itemName = `${toolArgs.title} at ${toolArgs.company}`;
-                                                            itemType = "experience";
-                                                        } else if (isProject) {
-                                                            itemName = toolArgs.name;
-                                                            itemType = "project";
-                                                        } else if (isGalleryItem) {
-                                                            const count = toolArgs.ids?.length || 0;
-                                                            itemName = count > 1 ? `${count} items` : "1 item";
-                                                            itemType = "gallery";
-                                                        }
-
+                                                    if (needsApprovalCard(part)) {
                                                         return (
-                                                            <Confirmation approval={(part as any).approval} state={(part as any).state} key={`${message.id}-${i}`}>
-                                                                <ConfirmationRequest>
-                                                                    Are you sure you want to delete {itemType}: <strong>"{itemName || 'this item'}"</strong>?
-                                                                    <br />
-                                                                    Do you approve this action?
-                                                                </ConfirmationRequest>
-                                                                <ConfirmationAccepted>
-                                                                    <CheckIcon className="size-4" />
-                                                                    <span>You approved this tool execution. Processing...</span>
-                                                                </ConfirmationAccepted>
-                                                                <ConfirmationRejected>
-                                                                    <XIcon className="size-4" />
-                                                                    <span>You rejected this tool execution.</span>
-                                                                </ConfirmationRejected>
-                                                                {part.state === "approval-requested" && (
-                                                                    <ConfirmationActions>
-                                                                        <ConfirmationAction
-                                                                            variant="outline"
-                                                                            onClick={() => {
-                                                                                console.log('Rejecting tool:', (part as any).approval?.id);
-                                                                                addToolApprovalResponse({
-                                                                                    id: (part as any)?.approval?.id as string,
-                                                                                    approved: false,
-                                                                                });
-                                                                            }}
-                                                                        >
-                                                                            Reject
-                                                                        </ConfirmationAction>
-                                                                        <ConfirmationAction
-                                                                            variant="default"
-                                                                            onClick={() => {
-                                                                                console.log('Approving tool:', (part as any).approval?.id);
-                                                                                addToolApprovalResponse({
-                                                                                    id: (part as any)?.approval?.id as string,
-                                                                                    approved: true,
-                                                                                });
-                                                                                sendMessage()
-                                                                            }}
-                                                                        >
-                                                                            Approve
-                                                                        </ConfirmationAction>
-                                                                    </ConfirmationActions>
-                                                                )}
-                                                            </Confirmation>
-                                                        )
+                                                            <ToolApprovalCard
+                                                                key={`${message.id}-${i}`}
+                                                                part={part}
+                                                                onRespond={(approved) =>
+                                                                    addToolApprovalResponse({ id: part.approval.id, approved })
+                                                                }
+                                                            />
+                                                        );
                                                     }
                                                     return (
                                                         <div
@@ -320,9 +270,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                             className="flex items-center gap-2 p-2 bg-indigo-50/30 dark:bg-indigo-900/10 rounded-xl border border-indigo-100/50 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium shadow-sm"
                                                         >
                                                             <Trash2 className="size-3" />
-                                                            {(part as any)?.state === 'output-available'
-                                                                ? `Successfully deleted ${part.type.replace('tool-delete', '')}`
-                                                                : `Processing deletion...`}
+                                                            {describeToolStatus(part)}
 
 
                                                         </div>
@@ -338,16 +286,24 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                 case "tool-updateExperience":
                                                 case "tool-updateProject":
                                                 case "tool-addGalleryItem":
-
+                                                    if (needsApprovalCard(part)) {
+                                                        return (
+                                                            <ToolApprovalCard
+                                                                key={`${message.id}-${i}`}
+                                                                part={part}
+                                                                onRespond={(approved) =>
+                                                                    addToolApprovalResponse({ id: part.approval.id, approved })
+                                                                }
+                                                            />
+                                                        );
+                                                    }
                                                     return (
                                                         <div
                                                             key={`${message?.id}-tool-${i}`}
                                                             className="flex items-center gap-2 p-2 bg-indigo-50/30 dark:bg-indigo-900/10 rounded-xl border border-indigo-100/50 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium shadow-sm"
                                                         >
                                                             <CheckCircle2 className="size-3" />
-                                                            {(part as any)?.state === 'output-available'
-                                                                ? `Successfully executed ${part.type}`
-                                                                : `Executing ${part.type}...`}
+                                                            {describeToolStatus(part)}
                                                         </div>
                                                     );
                                                 default:
@@ -401,8 +357,8 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                     <PromptInputTextarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="Send a message..."
-                        disabled={isLoading}
+                        placeholder={hasPendingApproval ? 'Approve or reject the change above first' : 'Send a message...'}
+                        disabled={isLoading || hasPendingApproval}
                         rows={1}
                         className="flex-1 min-h-[60px] rounded-2xl focus-visible:ring-0"
                     />
@@ -415,7 +371,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                         </PromptInputActionMenu>
                         <PromptInputSubmit
                             className="rounded-full h-8 w-8 p-0 disabled:bg-neutral-400"
-                            disabled={isLoading || !input.trim()}
+                            disabled={isLoading || hasPendingApproval || !input.trim()}
                         />
                     </PromptInputFooter>
 
@@ -426,6 +382,227 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
     );
 }
 
+
+// --- Profile changes proposed by the chat -----------------------------------
+// Every tool that writes to the profile needs the person's approval. These
+// helpers turn a tool call into plain words: what will change, and what happened.
+
+type ProfileToolPart = {
+    type: string;
+    state: string;
+    input?: any;
+    output?: any;
+    approval?: { id: string; approved?: boolean };
+};
+
+type ApprovableToolPart = ProfileToolPart & { approval: { id: string; approved?: boolean } };
+
+const FIELD_LABELS: Record<string, string> = {
+    displayName: 'Name',
+    bio: 'Bio',
+    location: 'Location',
+    personalMission: 'Personal mission',
+    lifePhilosophy: 'Life philosophy',
+    age: 'Age',
+    title: 'Title',
+    company: 'Company',
+    employmentType: 'Employment type',
+    startDate: 'Start date',
+    endDate: 'End date',
+    currentlyWorking: 'Currently working here',
+    website: 'Website',
+    companyLogo: 'Company logo',
+    description: 'Description',
+    school: 'School',
+    degree: 'Degree',
+    fieldOfStudy: 'Field of study',
+    grade: 'Grade',
+    name: 'Name',
+    tagline: 'Tagline',
+    url: 'Link',
+    status: 'Status',
+    logo: 'Logo',
+    type: 'Type',
+    content: 'Text',
+};
+
+const STORY_ELEMENT_LABELS: Record<string, string> = {
+    mission: 'mission',
+    value: 'value',
+    milestone: 'milestone',
+    dream: 'dream',
+    superpower: 'superpower',
+};
+
+const PROJECT_STATUS_LABELS: Record<string, string> = {
+    wip: 'In progress',
+    completed: 'Completed',
+    archived: 'Archived',
+};
+
+const toolName = (part: ProfileToolPart) => part.type.replace(/^tool-/, '');
+
+const joinWords = (words: string[]) => {
+    if (words.length <= 1) return words.join('');
+    return `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`;
+};
+
+const countLabel = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+
+const formatValue = (key: string, value: unknown): string => {
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (key === 'status' && typeof value === 'string') return PROJECT_STATUS_LABELS[value] ?? value;
+    if (key === 'type' && typeof value === 'string') return STORY_ELEMENT_LABELS[value] ?? value;
+    return String(value);
+};
+
+/** The fields a proposed add/update would save, as label/value pairs. */
+const proposedFields = (part: ProfileToolPart): { label: string; value: string }[] => {
+    const name = toolName(part);
+    const input = part.input ?? {};
+    if (name === 'addGalleryItem') {
+        return [{ label: 'Files', value: countLabel(input.attachmentIds?.length ?? 0, 'file from your message', 'files from your message') }];
+    }
+    if (name.startsWith('delete')) return [];
+    return Object.entries(input)
+        .filter(([key, value]) => key !== 'id' && value !== undefined && value !== null && value !== '')
+        .map(([key, value]) => ({ label: FIELD_LABELS[key] ?? key, value: formatValue(key, value) }));
+};
+
+/** What the person is being asked to approve, in plain words. */
+const describeToolRequest = (part: ProfileToolPart): string => {
+    const input = part.input ?? {};
+    switch (toolName(part)) {
+        case 'updateBasicInfo': return 'Update your profile with this?';
+        case 'addExperience': return 'Add this work experience to your profile?';
+        case 'updateExperience': return 'Update one of your work experiences with this?';
+        case 'addEducation': return 'Add this education to your profile?';
+        case 'updateEducation': return 'Update one of your education entries with this?';
+        case 'addStoryElement': return 'Add this to your story?';
+        case 'addProject': return 'Add this project to your profile?';
+        case 'updateProject': return 'Update one of your projects with this?';
+        case 'addGalleryItem': return 'Add these to your gallery?';
+        case 'deleteExperience': {
+            const label = [input.title, input.company].filter(Boolean).join(' at ');
+            return label ? `Remove "${label}" from your work experience?` : 'Remove this work experience?';
+        }
+        case 'deleteEducation':
+            return input.school ? `Remove "${input.school}" from your education?` : 'Remove this education entry?';
+        case 'deleteProject':
+            return input.name ? `Remove the project "${input.name}"?` : 'Remove this project?';
+        case 'deleteGalleryItem':
+            return `Remove ${countLabel(input.ids?.length ?? 0, 'item', 'items')} from your gallery?`;
+        default: return 'Make this change to your profile?';
+    }
+};
+
+/** What happened once the tool ran, in plain words. */
+const describeToolDone = (part: ProfileToolPart): string => {
+    const input = part.input ?? {};
+    switch (toolName(part)) {
+        case 'updateBasicInfo': {
+            const fields = Object.keys(input)
+                .filter((key) => input[key] !== undefined)
+                .map((key) => (FIELD_LABELS[key] ?? key).toLowerCase());
+            return fields.length ? `Updated your ${joinWords(fields)}` : 'Updated your profile';
+        }
+        case 'addExperience':
+            return input.title && input.company ? `Added ${input.title} at ${input.company}` : 'Added a work experience';
+        case 'updateExperience': return 'Updated your work experience';
+        case 'addEducation': return input.school ? `Added ${input.school}` : 'Added your education';
+        case 'updateEducation': return 'Updated your education';
+        case 'addStoryElement': {
+            const kind = STORY_ELEMENT_LABELS[input.type];
+            return kind ? `Added a ${kind} to your story` : 'Added to your story';
+        }
+        case 'addProject': return input.name ? `Added the project ${input.name}` : 'Added a project';
+        case 'updateProject': return 'Updated your project';
+        case 'addGalleryItem': {
+            const results: { success?: boolean }[] = Array.isArray(part.output?.output) ? part.output.output : [];
+            const added = results.filter((r) => r?.success).length;
+            return `Added ${countLabel(added, 'item', 'items')} to your gallery`;
+        }
+        case 'deleteExperience': return 'Removed the work experience';
+        case 'deleteEducation': return 'Removed the education entry';
+        case 'deleteProject': return 'Removed the project';
+        case 'deleteGalleryItem': return `Removed ${countLabel(input.ids?.length ?? 0, 'item', 'items')} from your gallery`;
+        default: return 'Updated your profile';
+    }
+};
+
+/** One-line status for a tool call that isn't waiting on the person. */
+const describeToolStatus = (part: ProfileToolPart): string => {
+    switch (part.state) {
+        case 'output-available':
+            return part.output?.success === false ? "That change didn't go through. Nothing was saved." : describeToolDone(part);
+        case 'output-error':
+            return "Something went wrong. That change wasn't saved.";
+        case 'output-denied':
+            return 'Not saved.';
+        case 'approval-responded':
+            return part.approval?.approved ? 'Saving...' : 'Not saved.';
+        default:
+            return 'Preparing a change...';
+    }
+};
+
+/** Show the approval card while the person decides, and its outcome until the tool has run. */
+const needsApprovalCard = (part: ProfileToolPart): part is ApprovableToolPart =>
+    Boolean(part.approval?.id) &&
+    (part.state === 'approval-requested' || part.state === 'approval-responded' || part.state === 'output-denied');
+
+const ToolApprovalCard = ({ part, onRespond }: { part: ApprovableToolPart; onRespond: (approved: boolean) => void }) => {
+    const fields = proposedFields(part);
+    const isUpdate = toolName(part).startsWith('update');
+    const isDelete = toolName(part).startsWith('delete');
+
+    return (
+        <Confirmation approval={part.approval} state={part.state as ToolUIPart['state']} className="my-2">
+            <ConfirmationRequest>
+                <div className="flex flex-col gap-2 text-sm">
+                    <p className="font-medium">{describeToolRequest(part)}</p>
+                    {fields.length > 0 && (
+                        <dl className="flex flex-col gap-1.5">
+                            {fields.map(({ label, value }) => (
+                                <div key={label} className="flex flex-col">
+                                    <dt className="text-xs text-neutral-500 dark:text-neutral-400">{label}</dt>
+                                    <dd className="whitespace-pre-wrap break-words">{value}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                    )}
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                        {isDelete
+                            ? 'This will be removed from your public profile.'
+                            : isUpdate
+                                ? 'Only the fields above will change. They will show on your public profile.'
+                                : 'This will show on your public profile.'}
+                    </p>
+                </div>
+            </ConfirmationRequest>
+            <ConfirmationAccepted>
+                <div className="flex items-center gap-2 text-sm">
+                    <CheckIcon className="size-4" />
+                    <span>Approved. Saving...</span>
+                </div>
+            </ConfirmationAccepted>
+            <ConfirmationRejected>
+                <div className="flex items-center gap-2 text-sm">
+                    <XIcon className="size-4" />
+                    <span>{isDelete ? 'Kept. Nothing was removed.' : 'Not saved.'}</span>
+                </div>
+            </ConfirmationRejected>
+            <ConfirmationActions>
+                <ConfirmationAction variant="outline" onClick={() => onRespond(false)}>
+                    {isDelete ? 'Keep it' : 'Reject'}
+                </ConfirmationAction>
+                <ConfirmationAction variant="default" onClick={() => onRespond(true)}>
+                    {isDelete ? 'Remove' : 'Approve'}
+                </ConfirmationAction>
+            </ConfirmationActions>
+        </Confirmation>
+    );
+};
 
 const PromptInputAttachmentsDisplay = () => {
     const attachments = usePromptInputAttachments();
@@ -480,16 +657,6 @@ const MessageLoadingState = ({ notFreshChat }: { notFreshChat: boolean }) => {
                     >
                         <SkipForward className="size-3" />
                         Skip Question
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={isLoading}
-                        onClick={() => sendMessage({ text: 'Help me improve my latest experience description using power verbs.' })}
-                        className="rounded-full text-xs gap-1.5 h-8 border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/20 transition-all font-medium"
-                    >
-                        <PenLine className="size-3" />
-                        Auto-Improve
                     </Button>
                 </div> */}
 {/* <form onSubmit={handleFormSubmit} className="relative">
