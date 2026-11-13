@@ -3,6 +3,8 @@
 import {
   education,
   experience,
+  media,
+  postMedia,
   posts,
   profile,
   projects,
@@ -10,16 +12,19 @@ import {
   voiceCalls,
   voiceDrafts,
   type TProfileSuggestions,
+  type TVoiceDraftMedia,
 } from "@/db/schema";
 import { auth, requireAuth, requireAuthWithProfile, requireProfile } from "@/lib/auth";
 import db from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { deleteFromS3, getOwnS3KeyFromUrl } from "@/lib/s3";
+import { isImageUrl } from "@/lib/utils";
 import { generateDraftsForCall } from "@/lib/voice/after-call";
 import { findPendingOnboardingSuggestions } from "@/lib/voice/pending-suggestions";
 import { SUGGESTION_TEXT_LIMITS, cleanPlainText, suggestionDate } from "@/lib/voice/profile-suggestions";
 import { deleteRecording } from "@/lib/voice/r2";
 import { twilioClient } from "@/lib/voice/twilio";
-import { and, desc, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
@@ -150,6 +155,12 @@ export async function deleteVoiceCall(callId: string): Promise<ActionResult> {
     }
   }
 
+  // Files attached to unshared drafts go with them; a shared post keeps its own.
+  const draftFiles = await db
+    .select({ media: voiceDrafts.media })
+    .from(voiceDrafts)
+    .where(and(eq(voiceDrafts.callId, call.id), eq(voiceDrafts.status, "draft"), isNotNull(voiceDrafts.media)));
+
   await db.transaction(async (tx) => {
     await tx
       .update(users)
@@ -160,6 +171,7 @@ export async function deleteVoiceCall(callId: string): Promise<ActionResult> {
       .delete(voiceCalls)
       .where(and(eq(voiceCalls.id, call.id), eq(voiceCalls.userId, session.user.id)));
   });
+  for (const { media: file } of draftFiles) await removeDraftMediaFile(file);
   revalidatePath("/settings/voice");
   return { success: true };
 }
@@ -259,6 +271,7 @@ export async function getMyVoiceDrafts() {
       callId: voiceDrafts.callId,
       content: voiceDrafts.content,
       status: voiceDrafts.status,
+      media: voiceDrafts.media,
       postId: voiceDrafts.postId,
       createdAt: voiceDrafts.createdAt,
       transcript: voiceCalls.transcript,
@@ -309,13 +322,30 @@ export async function publishVoiceDraft(draftId: string): Promise<ActionResult> 
           eq(voiceDrafts.status, "draft")
         )
       )
-      .returning({ content: voiceDrafts.content });
+      .returning({ content: voiceDrafts.content, media: voiceDrafts.media });
     if (!draft) return false;
 
     const [post] = await tx
       .insert(posts)
       .values({ content: draft.content, profileId })
       .returning({ id: posts.id });
+
+    // The attached photo or video becomes the post's media, the same way a
+    // post written in the composer stores it.
+    if (draft.media) {
+      const [item] = await tx
+        .insert(media)
+        .values({
+          url: draft.media.url,
+          type: draft.media.type,
+          width: draft.media.width,
+          height: draft.media.height,
+          profileId,
+        })
+        .returning({ id: media.id });
+      await tx.insert(postMedia).values({ postId: post.id, mediaId: item.id });
+    }
+
     await tx.update(voiceDrafts).set({ postId: post.id }).where(eq(voiceDrafts.id, draftId));
     return true;
   });
@@ -336,9 +366,96 @@ export async function deleteVoiceDraft(draftId: string): Promise<ActionResult> {
         eq(voiceDrafts.status, "draft")
       )
     )
-    .returning({ id: voiceDrafts.id });
+    .returning({ id: voiceDrafts.id, media: voiceDrafts.media });
   if (!deleted.length) return { success: false, error: "Draft not found" };
+  await removeDraftMediaFile(deleted[0].media);
   return { success: true };
+}
+
+// --- A photo or video on a draft ---
+// Uploaded by the browser to /api/upload/files (folder fyp-stacks/posts), then
+// attached here. One per draft, like a post from the composer.
+
+const DRAFT_MEDIA_FOLDER = "fyp-stacks/posts/";
+const VIDEO_URL = /\.(mp4|webm|mov)$/i;
+
+const draftMediaSchema = z.object({
+  url: z.string().url().max(1000),
+  width: z.number().int().min(0).max(20000).nullable(),
+  height: z.number().int().min(0).max(20000).nullable(),
+});
+
+export async function setVoiceDraftMedia(
+  draftId: string,
+  input: z.infer<typeof draftMediaSchema> | null
+): Promise<ActionResult> {
+  const profileId = await requireProfile();
+
+  let next: TVoiceDraftMedia | null = null;
+  if (input) {
+    const parsed = draftMediaSchema.safeParse(input);
+    if (!parsed.success) return { success: false, error: "That file can't be attached" };
+    // Only files our upload route put in the posts folder.
+    const key = getOwnS3KeyFromUrl(parsed.data.url);
+    if (!key || !key.startsWith(DRAFT_MEDIA_FOLDER)) {
+      return { success: false, error: "That file can't be attached" };
+    }
+    const type = isImageUrl(parsed.data.url) ? "image" : VIDEO_URL.test(parsed.data.url) ? "video" : null;
+    if (!type) return { success: false, error: "Only photos and videos can be attached" };
+    next = { url: parsed.data.url, type, width: parsed.data.width || null, height: parsed.data.height || null };
+  }
+
+  const [before] = await db
+    .select({ media: voiceDrafts.media })
+    .from(voiceDrafts)
+    .where(
+      and(
+        eq(voiceDrafts.id, draftId),
+        eq(voiceDrafts.profileId, profileId),
+        eq(voiceDrafts.status, "draft")
+      )
+    );
+  if (!before) return { success: false, error: "Draft not found" };
+
+  const updated = await db
+    .update(voiceDrafts)
+    .set({ media: next })
+    .where(
+      and(
+        eq(voiceDrafts.id, draftId),
+        eq(voiceDrafts.profileId, profileId),
+        eq(voiceDrafts.status, "draft")
+      )
+    )
+    .returning({ id: voiceDrafts.id });
+  if (!updated.length) return { success: false, error: "Draft not found" };
+
+  if (before.media && before.media.url !== next?.url) {
+    await removeDraftMediaFile(before.media);
+  }
+  return { success: true };
+}
+
+// Deletes a draft's file from S3 once nothing points at it. A file that a post
+// already uses (a `media` row) is never deleted from here.
+async function removeDraftMediaFile(file: TVoiceDraftMedia | null) {
+  if (!file) return;
+  const key = getOwnS3KeyFromUrl(file.url);
+  if (!key || !key.startsWith(DRAFT_MEDIA_FOLDER)) return;
+  try {
+    const usedByPost = await db.query.media.findFirst({
+      where: eq(media.url, file.url),
+      columns: { id: true },
+    });
+    const usedByDraft = await db.query.voiceDrafts.findFirst({
+      where: sql`${voiceDrafts.media}->>'url' = ${file.url}`,
+      columns: { id: true },
+    });
+    if (usedByPost || usedByDraft) return;
+    await deleteFromS3(key);
+  } catch (error: any) {
+    console.error("[voice] couldn't delete draft media", error?.message);
+  }
 }
 
 // --- Profile suggestions from the onboarding call ---

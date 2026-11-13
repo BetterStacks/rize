@@ -1083,6 +1083,14 @@ export type TVoiceCallStatus =
   | "failed"
   | "no_answer";
 export type TVoiceDraftStatus = "draft" | "published" | "discarded";
+// A photo or video the person attached to a voice draft. It is uploaded to the
+// posts folder and becomes the post's media when they share the draft.
+export type TVoiceDraftMedia = {
+  url: string;
+  type: Media;
+  width: number | null;
+  height: number | null;
+};
 export type TTranscriptTurn = {
   role: "user" | "assistant";
   text: string;
@@ -1183,6 +1191,7 @@ export const voiceDrafts = pgTable(
       .references(() => profile.id, { onDelete: "cascade" }),
     content: text("content").notNull(),
     status: VoiceDraftStatus("status").notNull().default("draft"),
+    media: jsonb("media").$type<TVoiceDraftMedia>(),
     // Set once the user publishes; the published copy lives in `posts`
     postId: uuid("post_id").references(() => posts.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
