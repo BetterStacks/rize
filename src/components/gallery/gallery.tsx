@@ -7,7 +7,8 @@ import { useParams } from 'next/navigation'
 import { FC, useEffect, useState, useRef, useCallback } from 'react'
 import { Skeleton } from '../ui/skeleton'
 import { queryClient } from '@/lib/providers'
-import axios from 'axios'
+import { uploadMedia } from '@/actions/client-actions'
+import { uploadErrorMessage } from '@/lib/prepare-upload'
 import toast from 'react-hot-toast'
 import { GalleryLightbox } from './gallery-lightbox'
 import {
@@ -93,14 +94,8 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
   }, [data])
 
   // Upload functionality
-  const uploadMediaToAPI = async (formData: FormData) => {
-    const res = await axios.post('/api/upload/files', formData)
-    if (res.status !== 200) throw new Error('Upload failed')
-    return res.data?.data
-  }
-
   const { mutate: handleUpload, isPending } = useMutation({
-    mutationFn: uploadMediaToAPI,
+    mutationFn: uploadMedia,
     onSuccess: async (data) => {
       await Promise.all(
         data.map(async (result: any) => {
@@ -111,7 +106,7 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
       toast.success(`${data.length} media items added!`)
     },
     onError: (error) => {
-      toast.error(error?.message || 'Upload failed')
+      toast.error(uploadErrorMessage(error))
     },
   })
 

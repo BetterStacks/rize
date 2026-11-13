@@ -27,6 +27,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getProfileByUsername, updateProfile } from '@/actions/profile-actions'
 import { getAllSkills } from '@/actions/project-actions'
 import { uploadMedia } from '@/actions/client-actions'
+import { UploadError } from '@/lib/prepare-upload'
 import { Separator } from '../ui/separator'
 import { Skeleton } from '../ui/skeleton'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -171,6 +172,8 @@ export function ProfileForm({ className }: TProfileFormProps) {
       })
     } catch (err) {
       console.error(err)
+      // mutateUpdate toasts its own errors; upload errors need one here.
+      if (err instanceof UploadError) toast.error(err.message)
     }
   }
 

@@ -1,5 +1,11 @@
 "use client";
 
+import {
+    MAX_UPLOAD_BYTES,
+    UPLOAD_MESSAGES,
+    uploadErrorMessage,
+    uploadFiles,
+} from "@/lib/prepare-upload";
 import { upsertCertificate } from "@/actions/certificate-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,20 +96,9 @@ export const CertificateForm: FC<CertificateFormProps> = ({
     }, [defaultValues, form]);
 
     const uploadFile = async (file: File) => {
-        const formData = new FormData();
-        formData.append("files", file);
-        formData.append("folder", "certificates");
-
-        const response = await fetch("/api/upload/files", {
-            method: "POST",
-            body: formData,
-        });
-
-        const result = await response.json();
-        if (result.success && result.data?.[0]?.url) {
-            return result.data[0].url as string;
-        }
-        throw new Error("Failed to upload certificate");
+        const [result] = await uploadFiles([file], "certificates");
+        if (!result?.url) throw new Error("Failed to upload certificate");
+        return result.url;
     };
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -113,8 +108,8 @@ export const CertificateForm: FC<CertificateFormProps> = ({
                 toast.error("Please upload a PDF file");
                 return;
             }
-            if (file.size > 10 * 1024 * 1024) {
-                toast.error("File size must be less than 10MB");
+            if (file.size > MAX_UPLOAD_BYTES) {
+                toast.error(UPLOAD_MESSAGES.pdfTooLarge);
                 return;
             }
             setPendingFile(file);
@@ -140,7 +135,9 @@ export const CertificateForm: FC<CertificateFormProps> = ({
                 try {
                     fileUrl = await uploadFile(pendingFile);
                 } catch (error) {
-                    toast.error("Failed to upload certificate");
+                    toast.error(
+                        uploadErrorMessage(error, "Couldn't upload the certificate. Try again.")
+                    );
                     setIsUploading(false);
                     return;
                 }
@@ -271,7 +268,7 @@ export const CertificateForm: FC<CertificateFormProps> = ({
                                                 : "Drag & drop a PDF here, or click to browse"}
                                         </p>
                                         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                            Max file size: 10MB
+                                            PDF up to 4 MB
                                         </p>
                                     </>
                                 )}

@@ -10,6 +10,7 @@ import { FileText, Upload, X, CheckCircle, AlertCircle, Download, RefreshCw, Tra
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
+import { MAX_UPLOAD_BYTES, UPLOAD_MESSAGES } from '@/lib/prepare-upload'
 import { getResumeProcessingStatus, processResumeData, clearResumeData } from '@/actions/resume-actions'
 
 export function ResumeForm() {
@@ -36,7 +37,11 @@ export function ResumeForm() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to upload resume')
+        throw new Error(
+          response.status === 413
+            ? UPLOAD_MESSAGES.resumeTooLarge
+            : 'Failed to upload resume'
+        )
       }
 
       return response.json()
@@ -102,7 +107,16 @@ export function ResumeForm() {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
     },
     multiple: false,
-    maxSize: 10 * 1024 * 1024, // 10MB
+    // Vercel caps request bodies at 4.5 MB.
+    maxSize: MAX_UPLOAD_BYTES,
+    onDropRejected: (rejections) => {
+      const code = rejections[0]?.errors?.[0]?.code
+      toast.error(
+        code === 'file-too-large'
+          ? UPLOAD_MESSAGES.resumeTooLarge
+          : 'Choose a PDF, DOC or DOCX file.'
+      )
+    },
   })
 
   const removeFile = () => {
@@ -243,7 +257,7 @@ export function ResumeForm() {
                   Drag & drop or click to browse
                 </p>
                 <p className="text-xs text-neutral-500">
-                  Supports PDF, DOC, DOCX (max 10MB)
+                  PDF, DOC or DOCX, up to 4 MB
                 </p>
               </CardContent>
             </Card>

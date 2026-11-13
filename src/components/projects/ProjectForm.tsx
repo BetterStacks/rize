@@ -752,7 +752,7 @@ export const ProjectForm: FC<ProjectFormProps> = ({ id }) => {
                                 Choose Images &amp; Video drag &amp; drop files here
                             </h3>
                             <span className="text-sm text-neutral-700 dark:text-neutral-400">
-                                JPG, PNG, GIF, MP4 up to 10MB each
+                                Photos are resized for you. GIFs up to 3.5 MB, videos up to 4 MB each.
                             </span>
                             <input {...getAttachInput()} />
                         </div>

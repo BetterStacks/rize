@@ -1,14 +1,19 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { cn, fileToBase64 } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import {
+  MAX_SOURCE_IMAGE_BYTES,
+  UPLOAD_MESSAGES,
+  prepareAvatarDataUrl,
+  uploadErrorMessage,
+} from '@/lib/prepare-upload'
 import { Edit3, Loader } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
 import Image from 'next/image'
 import React from 'react'
 import toast from 'react-hot-toast'
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024 // 5MB
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
   'image/jpg',
@@ -48,12 +53,13 @@ const ProfileStep = ({
       toast.error('Please select a file')
       return
     }
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error('File size is too large')
+    // The photo is shrunk to 1024px before upload, so it can start large.
+    if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+      toast.error(UPLOAD_MESSAGES.imageTooLarge)
       return
     }
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      toast.error('Invalid file type')
+      toast.error('Choose a JPG, PNG or WebP image.')
       return
     }
     setFile(file)
@@ -122,14 +128,16 @@ const ProfileStep = ({
           disabled={!displayName || isPending || !profileImage}
           onClick={async () => {
             if (file) {
-              const url = await fileToBase64(file!)
-              if (!url) {
-                toast.error('Error uploading image')
+              let url: string
+              try {
+                url = await prepareAvatarDataUrl(file)
+              } catch (err) {
+                toast.error(uploadErrorMessage(err))
                 return
               }
               onNext({
                 displayName,
-                profileImage: url as string,
+                profileImage: url,
               })
               return
             }
