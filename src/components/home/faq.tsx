@@ -1,67 +1,57 @@
-'use client'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import { Separator } from '../ui/separator'
 
+// Keep every answer true to what's built today (see RIZE_NORTH_STAR.md).
 const faqItems = [
   {
-    question: 'What is Rize?',
+    question: 'Is it an AI?',
     answer:
-      'Rize is a platform where you can build an authentic, all-in-one profile that showcases your work, skills, and personality. Think of it as your personal digital hub.',
+      "Yes. The voice on the call is Rize's AI, not a person. It says so at the start of every call, and if you ask, it says so again.",
   },
   {
-    question: 'How is Rize different from LinkedIn or Peerlist?',
+    question: 'Is the call recorded, and who hears it?',
     answer:
-      'Unlike traditional networks, Rize focuses on real, verifiable profiles with an emphasis on showcasing *you* — your projects, your vibe, your story — not just your job history.',
+      'Yes, and it tells you at the start. The call is transcribed into your journal, and you are the only one who can read it or play the recording back. Calls run through our phone and AI providers. Recordings are deleted automatically after 7 days, and you can delete one sooner. Transcripts and drafts stay until you delete them.',
   },
   {
-    question: 'Can I claim my own username?',
-    answer:
-      'Yes! Rize lets you reserve your unique username early so you can share a clean, personalized URL like `rize.so/ashwin`.',
+    question: 'Who can see my journal?',
+    answer: 'Only you. Calls, transcripts and drafts are private. Nothing is public unless you publish it.',
   },
   {
-    question: 'Will it be free to use?',
+    question: 'Do I have to post anything?',
     answer:
-      'Yes, the core features of Rize will always be free. We may offer premium tools later for power users, but your profile and presence will remain free forever.',
+      "No. Plenty of calls just stay in your journal. When there is a draft, you can keep it private, edit it or share it. Sharing puts it on your profile and in the Rize feed, and it only happens when you say so.",
+  },
+  {
+    question: 'Which languages can I talk in?',
+    answer:
+      'Hindi, English or Hinglish. Rize offers Hindi or English at the start and follows however you talk. Your draft stays in the language you used.',
+  },
+  {
+    question: 'How do I get a call?',
+    answer:
+      "Sign up, add your phone number, and tap Call me. Rize rings you straight away. It won't call you on its own.",
   },
 ]
 
 export default function FAQSection() {
   return (
-    <section className=" flex flex-col relative my-10  items-center justify-center  w-full px-4 py-12">
-      {/* <div className="size-[350px]  absolute blur-[120px] top-[30%] -z-10  bg-amber-400 dark:bg-amber-500"></div> */}
-      <div className="max-w-5xl w-full relative">
-        <div className="px-4 mb-6">
-          <h3 className="text-2xl md:text-3xl font-medium tracking-tight ">
-            Still Got{' '}
-            <span className="font-instrument font-thin italic text-3xl md:text-4xl ">
-              Questions?
-            </span>
-          </h3>
-          <p className="mt-2 opacity-80 max-w-lg text-left">
-            We've got answers.
-          </p>
-          <Separator className="bg-transparent dark:bg-transparent h-4 border-b-2 dark:border-dark-border border-neutral-300 border-dashed" />
-        </div>
-        <Accordion
-          type="single"
-          collapsible
-          className="w-full  bg-neutral-200 dark:bg-neutral-600 px-2 py-2 rounded-3xl space-y-2"
-        >
+    <section id="faq" aria-labelledby="faq-title" className="w-full scroll-mt-6 border-t border-hairline">
+      <div className="mx-auto grid w-full max-w-5xl gap-10 px-4 py-20 sm:px-6 md:grid-cols-[1fr_2fr] md:gap-16 md:py-28">
+        <h2 id="faq-title" className="font-instrument text-4xl leading-tight text-ink md:text-5xl">
+          Questions
+        </h2>
+        <Accordion type="single" collapsible className="w-full border-t border-hairline">
           {faqItems.map((item, index) => (
-            <AccordionItem
-              className="w-full border-none bg-white dark:bg-dark-bg rounded-xl  px-2  overflow-hidden"
-              key={index}
-              value={`item-${index}`}
-            >
-              <AccordionTrigger className="w-full hover:no-underline md:text-lg text-base md:font-medium tracking-tight  p-4 ">
+            <AccordionItem key={item.question} value={`item-${index}`} className="border-b border-hairline">
+              <AccordionTrigger className="min-h-14 gap-4 py-5 text-base font-medium text-ink hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-ground">
                 {item.question}
               </AccordionTrigger>
-              <AccordionContent className="text-base opacity-80 p-4">
+              <AccordionContent className="max-w-xl pb-6 text-base leading-relaxed text-ink-secondary">
                 {item.answer}
               </AccordionContent>
             </AccordionItem>

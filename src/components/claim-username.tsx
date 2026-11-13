@@ -2,126 +2,138 @@
 
 import { isUsernameAvailable } from '@/actions/profile-actions'
 import { usernameSchema } from '@/lib/types'
-import { useDebouncedCallback, useMediaQuery } from '@mantine/hooks'
-import { Loader } from 'lucide-react'
-import { FC, useState } from 'react'
-import toast from 'react-hot-toast'
-import { Button } from './ui/button'
 import { cn } from '@/lib/utils'
+import { useDebouncedCallback } from '@mantine/hooks'
+import { FC, useId, useState } from 'react'
+import { Button } from './ui/button'
 
 type ClaimUsernameFormProps = {
   onSubmit: (data: string) => void;
   className?: string;
   badgeClassName?: string;
   buttonClassName?: string;
+  submitLabel?: string;
 };
 
+// Pick a rize.so/<username>. Availability is checked as you type and shown
+// inline under the field; the name can only be submitted once it's free.
 const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({
   onSubmit,
   className,
   badgeClassName,
   buttonClassName,
+  submitLabel = 'Claim',
 }) => {
+  const inputId = useId()
+  const statusId = useId()
   const [username, setUsername] = useState('')
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null)
-  const [isSearching, setIsSearching] = useState<boolean | null>(null)
+  const [isSearching, setIsSearching] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const isDesktop = useMediaQuery('(min-width: 768px)')
-  const handleCheck = useDebouncedCallback(async (username: string) => {
-    if (username.length < 3) {
+
+  const handleCheck = useDebouncedCallback(async (value: string) => {
+    if (value.length < 3) {
       setIsAvailable(null)
       setIsSearching(false)
       setError(null)
       return
     }
-    const result = usernameSchema.safeParse({ username })
+    const result = usernameSchema.safeParse({ username: value })
     if (!result.success) {
-      toast.dismiss()
-      toast.error(
-        result.error?.flatten()?.fieldErrors?.username?.[0] as string
-      )
-      setError(result.error?.flatten()?.fieldErrors?.username?.[0] as string)
+      setError(result.error?.flatten()?.fieldErrors?.username?.[0] ?? 'That username isn’t allowed')
       setIsSearching(false)
       setIsAvailable(false)
       return
     }
     setIsSearching(true)
-    const check = await isUsernameAvailable(username)
-    if (!check.available) {
-      toast.dismiss()
-      const errorMessage = check.reason === 'reserved'
-        ? 'This username is reserved and cannot be claimed'
-        : 'Username already taken'
-      toast.error(errorMessage)
-      setError(errorMessage)
-      setIsSearching(false)
+    try {
+      const check = await isUsernameAvailable(value)
+      if (!check.available) {
+        setError(
+          check.reason === 'reserved' ? 'That username is reserved' : 'That username is taken'
+        )
+        setIsAvailable(false)
+      } else {
+        setError(null)
+        setIsAvailable(true)
+      }
+    } catch {
+      setError('Couldn’t check that username. Try again.')
       setIsAvailable(false)
-    } else {
-      toast.dismiss()
-      toast.success('Username is available')
-      setError(null)
+    } finally {
       setIsSearching(false)
-      setIsAvailable(true)
     }
-    setIsSearching(false)
   }, 500)
+
+  const status = error
+    ? error
+    : isSearching
+      ? 'Checking…'
+      : isAvailable
+        ? `rize.so/${username} is yours if you want it`
+        : null
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault()
+        if (!isAvailable || isSearching) return
         onSubmit(username)
       }}
-      className={cn('w-full font-inter')}
+      className="w-full font-inter"
     >
+      <label htmlFor={inputId} className="sr-only">
+        Username
+      </label>
       <div
         className={cn(
-          'w-full border mt-2 border-neutral-400/60 overflow-hidden dark:border-none rounded-3xl text-lg md:text-xl  p-1 flex items-center justify-center bg-white dark:bg-neutral-900',
+          'flex w-full items-center gap-1 rounded-xl border border-hairline bg-surface p-1 transition-[border-color,box-shadow] duration-fast ease-calm focus-within:border-ink focus-within:ring-4 focus-within:ring-brand/40',
           className
         )}
       >
-        <div
-          className={cn(
-            'px-3  ml-0.5 border border-neutral-300 dark:border-none py-1 bg-white dark:bg-dark-border rounded-3xl shadow-lg ',
-            badgeClassName
-          )}
+        <span
+          className={cn('shrink-0 select-none pl-3 text-base text-ink-secondary', badgeClassName)}
+          aria-hidden="true"
         >
-          <span className="tracking-tight text-neutral-700 dark:text-neutral-300 ">
-            rize.so
-          </span>
-        </div>
-        <div className="w-full flex items-center justify-center mx-1">
-          <span className="dark:text-neutral-500 opacity-50 pr-0.5">/</span>
-          <input
-            type="text"
-            placeholder="your-username"
-            value={username}
-            onChange={(e) => {
-              setUsername(e.target.value?.trim())
-              handleCheck(e.target.value?.trim())
-            }}
-            className="text-lg w-full dark:text-opacity-80 bg-transparent dark:placeholder:text-neutral-500 focus-visible:outline-none"
-          />
-        </div>
-        {isSearching ? (
-          <Loader className="animate-spin size-6 mr-4" />
-        ) : (
-          <Button
-            type="submit"
-            disabled={!isAvailable || isSearching!}
-            size={isDesktop ? 'default' : 'sm'}
-            className={cn(
-              'rounded-3xl  bg-black text-white dark:bg-white dark:text-neutral-800 hover:dark:bg-neutral-100 dark:hover:bg-neutral-300',
-              buttonClassName
-            )}
-          >
-            Claim
-          </Button>
-        )}
+          rize.so/
+        </span>
+        <input
+          id={inputId}
+          type="text"
+          inputMode="text"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          autoComplete="off"
+          placeholder="your-name"
+          value={username}
+          aria-describedby={statusId}
+          aria-invalid={error ? true : undefined}
+          onChange={(e) => {
+            const value = e.target.value.trim()
+            setUsername(value)
+            setIsAvailable(null)
+            handleCheck(value)
+          }}
+          className="h-10 min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-ink-secondary/70 focus-visible:outline-none"
+        />
+        <Button
+          type="submit"
+          variant="default"
+          loading={isSearching}
+          disabled={!isAvailable || isSearching}
+          className={cn('shrink-0', buttonClassName)}
+        >
+          {submitLabel}
+        </Button>
       </div>
-      {error && (
-        <p className="text-sm text-red-500 leading-tight px-3 mt-2">{error}</p>
-      )}
+      <p
+        id={statusId}
+        aria-live="polite"
+        className={cn('mt-2 min-h-5 px-1 text-sm', error ? 'text-danger' : 'text-ink-secondary')}
+      >
+        {status}
+      </p>
     </form>
   )
 }
