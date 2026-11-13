@@ -38,7 +38,12 @@ export default function HomePage() {
 
 
   return (
-    <div className="w-full flex flex-col bg-ground text-ink">
+    <div className="relative isolate w-full flex flex-col bg-ground text-ink">
+      {/* Soft warm washes in the brand yellow behind the whole page (decorative). */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden [background:radial-gradient(70%_38%_at_50%_0%,rgba(255,217,54,0.30),transparent_70%),radial-gradient(45%_28%_at_0%_30%,rgba(255,176,102,0.18),transparent_70%),radial-gradient(50%_30%_at_100%_55%,rgba(255,217,54,0.18),transparent_70%),radial-gradient(45%_25%_at_10%_80%,rgba(255,196,140,0.16),transparent_70%),radial-gradient(70%_30%_at_50%_100%,rgba(255,217,54,0.24),transparent_70%)] dark:[background:radial-gradient(70%_38%_at_50%_0%,rgba(255,217,54,0.16),transparent_70%),radial-gradient(45%_28%_at_0%_30%,rgba(255,150,80,0.12),transparent_70%),radial-gradient(50%_30%_at_100%_55%,rgba(255,217,54,0.10),transparent_70%),radial-gradient(45%_25%_at_10%_80%,rgba(255,150,80,0.10),transparent_70%),radial-gradient(70%_30%_at_50%_100%,rgba(255,217,54,0.14),transparent_70%),linear-gradient(180deg,#221d17_0%,#1a1612_50%,#201b15_100%)]"
+      />
       <div className="max-w-screen-2xl w-full min-h-screen  mx-auto">
         <HeroSection />
         <Join />
