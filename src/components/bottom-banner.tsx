@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils'
-import { Sparkles } from 'lucide-react'
 import React, { FC, ReactNode } from 'react'
 import { Button } from './ui/button'
 import ClaimUsernameForm from './claim-username'
@@ -31,9 +30,6 @@ const BottomBanner: FC<BottomBannerProps> = ({
       )}
     >
       <div className="flex items-center w-full justify-start">
-        {/* <div className="flex mr-4 items-center justify-center rounded-full p-2">
-          <Sparkles className="size-6 opacity-80" strokeWidth={1.2} />
-        </div> */}
         <div>
           <h3 className="text-lg tracking-tight font-medium leading-snug">
             {text}

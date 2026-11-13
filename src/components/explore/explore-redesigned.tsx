@@ -4,7 +4,7 @@ import { getExploreFeed } from "@/actions/post-actions";
 import { getRecentlyJoinedProfiles } from "@/actions/profile-actions";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { TrendingUp, Users, Sparkles } from "lucide-react";
+import { TrendingUp, Users, Search } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import PostCard from "./post-card";
@@ -91,7 +91,7 @@ const ExploreRedesigned = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="size-12 rounded-2xl bg-neutral-900 dark:bg-white flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Sparkles className="size-6 text-white dark:text-neutral-900" />
+                    <Search className="size-6 text-white dark:text-neutral-900" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">

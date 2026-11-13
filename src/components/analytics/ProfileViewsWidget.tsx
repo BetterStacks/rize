@@ -134,7 +134,7 @@ export default function ProfileViewsWidget({ className }: { className?: string }
 						) : (
 							<>
 								<div className="text-3xl font-semibold tracking-tight">{total}</div>
-								<div className="text-xs opacity-60 mt-1">Pageviews</div>
+								<div className="text-xs opacity-60 mt-1">Views</div>
 							</>
 						)}
 					</div>
@@ -148,7 +148,7 @@ export default function ProfileViewsWidget({ className }: { className?: string }
 				</div>
 				<div className="mt-6 grid grid-cols-2 gap-6">
 					<div>
-						<div className="text-xs uppercase tracking-wide opacity-60 mb-2">Top countries</div>
+						<div className="text-xs uppercase tracking-wide opacity-60 mb-2">Countries</div>
 						<div className="space-y-2">
 							{loading ? (
 								<>
@@ -170,7 +170,7 @@ export default function ProfileViewsWidget({ className }: { className?: string }
 						</div>
 					</div>
 					<div>
-						<div className="text-xs uppercase tracking-wide opacity-60 mb-2">Top cities</div>
+						<div className="text-xs uppercase tracking-wide opacity-60 mb-2">Locations</div>
 						<div className="space-y-2">
 							{loading ? (
 								<>

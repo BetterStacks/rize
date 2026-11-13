@@ -21,7 +21,7 @@ export function FinishStep({
       </div>
       <div className="space-y-4">
         <p className="text-gray-600 dark:text-gray-300">
-          Your profile is looking amazing! Ready to start connecting?
+          Your profile is set up. You can add to it any time.
         </p>
         {formData.resumeData && (
           <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
@@ -34,7 +34,7 @@ export function FinishStep({
         )}
         <div className="flex flex-col gap-3">
           <Button variant={'default'} onClick={() => onComplete()} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-6 rounded-2xl shadow-lg shadow-indigo-100 dark:shadow-none transition-all group">
-            Let&apos;s Go! 🚀
+            Go to my profile
           </Button>
         </div>
       </div>

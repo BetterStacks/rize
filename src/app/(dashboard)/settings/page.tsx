@@ -42,7 +42,7 @@ const Page = async () => {
 							Analytics Dashboard
 						</CardTitle>
 						<CardDescription>
-							Track your profile views, engagement metrics, and visitor insights
+							Views, likes and comments on your profile
 						</CardDescription>
 					</CardHeader>
 					<CardContent>

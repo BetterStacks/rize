@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { CheckCircle, Github, Linkedin, Loader, Download, Sparkles } from 'lucide-react'
+import { CheckCircle, Github, Linkedin, Loader, Download } from 'lucide-react'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -85,10 +85,10 @@ export function ImportStep({
     <div className="p-8">
       <div className="text-center mb-6">
         <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Sparkles className="w-8 h-8 text-white" />
+          <Download className="w-8 h-8 text-white" />
         </div>
         <h2 className="text-2xl tracking-tight mb-2 font-semibold">
-          Supercharge your profile
+          Import from LinkedIn or GitHub
         </h2>
         <p className="leading-snug text-sm opacity-80">
           Import your work, projects, and experience automatically
@@ -109,7 +109,7 @@ export function ImportStep({
               <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg mb-2">Profile enhanced! ✨</h3>
+              <h3 className="font-semibold text-lg mb-2">Imported</h3>
               <div className="text-sm text-muted-foreground space-y-1">
                 {importedStats.experienceCount > 0 && (
                   <p>• {importedStats.experienceCount} work experience{importedStats.experienceCount !== 1 ? 's' : ''}</p>

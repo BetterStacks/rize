@@ -6,7 +6,6 @@ import PostDrawer from '../posts/PostDrawer'
 import SearchDialog from './SearchDialog'
 import AuthDialog from './SignInDialog'
 import { ProfileUpdateDialog } from './UpdateProfileDialog'
-import { AIDialogPrompt } from './AIDialogPrompt'
 
 const Dialogs = () => {
   return (
@@ -15,7 +14,6 @@ const Dialogs = () => {
       <SearchDialog />
       <PostDrawer />
       <AuthDialog />
-      <AIDialogPrompt />
     </>
   )
 }

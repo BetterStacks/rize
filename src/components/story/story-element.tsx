@@ -44,7 +44,7 @@ const typeConfig = {
   },
   dream: {
     label: 'Dream',
-    emoji: '✨',
+    emoji: '🌍',
     color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
     prompt: 'What change do you want to see in the world?'
   },

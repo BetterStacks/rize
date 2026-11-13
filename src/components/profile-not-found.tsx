@@ -90,7 +90,7 @@ const ProfileNotFound: FC<ProfileNotFoundProps> = ({ username }) => {
             onClick={handleClaimProfile}
             className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
-            🚀 Claim This Profile
+            Claim This Profile
           </button>
         </div>
       )}

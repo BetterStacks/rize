@@ -88,7 +88,7 @@ These practices come from running Stacks and Converse the same way.
 
 ```
 src/app/(auth)/            sign-in / sign-up
-src/app/(dashboard)/       [username] public profile, explore, post, project, roast, search, settings
+src/app/(dashboard)/       [username] public profile, explore, post, project, search, settings
 src/app/onboarding/        onboarding flow
 src/app/claim-profile/     claiming a seeded profile
 src/app/api/

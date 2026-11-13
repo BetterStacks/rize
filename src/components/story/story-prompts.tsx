@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Sparkles } from 'lucide-react'
+import { BookOpen, CheckCircle2, PenLine, Plus } from 'lucide-react'
 import { StoryElement } from './story-element'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -65,7 +65,7 @@ const storyPrompts = [
     type: 'dream' as const,
     title: 'Big Dream',
     description: 'What change do you want to see in the world?',
-    emoji: '✨',
+    emoji: '🌍',
     examples: ['A world where everyone has access to education', 'Technology that brings people together', 'Communities that support mental health']
   },
   {
@@ -203,7 +203,7 @@ export function StoryPrompts({
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-500" />
+            <BookOpen className="h-5 w-5 text-muted-foreground" />
             Your Story Elements
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -267,7 +267,7 @@ export function StoryPrompts({
             <Card className="border-dashed border-2 border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-900/10">
               <CardHeader>
                 <CardTitle className="text-purple-700 dark:text-purple-300 flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" />
+                  <PenLine className="h-5 w-5" />
                   Tell Your Story
                 </CardTitle>
                 <p className="text-sm text-purple-600 dark:text-purple-400">
@@ -311,7 +311,7 @@ export function StoryPrompts({
 
                 {availablePrompts.length === 0 && (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <CheckCircle2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>You've added all available story elements!</p>
                   </div>
                 )}
@@ -328,7 +328,7 @@ export function StoryPrompts({
           animate={{ opacity: 1, y: 0 }}
           className="text-center py-12"
         >
-          <Sparkles className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+          <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-medium mb-2">Share Your Story</h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
             Add story elements to showcase what makes you unique beyond your resume.
