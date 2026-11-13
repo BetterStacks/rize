@@ -70,4 +70,4 @@ Record what Tanay kept and rejected from each round, so it isn't lost.
 
 | Date | Screen | Kept | Rejected | Notes |
 |---|---|---|---|---|
-| | Draft review | | | Awaiting first review |
+| 2026-11-12 | Draft review | A (draft shown with the call transcript, kept sentences highlighted, filler struck out) and B (one moment per card, Keep private / Edit / Share) | C (chat thread) for this screen; any "listen to your recording" playback | People don't want to hear their own rambling. The transcript works as the way to show where the words came from, and a synthesized version could too. Round 2 combines B's card flow with A's transcript. |
