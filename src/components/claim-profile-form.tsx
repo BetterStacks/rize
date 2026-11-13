@@ -186,7 +186,7 @@ const ClaimProfileForm = () => {
             Profile removed
           </h2>
           <p className="text-sm text-neutral-600 dark:text-neutral-400 text-center mt-2 max-w-sm">
-            We deleted this profile and the details that came with it. This link no longer works, and you don&apos;t need to do anything else.
+            We deleted this profile, including the name, email, work history and education on it. This link no longer works.
           </p>
           <Button
             variant="outline"

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { and, eq, inArray, or } from 'drizzle-orm'
+import { and, eq, inArray, notExists, or } from 'drizzle-orm'
 import db from '@/lib/db'
 import {
+  accounts,
   bookmarks,
   comments,
   posts,
@@ -75,11 +76,19 @@ export async function POST(request: NextRequest) {
       }
 
       // Re-check the token and unclaimed state in the delete itself, so a
-      // claim that lands at the same moment can't be deleted.
+      // claim that lands at the same moment can't be deleted. Anyone who has
+      // ever signed in has an account row, so never delete those either.
       const deleted = await tx
         .delete(users)
         .where(
-          and(eq(users.id, user.id), eq(users.claimToken, token), eq(users.isClaimed, false))
+          and(
+            eq(users.id, user.id),
+            eq(users.claimToken, token),
+            eq(users.isClaimed, false),
+            notExists(
+              tx.select({ id: accounts.id }).from(accounts).where(eq(accounts.userId, users.id))
+            )
+          )
         )
         .returning({ id: users.id })
 
