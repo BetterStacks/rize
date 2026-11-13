@@ -36,8 +36,8 @@ bun install
 cp .env.example .env.local
 ```
 Fill in at least the required variables (see Env section below).
-3. Provision a Postgres database and set `DATABASE_URL`.
-4. Run database migrations:
+3. Provision a Postgres database for local development and set `DATABASE_URL` to it.
+4. Create the schema in that local database (never point this at production; see AGENTS.md):
 ```bash
 bunx drizzle-kit push
 ```
@@ -89,8 +89,8 @@ The app is modular: enable only the integrations you need. Below is a practical 
 
 ### Database and migrations
 - Drizzle config lives in `drizzle.config.ts`.
-- Migrations output to the `drizzle/` directory.
-- Apply migrations:
+- The schema lives in `src/db/schema.ts`. Old migration files are archived in `drizzle/archive/`; see AGENTS.md for how schema changes reach production.
+- Create the schema in a local or branch database:
 ```bash
 bunx drizzle-kit push
 ```
