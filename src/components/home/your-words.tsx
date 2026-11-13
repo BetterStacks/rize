@@ -93,8 +93,8 @@ const DraftExample = () => {
         </p>
       </div>
       <figcaption className="mt-4 text-sm leading-relaxed text-ink-secondary">
-        A made-up example. Highlighted words were kept from the call; struck-through filler was taken out. Nothing
-        else changed.
+        A made-up example. Highlighted words were kept from the call, struck-through filler was taken out, and
+        plain sentences weren&apos;t used. No words were added.
       </figcaption>
     </figure>
   )
