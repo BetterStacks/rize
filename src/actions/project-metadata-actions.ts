@@ -4,6 +4,17 @@ import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
 import urlMetadata from "url-metadata";
 import { z } from "zod";
+import { getServerSession } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+// Both actions fetch remote URLs and one calls an AI model, so they need a
+// signed-in user and share the AI rate limit.
+const requireAiQuota = async (): Promise<string | null> => {
+  const session = await getServerSession().catch(() => null);
+  if (!session?.user?.id) return "Sign in to continue";
+  const { success } = await checkRateLimit("ai", session.user.id);
+  return success ? null : "Too many requests. Please try again later.";
+};
 
 const projectLinkSchema = z.object({
   url: z.string().min(1, "Project URL is required"),
@@ -64,6 +75,9 @@ const fallbackTagline = (name: string, description: string) => {
 export const getProjectMetadataFromUrl = async (payload: {
   url: string;
 }): Promise<{ ok: boolean; data?: ProjectMetadataResult; error?: string }> => {
+  const denied = await requireAiQuota();
+  if (denied) return { ok: false, error: denied };
+
   const parsed = projectLinkSchema.safeParse(payload);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.errors[0]?.message || "Invalid URL" };
@@ -122,6 +136,9 @@ export const getProjectMetadataFromUrl = async (payload: {
 };
 
 export const fetchImageAsBase64 = async (url: string): Promise<{ ok: boolean; data?: { base64: string; contentType: string }; error?: string }> => {
+  const denied = await requireAiQuota();
+  if (denied) return { ok: false, error: denied };
+
   try {
     const response = await fetch(url);
     if (!response.ok) {

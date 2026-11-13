@@ -1,6 +1,7 @@
 'use server'
 
 import { getServerSession } from '@/lib/auth'
+import { checkRateLimit } from '@/lib/rate-limit'
 import db from '@/lib/db'
 import { profile, projects, experience, education } from '@/db/schema'
 import { eq, sql } from 'drizzle-orm'
@@ -10,6 +11,11 @@ import { generateText } from 'ai'
 export async function generateWelcomeMessage() {
     const session = await getServerSession()
     if (!session?.user) {
+        return "Hi! I'm Rize.ai, your AI profile builder. Let's create an amazing profile together! To get started, what do you do professionally?"
+    }
+
+    const limited = await checkRateLimit('ai', session.user.id)
+    if (!limited.success) {
         return "Hi! I'm Rize.ai, your AI profile builder. Let's create an amazing profile together! To get started, what do you do professionally?"
     }
 
