@@ -5,7 +5,7 @@
  * (bg-paper, border-paper-border, bg-highlight, text-ink, text-ink-secondary).
  *
  * Contrast (WCAG): ink on paper 16.8:1, secondary on paper 7.6:1, ink on
- * highlight 12.9:1; dark: 14.9:1, 7.4:1, 7.5:1.
+ * highlight 12.9:1; dark: 14.9:1, 7.4:1, 9.7:1.
  */
 :root,
 .dark {

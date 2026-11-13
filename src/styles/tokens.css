@@ -69,7 +69,7 @@
 
   --paper: 30 27 23;              /* #1E1B17 */
   --paper-border: 58 51 43;       /* #3A332B */
-  --highlight: 90 74 31;          /* #5A4A1F */
+  --highlight: 78 54 28;          /* #4E361C warm amber wash, not olive */
 
   --shadow-float: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -6px rgb(0 0 0 / 0.55);
   --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 8px -2px rgb(0 0 0 / 0.35);
