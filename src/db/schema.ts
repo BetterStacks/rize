@@ -1087,6 +1087,35 @@ export type TTranscriptTurn = {
   startMs?: number;
 };
 
+// What an onboarding call heard, kept on the call until the person reviews it.
+// Nothing here reaches the profile unless they pick it. Dates are "YYYY-MM-DD".
+export type TProfileSuggestions = {
+  bio: string | null;
+  personalMission: string | null;
+  lifePhilosophy: string | null;
+  experience: {
+    title: string;
+    company: string;
+    description: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    currentlyWorking: boolean;
+  }[];
+  education: {
+    school: string;
+    degree: string | null;
+    fieldOfStudy: string | null;
+    startDate: string | null;
+    endDate: string | null;
+  }[];
+  projects: {
+    name: string;
+    tagline: string;
+    description: string;
+    status: "wip" | "completed";
+  }[];
+};
+
 const VoiceCallKind = customType<{ data: TVoiceCallKind }>({
   dataType() {
     return "text";
@@ -1124,6 +1153,9 @@ export const voiceCalls = pgTable(
     closeReason: text("close_reason"),
     error: text("error"),
     draftsGeneratedAt: timestamp("drafts_generated_at"),
+    // Onboarding calls only: profile additions waiting for the person to review
+    profileSuggestions: jsonb("profile_suggestions").$type<TProfileSuggestions>(),
+    suggestionsReviewedAt: timestamp("suggestions_reviewed_at"),
     startedAt: timestamp("started_at"),
     endedAt: timestamp("ended_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),

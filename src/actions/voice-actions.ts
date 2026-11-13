@@ -1,13 +1,25 @@
 "use server";
 
-import { posts, users, voiceCalls, voiceDrafts } from "@/db/schema";
-import { requireAuth, requireProfile } from "@/lib/auth";
+import {
+  education,
+  experience,
+  posts,
+  profile,
+  projects,
+  users,
+  voiceCalls,
+  voiceDrafts,
+  type TProfileSuggestions,
+} from "@/db/schema";
+import { requireAuth, requireAuthWithProfile, requireProfile } from "@/lib/auth";
 import db from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { generateDraftsForCall } from "@/lib/voice/after-call";
+import { findPendingOnboardingSuggestions } from "@/lib/voice/pending-suggestions";
+import { SUGGESTION_TEXT_LIMITS, cleanPlainText, suggestionDate } from "@/lib/voice/profile-suggestions";
 import { deleteRecording } from "@/lib/voice/r2";
 import { twilioClient } from "@/lib/voice/twilio";
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -289,5 +301,195 @@ export async function deleteVoiceDraft(draftId: string): Promise<ActionResult> {
     )
     .returning({ id: voiceDrafts.id });
   if (!deleted.length) return { success: false, error: "Draft not found" };
+  return { success: true };
+}
+
+// --- Profile suggestions from the onboarding call ---
+// The call only suggests. Nothing reaches the profile until the person picks
+// items here and adds them.
+
+export type OnboardingSuggestions = {
+  callId: string;
+  createdAt: Date;
+  suggestions: TProfileSuggestions;
+  // Which profile fields are empty right now, so the UI can say what an item replaces.
+  empty: {
+    bio: boolean;
+    personalMission: boolean;
+    lifePhilosophy: boolean;
+    experience: boolean;
+    education: boolean;
+    projects: boolean;
+  };
+};
+
+export async function getOnboardingSuggestions(): Promise<OnboardingSuggestions | null> {
+  const { userId, profileId } = await requireAuthWithProfile();
+  const pending = await findPendingOnboardingSuggestions(userId);
+  if (!pending) return null;
+
+  const [current, hasExp, hasEdu, hasProj] = await Promise.all([
+    db.query.profile.findFirst({
+      where: and(eq(profile.id, profileId), eq(profile.userId, userId)),
+      columns: { bio: true, personalMission: true, lifePhilosophy: true },
+    }),
+    db.query.experience.findFirst({ where: eq(experience.profileId, profileId), columns: { id: true } }),
+    db.query.education.findFirst({ where: eq(education.profileId, profileId), columns: { id: true } }),
+    db.query.projects.findFirst({ where: eq(projects.profileId, profileId), columns: { id: true } }),
+  ]);
+  if (!current) return null;
+
+  return {
+    callId: pending.id,
+    createdAt: pending.createdAt,
+    suggestions: pending.suggestions,
+    empty: {
+      bio: !current.bio?.trim(),
+      personalMission: !current.personalMission?.trim(),
+      lifePhilosophy: !current.lifePhilosophy?.trim(),
+      experience: !hasExp,
+      education: !hasEdu,
+      projects: !hasProj,
+    },
+  };
+}
+
+const indexListSchema = z.array(z.number().int().min(0).max(99)).max(50);
+const suggestionSelectionSchema = z.object({
+  bio: z.boolean(),
+  personalMission: z.boolean(),
+  lifePhilosophy: z.boolean(),
+  experience: indexListSchema,
+  education: indexListSchema,
+  projects: indexListSchema,
+  // Optional edits to the three text fields. Everything else comes from the stored suggestions.
+  edits: z
+    .object({
+      bio: z.string().max(SUGGESTION_TEXT_LIMITS.bio).optional(),
+      personalMission: z.string().max(SUGGESTION_TEXT_LIMITS.personalMission).optional(),
+      lifePhilosophy: z.string().max(SUGGESTION_TEXT_LIMITS.lifePhilosophy).optional(),
+    })
+    .optional(),
+});
+
+export type OnboardingSuggestionSelection = z.infer<typeof suggestionSelectionSchema>;
+
+const pick = <T,>(items: T[], indexes: number[]) =>
+  Array.from(new Set(indexes))
+    .filter((i) => i < items.length)
+    .sort((a, b) => a - b)
+    .map((i) => items[i]);
+
+export async function applyOnboardingSuggestions(
+  callId: string,
+  selection: OnboardingSuggestionSelection
+): Promise<ActionResult> {
+  const { userId, profileId } = await requireAuthWithProfile();
+  if (!z.string().uuid().safeParse(callId).success) return { success: false, error: "Call not found" };
+  const parsed = suggestionSelectionSchema.safeParse(selection);
+  if (!parsed.success) return { success: false, error: "Check the text and try again" };
+  const sel = parsed.data;
+
+  // Text the person edited, falling back to what was stored. Empty means skip.
+  const textFor = (field: keyof typeof SUGGESTION_TEXT_LIMITS, stored: string | null) =>
+    cleanPlainText(sel.edits?.[field] ?? stored, SUGGESTION_TEXT_LIMITS[field]);
+
+  const applied = await db.transaction(async (tx) => {
+    // Claim the call first so a double click can't add everything twice.
+    const [call] = await tx
+      .update(voiceCalls)
+      .set({ suggestionsReviewedAt: new Date() })
+      .where(
+        and(
+          eq(voiceCalls.id, callId),
+          eq(voiceCalls.userId, userId),
+          eq(voiceCalls.kind, "onboarding"),
+          isNotNull(voiceCalls.profileSuggestions),
+          isNull(voiceCalls.suggestionsReviewedAt)
+        )
+      )
+      .returning({ suggestions: voiceCalls.profileSuggestions });
+    if (!call?.suggestions) return false;
+    const s = call.suggestions;
+
+    // Only these three profile fields can change here.
+    const profileUpdates: Partial<Pick<typeof profile.$inferInsert, "bio" | "personalMission" | "lifePhilosophy">> =
+      {};
+    if (sel.bio && s.bio) {
+      const bio = textFor("bio", s.bio);
+      if (bio) profileUpdates.bio = bio;
+    }
+    if (sel.personalMission && s.personalMission) {
+      const mission = textFor("personalMission", s.personalMission);
+      if (mission) profileUpdates.personalMission = mission;
+    }
+    if (sel.lifePhilosophy && s.lifePhilosophy) {
+      const philosophy = textFor("lifePhilosophy", s.lifePhilosophy);
+      if (philosophy) profileUpdates.lifePhilosophy = philosophy;
+    }
+    if (Object.keys(profileUpdates).length) {
+      await tx
+        .update(profile)
+        .set(profileUpdates)
+        .where(and(eq(profile.id, profileId), eq(profile.userId, userId)));
+    }
+
+    const expRows: (typeof experience.$inferInsert)[] = pick(s.experience ?? [], sel.experience).map((e) => ({
+      profileId,
+      title: e.title,
+      company: e.company,
+      description: e.description,
+      employmentType: "Full-time" as const,
+      startDate: suggestionDate(e.startDate),
+      endDate: suggestionDate(e.endDate),
+      currentlyWorking: e.currentlyWorking,
+    }));
+    if (expRows.length) await tx.insert(experience).values(expRows);
+
+    const eduRows: (typeof education.$inferInsert)[] = pick(s.education ?? [], sel.education).map((e) => ({
+      profileId,
+      school: e.school,
+      degree: e.degree,
+      fieldOfStudy: e.fieldOfStudy,
+      startDate: suggestionDate(e.startDate),
+      endDate: suggestionDate(e.endDate),
+    }));
+    if (eduRows.length) await tx.insert(education).values(eduRows);
+
+    const projectRows: (typeof projects.$inferInsert)[] = pick(s.projects ?? [], sel.projects).map((p) => ({
+      profileId,
+      name: p.name,
+      tagline: p.tagline,
+      description: p.description,
+      status: p.status,
+    }));
+    if (projectRows.length) await tx.insert(projects).values(projectRows);
+
+    return true;
+  });
+
+  if (!applied) return { success: false, error: "These suggestions were already reviewed" };
+  revalidatePath("/[username]", "layout");
+  revalidatePath("/settings/voice");
+  return { success: true };
+}
+
+export async function dismissOnboardingSuggestions(callId: string): Promise<ActionResult> {
+  const session = await requireAuth();
+  if (!z.string().uuid().safeParse(callId).success) return { success: false, error: "Call not found" };
+  const updated = await db
+    .update(voiceCalls)
+    .set({ suggestionsReviewedAt: new Date() })
+    .where(
+      and(
+        eq(voiceCalls.id, callId),
+        eq(voiceCalls.userId, session.user.id),
+        eq(voiceCalls.kind, "onboarding"),
+        isNull(voiceCalls.suggestionsReviewedAt)
+      )
+    )
+    .returning({ id: voiceCalls.id });
+  if (!updated.length) return { success: false, error: "These suggestions were already reviewed" };
+  revalidatePath("/settings/voice");
   return { success: true };
 }
