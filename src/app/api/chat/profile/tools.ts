@@ -31,6 +31,7 @@ export const getProfileTools = (profileId: string | undefined, username: string,
         updateBasicInfo: tool({
             description: 'Update the user basic profile information like bio, location, mission, etc.',
             inputSchema: updateBasicInfoSchema,
+            needsApproval: true,
             execute: async (args) => {
                 await updateProfile(args);
                 await revalidatePageOnClient(`/${username}`);
@@ -40,6 +41,7 @@ export const getProfileTools = (profileId: string | undefined, username: string,
         addExperience: tool({
             description: 'Add a work experience or internship to the user profile.',
             inputSchema: addExperienceSchema,
+            needsApproval: true,
             execute: async (args) => {
                 if (!profileId) return { success: false, error: 'No profile found' };
                 const [newExperience] = await db.insert(experience).values({
@@ -55,6 +57,7 @@ export const getProfileTools = (profileId: string | undefined, username: string,
         updateExperience: tool({
             description: 'Update an existing work experience entry.',
             inputSchema: updateExperienceSchema,
+            needsApproval: true,
             execute: async (args) => {
                 if (!profileId) return { success: false, error: 'No profile found' };
                 const { id, ...data } = args;
@@ -99,6 +102,7 @@ export const getProfileTools = (profileId: string | undefined, username: string,
         addEducation: tool({
             description: 'Add education information to the user profile.',
             inputSchema: addEducationSchema,
+            needsApproval: true,
             execute: async (args) => {
                 if (!profileId) return { success: false, error: 'No profile found' };
 
@@ -115,6 +119,7 @@ export const getProfileTools = (profileId: string | undefined, username: string,
         updateEducation: tool({
             description: 'Update an existing education entry.',
             inputSchema: updateEducationSchema,
+            needsApproval: true,
             execute: async (args) => {
                 if (!profileId) return { success: false, error: 'No profile found' };
                 const { id, ...data } = args;
@@ -152,6 +157,7 @@ export const getProfileTools = (profileId: string | undefined, username: string,
         addStoryElement: tool({
             description: 'Add a story element like a skill, milestone, or dream.',
             inputSchema: addStoryElementSchema,
+            needsApproval: true,
             execute: async (args) => {
                 if (!profileId) return { success: false, error: 'No profile found' };
 
@@ -167,6 +173,7 @@ export const getProfileTools = (profileId: string | undefined, username: string,
         addProject: tool({
             description: 'Add a project to the user profile.',
             inputSchema: addProjectSchema,
+            needsApproval: true,
             execute: async (args) => {
                 if (!profileId) return { success: false, error: 'No profile found' };
 
@@ -181,6 +188,7 @@ export const getProfileTools = (profileId: string | undefined, username: string,
         updateProject: tool({
             description: 'Update an existing project.',
             inputSchema: updateProjectSchema,
+            needsApproval: true,
             execute: async (args) => {
                 if (!profileId) return { success: false, error: 'No profile found' };
                 const { id, ...data } = args;
@@ -210,9 +218,12 @@ export const getProfileTools = (profileId: string | undefined, username: string,
         addGalleryItem: tool({
             description: 'Add media items (images or videos) from the user message attachments to the user gallery.',
             inputSchema: addGalleryItemSchema,
+            needsApproval: true,
             execute: async (args) => {
-                const lastMessage = messages.at(-1);
-                const attachments: FileUIPart[] = lastMessage?.parts.filter(p => p.type === 'file') || [];
+                // With approval, this runs on a later request whose last message is the
+                // assistant's approval response, so read the files from the latest user message.
+                const lastUserMessage = messages.findLast((m) => m.role === 'user');
+                const attachments: FileUIPart[] = lastUserMessage?.parts.filter((p): p is FileUIPart => p.type === 'file') || [];
 
                 if (!attachments || attachments.length === 0) return { success: false, error: 'No attachments found', output: [] };
                 const results = [];
