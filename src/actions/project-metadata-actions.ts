@@ -1,6 +1,7 @@
 "use server";
 
 import { google } from "@ai-sdk/google";
+import { GEMINI_MODEL_ID } from "@/lib/ai-model";
 import { generateText } from "ai";
 import urlMetadata from "url-metadata";
 import { z } from "zod";
@@ -113,7 +114,7 @@ export const getProjectMetadataFromUrl = async (payload: {
       try {
         const prompt = `Create a concise project tagline (max 60 characters). Return only the tagline text with no quotes.\nProject name: ${name}\nProject description: ${description || "N/A"}`;
         const { text } = await generateText({
-          model: google("gemini-3.8-flash"),
+          model: google(GEMINI_MODEL_ID),
           prompt,
         });
         tagline = clampTagline(text || "");

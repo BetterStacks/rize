@@ -6,6 +6,7 @@ import db from '@/lib/db'
 import { profile, projects, experience, education } from '@/db/schema'
 import { eq, sql } from 'drizzle-orm'
 import { google } from '@ai-sdk/google'
+import { GEMINI_MODEL_ID } from '@/lib/ai-model'
 import { generateText } from 'ai'
 
 export async function generateWelcomeMessage() {
@@ -82,7 +83,7 @@ Generate ONLY the welcome message text, nothing else.`
 
     try {
         const { text } = await generateText({
-            model: google('gemini-3.8-flash'),
+            model: google(GEMINI_MODEL_ID),
             prompt,
             maxOutputTokens: 150,
         })

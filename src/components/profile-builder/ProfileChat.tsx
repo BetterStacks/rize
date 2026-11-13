@@ -9,18 +9,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { ProfileTask } from '@/hooks/useProfileCompletion';
 import { useActiveSidebarTab } from '@/lib/context';
-import { usePanel } from '@/lib/panel-context';
 import { ChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useChat } from '@ai-sdk/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithApprovalResponses, type ToolUIPart } from 'ai';
-import { CheckCircle2, CheckIcon, ChevronDown, ChevronLeft, ChevronUp, Copy, Plus, RefreshCcw, Trash2, XIcon } from 'lucide-react';
+import { CheckCircle2, CheckIcon, ChevronDown, ChevronLeft, ChevronUp, Copy, Paperclip, RefreshCcw, SquarePen, Trash2, XIcon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { FormEvent, Fragment, useEffect, useRef, useState } from 'react';
+import { FormEvent, Fragment, ReactNode, useEffect, useRef, useState } from 'react';
 import { v4 } from 'uuid';
 import { Confirmation, ConfirmationAccepted, ConfirmationAction, ConfirmationActions, ConfirmationRejected, ConfirmationRequest } from '../ai-elements/confirmation';
-import { Conversation, ConversationContent, ConversationEmptyState } from '../ai-elements/conversation';
+import { Conversation, ConversationContent } from '../ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '../ai-elements/message';
 import { PromptInput, PromptInputActionAddAttachments, PromptInputActionMenu, PromptInputActionMenuContent, PromptInputActionMenuTrigger, PromptInputFooter, PromptInputHeader, PromptInputMessage, PromptInputSubmit, PromptInputTextarea, usePromptInputAttachments } from '../ai-elements/prompt-input';
 
@@ -30,17 +29,25 @@ interface ProfileChatProps {
     incompleteTasks?: ProfileTask[];
 }
 
-export default function ProfileChat({ profileName = 'there', incompleteTasks = [] }: ProfileChatProps) {
+// Each one starts a real task, written the way the person would say it.
+const SUGGESTIONS = [
+    "What's missing from my profile?",
+    'Update my bio',
+    'Add my current job',
+    "Add a project I'm working on",
+];
+
+const PROD_ERROR_MESSAGE = "Couldn't reach the assistant. Try again.";
+
+export default function ProfileChat(_props: ProfileChatProps) {
     const [input, setInput] = useState('');
-    const hasLoadedWelcomeRef = useRef(false);
-    const { toggleRightPanel } = usePanel()
     const { username } = useParams<{ username: string }>()
     const [chatId, setChatId] = useState<string>(v4());
     const router = useRouter();
     const queryClient = useQueryClient();
     const setActiveSidebarTab = useActiveSidebarTab()[1]
 
-    const { messages, status, sendMessage, regenerate, addToolApprovalResponse } = useChat<ChatMessage>({
+    const { messages, status, error, sendMessage, regenerate, stop, addToolApprovalResponse } = useChat<ChatMessage>({
         id: chatId,
         transport: new DefaultChatTransport({
             api: '/api/chat/profile',
@@ -51,7 +58,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
         sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
     });
 
-    const isLoading = status === 'streaming';
+    const isBusy = status === 'submitted' || status === 'streaming';
 
     // A proposed change that hasn't been approved or rejected yet. Sending a new
     // message before answering it would leave the tool call without a result,
@@ -61,55 +68,45 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
         lastMessage?.role === 'assistant' &&
         lastMessage.parts.some((part) => 'state' in part && part.state === 'approval-requested');
 
+    // Older chats sent a hidden "hello" to get a greeting. Never show those.
+    const visibleMessages = messages.filter((message) => !message.metadata?.isWelcomeMessage);
+    const isEmpty = visibleMessages.length === 0 && !isBusy && !error;
+
+    // "Thinking" until the reply has words in it.
+    const replyHasText =
+        lastMessage?.role === 'assistant' &&
+        lastMessage.parts.some((part) => part.type === 'text' && part.text.trim().length > 0);
+    const isThinking = status === 'submitted' || (status === 'streaming' && !replyHasText);
+
+    const errorText = process.env.NODE_ENV !== 'production' && error?.message ? error.message : PROD_ERROR_MESSAGE;
+
+    const processedToolCalls = useRef<Set<string>>(new Set());
+
     const handleNewChat = () => {
+        if (isBusy) stop();
+        processedToolCalls.current = new Set();
+        setInput('');
         setChatId(v4());
-        hasLoadedWelcomeRef.current = false;
     };
 
-    // Trigger initial welcome message when chat is empty
-    useEffect(() => {
-        if (messages.length === 0 && !hasLoadedWelcomeRef.current && !isLoading) {
-            hasLoadedWelcomeRef.current = true;
-            sendMessage({
-                text: 'hello there',
-                metadata: {
-                    isWelcomeMessage: true
-                },
-            });
-        }
-    }, [messages.length, isLoading, sendMessage]);
+    const send = (text: string, files?: PromptInputMessage['files']) => {
+        if (!text.trim() || isBusy || hasPendingApproval) return;
+        void sendMessage({ text, files });
+    };
 
+    const handleFormSubmit = async (message: PromptInputMessage, _event: FormEvent<HTMLFormElement>) => {
+        if (!message?.text.trim() || isBusy || hasPendingApproval) return;
+        setInput('');
+        send(message.text, message.files);
+    };
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (scrollRef.current) {
-            scrollRef.current.scrollTo({
-                top: scrollRef.current.scrollHeight,
-                behavior: 'smooth',
-            });
+            scrollRef.current.scrollIntoView({ block: 'end', behavior: 'smooth' });
         }
-    }, [messages]);
-
-    const onSkip = () => {
-        sendMessage({
-            text: 'Skip this question for now.',
-        });
-    };
-
-    const handleFormSubmit = async (message: PromptInputMessage, event: FormEvent<HTMLFormElement>) => {
-        if (!message?.text.trim() || isLoading || hasPendingApproval) return;
-
-        const currentInput = message.text;
-        setInput('');
-
-        await sendMessage({
-            text: currentInput,
-            files: message.files
-        });
-    };
-
-    const processedToolCalls = useRef<Set<string>>(new Set());
+    }, [messages, status, error]);
 
     useEffect(() => {
         if (messages?.length === 0) return;
@@ -132,10 +129,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                 const toolCallId = (part as any).toolCallId;
                 processedToolCalls.current.add(toolCallId);
 
-                const toolName = part.type.replace("tool-", "");
-                console.log(`[ProfileChat] Processing completed tool: ${toolName} (${toolCallId})`);
-
-                const lowerToolName = toolName.toLowerCase();
+                const lowerToolName = part.type.replace("tool-", "").toLowerCase();
                 if (lowerToolName.includes("experience")) {
                     queryClient.invalidateQueries({ queryKey: ["get-all-experience", username] });
                     needsRefresh = true;
@@ -167,69 +161,54 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
 
     return (
         <div className="flex flex-col h-full w-full overflow-hidden font-inter">
-            <div className='w-full flex items-center justify-between absolute top-0 inset-x-0 p-3'>
+            {/* Sits in the space RightSidebar leaves at the top. On phones the
+                sheet draws its own close button top-right, so leave room for it. */}
+            <header className="absolute top-0 inset-x-0 h-16 flex items-center justify-between gap-2 border-b border-hairline pl-2 pr-14 lg:pr-3">
+                <div className="flex items-center gap-1 min-w-0">
+                    <Button
+                        size="smallIcon"
+                        variant="ghost"
+                        onClick={() => setActiveSidebarTab({ id: null, tab: 'gallery' })}
+                        aria-label="Back to profile editor"
+                        title="Back to profile editor"
+                        className="touch-target shrink-0 rounded-lg text-ink-secondary hover:text-ink"
+                    >
+                        <ChevronLeft className="size-4" aria-hidden />
+                    </Button>
+                    <h2 className="truncate text-sm font-medium text-ink">Profile assistant</h2>
+                </div>
                 <Button
-                    size={'smallIcon'}
-                    variant={'ghost'}
-                    onClick={() => setActiveSidebarTab({ tab: "gallery" })}
-                    className="rounded-md "
-                >
-                    <ChevronLeft className='size-4' />
-                    {/* <PanelRight className='size-4' /> */}
-                </Button>
-                <Button
-                    size={'smallIcon'}
-                    variant={'ghost'}
+                    size="sm"
+                    variant="ghost"
                     onClick={handleNewChat}
-                    className="rounded-md "
+                    disabled={messages.length === 0 && !error}
+                    className="touch-target shrink-0 gap-1.5 rounded-lg text-ink-secondary hover:text-ink"
                 >
-                    <Plus className='size-4' />
+                    <SquarePen className="size-4" aria-hidden />
+                    New chat
                 </Button>
-            </div>
-            <Conversation className="w-full h-full">
-                <ConversationContent className="w-full ">
-                    <div className="w-full px-2">
-                        {messages.length === 0 && (
-                            <ConversationEmptyState
-                                title="Start a conversation"
-                                description="Type a message below to begin"
-                            />
-                        )}
-                        {messages.length > 0 && messages.map((message) => {
-                            if (message.metadata?.isWelcomeMessage) {
-                                return null
-                            }
-                            return (
+            </header>
+
+            {isEmpty ? (
+                <ChatEmptyState onPick={send} disabled={isBusy || hasPendingApproval} />
+            ) : (
+                <Conversation className="w-full h-full">
+                    <ConversationContent className="w-full">
+                        <div className="w-full px-2">
+                            {visibleMessages.map((message) => (
                                 <Message className="mb-4" from={message.role} key={message.id}>
                                     <MessageContent
                                         className={cn(
                                             "rounded-xl font-inter",
                                             message.role === "user"
-                                                ? "bg-neutral-50 dark:bg-neutral-800 tracking-tight max-w-[85%] w-fit font-medium text-neutral-800 dark:text-neutral-200 p-3"
-                                                : "border-none bg-transparent w-full max-w-full rounded-none"
+                                                ? "bg-subtle text-ink tracking-tight max-w-[85%] w-fit font-medium p-3"
+                                                : "border-none bg-transparent w-full max-w-full rounded-none text-ink"
                                         )}
                                     >
-                                        {message.role === "assistant" && (
-                                            <div className='inline-flex mb-2 items-center justify-start gap-2'>
-                                                <div className='size-3 bg-main-yellow rounded-full' />
-                                                <span className="text-sm text-neutral-600 dark:text-neutral-200 font-medium leading-tight ">
-                                                    rize.ai
-                                                </span>
-                                            </div>
-                                        )}
                                         {message.parts.map((part, i) => {
                                             switch (part.type) {
                                                 case "text":
-                                                    if (part?.state === 'streaming') {
-                                                        return (
-                                                            <div key={`${message.id}-${i}`} className="flex flex-col gap-2 w-full">
-                                                                <div className='h-6 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:20] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
-                                                                <div className='h-6 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:20] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
-                                                                <div className='h-8 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:40] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
-                                                                <div className='h-24 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:40] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
-                                                            </div>
-                                                        )
-                                                    }
+                                                    if (!part.text) return null;
                                                     return (
                                                         <Fragment key={`${message.id}-${i}`}>
                                                             <MessageResponse>{part.text}</MessageResponse>
@@ -238,12 +217,12 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                 case "reasoning":
                                                     return (
                                                         <details key={`${message?.id}-reasoning-${i}`} className="group">
-                                                            <summary className="cursor-pointer text-xs text-neutral-500 dark:text-neutral-400 font-medium flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                                            <summary className="cursor-pointer text-xs text-ink-secondary font-medium flex items-center gap-1 hover:text-ink transition-colors">
                                                                 <ChevronDown className="size-3 group-open:hidden" />
                                                                 <ChevronUp className="size-3 hidden group-open:block" />
-                                                                View AI Reasoning
+                                                                How it got there
                                                             </summary>
-                                                            <div className="mt-2 p-3 bg-neutral-50/50 dark:bg-neutral-900/50 rounded-xl border border-neutral-200/60 dark:border-neutral-800 text-xs italic text-neutral-600 dark:text-neutral-400 leading-relaxed shadow-sm">
+                                                            <div className="mt-2 p-3 bg-subtle rounded-xl text-xs text-ink-secondary leading-relaxed">
                                                                 {part.text}
                                                             </div>
                                                         </details>
@@ -265,17 +244,10 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                         );
                                                     }
                                                     return (
-                                                        <div
-                                                            key={`${message?.id}-tool-${i}`}
-                                                            className="flex items-center gap-2 p-2 bg-indigo-50/30 dark:bg-indigo-900/10 rounded-xl border border-indigo-100/50 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium shadow-sm"
-                                                        >
-                                                            <Trash2 className="size-3" />
+                                                        <ToolStatusRow key={`${message?.id}-tool-${i}`} icon={<Trash2 className="size-3.5" aria-hidden />}>
                                                             {describeToolStatus(part)}
-
-
-                                                        </div>
+                                                        </ToolStatusRow>
                                                     );
-
 
                                                 case "tool-addEducation":
                                                 case "tool-addExperience":
@@ -298,21 +270,17 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                         );
                                                     }
                                                     return (
-                                                        <div
-                                                            key={`${message?.id}-tool-${i}`}
-                                                            className="flex items-center gap-2 p-2 bg-indigo-50/30 dark:bg-indigo-900/10 rounded-xl border border-indigo-100/50 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium shadow-sm"
-                                                        >
-                                                            <CheckCircle2 className="size-3" />
+                                                        <ToolStatusRow key={`${message?.id}-tool-${i}`} icon={<CheckCircle2 className="size-3.5" aria-hidden />}>
                                                             {describeToolStatus(part)}
-                                                        </div>
+                                                        </ToolStatusRow>
                                                     );
                                                 default:
                                                     return null;
                                             }
                                         })}
 
-                                        {message.role === "assistant" && (
-                                            <div className="flex mt-2 items-center justify-start gap-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {message.role === "assistant" && !(isBusy && message.id === lastMessage?.id) && (
+                                            <div className="flex mt-1 items-center justify-start gap-x-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-fast">
                                                 <Button
                                                     onClick={async () =>
                                                         navigator.clipboard.writeText(
@@ -323,64 +291,127 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                     }
                                                     size="icon"
                                                     variant="ghost"
-                                                    className="size-7"
+                                                    aria-label="Copy reply"
+                                                    className="size-7 text-ink-secondary"
                                                 >
-                                                    <Copy className="size-3.5" />
+                                                    <Copy className="size-3.5" aria-hidden />
                                                 </Button>
                                                 <Button
                                                     onClick={async () => regenerate({ messageId: message.id })}
                                                     size="icon"
                                                     variant="ghost"
-                                                    className="size-7"
+                                                    aria-label="Write this reply again"
+                                                    disabled={isBusy}
+                                                    className="size-7 text-ink-secondary"
                                                 >
-                                                    <RefreshCcw className="size-3.5" />
+                                                    <RefreshCcw className="size-3.5" aria-hidden />
                                                 </Button>
                                             </div>
                                         )}
                                     </MessageContent>
                                 </Message>
-                            )
-                        })}
-                        {status === "submitted" && (
-                            <MessageLoadingState notFreshChat={messages.length > 0} />
-                        )}
-                        <div ref={scrollRef} />
-                    </div>
-                </ConversationContent>
-            </Conversation>
-            <div className='px-2 flex items-center justify-center pb-2'>
+                            ))}
 
-                <PromptInput multiple globalDrop onSubmit={handleFormSubmit} className="w-full  shadow-none ">
+                            {isThinking && <ThinkingRow />}
+
+                            {error && !isBusy && (
+                                <div role="alert" className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-hairline pt-3 text-sm">
+                                    <p className="min-w-0 break-words text-ink-secondary">{errorText}</p>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => void regenerate()}
+                                        className="touch-target shrink-0 gap-1.5"
+                                    >
+                                        <RefreshCcw className="size-3.5" aria-hidden />
+                                        Try again
+                                    </Button>
+                                </div>
+                            )}
+                            <div ref={scrollRef} />
+                        </div>
+                    </ConversationContent>
+                </Conversation>
+            )}
+
+            <div className='px-2 flex items-center justify-center pb-2'>
+                <PromptInput multiple globalDrop onSubmit={handleFormSubmit} className="w-full shadow-none">
                     <PromptInputHeader>
                         <PromptInputAttachmentsDisplay />
                     </PromptInputHeader>
                     <PromptInputTextarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder={hasPendingApproval ? 'Approve or reject the change above first' : 'Send a message...'}
-                        disabled={isLoading || hasPendingApproval}
+                        placeholder={hasPendingApproval ? 'Approve or reject the change above first' : 'Tell it about your work...'}
+                        aria-label="Message the profile assistant"
+                        disabled={isBusy || hasPendingApproval}
                         rows={1}
                         className="flex-1 min-h-[60px] rounded-2xl focus-visible:ring-0"
                     />
                     <PromptInputFooter className="flex items-center justify-between h-[44px]">
                         <PromptInputActionMenu>
-                            <PromptInputActionMenuTrigger className='rounded-full' />
+                            <PromptInputActionMenuTrigger className='rounded-full' aria-label="Attach photos or files" title="Attach photos or files">
+                                <Paperclip className="size-4" aria-hidden />
+                            </PromptInputActionMenuTrigger>
                             <PromptInputActionMenuContent>
                                 <PromptInputActionAddAttachments />
                             </PromptInputActionMenuContent>
                         </PromptInputActionMenu>
                         <PromptInputSubmit
-                            className="rounded-full h-8 w-8 p-0 disabled:bg-neutral-400"
-                            disabled={isLoading || hasPendingApproval || !input.trim()}
+                            className="rounded-full h-8 w-8 p-0"
+                            aria-label="Send message"
+                            disabled={isBusy || hasPendingApproval || !input.trim()}
                         />
                     </PromptInputFooter>
-
                 </PromptInput>
             </div>
-
         </div>
     );
 }
+
+const ChatEmptyState = ({ onPick, disabled }: { onPick: (text: string) => void; disabled: boolean }) => (
+    <div className="flex flex-1 flex-col justify-end gap-6 overflow-y-auto px-5 pb-6 pt-8">
+        <div className="flex flex-col gap-2">
+            <h3 className="font-instrument text-3xl leading-tight text-ink">Your profile assistant</h3>
+            <p className="max-w-[34ch] text-sm leading-relaxed text-ink-secondary">
+                Tell it about your work and it suggests profile updates. Nothing changes until you approve.
+            </p>
+        </div>
+        <ul className="flex flex-col border-t border-hairline" aria-label="Ways to start">
+            {SUGGESTIONS.map((text) => (
+                <li key={text} className="border-b border-hairline">
+                    <button
+                        type="button"
+                        onClick={() => onPick(text)}
+                        disabled={disabled}
+                        className="flex min-h-11 w-full items-center py-2.5 text-left text-sm text-ink transition-colors duration-fast ease-calm hover:text-ink-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-ground rounded-lg disabled:opacity-50"
+                    >
+                        {text}
+                    </button>
+                </li>
+            ))}
+        </ul>
+    </div>
+);
+
+const ThinkingRow = () => (
+    <div role="status" className="mt-2 flex items-center gap-2 text-sm text-ink-secondary">
+        <span className="flex gap-1" aria-hidden>
+            <span className="size-1.5 rounded-full bg-ink-secondary/70 motion-safe:animate-pulse" />
+            <span className="size-1.5 rounded-full bg-ink-secondary/70 motion-safe:animate-pulse [animation-delay:150ms]" />
+            <span className="size-1.5 rounded-full bg-ink-secondary/70 motion-safe:animate-pulse [animation-delay:300ms]" />
+        </span>
+        Thinking...
+    </div>
+);
+
+const ToolStatusRow = ({ icon, children }: { icon: ReactNode; children: ReactNode }) => (
+    <div className="my-1 flex items-center gap-2 text-xs font-medium text-ink-secondary">
+        {icon}
+        <span>{children}</span>
+    </div>
+);
+
 
 
 // --- Profile changes proposed by the chat -----------------------------------
@@ -626,130 +657,3 @@ const PromptInputAttachmentsDisplay = () => {
         </Attachments>
     );
 };
-
-const MessageLoadingState = ({ notFreshChat }: { notFreshChat: boolean }) => {
-    return (
-        <div className={cn('flex shimmer-container w-full flex-col gap-2 items-start justify-start', notFreshChat ? 'mt-4' : '')}>
-            <div className='flex-row flex items-center justify-start gap-2'>
-                <div className='size-4 shimmer shimmer-bg [--shimmer-x:0] [--shimmer-y:0] animate-none dark:bg-dark-border rounded-full' />
-                <div className='h-4 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:0] dark:bg-dark-border w-16 ' />
-            </div>
-
-            <div className='w-full flex flex-col gap-2'>
-
-                <div className='h-6 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:20] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
-                <div className='h-8 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:40] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
-                <div className='h-8 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:40] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
-            </div>
-            <div className='h-24 animate-none rounded-md shimmer shimmer-bg [--shimmer-x:60] [--shimmer-y:60] dark:bg-dark-border border border-neutral-100 dark:border-transparent w-full' />
-
-        </div>
-    )
-}
-
-{/* <div className="flex gap-2 mb-3">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={onSkip}
-                        disabled={isLoading}
-                        className="rounded-full text-xs gap-1.5 h-8 border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all"
-                    >
-                        <SkipForward className="size-3" />
-                        Skip Question
-                    </Button>
-                </div> */}
-{/* <form onSubmit={handleFormSubmit} className="relative">
-                    <Input
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Type your answer here..."
-                        disabled={isLoading}
-                        className="pr-12 py-6 rounded-2xl bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm"
-                    />
-                    <Button
-                        type="submit"
-                        size="icon"
-                        disabled={isLoading || !input.trim()}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 size-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none transition-all disabled:opacity-50 disabled:scale-95"
-                    >
-                        <Send className="size-4" />
-                    </Button>
-                </form> */}
-{/* Messages */ }
-{/* <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-                <div className="space-y-6 pb-4">
-                    <AnimatePresence initial={false}>
-                        {messages.map((m) => (
-                            <motion.div
-                                key={m.id}
-                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                className={cn(
-                                    "flex gap-3 max-w-[90%]",
-                                    m.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
-                                )}
-                            >
-                                <CreativeAvatar
-                                    name={m.role === 'user' ? 'You' : 'AI Profile Builder'}
-                                    src={undefined}
-                                    className={cn(
-                                        "size-8 border flex-shrink-0",
-                                        m.role === 'user' ? "bg-neutral-100 dark:bg-neutral-800" : "bg-indigo-50 dark:bg-indigo-900/30"
-                                    )} />
-                                <div className="flex flex-col gap-2 flex-1 min-w-0">
-                                    {m.parts.map((part, i) => {
-                                        if (part.type === 'text') {
-                                            return (
-                                                <div
-                                                    key={`${m.id}-text-${i}`}
-                                                    className={cn(
-                                                        "p-3 rounded-2xl text-sm leading-relaxed break-words",
-                                                        m.role === 'user'
-                                                            ? "bg-indigo-600 text-white rounded-tr-none shadow-lg shadow-indigo-200 dark:shadow-none"
-                                                            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 rounded-tl-none border border-neutral-200 dark:border-neutral-700"
-                                                    )}
-                                                >
-                                                    {part.text}
-                                                </div>
-                                            );
-                                        }
-
-                                        if (part.type === 'reasoning') {
-                                            return (
-                                                <details key={`${m.id}-reasoning-${i}`} className="group">
-                                                    <summary className="cursor-pointer text-xs text-neutral-500 dark:text-neutral-400 font-medium flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                                                        <ChevronDown className="size-3 group-open:hidden" />
-                                                        <ChevronUp className="size-3 hidden group-open:block" />
-                                                        View AI Reasoning
-                                                    </summary>
-                                                    <div className="mt-2 p-3 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs italic text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                                                        {part.text}
-                                                    </div>
-                                                </details>
-                                            );
-                                        }
-
-                                        if (part?.type === "tool-addEducation" || part?.type === "tool-addExperience" || part?.type === "tool-addStoryElement" || part?.type === "tool-addProject" || part?.type === "tool-updateBasicInfo") {
-
-                                            return (
-                                                <div
-                                                    key={`${m.id}-tool-${i}`}
-                                                    className="flex items-center gap-2 p-2 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium"
-                                                >
-                                                    <CheckCircle2 className="size-3" />
-                                                    {part?.state === 'output-available'
-                                                        ? `Successfully executed ${part.type}`
-                                                        : `Executing ${part.type}...`}
-                                                </div>
-                                            );
-                                        }
-
-                                        return null;
-                                    })}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </div>
-            </ScrollArea> */}
