@@ -113,7 +113,7 @@ export const getProjectMetadataFromUrl = async (payload: {
       try {
         const prompt = `Create a concise project tagline (max 60 characters). Return only the tagline text with no quotes.\nProject name: ${name}\nProject description: ${description || "N/A"}`;
         const { text } = await generateText({
-          model: google("gemini-2.0-flash-exp"),
+          model: google("gemini-3.8-flash"),
           prompt,
         });
         tagline = clampTagline(text || "");

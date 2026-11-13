@@ -82,7 +82,7 @@ Generate ONLY the welcome message text, nothing else.`
 
     try {
         const { text } = await generateText({
-            model: google('gemini-2.0-flash-exp'),
+            model: google('gemini-3.8-flash'),
             prompt,
             maxOutputTokens: 150,
         })

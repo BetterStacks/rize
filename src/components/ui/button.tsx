@@ -61,14 +61,18 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, haptic = true, loading = false, children, onClick, disabled, ...props }, ref) => {
-    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-      // Light haptic tick on phones that support it
-      if (haptic && typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-        navigator.vibrate?.(1)
-      }
-
-      onClick?.(e)
-    }
+    // Only attach a handler when the caller passed one. Button also renders
+    // inside Server Components (e.g. <Button asChild><Link/></Button>), where
+    // passing a function to a Client Component like Link is an error.
+    const handleClick = onClick
+      ? (e: React.MouseEvent<HTMLButtonElement>) => {
+          // Light haptic tick on phones that support it
+          if (haptic && typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+            navigator.vibrate?.(1)
+          }
+          onClick(e)
+        }
+      : undefined
 
     const classes = cn(buttonVariants({ variant, size, className }))
 

@@ -34,6 +34,11 @@ export const EXPLORE_CACHE_SECONDS = 60;
  * go, which multiplied the vote counts by the number of comments and
  * bookmarks and listed a post once per attached image.
  */
+// Always "posts"."id", never a bare "id": drizzle drops the table name when a
+// query reads from posts alone, and a bare "id" is ambiguous inside the
+// subqueries below that join two tables.
+const POST_ID = sql.raw('"posts"."id"');
+
 export const postCardColumns = () => ({
   id: posts.id,
   content: posts.content,
@@ -43,20 +48,20 @@ export const postCardColumns = () => ({
   username: profile.username,
   name: profile.displayName,
   avatar: profile.profileImage,
-  upvoteCount: sql<number>`(SELECT count(*)::int FROM ${postVotes} WHERE ${postVotes.postId} = ${posts.id} AND ${postVotes.value} = 1)`.as("upvoteCount"),
-  downvoteCount: sql<number>`(SELECT count(*)::int FROM ${postVotes} WHERE ${postVotes.postId} = ${posts.id} AND ${postVotes.value} = -1)`.as("downvoteCount"),
-  commentCount: sql<number>`(SELECT count(*)::int FROM ${comments} WHERE ${comments.postId} = ${posts.id})`.as("commentCount"),
+  upvoteCount: sql<number>`(SELECT count(*)::int FROM ${postVotes} WHERE ${postVotes.postId} = ${POST_ID} AND ${postVotes.value} = 1)`.as("upvoteCount"),
+  downvoteCount: sql<number>`(SELECT count(*)::int FROM ${postVotes} WHERE ${postVotes.postId} = ${POST_ID} AND ${postVotes.value} = -1)`.as("downvoteCount"),
+  commentCount: sql<number>`(SELECT count(*)::int FROM ${comments} WHERE ${comments.postId} = ${POST_ID})`.as("commentCount"),
   media: sql<GetExplorePosts["media"]>`(
     SELECT json_build_object('id', m.id, 'url', m.url, 'type', m.type, 'width', m.width, 'height', m.height)
     FROM ${postMedia} pm JOIN ${media} m ON m.id = pm."mediaId"
-    WHERE pm."postId" = ${posts.id}
+    WHERE pm."postId" = ${POST_ID}
     ORDER BY m.created_at, m.id
     LIMIT 1
   )`.as("media"),
   link: sql<GetExplorePosts["link"]>`(
     SELECT json_build_object('id', l.id, 'url', l.url, 'data', l.data, 'createdAt', l.created_at)
     FROM ${postLinks} l
-    WHERE l."postId" = ${posts.id}
+    WHERE l."postId" = ${POST_ID}
     ORDER BY l.created_at, l.id
     LIMIT 1
   )`.as("link"),
@@ -71,15 +76,15 @@ export const viewerColumns = (viewerUserId: string | null | undefined) =>
     ? {
         userVote: sql<number | null>`(
           SELECT v.value FROM ${postVotes} v JOIN ${profile} vp ON vp.id = v.profile_id
-          WHERE v.post_id = ${posts.id} AND vp."userId" = ${viewerUserId} LIMIT 1
+          WHERE v.post_id = ${POST_ID} AND vp."userId" = ${viewerUserId} LIMIT 1
         )`.as("userVote"),
         commented: sql<boolean>`EXISTS (
           SELECT 1 FROM ${comments} c JOIN ${profile} cp ON cp.id = c.profile_id
-          WHERE c.post_id = ${posts.id} AND cp."userId" = ${viewerUserId}
+          WHERE c.post_id = ${POST_ID} AND cp."userId" = ${viewerUserId}
         )`.as("commented"),
         bookmarked: sql<boolean>`EXISTS (
           SELECT 1 FROM ${bookmarks} b JOIN ${profile} bp ON bp.id = b.profile_id
-          WHERE b.post_id = ${posts.id} AND bp."userId" = ${viewerUserId}
+          WHERE b.post_id = ${POST_ID} AND bp."userId" = ${viewerUserId}
         )`.as("bookmarked"),
       }
     : {
@@ -90,8 +95,8 @@ export const viewerColumns = (viewerUserId: string | null | undefined) =>
 
 /** Score used for the "trending" sort: net votes plus comments. */
 export const postScore = (): SQL =>
-  sql`((SELECT coalesce(sum(${postVotes.value}), 0) FROM ${postVotes} WHERE ${postVotes.postId} = ${posts.id})
-      + (SELECT count(*) FROM ${comments} WHERE ${comments.postId} = ${posts.id}))`;
+  sql`((SELECT coalesce(sum(${postVotes.value}), 0) FROM ${postVotes} WHERE ${postVotes.postId} = ${POST_ID})
+      + (SELECT count(*) FROM ${comments} WHERE ${comments.postId} = ${POST_ID}))`;
 
 /* ------------------------------------------------------------------------ */
 /* New faces                                                                */
@@ -162,7 +167,7 @@ const loadPopularPosts = async (): Promise<GetExplorePosts[]> => {
     .innerJoin(profile, eq(posts.profileId, profile.id))
     .where(inArray(posts.id, recent))
     .orderBy(
-      desc(sql`(SELECT coalesce(sum(${postVotes.value}), 0) FROM ${postVotes} WHERE ${postVotes.postId} = ${posts.id})`),
+      desc(sql`(SELECT coalesce(sum(${postVotes.value}), 0) FROM ${postVotes} WHERE ${postVotes.postId} = ${POST_ID})`),
       desc(posts.createdAt),
     )
     .limit(POPULAR_LIMIT);
