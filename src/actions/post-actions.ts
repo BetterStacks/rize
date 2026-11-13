@@ -40,6 +40,7 @@ import { and, or, asc, desc, eq, getTableColumns, inArray, SQL, sql } from "driz
 import { Result } from "url-metadata";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
+import { selectProfilePosts } from "@/lib/profile-queries";
 
 const PAGE_SIZE = 8;
 
@@ -145,77 +146,10 @@ export const getUserPosts = async (username: string) => {
   } catch {
     // User not logged in - continue with anonymous access
   }
-  const { ...rest } = getTableColumns(posts);
-  const postsData = await db
-    .select({
-      ...rest,
-      username: profile.username,
-      name: profile.displayName,
-      avatar: profile.profileImage,
-      upvoteCount: sql<number>`COALESCE(SUM(CASE WHEN ${postVotes.value} = 1 THEN 1 ELSE 0 END), 0)`.as("upvoteCount"),
-      downvoteCount: sql<number>`COALESCE(SUM(CASE WHEN ${postVotes.value} = -1 THEN 1 ELSE 0 END), 0)`.as("downvoteCount"),
-      commentCount: sql<number>`COUNT(DISTINCT ${comments.id})`.as("commentCount"),
-      userVote:
-        session && currentUserProfileId
-          ? sql<number | null>`MAX(CASE WHEN ${postVotes.profileId} = ${currentUserProfileId} THEN ${postVotes.value} ELSE NULL END)`.as("userVote")
-          : sql<number | null>`NULL`.as("userVote"),
-
-      commented:
-        session && currentUserProfileId
-          ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${currentUserProfileId}), false)`.as(
-            "commented"
-          )
-          : sql<boolean>`false`.as("commented"),
-      bookmarked:
-        session && currentUserProfileId
-          ? sql<boolean>`COALESCE(bool_or(${bookmarks.profileId} = ${currentUserProfileId}), false)`.as("bookmarked")
-          : sql<boolean>`false`.as("bookmarked"),
-      media: sql`
-      CASE 
-        WHEN media.id IS NOT NULL THEN json_build_object(
-          'id', media.id,
-          'url', media.url,
-          'type', media.type,
-          'width', media.width,
-          'height', media.height
-        )
-        ELSE NULL
-      END
-    `.as("media"),
-
-      link: sql`
-      CASE 
-        WHEN post_links.id IS NOT NULL THEN json_build_object(
-          'id', post_links.id,
-          'url', post_links.url,
-          'data', post_links.data,
-          'createdAt', post_links.created_at
-        )
-        ELSE NULL
-      END
-    `.as("link"),
-    })
-    .from(posts)
-    .innerJoin(profile, eq(posts.profileId, profile.id))
-    .leftJoin(postMedia, eq(posts.id, postMedia.postId))
-    .leftJoin(postVotes, eq(posts.id, postVotes.postId))
-    .leftJoin(comments, eq(posts.id, comments.postId))
-    .leftJoin(media, eq(postMedia.mediaId, media.id))
-    .leftJoin(postLinks, eq(posts.id, postLinks.postId))
-    .leftJoin(bookmarks, eq(posts.id, bookmarks.postId))
-    .where(eq(posts.profileId, targetProfileId.id))
-    .groupBy(
-      posts.id,
-      profile.username,
-      profile.displayName,
-      profile.profileImage,
-      media.id,
-      postLinks.id
-    )
-    .orderBy(
-      sql`COUNT(DISTINCT ${comments.id}) + SUM(CASE WHEN ${postVotes.value} = 1 THEN 1 WHEN ${postVotes.value} = -1 THEN -1 ELSE 0 END) DESC`
-    )
-    .limit(4);
+  const postsData = await selectProfilePosts(
+    eq(posts.profileId, targetProfileId.id),
+    session ? currentUserProfileId : null,
+  );
 
   if (postsData.length === 0) {
     return [];

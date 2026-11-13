@@ -60,6 +60,8 @@ const SearchDialog = () => {
     queryKey: ['recently-joined-profiles'],
     queryFn: () => getRecentlyJoinedProfiles(),
     staleTime: 60_000,
+    // Only needed once the dialog is open; it is mounted on every page.
+    enabled: !!open,
   })
   const { theme, setTheme } = useTheme()
 

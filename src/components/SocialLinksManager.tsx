@@ -1,3 +1,4 @@
+import { PROFILE_STALE_TIME } from '@/lib/profile-query'
 import {
   addSocialLink,
   getSocialLinks,
@@ -43,6 +44,7 @@ const SocialLinksManager = () => {
     enabled: !!params?.username,
     queryKey: ['get-social-links', params?.username],
     queryFn: () => getSocialLinks(params?.username),
+    staleTime: PROFILE_STALE_TIME,
   })
 
   const existingPlatforms = links!.map(

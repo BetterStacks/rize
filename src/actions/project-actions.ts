@@ -25,6 +25,7 @@ import {
 import { and, eq, getTableColumns, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
+import { selectProfileProjects } from "@/lib/profile-queries";
 import { deleteFromS3, getS3KeyFromUrl } from "@/lib/s3";
 import { asc } from "drizzle-orm";
 
@@ -51,88 +52,10 @@ export const getAllProjects = async (username: string) => {
     userProfileId = s.user.profileId || null;
   } catch { }
 
-  const { ...rest } = getTableColumns(projects);
-  const allProjects = await db
-    .select({
-      ...rest,
-      logo: media.url,
-      upvoteCount: sql<number>`(SELECT COALESCE(SUM(CASE WHEN value = 1 THEN 1 ELSE 0 END), 0) FROM project_votes WHERE project_id = ${projects.id} )`.as("upvoteCount"),
-      downvoteCount: sql<number>`(SELECT COALESCE(SUM(CASE WHEN value = -1 THEN 1 ELSE 0 END), 0) FROM project_votes WHERE project_id = ${projects.id} )`.as("downvoteCount"),
-      userVote: userProfileId
-        ? sql<number | null>`(SELECT value FROM project_votes WHERE project_id = ${projects.id} AND profile_id = ${userProfileId} LIMIT 1)`.as("userVote")
-        : sql<number | null>`NULL`.as("userVote"),
-      bookmarked: userProfileId
-        ? sql<boolean>`EXISTS (SELECT 1 FROM project_bookmarks WHERE project_id = ${projects.id} AND profile_id = ${userProfileId})`.as("bookmarked")
-        : sql<boolean>`false`.as("bookmarked"),
-      attachments: sql`
-        (
-          SELECT
-            CASE WHEN COUNT(*) = 0 THEN NULL
-            ELSE json_agg(json_build_object(
-              'id', m.id,
-              'url', m.url,
-              'type', m.type,
-              'width', m.width,
-              'height', m.height
-            ))
-            END
-          FROM project_media pm
-          JOIN media m ON pm.media_id = m.id
-          WHERE pm.project_id = projects.id
-        )
-      `.as("attachments"),
-      topics: sql`
-        (
-          SELECT
-            CASE WHEN COUNT(*) = 0 THEN NULL
-            ELSE json_agg(json_build_object(
-              'id', t.id,
-              'name', t.name,
-              'slug', t.slug
-            ))
-            END
-          FROM project_topics pt
-          JOIN topics t ON pt.topic_id = t.id
-          WHERE pt.project_id = projects.id
-        )
-      `.as("topics"),
-      skills: sql`
-        (
-          SELECT
-            CASE WHEN COUNT(*) = 0 THEN NULL
-            ELSE json_agg(json_build_object(
-              'id', s.id,
-              'name', s.name,
-              'slug', s.slug
-            ))
-            END
-          FROM project_skills ps
-          JOIN skills s ON ps.skill_id = s.id
-          WHERE ps.project_id = projects.id
-        )
-      `.as("skills"),
-      collaborators: sql`
-        (
-          SELECT
-            CASE WHEN COUNT(*) = 0 THEN NULL
-            ELSE json_agg(json_build_object(
-              'id', p.id,
-              'displayName', p.display_name,
-              'username', p.username,
-              'profileImage', p.profile_image
-            ))
-            END
-          FROM project_collaborators pc
-          JOIN profile p ON pc.profile_id = p.id
-          JOIN "user" u ON u.id = p."userId"
-          WHERE pc.project_id = projects.id
-            AND u.is_claimed = true
-        )
-      `.as("collaborators"),
-    })
-    .from(projects)
-    .leftJoin(media, eq(media.id, projects.logo))
-    .where(eq(projects.profileId, profileId?.id as string));
+  const allProjects = await selectProfileProjects(
+    eq(projects.profileId, profileId?.id as string),
+    userProfileId,
+  );
   if (allProjects?.length === 0) {
     return [];
   }

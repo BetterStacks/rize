@@ -1,4 +1,4 @@
-import { getProfileByUsernameCached } from "@/actions/profile-actions";
+import { loadProfilePage } from "@/lib/profile-page-data";
 import ProfilePage from "@/components/ProfilePage";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -25,7 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const user = await getProfileByUsernameCached(username);
+  // Shares the page's cached load, so metadata adds no queries.
+  const user = (await loadProfilePage(username))?.user;
 
   // Missing and unclaimed profiles get the same metadata.
   if (!user) {

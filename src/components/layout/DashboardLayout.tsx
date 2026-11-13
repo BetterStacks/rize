@@ -2,7 +2,6 @@
 import * as React from 'react'
 import { useRightSidebar } from '@/lib/context'
 import { useMediaQuery } from '@mantine/hooks'
-import { motion } from 'framer-motion'
 import { FC, ReactNode, useState, useEffect } from 'react'
 import { useEnsureScroll } from '@/hooks/useScrollFix'
 import GalleryContextProvider from '../gallery/gallery-context'
@@ -117,7 +116,11 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
 
   const contentStyles = getContentStyling()
 
-  if (!mounted) return null
+  // The main column renders on the server. Sidebars are always laid out
+  // (hidden below lg with CSS) so desktop doesn't jump after hydration; the
+  // right sidebar's content and the mobile sheet wait for the client.
+  const leftSize = leftSidebarSlot ? (leftSidebarSlot.size ?? 5) : 0
+  const rightSize = rightSidebarSlot ? (rightSidebarSlot.size ?? 25) : 0
 
   return (
     <ResizablePanelGroup
@@ -128,14 +131,15 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
     >
       <GalleryContextProvider>
         {/* Left Sidebar */}
-        {leftSidebarSlot && isDesktop && (
+        {leftSidebarSlot && (
           <ResizablePanel
             id="dashboard-left-sidebar"
+            order={1}
             defaultSize={leftSidebarSlot.size ?? 5}
             maxSize={leftSidebarSlot.maxSize ?? leftSidebarSlot.size ?? 5}
             minSize={leftSidebarSlot.minSize ?? leftSidebarSlot.size ?? 5}
             className={cn(
-              'h-screen flex items-center',
+              'h-screen hidden lg:flex items-center',
               'justify-start max-w-[80px] border-r border-neutral-300/60 dark:border-dark-border',
               leftSidebarSlot.className
             )}
@@ -147,6 +151,8 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
         {/* Main Content Area */}
         <ResizablePanel
           id="dashboard-main-content"
+          order={2}
+          defaultSize={100 - leftSize - rightSize}
           className={cn(
             'w-full h-screen relative overflow-hidden',
             contentStyles.className,
@@ -158,50 +164,48 @@ const DashboardLayoutInner: FC<DashboardLayoutProps> = ({
           )} */}
 
           <ScrollArea className="h-full overflow-y-auto relative w-full">
-            <motion.div
+            <div
               className={cn(
                 'w-full flex flex-col items-center h-full justify-start',
                 finalShowNavbar ? 'mt-20 md:mt-24' : 'mt-0',
                 'mb-10',
                 contentStyles.padding
               )}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
             >
               <div className={cn('w-full', contentStyles.maxWidth, childrenClassName)}>
                 {children}
               </div>
-            </motion.div>
+            </div>
           </ScrollArea>
         </ResizablePanel>
 
         {/* Right Sidebar - Desktop */}
-        {rightSidebarSlot && isDesktop && (
+        {rightSidebarSlot && (
           <>
-            <ResizableHandle />
+            <ResizableHandle className="hidden lg:flex" />
             <ResizablePanel
               ref={rightPanelRef}
               id="dashboard-right-sidebar"
+              order={3}
               defaultSize={rightSidebarSlot.size ?? 25}
               maxSize={rightSidebarSlot.maxSize ?? rightSidebarSlot.size ?? 25}
               minSize={rightSidebarSlot.minSize ?? rightSidebarSlot.size ?? 25}
               collapsible
               collapsedSize={0}
               className={cn(
-                'border-l border-neutral-200/80 dark:border-neutral-800 flex flex-col items-center justify-center h-screen',
+                'border-l border-neutral-200/80 dark:border-neutral-800 hidden lg:flex flex-col items-center justify-center h-screen',
                 rightSidebarSlot.className
               )}
             >
               <ScrollArea className="relative h-screen w-full overflow-y-auto flex flex-col items-center justify-start">
-                {rightSidebarSlot.content}
+                {mounted && isDesktop && rightSidebarSlot.content}
               </ScrollArea>
             </ResizablePanel>
           </>
         )}
 
         {/* Right Sidebar - Mobile Sheet */}
-        {rightSidebarSlot && !isDesktop && (
+        {rightSidebarSlot && mounted && !isDesktop && (
           <Sheet open={rightSidebarOpen} onOpenChange={setRightSidebarOpen}>
             <SheetContent className={cn(
               'max-w-[90%] sm:max-w-md md:max-w-lg w-full h-screen p-0 bg-white dark:bg-dark-border/80 border border-neutral-200 dark:border-dark-border/60 dark:bg-dark-bg',

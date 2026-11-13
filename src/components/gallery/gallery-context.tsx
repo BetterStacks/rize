@@ -1,3 +1,4 @@
+import { PROFILE_STALE_TIME } from '@/lib/profile-query'
 import { getGalleryItems } from '@/actions/gallery-actions'
 import { GalleryItemProps } from '@/lib/types'
 import { useQuery } from '@tanstack/react-query'
@@ -37,6 +38,8 @@ const GalleryContextProvider = ({ children }: { children: ReactNode }) => {
     queryKey: ['get-gallery-items', username],
     enabled: !!username,
     queryFn: () => getGalleryItems(username!),
+    staleTime: PROFILE_STALE_TIME,
+    refetchOnWindowFocus: false,
   })
 
   useEffect(() => {
