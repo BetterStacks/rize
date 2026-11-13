@@ -38,9 +38,10 @@ const buttonVariants = cva(
         sm: 'h-8 px-3 text-xs',
         lg: 'h-12 px-6 text-base',
         xl: 'h-14 px-8 text-base',
-        // 40px with a mouse, 44px on touch screens
-        icon: 'h-10 w-10 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11',
-        smallIcon: 'size-8',
+        // touch-target (globals.css) gives a 44px hit area on touch screens
+        // without changing the visible size
+        icon: 'h-10 w-10 touch-target',
+        smallIcon: 'size-8 touch-target',
       },
     },
     defaultVariants: {
@@ -73,7 +74,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     if (asChild) {
       return (
-        <Slot className={classes} ref={ref} onClick={handleClick} {...props}>
+        <Slot className={classes} ref={ref} onClick={handleClick} {...props} {...{ disabled }}>
           {children}
         </Slot>
       )

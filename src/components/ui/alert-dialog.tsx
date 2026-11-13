@@ -39,7 +39,7 @@ const AlertDialogContent = React.forwardRef<
         // Same shell as DialogContent, without a close button: an alert needs an explicit answer.
         'fixed inset-x-0 bottom-0 z-50 mx-auto grid w-full max-w-lg max-h-[90dvh] gap-4 overflow-y-auto',
         'sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:mx-0 sm:-translate-x-1/2 sm:-translate-y-1/2',
-        'rounded-t-2xl border border-b-0 border-hairline bg-surface text-ink shadow-float sm:rounded-2xl sm:border-b',
+        'rounded-t-2xl border border-hairline bg-surface text-ink shadow-float sm:rounded-2xl',
         'p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] focus:outline-none',
         'duration-200 ease-calm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',

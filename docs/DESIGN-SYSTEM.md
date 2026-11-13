@@ -59,7 +59,7 @@ No other fonts.
 - `ghost`: toolbars, icon buttons, tertiary actions, anything that repeats in a list.
 - `destructive`: delete or remove, normally inside an `AlertDialog`.
 - `link`: an inline text action.
-- Sizes: `sm` (32px) for dense rows, `default` (40px), `lg` (48px) for primary actions on phones, `icon` (40px, 44px on touch screens). Give icon-only buttons an `aria-label`.
+- Sizes: `sm` (32px) for dense rows, `default` (40px), `lg` (48px) for primary actions on phones, `icon` (40px box). `icon` and `smallIcon` get a 44px hit area on touch screens through the `touch-target` utility, without changing the box, and you can add `touch-target` to any other small control. Give icon-only buttons an `aria-label`.
 - `loading` shows a spinner and disables the button.
 - Legacy names still work: `secondary` and `success` render as `default`, `primary` and `warning` render as `brand`. Don't use them in new code.
 

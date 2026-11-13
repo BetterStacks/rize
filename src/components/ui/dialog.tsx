@@ -52,7 +52,7 @@ const DialogContent = React.forwardRef<
         'fixed inset-x-0 bottom-0 z-50 mx-auto grid w-full max-w-lg max-h-[90dvh] gap-4 overflow-y-auto',
         'sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:mx-0 sm:-translate-x-1/2 sm:-translate-y-1/2',
         // look
-        'rounded-t-2xl border border-b-0 border-hairline bg-surface text-ink shadow-float sm:rounded-2xl sm:border-b',
+        'rounded-t-2xl border border-hairline bg-surface text-ink shadow-float sm:rounded-2xl',
         // pb clears the phone home indicator; it is 1.5rem wherever there is none
         'p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]',
         'focus:outline-none',

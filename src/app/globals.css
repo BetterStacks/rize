@@ -20,9 +20,34 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  /* Spinners still turn, so "working on it" is never mistaken for "stuck". */
+  .animate-spin {
+    animation-duration: 1.2s !important;
+    animation-iteration-count: infinite !important;
+  }
 }
 
 @layer utilities {
+  /*
+   * At least a 44px hit area on touch screens without changing the box, so
+   * small icon buttons stay the size the layout expects. Position uses :where()
+   * so a caller's `absolute`/`fixed` still wins.
+   */
+  @media (pointer: coarse) {
+    :where(.touch-target) {
+      position: relative;
+    }
+    .touch-target::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: max(100%, 44px);
+      height: max(100%, 44px);
+      transform: translate(-50%, -50%);
+    }
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

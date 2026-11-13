@@ -9,7 +9,6 @@ import {
   type Toast,
 } from 'react-hot-toast'
 
-import { useBottomNavVisibility } from '@/components/ui/bottom-nav'
 import { cn } from '@/lib/utils'
 
 /*
@@ -90,11 +89,10 @@ function ToastCard({ t }: { t: Toast }) {
 
 export function Toaster() {
   const isDesktop = useIsDesktop()
-  const bottomNavShown = useBottomNavVisibility()
 
-  // Clear the bottom nav (about 76px tall) and the phone home indicator.
-  const mobileBottom =
-    bottomNavShown ? 'calc(88px + env(safe-area-inset-bottom))' : 'calc(16px + env(safe-area-inset-bottom))'
+  // Below lg the BottomNav is always on screen (88px: py-2 + p-2 + p-2 + 20px
+  // icon + label), so sit 8px above it and the phone home indicator.
+  const mobileBottom = 'calc(96px + env(safe-area-inset-bottom))'
 
   return (
     <HotToaster
