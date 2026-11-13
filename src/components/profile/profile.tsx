@@ -95,7 +95,7 @@ const Profile = ({
             ))}
           </div>
         </div>
-        {data?.skills!?.length > 0 && (
+        {(data?.skills?.length ?? 0) > 0 && (
           <div className="flex flex-wrap items-center gap-2 mt-4">
             {data?.skills.slice(0, 10).map((skill) => (
               <Button key={skill.id} variant="outline" size="sm">

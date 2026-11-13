@@ -148,9 +148,9 @@ const ProjectCard: FC<ProjectCardProps> = ({
               {project.tagline}
             </p>
           )}
-          {project?.topics!?.length > 0 && <div className="flex items-center justify-start dark:text-gray-400 text-gray-700 gap-1 mt-1">
+          {(project?.topics?.length ?? 0) > 0 && <div className="flex items-center justify-start dark:text-gray-400 text-gray-700 gap-1 mt-1">
             <Tags className="mr-1 size-4" />
-            {project?.topics!?.map((topic, index) => (
+            {project?.topics?.map((topic, index) => (
               <React.Fragment key={topic.id} >
                 <span className="cursor-pointer hover:dark:text-main-yellow hover:text-yellow-500 hover:underline transition-all ease-in duration-75 underline-offset-2 text-sm">
                   {topic.name}

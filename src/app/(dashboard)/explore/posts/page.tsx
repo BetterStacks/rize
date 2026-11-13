@@ -54,7 +54,7 @@ const TABS: { value: FeedMode; label: string }[] = [
   { value: "following", label: "Following" },
 ];
 
-const page = () => {
+const Page = () => {
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
   const [mode, setMode] = useState<FeedMode>("recent");
   const [feedFormOpen, setFeedFormOpen] = useState(false);
@@ -368,4 +368,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

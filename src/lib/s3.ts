@@ -182,8 +182,8 @@ function getVideoDimensions(buffer: Buffer): { width?: number, height?: number }
         // For version 1: width starts at offset + 88, height at offset + 92
 
         const version = buffer[tkhdOffset + 4];
-        let widthOffset = tkhdOffset + (version === 0 ? 76 : 88);
-        let heightOffset = tkhdOffset + (version === 0 ? 80 : 92);
+        const widthOffset = tkhdOffset + (version === 0 ? 76 : 88);
+        const heightOffset = tkhdOffset + (version === 0 ? 80 : 92);
 
         if (widthOffset + 4 > buffer.length || heightOffset + 4 > buffer.length) return {};
 

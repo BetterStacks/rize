@@ -1,23 +1,27 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
+import nextTypescript from "eslint-config-next/typescript";
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...nextCoreWebVitals,
+  ...nextTypescript,
+  {
+    ignores: [".next/**", "node_modules/**", "public/**", "drizzle/**", "next-env.d.ts"],
+  },
   {
     rules: {
-      "semi": ["error", "never"],
-      "quotes": ["error", "single"],
+      // Formatting was never enforced (this config didn't load) and the code
+      // mixes styles, so these stay off until a formatter is chosen.
+      "semi": "off",
+      "quotes": "off",
+      // React Compiler checks from eslint-plugin-react-hooks v6: warnings for now.
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/static-components": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/refs": "warn",
+      "react-hooks/immutability": "warn",
       "arrow-spacing": ["error", { "before": true, "after": true }],
       "no-console": "warn",
-      // "indent": ["error", "tab"],
       "react/jsx-no-undef": "off",
       "@next/next/no-sync-scripts": "off",
       "@next/next/no-img-element": "off",
