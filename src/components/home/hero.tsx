@@ -128,7 +128,8 @@ const itemVariants: Variants = {
 }
 
 // Example profiles for the scroll showcase. Names, handles and bios are made up.
-// Avatars use initials on purpose: no photos of real people next to invented names.
+// Avatars use initials, not photos. The gallery images are placeholders from Pinterest
+// and should be swapped for images we own.
 const items: GalleryTile[] = [
   '/mock_profiles/1/image_1.png',
   '/mock_profiles/1/image_2.png',
@@ -147,14 +148,14 @@ const displayNames: {
   writings?: { title: string; description: string; thumbnail: string }[];
 }[] = [
   {
-    username: 'meera.makes',
+    username: 'meera_makes',
     name: 'Meera',
     bio: 'Second-year design student. Sketchbooks, slow mornings and one very good dog.',
     avatar: null,
     gallery: items,
   },
   {
-    username: 'kabir.builds',
+    username: 'kabir_builds',
     name: 'Kabir',
     bio: 'Building small tools for my college club. Shipping things, breaking things, talking about both.',
     avatar: null,
@@ -174,7 +175,7 @@ const displayNames: {
     ],
   },
   {
-    username: 'tara.wears',
+    username: 'tara_wears',
     name: 'Tara',
     bio: 'Café hopping in Delhi, thrifting on weekends, styling my friends for free.',
     avatar: null,
@@ -187,7 +188,7 @@ const displayNames: {
     ],
   },
   {
-    username: 'dev.after.dark',
+    username: 'dev_after_dark',
     name: 'Dev',
     bio: 'Developer by day, making videos about it at night. Mostly about getting stuck and unstuck.',
     avatar: null,
@@ -438,7 +439,7 @@ const HeroSection = () => {
                   Private by default
                 </span>
                 <span className="text-ink-secondary text-sm">
-                  Nothing goes public unless you approve it.
+                  Your calls and journal stay private.
                 </span>
               </div>
             </div>

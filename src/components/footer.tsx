@@ -116,7 +116,7 @@ const Footer = () => {
       content: (
         <MockProfileCard
           name="Ira"
-          username="ira.plays"
+          username="ira_plays"
           line="Music on weekends. First open mic, done."
         />
       ),

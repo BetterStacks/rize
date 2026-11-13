@@ -171,14 +171,14 @@ const GetUniqueLink = () => {
                 <span className="font-instrument text-2xl leading-none">
                   Zoya
                 </span>
-                <span className="tracking-tight text-ink-secondary mt-1">@zoya.k</span>
+                <span className="tracking-tight text-ink-secondary mt-1">@zoya_k</span>
               </div>
             </motion.div>
           ) : (
             <>
               <Link2 aria-hidden="true" strokeWidth={1.8} className="size-6 text-brand-ink" />
               <span className="text-xl text-brand-ink font-medium tracking-tight ">
-                rize.so/zoya.k
+                rize.so/zoya_k
               </span>
             </>
           )}
@@ -253,7 +253,7 @@ const Analytics = () => {
           height="100%"
           viewBox="0 0 24 24"
           className={cn(
-            'size-6 absolute text-ink',
+            'size-6 absolute text-on-ink dark:text-ink',
             reverseDirection
               ? '-right-4 -top-3 rotate-90'
               : '-rotate-2 -left-4 -top-3'
@@ -392,7 +392,7 @@ const cards = [
     style: {
       zIndex: 20,
     },
-    username: 'meera.makes',
+    username: 'meera_makes',
     name: 'Meera',
   },
   {
@@ -401,7 +401,7 @@ const cards = [
       zIndex: 10,
     },
     variants: card2Variants,
-    username: 'kabir.builds',
+    username: 'kabir_builds',
     name: 'Kabir',
   },
 ]

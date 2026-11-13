@@ -60,7 +60,7 @@ const Join = () => {
                   className="z-0 object-cover "
                 />
                 <div className="bg-surface/90 backdrop-blur-md text-ink h-8 bottom-4 tracking-tight rounded-xl w-[80%] z-10 absolute flex items-center justify-center">
-                  @noor.outside
+                  @noor_outside
                 </div>
               </div>
             </motion.div>
@@ -98,7 +98,7 @@ const Join = () => {
                     Aarav
                   </span>
                   <span className="tracking-tight text-ink-secondary dark:text-ink/80 mt-1">
-                    @aarav.draws
+                    @aarav_draws
                   </span>
                 </div>
               </div>
