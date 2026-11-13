@@ -9,7 +9,7 @@ import { useRef, useState, useMemo } from 'react'
 
 const TextReveal = () => {
   const container = useRef(null)
-  const para = 'Rize is where authenticity meets aesthetic, craft a profile that feels real, looks premium, and signals credibility'
+  const para = 'Rize calls you, asks about your week and listens. What you say stays in your private journal. What you share comes from your own words.'
   const words = para.split(' ')
 
   const { scrollYProgress: scrollYTextProgress } = useScroll({
@@ -31,7 +31,7 @@ const TextReveal = () => {
             display: 'flex',
             flexWrap: 'wrap',
           }}
-          className=" w-full text-3xl md:gap-y-1.5 md:text-4xl lg:text-5xl xl:text-6xl font-medium lg:font-semibold xl:font-bold "
+          className=" w-full font-instrument text-ink text-4xl leading-tight md:gap-y-1.5 md:text-5xl lg:text-6xl xl:text-7xl font-normal "
         >
           {words.map((line, index) => (
             <Word 
@@ -65,7 +65,7 @@ const Word = ({
   const start = index / totalWords
   const end = start + 1 / totalWords
   const wordOpacity = useTransform(scrollProgress, [start, end], [0, 1])
-  const words = ['authenticity', 'premium', 'aesthetic', 'credibility']
+  const words = ['listens.', 'private', 'own']
   const [visible, setVisible] = useState(false)
   useMotionValueEvent(wordOpacity, 'change', (v) => {
     if (words.includes(text)) {

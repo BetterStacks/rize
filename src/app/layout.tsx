@@ -18,11 +18,26 @@ const instrument = Instrument_Serif({
   variable: '--font-instrument',
   subsets: ['latin'],
   weight: ['400'],
+  style: ['normal', 'italic'],
 })
+
+const siteDescription =
+  "Rize calls you, asks one good question about your week and keeps what you say in a private journal. When something's worth sharing, you get a post made from your own words."
 
 export const metadata: Metadata = {
   title: 'Rize',
-  description: 'Own your digital identity',
+  description: siteDescription,
+  openGraph: {
+    title: 'Rize',
+    description: siteDescription,
+    siteName: 'Rize',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Rize',
+    description: siteDescription,
+  },
 }
 
 export default function RootLayout({

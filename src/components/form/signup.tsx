@@ -96,7 +96,7 @@ const SignUp = () => {
           Create Account
         </h2>
         <span className="mt-2 text-sm opacity-80">
-          Please enter your details to register
+          Your journal is private. Nothing is posted unless you approve it.
         </span>
       </div>
       <div className="flex flex-col space-y-2">

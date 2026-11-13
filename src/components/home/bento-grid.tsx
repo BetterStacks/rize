@@ -12,25 +12,24 @@ import {
   useTransform,
   Variants,
 } from 'framer-motion'
-import { Link2 } from 'lucide-react'
+import { Link2, Lock } from 'lucide-react'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { Skeleton } from '../ui/skeleton'
+import { Initials } from './mock-profile-card'
 
 const BentoGrid = () => {
   return (
     <section className="max-w-5xl mx-auto px-4 md:px-2 my-20 w-full ">
       {' '}
       <div className="px-4 flex flex-col items-start justify-center">
-        <h3 className="text-2xl md:text-3xl leading-tight  md:font-medium font-medium tracking-tighter">
-          Everything You Need <br /> to
-          <span className="font-instrument font-thin text-3xl md:text-4xl italic tracking-normal ml-1">
-            Tell Your Story
-          </span>
+        <h3 className="font-instrument text-4xl md:text-5xl text-ink leading-tight">
+          Everything it takes <br /> to{' '}
+          <span className="italic">tell your story</span>
         </h3>
-        <p className="mt-4 opacity-80 max-w-lg text-left ">
-          Whether you’re showcasing work, sharing insights, or building your
-          presence — Rize adapts to you, not the other way around.
+        <p className="mt-4 text-ink-secondary max-w-lg text-left ">
+          A short call, a private journal and a profile of the moments you
+          chose to share. That&apos;s the whole idea.
         </p>
       </div>
       <div className=" grid md:grid-cols-5 mt-12 md:gap-x-6 gap-y-8 w-full">
@@ -39,10 +38,10 @@ const BentoGrid = () => {
             <motion.div
               key={index}
               className={cn(
-                'bg-white dark:bg-dark-border h-[500px] shadow-lg border border-neutral-300/80 dark:border-none flex flex-col rounded-[2.3rem] w-full overflow-hidden relative ',
-                index === 0 && 'md:col-span-2 bg-[#e5523f] text-white ',
-                index === 1 && 'md:col-span-3 bg-[#fef5c2]',
-                index === 2 && 'md:col-span-3 bg-[#3A0CA3]',
+                'bg-surface text-ink h-[500px] border border-hairline flex flex-col rounded-[2.3rem] w-full overflow-hidden relative ',
+                index === 0 && 'md:col-span-2 bg-subtle',
+                index === 1 && 'md:col-span-3 bg-highlight border-paper-border',
+                index === 2 && 'md:col-span-3 bg-ink text-on-ink border-ink dark:bg-surface dark:text-ink dark:border-hairline',
                 index === 3 && 'md:col-span-2 ',
                 index === 4 && 'md:col-span-5 h-[450px] '
               )}
@@ -136,12 +135,12 @@ const GetUniqueLink = () => {
       className="w-full h-full flex p-8  flex-col items-center justify-center"
     >
       <div className="w-full flex flex-col items-start justify-center">
-        <h3 className="text-xl font-medium tracking-tight ">
-          Get a Unique Link
+        <h3 className="font-instrument text-3xl leading-tight text-ink">
+          Your own link
         </h3>
-        <p className="mt-2 opacity-80">
-          Get a unique link for your profile. <br /> Share it with your friends
-          and family.
+        <p className="mt-2 text-ink-secondary">
+          One rize.so link for everything you&apos;ve chosen to share. Put it
+          in your bio, send it to anyone.
         </p>
       </div>
       <div className="w-full h-full flex items-center justify-center relative">
@@ -153,10 +152,10 @@ const GetUniqueLink = () => {
             duration: 0.5,
           }}
           className={cn(
-            'flex py-3  justify-center border border-neutral-300 px-4   items-center space-x-2 ',
+            'flex py-3  justify-center border px-4   items-center space-x-2 ',
             open
-              ? 'rounded-[2rem] flex-col shadow-xl bg-pink-100'
-              : 'rounded-full bg-pink-50 shadow-lg'
+              ? 'rounded-[2rem] flex-col shadow-float bg-surface border-hairline'
+              : 'rounded-full bg-brand border-brand shadow-raised'
           )}
           // onClick={() => setOpen(!open)}
         >
@@ -165,25 +164,21 @@ const GetUniqueLink = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, type: 'spring', bounce: 0.4 }}
-              className="flex mt-4 flex-col text-pink-950 items-center justify-center"
+              className="flex mt-4 flex-col text-ink items-center justify-center"
             >
-              <img
-                className="size-24 rounded-full object-cover mb-4"
-                src="https://i.pinimg.com/736x/cf/6e/c4/cf6ec445df41899479978aa16f05c996.jpg"
-                alt=""
-              />
-              <div className="flex flex-col items-start justify-center mb-4">
-                <span className="text-xl font-medium tracking-tight ">
-                  Katy Ohara
+              <Initials name="Zoya" className="size-24 text-5xl mb-4" />
+              <div className="flex flex-col items-center justify-center mb-4">
+                <span className="font-instrument text-2xl leading-none">
+                  Zoya
                 </span>
-                <span className="tracking-tight opacity-80">@katyohara</span>
+                <span className="tracking-tight text-ink-secondary mt-1">@zoya_k</span>
               </div>
             </motion.div>
           ) : (
             <>
-              <Link2 strokeWidth={1.8} className="size-6 stroke-pink-950 " />
-              <span className="text-xl opacity-80 text-pink-950 font-medium tracking-tight ">
-                rize.so/katyohara
+              <Link2 aria-hidden="true" strokeWidth={1.8} className="size-6 text-brand-ink" />
+              <span className="text-xl text-brand-ink font-medium tracking-tight ">
+                rize.so/zoya_k
               </span>
             </>
           )}
@@ -192,7 +187,8 @@ const GetUniqueLink = () => {
           style={{ rotate: 6 }}
           initial={{ x: 400, y: 400, scale: 1, opacity: 1 }}
           animate={cursorControls}
-          className="absolute size-8 "
+          className="absolute size-8 text-ink"
+          aria-hidden="true"
         >
           <svg
             width="100%"
@@ -248,7 +244,7 @@ const Analytics = () => {
       <motion.div
         style={style}
         className={cn(
-          'flex flex-col relative px-4 py-2 shadow-2xl border border-neutral-100 shadow-black rounded-full bg-white text-black items-center justify-center',
+          'flex flex-col relative px-4 py-2 shadow-float border border-hairline rounded-full bg-surface text-ink items-center justify-center',
           className
         )}
       >
@@ -257,23 +253,24 @@ const Analytics = () => {
           height="100%"
           viewBox="0 0 24 24"
           className={cn(
-            'size-6 absolute  shadow-2xl shadow-black ',
+            'size-6 absolute text-on-ink dark:text-ink',
             reverseDirection
               ? '-right-4 -top-3 rotate-90'
               : '-rotate-2 -left-4 -top-3'
           )}
-          fill="white"
+          fill="currentColor"
+          aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
             d="M20.5056 10.7754C21.1225 10.5355 21.431 10.4155 21.5176 10.2459C21.5926 10.099 21.5903 9.92446 21.5115 9.77954C21.4205 9.61226 21.109 9.50044 20.486 9.2768L4.59629 3.5728C4.0866 3.38983 3.83175 3.29835 3.66514 3.35605C3.52029 3.40621 3.40645 3.52004 3.35629 3.6649C3.29859 3.8315 3.39008 4.08635 3.57304 4.59605L9.277 20.4858C9.50064 21.1088 9.61246 21.4203 9.77973 21.5113C9.92465 21.5901 10.0991 21.5924 10.2461 21.5174C10.4157 21.4308 10.5356 21.1223 10.7756 20.5054L13.3724 13.8278C13.4194 13.707 13.4429 13.6466 13.4792 13.5957C13.5114 13.5506 13.5508 13.5112 13.5959 13.479C13.6468 13.4427 13.7072 13.4192 13.828 13.3722L20.5056 10.7754Z"
-            stroke="white"
+            stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
         </svg>
-        <span className="tracking-tight font-medium text-neutral-900">
+        <span className="tracking-tight font-medium text-ink">
           {name}
         </span>
       </motion.div>
@@ -294,25 +291,25 @@ const Analytics = () => {
   const cursorTwoY = useTransform(scrollYProgress, inputRange, [300, -10])
 
   return (
-    <div className="w-full h-full text-white flex p-4  flex-col items-center justify-center">
+    <div className="w-full h-full flex p-4  flex-col items-center justify-center">
       <div className="w-full h-full flex items-end md:items-center pb-6 md:pb-0 justify-center relative">
         <Cursor
           className="absolute "
-          name="Ashwin"
+          name="You"
           style={{ x: cursorOneX, y: cursorOneY }}
         />
         <Cursor
           reverseDirection
           className="absolute  "
-          name="Tanay"
+          name="Rize"
           style={{ x: cursorTwoX, y: cursorTwoY }}
         />
-        <motion.div className="flex w-full border-b border-pink-100/40  h-[120px] md:h-[200px] items-end justify-center gap-2">
+        <motion.div aria-hidden="true" className="flex w-full border-b border-on-ink/20 dark:border-hairline h-[120px] md:h-[200px] items-end justify-center gap-2">
           {bars.map((bar, i) => {
             return (
               <motion.div
                 key={i}
-                className="bg-pink-100 rounded-t-xl"
+                className="bg-brand rounded-t-xl"
                 initial={{ height: 0 }}
                 whileInView={{ height: bar.height }}
                 transition={{
@@ -328,12 +325,13 @@ const Analytics = () => {
         </motion.div>
       </div>
       <div className="w-full flex px-4 mb-10 flex-col items-start justify-center">
-        <h3 className="text-xl font-medium tracking-tight ">
-          Track Engagement using Analytics
+        <h3 className="font-instrument text-3xl leading-tight">
+          Rize calls you
         </h3>
         <p className="mt-2 opacity-80">
-          Track your engagement metrics and see how your profile is performing.
-          Get insights on your audience and how to improve your content.
+          Tap Call me and Rize rings your phone. A few minutes, one good
+          question about your week, in Hindi or English. It tells you up front
+          that it&apos;s Rize&apos;s AI and that the call is recorded.
         </p>
       </div>
     </div>
@@ -348,12 +346,13 @@ const ArticleCards = () => {
       </div>
 
       <div className="w-full z-20 px-4 mb-10">
-        <h3 className="text-xl font-medium tracking-tight ">
-          Write. Reflect. Resonate
+        <h3 className="font-instrument text-3xl leading-tight text-ink">
+          Posts in your own words
         </h3>
-        <p className="mt-2 opacity-80">
-          Publish thoughtful articles on your interests, stories, and
-          experiences. Your words, your voice — shared on your own terms.
+        <p className="mt-2 text-ink-secondary dark:text-ink/80">
+          When something&apos;s worth sharing, you get a draft made from what you
+          said on the call. Edit it, keep it private or post it. Nothing goes up
+          until you approve it.
         </p>
       </div>
     </div>
@@ -393,9 +392,8 @@ const cards = [
     style: {
       zIndex: 20,
     },
-    username: 'ashhhwwinnn',
-    image:
-      'https://i.pinimg.com/736x/53/ec/98/53ec9845f5a3698945cc4d2735b56102.jpg',
+    username: 'meera_makes',
+    name: 'Meera',
   },
   {
     id: 2,
@@ -403,9 +401,8 @@ const cards = [
       zIndex: 10,
     },
     variants: card2Variants,
-    username: 'gary_vee',
-    image:
-      'https://i.pinimg.com/736x/40/6c/c4/406cc479ae31af226240b2fa7ec4d782.jpg',
+    username: 'kabir_builds',
+    name: 'Kabir',
   },
 ]
 const AccountCards = () => {
@@ -429,12 +426,12 @@ const AccountCards = () => {
       )}
     >
       <div className="w-full z-20 px-4 mt-4 mb-4">
-        <h3 className="text-xl font-medium tracking-tight ">
-          Connect with Peers & Mentors
+        <h3 className="font-instrument text-3xl leading-tight text-ink">
+          More than a job title
         </h3>
-        <p className="mt-2 text-white/90">
-          Find and connect with peers and mentors who share your interests and
-          goals.
+        <p className="mt-2 text-ink-secondary">
+          Your profile shows what you made, where you went and what you&apos;re
+          figuring out. Only the moments you chose to share.
         </p>
       </div>
       <div className="w-full  h-full mb-8 flex items-center justify-center relative ">
@@ -449,13 +446,14 @@ const AccountCards = () => {
               ease: [0.6, 0.05, -0.01, 0.9],
               duration: 0.5,
             }}
-            className="bg-white dark:bg-dark-bg absolute border border-neutral-200 dark:border-dark-border px-4 py-6 flex flex-col items-center justify-center w-48 shadow-lg rounded-3xl text-black"
+            className="bg-surface absolute border border-hairline px-4 py-6 flex flex-col items-center justify-center w-48 shadow-float rounded-3xl text-ink"
           >
-            <div className="size-16 lg:size-20 rounded-full border-[2px] border-neutral-300/60 dark:border-dark-border/80 bg-neutral-300/60 relative overflow-hidden dark:bg-dark-border">
-              <Image src={card?.image} fill alt="" className="object-cover " />
-            </div>
+            <Initials
+              name={card.name}
+              className="size-16 lg:size-20 text-4xl border-2 border-surface"
+            />
             <div className="flex flex-col items-center justify-center my-4">
-              <span className="lg:text-lg text-neutral-800 dark:text-neutral-300 font-medium tracking-tight mb-2 ">
+              <span className="lg:text-lg text-ink font-medium tracking-tight mb-2 ">
                 @{card.username}
               </span>
               <Skeleton className="h-4 mt-2 rounded-3xl w-3/5 animate-none" />
@@ -741,38 +739,45 @@ const SocialPresense = () => {
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const smallX = useTransform(scrollYProgress, inputRange, [-100, -600])
 
-  // Vibrant and fun gradient theme arrays
+  // Journal entries in quiet, on-brand tones (one in four gets the yellow wash)
   const themes1 = [
-    'bg-gradient-to-b from-pink-400 via-pink-300 to-yellow-200',
-    'bg-gradient-to-b from-fuchsia-500 via-red-400 to-orange-300',
-    'bg-gradient-to-b from-cyan-400 via-blue-400 to-amber-400',
-    'bg-gradient-to-b from-green-400 via-lime-300 to-yellow-200',
-    'bg-gradient-to-b from-purple-400 via-pink-400 to-red-300',
+    'bg-subtle',
+    'bg-surface border border-hairline',
+    'bg-highlight',
+    'bg-subtle',
+    'bg-surface border border-hairline',
   ]
   const themes2 = [
-    'bg-gradient-to-b from-orange-400 via-yellow-300 to-lime-200',
-    'bg-gradient-to-b from-blue-400 via-cyan-300 to-teal-200',
-    'bg-gradient-to-b from-rose-400 via-pink-300 to-fuchsia-300',
-    'bg-gradient-to-b from-yellow-400 via-amber-300 to-blue-200',
-    'bg-gradient-to-b from-emerald-400 via-green-300 to-lime-200',
+    'bg-surface border border-hairline',
+    'bg-highlight',
+    'bg-subtle',
+    'bg-surface border border-hairline',
+    'bg-subtle',
   ]
   const themes3 = [
-    'bg-gradient-to-b from-yellow-400 via-orange-300 to-pink-300',
-    'bg-gradient-to-b from-teal-400 via-cyan-300 to-blue-200',
-    'bg-gradient-to-b from-red-400 via-orange-300 to-yellow-200',
-    'bg-gradient-to-b from-amber-400 via-purple-300 to-pink-200',
-    'bg-gradient-to-b from-lime-400 via-green-300 to-emerald-200',
+    'bg-highlight',
+    'bg-subtle',
+    'bg-surface border border-hairline',
+    'bg-subtle',
+    'bg-highlight',
   ]
 
+  // A journal entry, sketched: date, a few lines of what was said, a lock.
   const ProfileSkeleton = () => {
     return (
       <div className="w-full flex flex-col items-start justify-start gap-4 h-full">
-        <Skeleton className="size-16 animate-none rounded-full aspect-square" />
+        <div className="w-full flex items-center justify-between">
+          <Skeleton className="w-20 h-5 animate-none rounded-full" />
+          <Lock aria-hidden="true" strokeWidth={1.6} className="size-4 text-ink-secondary" />
+        </div>
         <div className="w-full flex flex-col items-start justify-start gap-2">
           <Skeleton className="w-full h-4 animate-none" />
           <Skeleton className="w-full h-4 animate-none" />
+          <Skeleton className="w-4/5 h-4 animate-none" />
+          <Skeleton className="w-full h-4 animate-none" />
+          <Skeleton className="w-3/5 h-4 animate-none" />
         </div>
-        <Skeleton className="w-full h-full animate-none rounded-2xl" />
+        <Skeleton className="w-full flex-1 animate-none rounded-2xl" />
       </div>
     )
   }
@@ -785,11 +790,12 @@ const SocialPresense = () => {
       )}
     >
       <div className="w-full md:max-w-sm h-full z-20 px-8 mt-8 md:mt-16">
-        <h3 className="text-xl font-medium tracking-tight ">
-          Customize your profile
+        <h3 className="font-instrument text-3xl leading-tight text-ink">
+          A journal only you can read
         </h3>
-        <p className="mt-2 opacity-80">
-          Customize your profile with a variety of themes and styles.
+        <p className="mt-2 text-ink-secondary">
+          Every call is kept as a private entry. Reread what you said, keep it
+          or delete it. Nothing in your journal is public.
         </p>
       </div>
       <div className="w-full md:w-full flex-1 flex-col md:flex-row px-6  pb-8 md:pb-0 flex gap-4 items-center justify-center  ">
@@ -802,7 +808,7 @@ const SocialPresense = () => {
               <motion.div
                 key={i}
                 className={cn(
-                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem] shadow-xl',
+                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem]',
                   theme
                 )}
               >
@@ -820,7 +826,7 @@ const SocialPresense = () => {
               <motion.div
                 key={i}
                 className={cn(
-                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem] shadow-xl',
+                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem]',
                   theme
                 )}
               >
@@ -838,7 +844,7 @@ const SocialPresense = () => {
               <motion.div
                 key={i}
                 className={cn(
-                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem] shadow-xl',
+                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem]',
                   theme
                 )}
               >
@@ -892,17 +898,17 @@ const ButtonContainer = ({
 const cardsData = [
   {
     id: 1,
-    title: 'Everything about Framer Motion layout animations',
+    title: 'First open mic. Forgot the second verse and kept going anyway.',
     img: 'https://i.pinimg.com/736x/6b/ac/8d/6bac8d6b911aff989b875d1de7a5f582.jpg',
   },
   {
     id: 2,
-    title: 'Creative Block: Joy Harjo’s Tips to Overcoming Creative Block',
+    title: 'Three weeks of failed builds, and then the app finally opened on my phone.',
     img: 'https://i.pinimg.com/736x/93/a1/82/93a1829cb95d180e1c0821b7224b3117.jpg',
   },
   {
     id: 3,
-    title: 'Building a simple shell in C - Part 1 - Dr. Ehoneah Obed',
+    title: 'Took the long train home and drew every station we passed.',
     img: 'https://i.pinimg.com/736x/68/b4/fb/68b4fbf6972884ea7558f015becb1030.jpg',
   },
 ]
@@ -941,7 +947,7 @@ export function AnimatedStackedCards() {
             isFront && (
               <motion.div
                 key={card.id}
-                className="absolute w-[300px] md:w-[400px] h-[120px] md:h-[140px] p-3 bg-white dark:bg-dark-bg flex items-center justify-center rounded-3xl shadow-2xl  border border-neutral-200 dark:border-dark-border"
+                className="absolute w-[300px] md:w-[400px] h-[120px] md:h-[140px] p-3 bg-surface flex items-center justify-center rounded-3xl shadow-float border border-hairline"
                 style={{ zIndex: z }}
                 initial={{
                   opacity: 0,
@@ -959,13 +965,13 @@ export function AnimatedStackedCards() {
                 <div className="w-[40%] h-full relative rounded-3xl overflow-hidden ">
                   <Image
                     src={card.img}
-                    alt={card.title}
+                    alt=""
                     fill
                     className="object-cover"
                   />
                 </div>
                 <div className="w-full flex-1 ml-4 h-full flex flex-col items-center justify-start py-0 md:py-4 ">
-                  <h4 className="leading-tight tracking-tight font-medium text-neutral-800 dark:text-neutral-300 mt-3 md:mt-0 line-clamp-3 text-left">
+                  <h4 className="leading-tight tracking-tight font-medium text-ink mt-3 md:mt-0 line-clamp-3 text-left">
                     {card.title}
                   </h4>
                 </div>
@@ -977,7 +983,8 @@ export function AnimatedStackedCards() {
         {stackedCards.length > 1 && (
           <motion.div
             key={stackedCards[1].id + '-back'}
-            className="absolute w-[300px] md:w-[400px] h-[120px] md:h-[140px] p-3 bg-neutral-100 dark:bg-dark-bg flex items-center justify-center rounded-3xl shadow-2xl  border border-neutral-200 dark:border-dark-border"
+            aria-hidden="true"
+            className="absolute w-[300px] md:w-[400px] h-[120px] md:h-[140px] p-3 bg-subtle flex items-center justify-center rounded-3xl shadow-float border border-hairline"
             style={{ zIndex: 1 }}
             initial={{
               opacity: 0,
@@ -1001,12 +1008,12 @@ export function AnimatedStackedCards() {
             <div className="w-full h-2/3 relative rounded-xl overflow-hidden mb-4 opacity-60">
               <Image
                 src={stackedCards[1].img}
-                alt={stackedCards[1].title}
+                alt=""
                 fill
                 className="object-cover"
               />
             </div>
-            <h4 className=" tracking-tight leading-tight font-semibold text-left opacity-60">
+            <h4 className=" tracking-tight leading-tight font-medium text-ink text-left opacity-60">
               {stackedCards[1].title}
             </h4>
           </motion.div>

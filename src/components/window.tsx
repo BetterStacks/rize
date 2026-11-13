@@ -3,6 +3,7 @@ import { motion, useTransform } from "framer-motion";
 import Image from "next/image";
 import { FC } from "react";
 import { CreativeAvatar } from "./ui/creative-avatar";
+import { Initials } from "./home/mock-profile-card";
 import { initialValue } from "./editor/utils";
 import { dummyLinks, SocialLinkButton } from "./profile/social-links";
 import ProjectCard from "./projects/project-card";
@@ -16,11 +17,14 @@ const positions = [
   { x: 450, y: -900, scale: 0.9, z: 4, rotate: -6 }, //plane
 ];
 
+/** A gallery tile is either an image URL or a short note in the person's own words. */
+export type GalleryTile = string | { note: string };
+
 type ProfileContainerProps = {
-  avatar: string;
+  avatar: string | null;
   name: string;
   bio: string;
-  gallery: string[];
+  gallery: GalleryTile[];
   projects?: any[];
   username: string;
   writings?: any[];
@@ -42,19 +46,23 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
   return (
     <div className="w-full h-full  px-6 py-10 max-w-2xl mx-auto">
       <div className="flex flex-col items-start 4k:mt-10  justify-start">
-        <CreativeAvatar
-          src={avatar}
-          name={name}
-          size="xl"
-          variant="auto"
-          showHoverEffect={false}
-          className="border-2 border-neutral-200 dark:border-neutral-800"
-        />
-        <h3 className="text-2xl font-semibold tracking-tighter mt-4">{name}</h3>
-        <span className="text-neutral-600 dark:bg-dark-border bg-neutral-200/80 px-3 rounded-full text-sm  py-1 dark:text-neutral-400 font-medium mt-2">
+        {avatar ? (
+          <CreativeAvatar
+            src={avatar}
+            name={name}
+            size="xl"
+            variant="auto"
+            showHoverEffect={false}
+            className="border-2 border-hairline"
+          />
+        ) : (
+          <Initials name={name} className="size-16 text-3xl" />
+        )}
+        <h3 className="font-instrument text-3xl text-ink mt-4">{name}</h3>
+        <span className="text-ink-secondary bg-subtle px-3 rounded-full text-sm py-1 font-medium mt-2">
           @{username}
         </span>
-        <p className="text-neutral-600  dark:text-neutral-400 font-medium mt-2">
+        <p className="text-ink-secondary mt-2">
           {bio}
         </p>
         <div className="flex mt-4 flex-wrap items-center justify-start gap-2">
@@ -154,7 +162,7 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
 export default ProfileContainer;
 
 type GalleryItemProps = {
-  item: string;
+  item: GalleryTile;
   index: number;
   xPos: number;
   yPos: number;
@@ -202,7 +210,7 @@ const GalleryItem: FC<GalleryItemProps> = ({
         duration: 0.9,
         ease: [0.6, 0.05, -0.01, 0.9],
       }}
-      className="p-2 bg-white border border-neutral-200  aspect-square flex items-center justify-center size-48 dark:bg-neutral-800 rounded-3xl  shadow-2xl even:rotate-6 odd:-rotate-6 dark:border-dark-border"
+      className="p-2 bg-surface border border-hairline aspect-square flex items-center justify-center size-48 rounded-3xl shadow-float even:rotate-6 odd:-rotate-6"
     >
       <motion.div
         style={{
@@ -210,15 +218,23 @@ const GalleryItem: FC<GalleryItemProps> = ({
         }}
         className="relative aspect-square size-44 rounded-3xl overflow-hidden "
       >
-        <Image
-          loading="eager"
-          priority
-          src={item}
-          alt=""
-          draggable={false}
-          fill
-          style={{ objectFit: "cover" }}
-        />
+        {typeof item === "string" ? (
+          <Image
+            loading="eager"
+            priority
+            src={item}
+            alt=""
+            draggable={false}
+            fill
+            style={{ objectFit: "cover" }}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-highlight flex items-center p-4">
+            <p className="font-instrument text-xl leading-tight text-ink">
+              &ldquo;{item.note}&rdquo;
+            </p>
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );
