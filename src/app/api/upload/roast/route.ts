@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { PDFDocument } from 'pdf-lib'
 import { getServerSession } from '@/lib/auth'
+import { checkRateLimit } from '@/lib/rate-limit'
 import { trackRoast } from '@/actions/roast-analytics'
 
 // Ensures Node APIs are available for pdf-parse
@@ -20,6 +21,8 @@ export async function POST(req: Request) {
                 { status: 401 }
             )
         }
+        const limited = await checkRateLimit('ai', session.user.id)
+        if (!limited.success) return limited.response!
 
         const file = formData.get('file')
 

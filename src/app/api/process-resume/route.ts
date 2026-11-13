@@ -1,4 +1,5 @@
 import { requireAuth } from '@/lib/auth'
+import { checkRateLimit } from '@/lib/rate-limit'
 import { NextRequest, NextResponse } from 'next/server'
 import { parseResumeContent } from '@/lib/resume-parser'
 
@@ -9,6 +10,8 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const limited = await checkRateLimit('ai', session.user.id)
+    if (!limited.success) return limited.response!
 
     const { fileUrl } = await request.json()
 

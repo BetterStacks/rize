@@ -1,6 +1,7 @@
 import { google } from '@ai-sdk/google';
 import { streamText, convertToModelMessages, type UIMessage, stepCountIs, createUIMessageStream, createUIMessageStreamResponse } from 'ai';
 import { getServerSession } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 import db from '@/lib/db';
 import { profile, projects, experience, education, storyElements, socialLinks, media, galleryMedia, gallery } from '@/db/schema';
 import { eq, getTableColumns } from 'drizzle-orm';
@@ -16,6 +17,8 @@ export async function POST(req: Request) {
   if (!session?.user) {
     return new Response('Unauthorized', { status: 401 });
   }
+  const limited = await checkRateLimit('ai', session.user.id);
+  if (!limited.success) return limited.response!;
 
   const { messages }: { messages: ChatMessage[]; } = await req.json();
 
