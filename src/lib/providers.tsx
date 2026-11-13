@@ -1,11 +1,11 @@
 'use client'
 import DialogContextProvider from '@/components/dialog-provider'
+import { Toaster } from '@/components/ui/toaster'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 // Better Auth doesn't need a provider wrapper like NextAuth
 import { ThemeProvider } from 'next-themes'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { ReactNode } from 'react'
-import { Toaster } from 'react-hot-toast'
 import Context from './context'
 import { PanelProvider } from './panel-context'
 
@@ -33,9 +33,7 @@ const Providers = ({ children }: { children: ReactNode }) => {
             <Context>
               <PanelProvider>
                 <DialogContextProvider>
-                  <Toaster position="top-right" toastOptions={{
-                    className: "dark:bg-dark-bg border dark:text-white dark:border-dark-border"
-                  }} />
+                  <Toaster />
                   {children}
                 </DialogContextProvider>
               </PanelProvider>

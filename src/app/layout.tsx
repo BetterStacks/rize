@@ -7,7 +7,6 @@ import type { Metadata } from 'next'
 import { Instrument_Serif, Inter } from 'next/font/google'
 import './globals.css'
 import { Suspense } from 'react'
-import { Toaster } from 'sonner'
 
 const inter = Inter({
   variable: '--font-inter',
@@ -46,7 +45,6 @@ export default function RootLayout({
               <Dialogs />
             </Suspense>
             {children}
-            {/* <Toaster position="top-right" theme="light" richColors /> */}
             <BottomNav />
           </Providers>
         </PostHogProvider>

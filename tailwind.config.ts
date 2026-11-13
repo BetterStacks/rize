@@ -10,8 +10,33 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				'dark-border': '#323232',
-				'dark-bg': '#171717',
+				// Rize tokens (src/styles/tokens.css). Prefer these in new work.
+				ground: 'rgb(var(--ground) / <alpha-value>)',
+				surface: 'rgb(var(--surface) / <alpha-value>)',
+				subtle: 'rgb(var(--subtle) / <alpha-value>)',
+				ink: {
+					DEFAULT: 'rgb(var(--ink) / <alpha-value>)',
+					secondary: 'rgb(var(--ink-secondary) / <alpha-value>)',
+				},
+				'on-ink': 'rgb(var(--on-ink) / <alpha-value>)',
+				hairline: 'rgb(var(--hairline) / <alpha-value>)',
+				brand: {
+					DEFAULT: 'rgb(var(--brand) / <alpha-value>)',
+					ink: 'rgb(var(--brand-ink) / <alpha-value>)',
+				},
+				danger: 'rgb(var(--danger) / <alpha-value>)',
+				success: 'rgb(var(--success) / <alpha-value>)',
+				paper: {
+					DEFAULT: 'rgb(var(--paper) / <alpha-value>)',
+					border: 'rgb(var(--paper-border) / <alpha-value>)',
+				},
+				highlight: 'rgb(var(--highlight) / <alpha-value>)',
+				// Dim layer behind dialogs; opacity is part of the token.
+				overlay: 'rgb(var(--overlay) / var(--overlay-opacity))',
+				// Legacy names, kept so existing classes still work. dark-bg and
+				// dark-border match the dark ground and hairline tokens.
+				'dark-border': '#2E2923',
+				'dark-bg': '#141210',
 				'light-bg': '#ffffff',
 				'main-yellow': '#FFD936',
 				background: 'hsl(var(--background))',
@@ -90,11 +115,27 @@ export default {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
 			},
+			// One radius scale: 8 (rounded-lg) for controls, 12 (rounded-xl) for
+			// fields, menus and toasts, 20 (rounded-2xl) for dialogs and cards.
+			// rounded-md / rounded-sm stay at 6 / 4 for existing code only.
 			borderRadius: {
-				lg: 'var(--radius)',
+				lg: 'var(--radius-sm)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
-			}
+				sm: 'calc(var(--radius) - 4px)',
+				xl: 'var(--radius-md)',
+				'2xl': 'var(--radius-lg)',
+			},
+			boxShadow: {
+				float: 'var(--shadow-float)',
+				raised: 'var(--shadow-raised)',
+			},
+			transitionTimingFunction: {
+				calm: 'var(--ease-calm)',
+			},
+			transitionDuration: {
+				fast: 'var(--duration-fast)',
+				base: 'var(--duration-base)',
+			},
 		}
 	},
 	// eslint-disable-next-line @typescript-eslint/no-require-imports

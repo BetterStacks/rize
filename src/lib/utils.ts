@@ -1,9 +1,21 @@
 import { clsx, type ClassValue } from "clsx";
 import { Area } from "react-easy-crop";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
 import { ClassifiedWord, SocialPlatform } from "./types";
 
 export const MAX_GALLERY_ITEMS = 8;
+
+// Teach tailwind-merge the design-token class names from tailwind.config.ts so
+// a caller's `shadow-none` or `ease-in` replaces the component default.
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      shadow: [{ shadow: ["float", "raised"] }],
+      ease: [{ ease: ["calm"] }],
+      duration: [{ duration: ["fast", "base"] }],
+    },
+  },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
