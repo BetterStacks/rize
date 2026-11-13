@@ -36,7 +36,12 @@ bun run build        # catches what tsc misses (server/client boundaries, route 
 ### Production data and the database
 
 - **Assume a `DATABASE_URL` you didn't create yourself is production.** Check the host before running anything that writes. For development, use a local or branch database (a Neon branch works).
-- **Never run `drizzle-kit push`, `drizzle-kit migrate` or `drop-database.js` against production.** The migration history has drifted: some migrations sit in `drizzle/applied/`, and local checkouts have had untracked migration files with clashing numbers. To change prod, write the SQL, show it for review, and **Tanay applies it.**
+- **Never run `drizzle-kit push`, `drizzle-kit migrate` or `drop-database.js` against production.**
+- **How schema changes work.** `src/db/schema.ts` matches the production database exactly (checked with `drizzle-kit push` against a branch of production: "No changes detected"). Production was built with `drizzle-kit push`, so the old migration files are kept in `drizzle/archive/` for reference only. To change the schema:
+  1. Edit `schema.ts`.
+  2. Create a Neon branch from production and run `drizzle-kit push --verbose --strict` with `DATABASE_URL` set to that branch only. Review every statement it prints, especially drops.
+  3. Put any data backfill in `drizzle/data/<yyyy-mm-dd>-<topic>.sql` and run it on the same branch. Compare row counts before and after.
+  4. Production gets the same statements only after review and an explicit go from Tanay, with a snapshot branch taken first.
 - Reading prod to answer a question is fine. Use a read-only transaction (`PGOPTIONS='-c default_transaction_read_only=on'`), and report counts and ids, not personal details.
 - Seed, import and email scripts in `src/scripts/` act on real people. Don't run them without an explicit go from Tanay for that specific run.
 
@@ -100,7 +105,7 @@ src/actions/               server actions (mutations)
 src/db/schema.ts           Drizzle schema (user, profile, sections, posts, projects, …)
 src/lib/                   auth, db, rate-limit, sanitize, s3/r2, email, voice/
 src/scripts/               one-off scripts: they touch real data, see Rules
-drizzle/                   SQL migrations (history has drifted, see Rules)
+drizzle/                   archive/ old migrations (reference only), data/ reviewed backfills; see Rules
 docs/                      setup notes (voice journaling)
 ```
 

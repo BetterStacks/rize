@@ -13,6 +13,7 @@ import {
   timestamp,
   uuid,
   varchar,
+  vector,
 } from "drizzle-orm/pg-core";
 // Define account types for better-auth compatibility
 export type AccountType = "oauth" | "oidc" | "email" | "webauthn";
@@ -70,7 +71,24 @@ export const users = pgTable("user", {
   phoneNumber: text("phoneNumber").unique(),
   phoneNumberVerified: boolean("phoneNumberVerified").notNull().default(false),
   onboardingCallId: text("onboarding_call_id"),
+  // Scheduled check-in calls (not used by the app yet; data exists in production)
+  dailyCallEnabled: boolean("daily_call_enabled").notNull().default(false),
+  preferredCallTime: text("preferred_call_time"), // "HH:MM", 24-hour, UTC
+  callIntervalDays: integer("call_interval_days").notNull().default(1),
+  memoryContext: text("memory_context"), // rolling summary of past check-in calls
 });
+
+// Summaries of past check-in calls, for call memory.
+export const dailyCheckins = pgTable("daily_checkins", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  callId: text("call_id"),
+  summary: text("summary"),
+  embedding: vector("embedding", { dimensions: 768 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("idx_daily_checkins_userid").on(t.userId)]);
 
 export const profile = pgTable("profile", {
   id: uuid("id")
@@ -96,6 +114,7 @@ export const profile = pgTable("profile", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
@@ -123,6 +142,7 @@ export const socialLinks = pgTable("social_links", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
@@ -294,6 +314,7 @@ export const page = pgTable("page", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
@@ -322,6 +343,7 @@ export const projects = pgTable("projects", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
@@ -469,7 +491,7 @@ export const experience = pgTable("experience", {
   title: varchar("title", { length: 255 }).notNull(),
   company: varchar("company", { length: 255 }).notNull(),
   location: varchar("location", { length: 255 }),
-  employmentType: EmploymentType("employment_type").notNull(),
+  employmentType: EmploymentType("employment_type").notNull().default("Full-time"),
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
   currentlyWorking: boolean("currently_working").notNull().default(false),
@@ -538,6 +560,7 @@ export const storyElements = pgTable("story_elements", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 });
 
