@@ -22,7 +22,7 @@ import {
   X
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import Image from 'next/image'
+import PersonAvatar from './profile/person-avatar'
 import { useParams, usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useProfileDialog } from './dialog-provider'
@@ -122,10 +122,17 @@ const Menu = () => {
         <Button
           variant={'outline'}
           size={'icon'}
+          aria-label={session?.data ? 'Your account menu' : 'Menu'}
           className={cn(" relative overflow-hidden size-10 rounded-full", session?.isLoading && "bg-neutral-200 dark:bg-dark-border", isProjectPage && "rounded-full")}
           onClick={() => setOpen(true)}
         >
-          {session?.isLoading ? <div className="size-full" /> : session?.data ? <Image src={session?.data?.user?.profileImage || session?.data?.user?.image || '/'} alt="Profile" className='rounded-lg size-full' width={24} height={24} priority /> :
+          {session?.isLoading ? <div className="size-full" /> : session?.data ? (
+            <PersonAvatar
+              src={session?.data?.user?.profileImage || session?.data?.user?.image}
+              name={session?.data?.user?.displayName || session?.data?.user?.name}
+              size={40}
+            />
+          ) :
             open ? (
               <X strokeWidth={1.5} className="size-5 opacity-70" />
             ) : (

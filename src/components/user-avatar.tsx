@@ -1,73 +1,66 @@
 'use client'
-import { cn, isImageUrl } from '@/lib/utils'
-import { Edit3, Upload } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Camera } from 'lucide-react'
 import { useState } from 'react'
 import { useAvatarDialog } from './dialog-provider'
 import AvatarSelectionDialog from './dialogs/AvatarSelectionDialog'
-import { CreativeAvatar } from './ui/creative-avatar'
-import Image from 'next/image'
-import { Button } from './ui/button'
+import PersonAvatar from './profile/person-avatar'
 
 type UserAvatarProps = {
   data: {
     image: string;
     name: string;
   };
-  isLoading: boolean;
+  isLoading?: boolean;
   isMyProfile: boolean;
   className?: string;
+  /** Rendered size in px. */
+  size?: number;
 };
 
-
+/** The profile header avatar. The owner can tap it to change the photo. */
 const UserAvatar = ({
   data,
-  isLoading,
   isMyProfile,
   className,
+  size = 88,
 }: UserAvatarProps) => {
   const [file, setFile] = useState<File | null>(null)
   const setIsOpen = useAvatarDialog()[1]
 
-  const handleEditClick = () => {
-    setIsOpen(true)
-  }
+  const avatar = (
+    <PersonAvatar
+      src={data?.image}
+      name={data?.name}
+      size={size}
+      priority
+      className="ring-1 ring-[#E7E2D8] dark:ring-[#2E2923]"
+    />
+  )
 
-  const url = data?.image || `https://api.dicebear.com/9.x/initials/svg?seed=${data?.name?.trim()}&radius=50`
+  if (!isMyProfile) {
+    return <div className={className}>{avatar}</div>
+  }
 
   return (
     <>
-      <div
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        aria-label="Change profile photo"
         className={cn(
-          'relative group ring-2 ring-neutral-300 dark:ring-dark-border rounded-full overflow-hidden cursor-pointer group size-16 md:size-20 lg:size-24  aspect-square',
+          'group relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#141210]',
           className,
-          isLoading && 'animate-pulse bg-neutral-300 dark:bg-dark-border rounded-full'
         )}
       >
-        {/* {isMyProfile && (
-          <button 
-            onClick={handleEditClick}
-            className="absolute z-10 group-hover:opacity-100 opacity-0 transition-all duration-100 ease-in border border-neutral-300 dark:border-dark-border bg-white dark:bg-[#363636] p-1.5 rounded-full left-0 bottom-0 drop-shadow-lg shadow-black/80"
-          >
-            <Edit3 className="size-5 dark:opacity-70" />
-          </button>
-        )} */}
-
-        {/* {!isLoading && (
-          <CreativeAvatar
-            src={data?.image && (isImageUrl(data?.image) || data.image.startsWith('creative-')) ? data.image : null}
-            name={data?.name || 'Anonymous'}
-            size="xl"
-            variant="auto"
-            className="w-full h-full"
-            showHoverEffect={isMyProfile}
-          />
-        )} */}
-
-        {isMyProfile && <button onClick={handleEditClick} className='group-hover:opacity-100 z-50 opacity-0 bg-white border-neutral-200 absolute inset-4 flex items-center justify-center rounded-full transition-all'>
-          <Upload className='size-4 md:size-6 stroke-neutral-800' />
-        </button>}
-        {!isLoading && <Image src={url} alt="Profile" className='size-full' fill style={{ objectFit: "cover" }} priority quality={100} />}
-      </div>
+        {avatar}
+        <span
+          aria-hidden
+          className="absolute bottom-0 right-0 flex size-7 items-center justify-center rounded-full border border-[#E7E2D8] bg-white text-[#1F1B16] shadow-sm transition-colors duration-150 group-hover:bg-main-yellow dark:border-[#2E2923] dark:bg-[#1C1916] dark:text-[#F3EEE6] dark:group-hover:text-[#1F1B16]"
+        >
+          <Camera className="size-3.5" />
+        </span>
+      </button>
       <AvatarSelectionDialog file={file} setFile={setFile} />
     </>
   )

@@ -6,6 +6,7 @@ import { Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
 import { Button } from '../ui/button'
+import { canOptimize } from '../profile/person-avatar'
 
 type TGalleryItemProps = {
   item: GalleryItemProps;
@@ -59,6 +60,8 @@ function GalleryItem({ item, index, isMine, onImageClick }: TGalleryItemProps) {
           src={item?.url}
           alt=""
           fill
+          sizes="(min-width: 768px) 192px, 33vw"
+          unoptimized={!canOptimize(item.url)}
           className="select-none z-10 cursor-pointer"
           style={{ objectFit: 'cover' }}
           onClick={handleClick}
