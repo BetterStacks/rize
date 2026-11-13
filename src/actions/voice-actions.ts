@@ -415,15 +415,15 @@ export async function applyOnboardingSuggestions(
     // Only these three profile fields can change here.
     const profileUpdates: Partial<Pick<typeof profile.$inferInsert, "bio" | "personalMission" | "lifePhilosophy">> =
       {};
-    if (sel.bio) {
+    if (sel.bio && s.bio) {
       const bio = textFor("bio", s.bio);
       if (bio) profileUpdates.bio = bio;
     }
-    if (sel.personalMission) {
+    if (sel.personalMission && s.personalMission) {
       const mission = textFor("personalMission", s.personalMission);
       if (mission) profileUpdates.personalMission = mission;
     }
-    if (sel.lifePhilosophy) {
+    if (sel.lifePhilosophy && s.lifePhilosophy) {
       const philosophy = textFor("lifePhilosophy", s.lifePhilosophy);
       if (philosophy) profileUpdates.lifePhilosophy = philosophy;
     }

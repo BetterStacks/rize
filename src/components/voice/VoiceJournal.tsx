@@ -308,7 +308,7 @@ function SuggestionsCard({ data, onDone }: { data: OnboardingSuggestions; onDone
         <CardTitle>From your onboarding call</CardTitle>
         <CardDescription>
           This is what we heard on your call. None of it is on your profile yet. Tick what you want to add and
-          change the wording if you like.
+          change the wording if you like. Anything you leave unticked won't be shown again.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
