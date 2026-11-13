@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   GetBucketLifecycleConfigurationCommand,
   GetObjectCommand,
   type LifecycleRule,
@@ -30,6 +31,10 @@ function r2(): S3Client {
 }
 
 const bucket = () => process.env.R2_BUCKET || "";
+
+export async function deleteRecording(key: string) {
+  await r2().send(new DeleteObjectCommand({ Bucket: bucket(), Key: key }));
+}
 
 export async function uploadRecording(
   callId: string,

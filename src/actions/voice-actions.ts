@@ -5,8 +5,9 @@ import { requireAuth, requireProfile } from "@/lib/auth";
 import db from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { generateDraftsForCall } from "@/lib/voice/after-call";
+import { deleteRecording } from "@/lib/voice/r2";
 import { twilioClient } from "@/lib/voice/twilio";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -77,6 +78,83 @@ export async function confirmPhoneVerification(
     return { success: false, error: "This number is linked to another account" };
   }
 
+  revalidatePath("/settings/voice");
+  return { success: true };
+}
+
+// --- Removing data ---
+
+// Deletes one call: its recording, transcript and any drafts made from it.
+// Posts already published from those drafts stay up; they can be deleted
+// from the profile like any other post.
+export async function deleteVoiceCall(callId: string): Promise<ActionResult> {
+  const session = await requireAuth();
+  const [call] = await db
+    .select({ id: voiceCalls.id, status: voiceCalls.status, recordingKey: voiceCalls.recordingKey })
+    .from(voiceCalls)
+    .where(and(eq(voiceCalls.id, callId), eq(voiceCalls.userId, session.user.id)))
+    .limit(1);
+  if (!call) return { success: false, error: "Call not found" };
+  if (["queued", "ringing", "in_progress"].includes(call.status)) {
+    return { success: false, error: "This call is still in progress. Try again when it has ended." };
+  }
+
+  if (call.recordingKey) {
+    try {
+      await deleteRecording(call.recordingKey);
+    } catch (error: any) {
+      console.error("[voice] recording delete failed", call.id, error?.name);
+      return { success: false, error: "Couldn't delete the recording. Please try again." };
+    }
+  }
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(users)
+      .set({ onboardingCallId: null })
+      .where(and(eq(users.id, session.user.id), eq(users.onboardingCallId, call.id)));
+    // Drafts are removed by the foreign key cascade.
+    await tx
+      .delete(voiceCalls)
+      .where(and(eq(voiceCalls.id, call.id), eq(voiceCalls.userId, session.user.id)));
+  });
+  revalidatePath("/settings/voice");
+  return { success: true };
+}
+
+// Removes the phone number from the account, so Rize can't call it and calls
+// from it aren't linked to the account. Accounts that sign in with their phone
+// number keep it, since it's how they log in.
+export async function removeMyPhoneNumber(): Promise<ActionResult> {
+  const session = await requireAuth();
+  const [user] = await db
+    .select({ email: users.email })
+    .from(users)
+    .where(eq(users.id, session.user.id))
+    .limit(1);
+  if (!user) return { success: false, error: "Account not found" };
+  if (user.email?.endsWith("@phone.rize")) {
+    return {
+      success: false,
+      error: "You sign in with this number, so it can't be removed. Rize only calls you when you tap Call me.",
+    };
+  }
+  const live = await db
+    .select({ id: voiceCalls.id })
+    .from(voiceCalls)
+    .where(
+      and(
+        eq(voiceCalls.userId, session.user.id),
+        inArray(voiceCalls.status, ["queued", "ringing", "in_progress"])
+      )
+    )
+    .limit(1);
+  if (live.length) return { success: false, error: "A call is in progress. Try again when it has ended." };
+
+  await db
+    .update(users)
+    .set({ phoneNumber: null, phoneNumberVerified: false })
+    .where(eq(users.id, session.user.id));
   revalidatePath("/settings/voice");
   return { success: true };
 }
