@@ -1,239 +1,125 @@
 "use client";
 
-import { getExploreFeed } from "@/actions/post-actions";
-import { getRecentlyJoinedProfiles } from "@/actions/profile-actions";
+import { getPostViewerState } from "@/actions/post-actions";
+import type { NewFace } from "@/lib/explore-data";
+import type { GetExplorePosts } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { TrendingUp, Users, Search } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { Button } from "../ui/button";
+import { useMemo, type ReactNode } from "react";
 import PostCard from "./post-card";
 import ProfileCard from "./profile-card";
-import {
-  PostCardSkeleton,
-  PostCardSkeletonWithImage,
-  ProfileCardSkeleton,
-} from "./skeletons";
 
-const ExploreRedesigned = () => {
-  // Posts query - get all posts then sort by likes
-  const { data: postsData, isLoading: postsLoading } = useQuery({
-    queryKey: ["explore-top-posts"],
-    queryFn: async () => {
-      try {
-        // Get multiple pages of posts to have a good selection
-        const pages = await Promise.all([
-          getExploreFeed(0),
-          getExploreFeed(1),
-          getExploreFeed(2),
-          getExploreFeed(3),
-        ]);
+type ExploreProps = {
+  /** Server-rendered, so the first screen shows real cards straight away. */
+  profiles: NewFace[];
+  posts: GetExplorePosts[];
+};
 
-        const allPosts = pages.flatMap((page) => page.posts || []);
-        // Sort by likes and get top 20
-        return allPosts
-          .sort((a, b) =>
-            (Number(b.upvoteCount || 0) - Number(b.downvoteCount || 0)) -
-            (Number(a.upvoteCount || 0) - Number(a.downvoteCount || 0))
-          )
-          .slice(0, 20);
-      } catch (error) {
-        console.error("Error fetching top posts:", error);
-        return [];
-      }
-    },
+const SectionHeader = ({
+  id,
+  title,
+  description,
+  href,
+}: {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+}) => (
+  <div className="mb-5 flex items-end justify-between gap-4 border-b border-[#E7E2D8] pb-3 dark:border-[#2E2923]">
+    <div className="min-w-0">
+      <h2 id={id} className="font-instrument text-2xl leading-tight text-[#1F1B16] md:text-3xl dark:text-[#F3EEE6]">
+        {title}
+      </h2>
+      <p className="mt-0.5 text-sm text-[#5A5248] dark:text-[#B3A999]">
+        {description}
+      </p>
+    </div>
+    <Link
+      href={href}
+      className="-mr-2 inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg px-2 text-sm font-medium text-[#1F1B16] outline-none transition-colors hover:text-[#5A5248] focus-visible:ring-2 focus-visible:ring-main-yellow dark:text-[#F3EEE6] dark:hover:text-[#B3A999]"
+    >
+      See all
+      <ArrowRight className="size-4" aria-hidden="true" />
+    </Link>
+  </div>
+);
+
+const EmptyState = ({ children }: { children: ReactNode }) => (
+  <p className="rounded-xl border border-dashed border-[#E7E2D8] px-4 py-10 text-center text-sm text-[#5A5248] dark:border-[#2E2923] dark:text-[#B3A999]">
+    {children}
+  </p>
+);
+
+const ExploreRedesigned = ({ profiles, posts }: ExploreProps) => {
+  const postIds = useMemo(() => posts.map((p) => p.id), [posts]);
+
+  // The post list is cached for everyone, so the viewer's own votes,
+  // comments and bookmarks are filled in after the page shows.
+  const { data: viewerState } = useQuery({
+    queryKey: ["explore-viewer-state", postIds],
+    queryFn: () => getPostViewerState(postIds),
+    enabled: postIds.length > 0,
+    staleTime: 60_000,
   });
 
-  // Profiles query
-  const { data: profilesData, isLoading: profilesLoading } = useQuery({
-    queryKey: ["explore-profiles"],
-    queryFn: () => getRecentlyJoinedProfiles(8), // Get 8 profiles for a nice grid
-  });
-
-  const topPosts = postsData ?? [];
-  const profiles = profilesData ?? [];
+  const postsWithViewer = useMemo(
+    () =>
+      viewerState
+        ? posts.map((p) => ({ ...p, ...(viewerState[p.id] ?? {}) }))
+        : posts,
+    [posts, viewerState],
+  );
 
   return (
-    <div className="flex items-center justify-center flex-col w-full min-h-screen">
-      {/* Page Header */}
-      <div className="w-full max-w-4xl px-6 mt-12 mb-16 text-center mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 className="text-4xl md:text-5xl text-neutral-900 dark:text-white mb-4 tracking-tight leading-tight">
-            <span
-              className="font-instrument tracking-wide inline-block"
-              style={{ transform: "skewX(-5deg)", display: "inline-block" }}
-            >
-              Stories worth sharing,
-            </span>{" "}
-            <br />
-            <span>people worth knowing</span>
-          </h1>
-          <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl tracking-tight mx-auto leading-relaxed">
-            Dive into fresh perspectives from new community members and discover
-            the conversations everyone's talking about
-          </p>
-        </motion.div>
-      </div>
+    <div className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6">
+      <header className="pb-10 pt-10 md:pb-14 md:pt-14">
+        <h1 className="font-instrument text-4xl leading-[1.05] tracking-tight text-[#1F1B16] md:text-5xl dark:text-[#F3EEE6]">
+          Explore
+        </h1>
+        <p className="mt-2 max-w-md text-base text-[#5A5248] dark:text-[#B3A999]">
+          New people on Rize, and the posts getting the most votes.
+        </p>
+      </header>
 
-      {/* Discover by Skills CTA */}
-      {/* <div className="w-full max-w-6xl px-6 mb-12 mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          <Link href="/explore/people">
-            <div className="group relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-gradient-to-r from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-900 p-6 md:p-8 cursor-pointer hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="size-12 rounded-2xl bg-neutral-900 dark:bg-white flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Search className="size-6 text-white dark:text-neutral-900" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                      Discover people by skills
-                    </h3>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
-                      Find and connect with others who share your expertise
-                    </p>
-                  </div>
-                </div>
-                <Button variant="outline" className="hidden sm:flex rounded-full group-hover:bg-neutral-900 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-neutral-900 transition-all duration-300">
-                  Explore
-                </Button>
+      <section aria-labelledby="new-faces" className="mb-14">
+        <SectionHeader
+          id="new-faces"
+          title="New faces"
+          description="Just joined"
+          href="/explore/profiles"
+        />
+        {profiles.length > 0 ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+            {profiles.map((profile) => (
+              <ProfileCard key={profile.username} profile={profile} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState>No new profiles yet. Check back soon.</EmptyState>
+        )}
+      </section>
+
+      <section aria-labelledby="popular-posts">
+        <SectionHeader
+          id="popular-posts"
+          title="Popular posts"
+          description="Most upvoted lately"
+          href="/explore/posts"
+        />
+        {postsWithViewer.length > 0 ? (
+          <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
+            {postsWithViewer.map((post) => (
+              <div key={post.id} className="mb-4 break-inside-avoid">
+                <PostCard post={post} />
               </div>
-            </div>
-          </Link>
-        </motion.div>
-      </div> */}
-
-      {/* People Section */}
-      <div className="w-full max-w-6xl px-6 mb-16 mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-instrument text-neutral-900 dark:text-white mb-1">
-              New faces
-            </h2>
-            <div className="flex items-center justify-between ">
-              <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl font-light tracking-tight">
-                People who just joined the community
-              </p>
-              <Link href={"/explore/profiles"}>
-                <Button variant={"outline"}>View All</Button>
-              </Link>
-            </div>
+            ))}
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {profilesLoading
-              ? // Show skeleton loaders
-              Array.from({ length: 8 }).map((_, i) => (
-                <motion.div
-                  key={`profile-skeleton-${i}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.05 }}
-                >
-                  <ProfileCardSkeleton />
-                </motion.div>
-              ))
-              : // Show actual profiles
-              profiles.map((profile, i) => (
-                <motion.div
-                  key={`profile-${i}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
-                >
-                  <ProfileCard profile={profile} />
-                </motion.div>
-              ))}
-          </div>
-
-          {profiles.length === 0 && !profilesLoading && (
-            <div className="text-center py-12 text-neutral-500 dark:text-neutral-400">
-              <Users className="size-12 mx-auto mb-4 opacity-50" />
-              <p>No new profiles found. Check back later!</p>
-            </div>
-          )}
-        </motion.div>
-      </div>
-
-      {/* Top Posts Section */}
-      <div className="w-full max-w-6xl px-6 mb-16 mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-instrument tracking-wide text-neutral-900 dark:text-white mb-1">
-              Popular posts
-            </h2>
-            <div className="flex items-center justify-between ">
-              <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl font-light tracking-tight">
-                Posts with the most engagement from the community
-              </p>
-              <Link href={"/explore/posts"}>
-                <Button variant={"outline"}>View All</Button>
-              </Link>
-            </div>
-          </div>
-
-          <motion.div
-            transition={{ duration: 0.3, type: "tween" }}
-            className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6"
-          >
-            {postsLoading
-              ? // Show skeleton loaders
-              Array.from({ length: 12 }).map((_, i) => (
-                <motion.div
-                  key={`post-skeleton-${i}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.03 }}
-                  className="break-inside-avoid"
-                >
-                  {/* Mix different skeleton types for variety */}
-                  {i % 3 === 0 ? (
-                    <PostCardSkeletonWithImage />
-                  ) : (
-                    <PostCardSkeleton />
-                  )}
-                </motion.div>
-              ))
-              : // Show actual posts
-              topPosts.map((post, i) => (
-                <motion.div
-                  key={`post-${i}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.2 + i * 0.02 }}
-                  className="break-inside-avoid"
-                >
-                  <PostCard post={post} />
-                </motion.div>
-              ))}
-          </motion.div>
-
-          {topPosts.length === 0 && !postsLoading && (
-            <div className="text-center py-12 text-neutral-500 dark:text-neutral-400">
-              <TrendingUp className="size-12 mx-auto mb-4 opacity-50" />
-              <p>No posts found. Be the first to share something amazing!</p>
-            </div>
-          )}
-        </motion.div>
-      </div>
-
-      <div className="h-20" />
+        ) : (
+          <EmptyState>No posts yet. Yours could be the first.</EmptyState>
+        )}
+      </section>
     </div>
   );
 };

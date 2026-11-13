@@ -4,14 +4,14 @@ import { TProfile } from '@/lib/types'
 import { useDebouncedCallback } from '@mantine/hooks'
 import { useQuery } from '@tanstack/react-query'
 import { signOut, useSession } from '@/lib/auth-client'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useSearchDialog } from '../dialog-provider'
+import PersonAvatar from '../explore/person-avatar'
 
 import axios from 'axios'
 import { ArrowRight, FolderOpen, Hash, Loader, LogOut, MessageCircle, Moon, Sun, User, Users } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   CommandDialog,
   CommandEmpty,
@@ -55,9 +55,11 @@ const SearchDialog = () => {
   }>({ people: [], posts: [], projects: [], total: 0 })
   const [hasSearched, setHasSearched] = useState(false)
   const [loading, setLoading] = useState(false)
+  const latestSearch = useRef(0)
   const { data, isLoading } = useQuery({
     queryKey: ['recently-joined-profiles'],
     queryFn: () => getRecentlyJoinedProfiles(),
+    staleTime: 60_000,
   })
   const { theme, setTheme } = useTheme()
 
@@ -78,11 +80,21 @@ const SearchDialog = () => {
     }
     setLoading(true)
     setHasSearched(true)
-    const res = await axios.get('/api/search', {
-      params: { query },
-    })
-    setLoading(false)
-    setResults(res?.data)
+    const requestId = ++latestSearch.current
+    try {
+      // The dialog only shows people, posts and projects.
+      const res = await axios.get('/api/search', {
+        params: { query, type: 'people,posts,projects' },
+      })
+      // Ignore answers to older keystrokes that arrive late.
+      if (requestId === latestSearch.current) setResults(res?.data)
+    } catch {
+      if (requestId === latestSearch.current) {
+        setResults({ people: [], posts: [], projects: [], total: 0 })
+      }
+    } finally {
+      if (requestId === latestSearch.current) setLoading(false)
+    }
   }, 300)
 
   return (
@@ -104,7 +116,7 @@ const SearchDialog = () => {
           ) : results?.total > 0 ? (
             <>
               {results?.people?.length > 0 && (
-                <CommandGroup heading={`👥 People (${results.people.length})`} className="">
+                <CommandGroup heading={`People (${results.people.length})`} className="">
                   {results.people.slice(0, 5).map((profile) => (
                     <CommandItem
                       className="py-3"
@@ -131,7 +143,7 @@ const SearchDialog = () => {
               )}
 
               {results?.posts?.length > 0 && (
-                <CommandGroup heading={`💬 Posts (${results.posts.length})`} className="">
+                <CommandGroup heading={`Posts (${results.posts.length})`} className="">
                   {results.posts.slice(0, 3).map((post) => (
                     <CommandItem
                       className="py-3 items-start"
@@ -145,12 +157,10 @@ const SearchDialog = () => {
                       <MessageCircle className="h-4 w-4 mt-1 mr-3 flex-shrink-0 opacity-60" />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <Image
+                          <PersonAvatar
                             src={post?.profileImage}
-                            alt={post?.displayName}
-                            width={16}
-                            height={16}
-                            className="rounded-full"
+                            name={post?.displayName || post?.username}
+                            size={16}
                           />
                           <span className="text-xs text-muted-foreground">@{post?.username}</span>
                         </div>
@@ -165,7 +175,7 @@ const SearchDialog = () => {
               )}
 
               {results?.projects?.length > 0 && (
-                <CommandGroup heading={`📁 Projects (${results.projects.length})`} className="">
+                <CommandGroup heading={`Projects (${results.projects.length})`} className="">
                   {results.projects.slice(0, 3).map((project) => (
                     <CommandItem
                       className="py-3 items-start"
@@ -220,7 +230,7 @@ const SearchDialog = () => {
           )}
 
           {!hasSearched && session?.data && (
-            <CommandGroup heading="🏠 Quick Actions">
+            <CommandGroup heading="Go to">
               <CommandItem
                 onSelect={() => {
                   const username = (session?.data?.user as any)?.username
@@ -246,7 +256,7 @@ const SearchDialog = () => {
           )}
           <CommandSeparator className="mt-1" />
           {!hasSearched && (
-            <CommandGroup heading="⚡ Actions">
+            <CommandGroup heading="Actions">
               <CommandItem
                 value={
                   theme === 'light'
@@ -290,7 +300,7 @@ const SearchDialog = () => {
           <CommandSeparator className="mt-1" />
 
           {!hasSearched && (
-            <CommandGroup heading="🌟 Recently Joined" className="">
+            <CommandGroup heading="Recently joined" className="">
               {data && data.length > 0 &&
                 data
                   ?.filter((p) => p?.username !== (session?.data?.user as any)?.username)
@@ -341,12 +351,10 @@ const SearchDialog = () => {
 const ProfileItem = ({ payload }: { payload: ProfileItemProps }) => {
   return (
     <>
-      <Image
-        src={payload?.profileImage || (payload?.image as string)}
-        alt={payload?.displayName || payload?.name || 'Profile'}
-        width={40}
-        height={40}
-        className="aspect-square size-10 rounded-full border-2 border-neutral-200 dark:border-neutral-700"
+      <PersonAvatar
+        src={payload?.profileImage || payload?.image}
+        name={payload?.displayName || payload?.name || payload?.username}
+        size={40}
       />
 
       <div className="ml-3 flex flex-col items-start justify-start min-w-0 flex-1">

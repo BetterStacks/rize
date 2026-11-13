@@ -2,10 +2,9 @@
 
 import { useDebouncedCallback } from '@mantine/hooks'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { sanitizeHtml } from '@/lib/sanitize'
 import axios from 'axios'
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -23,6 +22,7 @@ import {
     X,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import PersonAvatar from '@/components/explore/person-avatar'
 import { Input } from '@/components/ui/input'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
@@ -124,6 +124,7 @@ export default function SearchPageClient() {
         [router]
     )
 
+    const latestSearch = useRef(0)
     const doSearch = useDebouncedCallback(async (q: string, tab: TabKey, topicIds: string[], skillIds: string[]) => {
         if (!q.trim()) {
             setResults(emptyResults)
@@ -133,6 +134,7 @@ export default function SearchPageClient() {
         }
         setLoading(true)
         setHasSearched(true)
+        const requestId = ++latestSearch.current
         try {
             const res = await axios.get('/api/search', {
                 params: {
@@ -142,11 +144,12 @@ export default function SearchPageClient() {
                     skillIds: skillIds.length > 0 ? skillIds.join(',') : undefined,
                 },
             })
-            setResults(res.data)
+            // Ignore answers to older keystrokes that arrive late.
+            if (requestId === latestSearch.current) setResults(res.data)
         } catch {
-            setResults(emptyResults)
+            if (requestId === latestSearch.current) setResults(emptyResults)
         } finally {
-            setLoading(false)
+            if (requestId === latestSearch.current) setLoading(false)
         }
     }, 350)
 
@@ -502,12 +505,10 @@ function ProfileCard({ item }: { item: any }) {
             href={`/${item.username}`}
             className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
         >
-            <Image
-                src={item.profileImage || item.image || '/placeholder.png'}
-                alt={item.displayName || item.name || ''}
-                width={40}
-                height={40}
-                className="rounded-full size-10 border border-neutral-200 dark:border-neutral-700 object-cover"
+            <PersonAvatar
+                src={item.profileImage || item.image}
+                name={item.displayName || item.name || item.username}
+                size={40}
             />
             <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{item.displayName || item.name}</p>
@@ -566,12 +567,10 @@ function PostCard({ item }: { item: any }) {
             href={`/post/${item.id}`}
             className="flex items-start gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
         >
-            <Image
-                src={item.profileImage || '/placeholder.png'}
-                alt={item.displayName || ''}
-                width={32}
-                height={32}
-                className="size-8 rounded-full border border-neutral-200 dark:border-neutral-700 object-cover shrink-0"
+            <PersonAvatar
+                src={item.profileImage}
+                name={item.displayName || item.username}
+                size={32}
             />
             <div className="flex-1 min-w-0">
                 <p className="text-sm text-neutral-800 dark:text-neutral-200 mb-0.5">
