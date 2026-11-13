@@ -22,7 +22,11 @@ import { TUploadFilesResponse } from "@/lib/types";
 import { cn, isValidUrl } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import {
+  MAX_UPLOAD_BYTES,
+  UPLOAD_MESSAGES,
+  uploadFiles,
+} from "@/lib/prepare-upload";
 import Image from "next/image";
 import { FC, useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -101,6 +105,10 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
   const onDrop = (acceptedFiles: File[]) => {
     if (!acceptedFiles[0]) return;
     const f = acceptedFiles[0];
+    if (!f.type.startsWith("image") && f.size > MAX_UPLOAD_BYTES) {
+      toast.error(UPLOAD_MESSAGES.videoTooLarge);
+      return;
+    }
     setMediaFile({
       id: crypto.randomUUID(),
       url: URL.createObjectURL(f),
@@ -154,12 +162,7 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
 
       let uploadedMedia: TUploadFilesResponse | undefined;
       if (mediaFile) {
-        const fd = new FormData();
-        fd.append("files", mediaFile.file);
-        fd.append("folder", "fyp-stacks/posts");
-        const res = await axios.post("/api/upload/files", fd);
-        if (res.status !== 200) throw new Error("Upload failed");
-        const [resp] = res.data?.data as TUploadFilesResponse[];
+        const [resp] = await uploadFiles([mediaFile.file], "fyp-stacks/posts");
         uploadedMedia = {
           url: resp.url,
           height: resp.height,
@@ -184,7 +187,8 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
       onSuccess?.();
     },
     onError: (err: any) => {
-      toast.error(err?.message || "Error creating post");
+      // Upload errors already carry a plain message.
+      toast.error(err?.message || "Couldn't create the post. Try again.");
     },
   });
 
@@ -250,7 +254,7 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
               Add an image or video
             </h3>
             <span className="text-sm text-neutral-700 dark:text-neutral-400">
-              JPG, PNG, GIF, MP4 up to 10MB
+              Photos are resized for you. GIFs up to 3.5 MB, videos up to 4 MB.
             </span>
             <input {...getInputProps()} />
           </div>

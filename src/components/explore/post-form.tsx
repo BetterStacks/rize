@@ -3,9 +3,15 @@ import { createPost } from "@/actions/post-actions";
 import { getTopics } from "@/actions/post-actions";
 import { queryClient } from "@/lib/providers";
 import { TUploadFilesResponse } from "@/lib/types";
+import axios from "axios";
 import { capitalizeFirstLetter, cn, isValidUrl } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import {
+  MAX_UPLOAD_BYTES,
+  UPLOAD_MESSAGES,
+  uploadErrorMessage,
+  uploadFiles,
+} from "@/lib/prepare-upload";
 import { Hash, Link2, Loader, X } from "lucide-react";
 import { useSession } from "@/hooks/useAuth";
 import Image from "next/image";
@@ -62,6 +68,11 @@ const PostForm = () => {
       type: file.type.startsWith("image") ? "image" : "video",
       file: file,
     }));
+    const first = acceptedFiles[0];
+    if (first && !first.type.startsWith("image") && first.size > MAX_UPLOAD_BYTES) {
+      toast.error(UPLOAD_MESSAGES.videoTooLarge);
+      return;
+    }
     setFile(newFiles[0] as MediaFile);
   };
 
@@ -90,13 +101,7 @@ const PostForm = () => {
     }
 
     if (file) {
-      const formData = new FormData();
-      formData.append("files", file?.file as File);
-      formData.append("folder", "fyp-stacks/posts");
-
-      const res = await axios.post("/api/upload/files", formData);
-      if (res.status !== 200) throw new Error("Upload failed");
-      const [resp] = res.data?.data as TUploadFilesResponse[];
+      const [resp] = await uploadFiles([file.file], "fyp-stacks/posts");
       media = {
         url: resp?.url,
         height: resp?.height,
@@ -123,7 +128,7 @@ const PostForm = () => {
       queryClient.setQueryData(["get-link-metadata"], null);
     },
     onError: (error) => {
-      toast.error("Error creating post");
+      toast.error(uploadErrorMessage(error, "Couldn't create the post. Try again."));
     },
     mutationKey: ["create-post"],
   });

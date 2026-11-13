@@ -1,7 +1,12 @@
 'use client'
 import { queryClient } from '@/lib/providers'
 import { updateProfile } from '@/actions/profile-actions'
-import { getBase64Image, getCroppedImg } from '@/lib/utils'
+import { getCroppedImg } from '@/lib/utils'
+import {
+  prepareAvatarDataUrl,
+  readUploadResponse,
+  uploadErrorMessage,
+} from '@/lib/prepare-upload'
 import { Loader } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
 import React, { FC, useEffect, useState } from 'react'
@@ -113,41 +118,41 @@ const ChangeAvatarDialog: FC<ChangeAvatarDialogProps> = ({ file, setFile }) => {
           <Button
             variant={'outline'}
             onClick={async () => {
+              if (!croppedImage) return
               setIsUploading(true)
-              const url = await getBase64Image(
-                file as File,
-                croppedImage as string
-              )
+              try {
+                const url = await prepareAvatarDataUrl(croppedImage as string)
 
-              const formData = new FormData()
-              formData.append('file', url as string)
-              formData.append('type', 'avatar')
+                const formData = new FormData()
+                formData.append('file', url)
+                formData.append('type', 'avatar')
 
-              const res = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
-              })
-              const data = await res.json()
+                const res = await fetch('/api/upload', {
+                  method: 'POST',
+                  body: formData,
+                })
+                const data = await readUploadResponse<{ url: string }>(res)
+                const resp = await updateProfile({ profileImage: data.url })
 
-              if (!res.ok) {
+                if (!resp?.success && resp.error) {
+                  toast.error(resp?.error as string)
+                  return
+                }
+                // Session will update automatically with better-auth
+                await queryClient.invalidateQueries({
+                  queryKey: ['get-profile-by-username', (session?.user as any)?.username],
+                })
+                toast.success('Profile picture updated successfully')
+                setIsOpen(false)
+              } catch (error) {
+                toast.error(
+                  uploadErrorMessage(error, "Couldn't update your profile picture. Try again.")
+                )
+              } finally {
                 setIsUploading(false)
-                toast.error(`Failed to upload image: ${data.error}`)
-                return
               }
-              const resp = await updateProfile({ profileImage: data.url })
-
-              if (!resp?.success && resp.error) {
-                setIsUploading(false)
-                toast.error(resp?.error as string)
-                return
-              }
-              // Session will update automatically with better-auth
-              await queryClient.invalidateQueries({
-                queryKey: ['get-profile-by-username', (session?.user as any)?.username],
-              })
-              toast.success('Profile picture updated successfully')
-              setIsOpen(false)
             }}
+            disabled={isUploading || !croppedImage}
             className="rounded-lg w-full"
           >
             {isUploading && <Loader className="w-4 h-4 mr-2 animate-spin" />}

@@ -4,7 +4,9 @@ import { uploadToS3, optimizeImage } from "@/lib/s3";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getServerSession } from "@/lib/auth";
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+// Vercel rejects request bodies over 4.5 MB before this code runs, so keep
+// each file comfortably under that. The client shrinks images to fit.
+const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4 MB
 const MAX_FILES_PER_REQUEST = 10;
 const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
@@ -64,8 +66,8 @@ export async function POST(req: NextRequest) {
     for (const file of files) {
       if (file.size > MAX_FILE_SIZE) {
         return Response.json(
-          { success: false, data: null, error: `File "${file.name}" exceeds 10MB limit` },
-          { status: 400 }
+          { success: false, data: null, error: "That file is too large to upload. Files can be up to 4 MB." },
+          { status: 413 }
         );
       }
       if (!allowedTypes.includes(file.type)) {

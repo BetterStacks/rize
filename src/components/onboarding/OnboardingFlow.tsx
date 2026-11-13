@@ -1,4 +1,5 @@
 'use client'
+import { readUploadResponse, uploadErrorMessage } from '@/lib/prepare-upload'
 import { createProfile, updateProfile } from '@/actions/profile-actions'
 import { createProfileAfterOAuth } from '@/actions/auth-actions'
 import { cn } from '@/lib/utils'
@@ -144,18 +145,23 @@ export default function OnboardingFlow({ resumeId }: OnboardingFlowProps) {
         profileImage: string;
         displayName: string;
       }) => {
+        // Only a newly picked photo (a data URL) needs uploading; an existing
+        // image URL stays as it is.
+        if (!data?.profileImage?.startsWith('data:')) {
+          return { url: undefined as string | undefined }
+        }
         const formData = new FormData()
-        formData.append('file', data?.profileImage as string)
+        formData.append('file', data.profileImage)
         formData.append('type', 'avatar')
         const res = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
         })
 
-        return res.json()
+        return readUploadResponse<{ url?: string }>(res)
       },
       onError: (error) => {
-        toast.error(error?.message)
+        toast.error(uploadErrorMessage(error, "Couldn't save your photo. Try again."))
       },
       onSuccess: async (data, params) => {
         const resp = await updateProfile({

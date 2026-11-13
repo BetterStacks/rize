@@ -6,8 +6,13 @@ import {
 import { queryClient } from '@/lib/providers'
 import { TUploadFilesResponse } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import {
+  MAX_SOURCE_IMAGE_BYTES,
+  UPLOAD_MESSAGES,
+  uploadErrorMessage,
+  uploadFiles,
+} from '@/lib/prepare-upload'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import axios from 'axios'
 import { Loader, Trash2, Upload } from 'lucide-react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
@@ -33,9 +38,13 @@ const PageSidebar = () => {
   }, [data?.thumbnail])
 
   const onDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-    if (rejectedFiles && rejectedFiles[0]?.errors) {
-      rejectedFiles[0]?.errors?.map((err) => toast.error(err?.message))
-
+    if (rejectedFiles?.length) {
+      const code = rejectedFiles[0]?.errors?.[0]?.code
+      toast.error(
+        code === 'file-too-large'
+          ? UPLOAD_MESSAGES.imageTooLarge
+          : 'Choose a PNG, JPG or GIF image.'
+      )
       return
     }
     const file = acceptedFiles[0]
@@ -46,7 +55,8 @@ const PageSidebar = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     maxFiles: 1,
-    maxSize: 2 * 1024 * 1024,
+    // Large photos are shrunk in the browser before upload.
+    maxSize: MAX_SOURCE_IMAGE_BYTES,
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
     },
@@ -56,15 +66,9 @@ const PageSidebar = () => {
   })
 
   const { mutate: handleThumbnailUpload, isPending } = useMutation({
-    mutationFn: () => {
-      const formData = new FormData()
-      formData.append('files', file?.file as File)
-      formData.append('folder', 'fyp-stacks/pages')
-      return axios.post('/api/upload/files', formData)
-    },
+    mutationFn: () => uploadFiles([file?.file as File], 'fyp-stacks/pages'),
     onSuccess: async (res) => {
-      const response = res?.data
-      const fileData = response?.data[0] as TUploadFilesResponse
+      const fileData = res[0] as TUploadFilesResponse
       await updatePageThumbnail({
         ...fileData,
         pageId: params?.id as string,
@@ -79,7 +83,7 @@ const PageSidebar = () => {
     },
     onError: (err) => {
       console.error(err)
-      toast.error((err as Error)?.message || 'Error uploading thumbnail')
+      toast.error(uploadErrorMessage(err, "Couldn't update the thumbnail. Try again."))
     },
   })
 

@@ -7,9 +7,14 @@ import GalleryLimit from '@/components/GalleryLimit'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { queryClient } from '@/lib/providers'
-import { bytesToMB, cn, MAX_GALLERY_ITEMS } from '@/lib/utils'
+import { cn, MAX_GALLERY_ITEMS } from '@/lib/utils'
+import {
+	MAX_SOURCE_IMAGE_BYTES,
+	MAX_UPLOAD_BYTES,
+	UPLOAD_MESSAGES,
+	uploadErrorMessage,
+} from '@/lib/prepare-upload'
 import { useMutation } from '@tanstack/react-query'
-import axios from 'axios'
 import { FileImage, Loader, Upload, X } from 'lucide-react'
 import Image from 'next/image'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
@@ -22,12 +27,6 @@ type MediaFile = {
 	url: string
 	type: 'image' | 'video'
 	file: File
-}
-
-const uploadMediaToAPI = async (formData: FormData) => {
-	const res = await axios.post('/api/upload/files', formData)
-	if (res.status !== 200) throw new Error('Upload failed')
-	return res.data?.data
 }
 
 export function GalleryEditor() {
@@ -71,7 +70,15 @@ export function GalleryEditor() {
 	}, [])
 
 	const onDrop = useCallback((acceptedFiles: File[]) => {
-		const newFiles: MediaFile[] = acceptedFiles.map((file) => {
+		// Videos aren't shrunk before upload, so check them now. Images of any
+		// size are shrunk in the browser when they're uploaded.
+		const tooLarge = acceptedFiles.filter(
+			(file) => !isImageFile(file) && file.size > MAX_UPLOAD_BYTES
+		)
+		if (tooLarge.length > 0) toast.error(UPLOAD_MESSAGES.videoTooLarge)
+		const accepted = acceptedFiles.filter((file) => !tooLarge.includes(file))
+
+		const newFiles: MediaFile[] = accepted.map((file) => {
 			const detectedType = isImageFile(file) ? 'image' : 'video'
 
 			// Debug logging for HEIC files
@@ -99,7 +106,11 @@ export function GalleryEditor() {
 		fileRejections.forEach(({ file, errors }) => {
 			errors.forEach((error: any) => {
 				if (error.code === 'file-too-large') {
-					toast.error(`File too large (${bytesToMB(file?.size)}MB). Max 8MB.`)
+					toast.error(
+						isImageFile(file)
+							? UPLOAD_MESSAGES.imageTooLarge
+							: UPLOAD_MESSAGES.videoTooLarge
+					)
 				} else if (error.code === 'file-invalid-type') {
 					toast.error('Invalid file type. Only images and videos allowed.')
 				} else {
@@ -107,14 +118,16 @@ export function GalleryEditor() {
 				}
 			})
 		})
-	}, [])
+	}, [isImageFile])
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop,
 		onDropRejected,
 		multiple: true,
 		disabled: isDisabled,
-		maxSize: 8 * 1024 * 1024, // 8MB
+		// Large photos are shrunk in the browser before upload; videos are
+		// checked against the 4 MB limit in onDrop.
+		maxSize: MAX_SOURCE_IMAGE_BYTES,
 		accept: {
 			'image/*': ['.png', '.jpg', '.jpeg', '.heic', '.heif', '.gif', '.webp', '.bmp', '.tiff'],
 			'video/*': ['.mp4', '.webm', '.mov'],
@@ -133,7 +146,7 @@ export function GalleryEditor() {
 	}, [])
 
 	const { mutate: handleUpload, isPending } = useMutation({
-		mutationFn: uploadMediaToAPI,
+		mutationFn: uploadMedia,
 		onSuccess: async (data) => {
 			// Clean up blob URLs before clearing files
 			files.forEach(file => {
@@ -151,7 +164,7 @@ export function GalleryEditor() {
 			toast.success(`${data.length} media items added!`)
 		},
 		onError: (error) => {
-			toast.error(error?.message || 'Upload failed')
+			toast.error(uploadErrorMessage(error))
 		},
 	})
 
@@ -215,6 +228,9 @@ export function GalleryEditor() {
 											? 'Drop files here...'
 											: 'Drag & Drop images or videos here, or click to select'
 										}
+									</p>
+									<p className="mt-1 text-neutral-500 dark:text-neutral-400 text-xs">
+										Large photos are resized for you. Videos up to 4 MB.
 									</p>
 								</div>
 							</div>

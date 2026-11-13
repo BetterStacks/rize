@@ -38,11 +38,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
+    // Validate file size. Vercel rejects bodies over 4.5 MB before this runs,
+    // so keep the limit under that.
+    if (file.size > 4 * 1024 * 1024) {
       return NextResponse.json(
-        { error: 'File too large. Maximum size is 10MB.' },
-        { status: 400 }
+        { error: 'Resumes can be up to 4 MB for now.' },
+        { status: 413 }
       )
     }
 

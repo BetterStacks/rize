@@ -4,6 +4,7 @@ import { useComment } from "@/hooks/useComment";
 import { queryClient } from "@/lib/providers";
 import { GetCommentWithProfile, TUploadFilesResponse } from "@/lib/types";
 import { cn, isValidUrl } from "@/lib/utils";
+import { uploadErrorMessage, uploadFiles } from "@/lib/prepare-upload";
 import { useMediaQuery } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -322,19 +323,22 @@ const CommentForm: FC<TCommentForm> = ({ id, orderBy }) => {
 
               if (file) {
                 setIsUploadingMedia(true);
-                const formData = new FormData();
-                formData.append("files", file?.file as File);
-                formData.append("folder", "fyp-stacks/posts");
-
-                const res = await axios.post("/api/upload/files", formData);
-                if (res.status !== 200) throw new Error("Upload failed");
-                const [resp] = res.data?.data as TUploadFilesResponse[];
-                media = {
-                  url: resp?.url,
-                  height: resp?.height,
-                  width: resp?.width,
-                };
-                setIsUploadingMedia(false);
+                try {
+                  const [resp] = await uploadFiles(
+                    [file.file],
+                    "fyp-stacks/posts",
+                  );
+                  media = {
+                    url: resp?.url,
+                    height: resp?.height,
+                    width: resp?.width,
+                  };
+                } catch (err) {
+                  toast.error(uploadErrorMessage(err));
+                  return;
+                } finally {
+                  setIsUploadingMedia(false);
+                }
               }
               // capture current form values so we can restore them if posting fails
               const prevValues = { content, file, link };

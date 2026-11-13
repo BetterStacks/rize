@@ -2,7 +2,14 @@
 
 import { updateProfile } from '@/actions/profile-actions'
 import { queryClient } from '@/lib/providers'
-import { getBase64Image, getCroppedImg } from '@/lib/utils'
+import { getCroppedImg } from '@/lib/utils'
+import {
+  MAX_SOURCE_IMAGE_BYTES,
+  UPLOAD_MESSAGES,
+  prepareAvatarDataUrl,
+  readUploadResponse,
+  uploadErrorMessage,
+} from '@/lib/prepare-upload'
 import { motion } from 'framer-motion'
 import { Camera, Palette, Upload, Loader, ArrowLeft } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
@@ -90,11 +97,12 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
     const selectedFile = e.target.files?.[0]
     if (!selectedFile) return
 
-    const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+    // The cropped avatar is shrunk to 1024px before upload, so the source
+    // photo can be large.
     const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
-    if (selectedFile.size > MAX_FILE_SIZE) {
-      toast.error('File size is too large (max 5MB)')
+    if (selectedFile.size > MAX_SOURCE_IMAGE_BYTES) {
+      toast.error(UPLOAD_MESSAGES.imageTooLarge)
       return
     }
     if (!ACCEPTED_IMAGE_TYPES.includes(selectedFile.type)) {
@@ -112,22 +120,17 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
 
     setIsUploading(true)
     try {
-      const url = await getBase64Image(file, croppedImage)
+      const url = await prepareAvatarDataUrl(croppedImage)
 
       const formData = new FormData()
-      formData.append('file', url as string)
+      formData.append('file', url)
       formData.append('type', 'avatar')
 
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       })
-      const data = await res.json()
-
-      if (!res.ok) {
-        toast.error(`Failed to upload image: ${data.error}`)
-        return
-      }
+      const data = await readUploadResponse<{ url: string }>(res)
 
       const resp = await updateProfile({ profileImage: data.url })
 
@@ -143,7 +146,7 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
       toast.success('Profile picture updated successfully')
       handleClose()
     } catch (error) {
-      toast.error('Failed to update profile picture')
+      toast.error(uploadErrorMessage(error, "Couldn't update your profile picture. Try again."))
     } finally {
       setIsUploading(false)
     }
