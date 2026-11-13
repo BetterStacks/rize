@@ -5,6 +5,7 @@ import { Home, Compass, Plus, Bell, User } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from '@/hooks/useAuth'
+import { useNotificationsUnread } from '@/hooks/useNotificationsUnread'
 import { usePostsDialog } from '../dialog-provider'
 import { cn } from '@/lib/utils'
 
@@ -15,13 +16,15 @@ interface NavItem {
   href?: string
   action?: () => void
   special?: boolean
-  badge?: number
+  /** A small dot for new activity. */
+  dot?: boolean
 }
 
 export function BottomNav() {
   const pathname = usePathname()
   const session = useSession()
   const setCreateOpen = usePostsDialog()[1]
+  const hasUnread = useNotificationsUnread()
   
   const navItems: NavItem[] = [
     {
@@ -48,7 +51,7 @@ export function BottomNav() {
       icon: Bell,
       label: 'Notifications',
       href: '/notifications',
-      badge: 3, // Example badge count
+      dot: hasUnread,
     },
     {
       id: 'profile',
@@ -83,6 +86,7 @@ export function BottomNav() {
             const NavButton = (
               <motion.button
                 key={item.id}
+                aria-label={item.dot ? `${item.label}, new activity` : item.label}
                 className={cn(
                   'relative flex flex-col items-center justify-center p-2 rounded-2xl transition-all',
                   active ? 'text-purple-600 dark:text-main-yellow' : 'text-neutral-600 dark:text-neutral-100'
@@ -102,15 +106,12 @@ export function BottomNav() {
                     item.special ? 'text-black w-7 h-7' : ''
                   )} />
                   
-                  {/* Badge */}
-                  {item.badge && item.badge > 0 && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium"
-                    >
-                      {item.badge > 99 ? '99+' : item.badge}
-                    </motion.div>
+                  {/* New activity dot */}
+                  {item.dot && (
+                    <span
+                      aria-hidden
+                      className="absolute right-1.5 top-1.5 size-2 rounded-full bg-brand ring-2 ring-ground"
+                    />
                   )}
                 </div>
                 

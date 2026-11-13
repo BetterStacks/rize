@@ -1,11 +1,11 @@
 'use client'
 import { useSession } from '@/hooks/useAuth'
+import { useNotificationsUnread } from '@/hooks/useNotificationsUnread'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { Bell, Compass, Edit3, Plus, Search, Settings, UserRound } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import {
   useAuthDialog,
   usePostsDialog,
@@ -17,10 +17,10 @@ import { Separator } from '../ui/separator'
 
 const Sidebar = ({ className }: { className?: string }) => {
   const session = useSession()
-  const router = useRouter()
   const setIsPostDialogOpen = usePostsDialog()[1]
   const setIsAuthDialogOpen = useAuthDialog()[1]
   const setIsSearchDialogOpen = useSearchDialog()[1]
+  const hasUnread = useNotificationsUnread()
 
   const options = [
     { name: "Explore", icon: Compass, href: "/explore", needAuth: false },
@@ -113,19 +113,25 @@ const Sidebar = ({ className }: { className?: string }) => {
           </>
         )} */}
         {(session?.data ? options : options.filter((option, i) => !option.needAuth)).map((option, i) => (
-          option?.href ? <Link key={i} href={option.href}>
-            <Button
-              variant={'ghost'}
-              className="rounded-full size-10 group relative"
-              size={'icon'}
-              onClick={() => {
-                router.push('/')
-              }}
-              title={option?.name}
+          option?.href ? <Button
+            key={i}
+            asChild
+            variant={'ghost'}
+            className="rounded-full size-10 group relative"
+            size={'icon'}
+            title={option?.name}
+          >
+            <Link
+              href={option.href}
+              aria-label={option.href === '/notifications' && hasUnread ? 'Notifications, new activity' : option.name}
             >
               <option.icon strokeWidth={2} className="size-5 opacity-80 group-hover:opacity-100 transition-opacity" />
-            </Button>
-          </Link> : <Button
+              {option.href === '/notifications' && hasUnread && (
+                <span aria-hidden className="absolute right-2 top-2 size-2 rounded-full bg-brand ring-2 ring-ground" />
+              )}
+            </Link>
+          </Button> : <Button
+            aria-label={option.name === 'Plus' ? 'Create a post' : option.name}
             key={i}
             variant={'ghost'}
             className="rounded-full size-10 group relative"
