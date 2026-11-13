@@ -40,7 +40,7 @@ const BentoGrid = () => {
               className={cn(
                 'bg-surface text-ink h-[500px] border border-hairline flex flex-col rounded-[2.3rem] w-full overflow-hidden relative ',
                 index === 0 && 'md:col-span-2 bg-subtle',
-                index === 1 && 'md:col-span-3 bg-highlight border-paper-border',
+                index === 1 && 'md:col-span-3 bg-highlight border-paper-border dark:bg-surface dark:border-brand/40',
                 index === 2 && 'md:col-span-3 bg-ink text-on-ink border-ink dark:bg-surface dark:text-ink dark:border-hairline',
                 index === 3 && 'md:col-span-2 ',
                 index === 4 && 'md:col-span-5 h-[450px] '
