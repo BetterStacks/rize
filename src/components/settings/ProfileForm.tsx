@@ -224,7 +224,7 @@ export function ProfileForm({ className, bare = false }: TProfileFormProps) {
                     size="smallIcon"
                     variant="outline"
                     type="button"
-                    aria-label="Keep the old photo"
+                    aria-label="Remove the new photo"
                     className="absolute -bottom-1 -right-1 size-7 rounded-full"
                     onClick={() => setAvatarFile(null)}
                   >

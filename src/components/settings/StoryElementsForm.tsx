@@ -15,11 +15,24 @@ import {
 } from '@/actions/story-actions'
 import { StoryElement } from '@/components/story/story-element'
 import { AlertCircle } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { buttonVariants } from '@/components/ui/button'
 
 export function StoryElementsForm() {
-  const { data: session } = useSession()
+  const { data: session, isPending: sessionPending } = useSession()
   const queryClient = useQueryClient()
   const [isPending, startTransition] = useTransition()
+  // The story waiting for a yes in the delete dialog.
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { data: storyElementsData, isLoading } = useQuery({
     queryKey: ['my-story-elements'],
@@ -112,10 +125,8 @@ export function StoryElementsForm() {
   }, [updateMutation])
 
   const handleDeleteElement = useCallback((elementId: string) => {
-    if (window.confirm('Are you sure you want to delete this story element?')) {
-      deleteMutation.mutate(elementId)
-    }
-  }, [deleteMutation])
+    setDeleteId(elementId)
+  }, [])
 
   const handleToggleVisibility = useCallback((elementId: string, isPublic: boolean) => {
     startTransition(async () => {
@@ -151,6 +162,18 @@ export function StoryElementsForm() {
     })
   }, [queryClient])
 
+  // Wait for the session and the list before showing anything, so the prompt
+  // picker doesn't open on an empty first render for people who have stories.
+  if (sessionPending || (!!session?.user?.id && isLoading)) {
+    return (
+      <div aria-busy="true" aria-label="Loading your stories" className="space-y-3 motion-safe:animate-pulse">
+        <div className="h-4 w-24 rounded-lg bg-subtle" />
+        <div className="h-4 w-full rounded-lg bg-subtle" />
+        <div className="h-4 w-2/3 rounded-lg bg-subtle" />
+      </div>
+    )
+  }
+
   if (!session?.user?.id) {
     return <p className="text-sm text-ink-secondary">Sign in to add your story.</p>
   }
@@ -174,8 +197,29 @@ export function StoryElementsForm() {
         onDeleteElement={handleDeleteElement}
         onToggleVisibility={handleToggleVisibility}
         onReorderElements={handleReorderElements}
-        isLoading={isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending || isPending}
+        isLoading={createMutation.isPending || updateMutation.isPending || deleteMutation.isPending || isPending}
       />
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this story?</AlertDialogTitle>
+            <AlertDialogDescription>It comes off your profile. This can&apos;t be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: 'destructive' })}
+              onClick={() => {
+                if (deleteId) deleteMutation.mutate(deleteId)
+                setDeleteId(null)
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
