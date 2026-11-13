@@ -6,6 +6,7 @@ import urlMetadata from "url-metadata";
 import { z } from "zod";
 import { getServerSession } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { safeFetch } from "@/lib/safe-url";
 
 // Both actions fetch remote URLs and one calls an AI model, so they need a
 // signed-in user and share the AI rate limit.
@@ -86,7 +87,8 @@ export const getProjectMetadataFromUrl = async (payload: {
   const normalizedUrl = normalizeUrl(parsed.data.url);
 
   try {
-    const metadata = (await urlMetadata(normalizedUrl)) as Record<string, unknown>;
+    const response = await safeFetch(normalizedUrl);
+    const metadata = (await urlMetadata(null, { parseResponseObject: response })) as Record<string, unknown>;
     console.log({ metadata: JSON.stringify(metadata, null, 2) })
     const name =
       pickFirst(metadata.title, metadata["og:title"], metadata["twitter:title"]) ||
@@ -135,16 +137,29 @@ export const getProjectMetadataFromUrl = async (payload: {
   }
 };
 
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
 export const fetchImageAsBase64 = async (url: string): Promise<{ ok: boolean; data?: { base64: string; contentType: string }; error?: string }> => {
   const denied = await requireAiQuota();
   if (denied) return { ok: false, error: denied };
 
   try {
-    const response = await fetch(url);
+    const response = await safeFetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
     }
+    const type = response.headers.get("content-type") || "";
+    if (!type.startsWith("image/")) {
+      throw new Error("That link isn't an image");
+    }
+    const declared = Number(response.headers.get("content-length") || 0);
+    if (declared > MAX_IMAGE_BYTES) {
+      throw new Error("Image is too large");
+    }
     const blob = await response.blob();
+    if (blob.size > MAX_IMAGE_BYTES) {
+      throw new Error("Image is too large");
+    }
     const buffer = Buffer.from(await blob.arrayBuffer());
     const base64 = buffer.toString("base64");
     const contentType = response.headers.get("content-type") || "image/png";
