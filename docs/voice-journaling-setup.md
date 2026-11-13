@@ -34,7 +34,7 @@ Nothing on the phone numbers changes.
 
 ### 2b. Dial-back (users calling the Rize number)
 So people can call back a missed call: Twilio → Phone Numbers → the `TWILIO_PHONE_NUMBER` number → **Voice configuration** → "A call comes in": **Webhook**, `https://www.rize.so/api/voice/twilio/incoming`, **HTTP POST**. Save.
-A caller whose number is verified on a Rize account gets the same AI as a "Call me" call (journal or onboarding, recorded, 12-minute cap). Anyone else hears a short message on how to verify their number.
+A caller whose number is verified on a Rize account gets a journal call (recorded, 12-minute cap). Calls into the number never run the onboarding flow or write to the profile, because caller ID can be spoofed; they can only produce private drafts. Anyone else hears a short message on how to verify their number.
 
 ### 3. Cloudflare R2
 1. Use the bucket in `R2_BUCKET`, kept private (no public access).

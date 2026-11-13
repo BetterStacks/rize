@@ -1,7 +1,6 @@
 import { users, voiceCalls } from "@/db/schema";
 import db from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { loadCallerContext, needsOnboarding } from "@/lib/voice/prompt";
 import { incomingCallTwiml, readTwilioForm, sayAndHangupTwiml } from "@/lib/voice/twilio";
 import { and, desc, eq, gt, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -55,16 +54,15 @@ export async function POST(req: Request) {
     return twiml(sayAndHangupTwiml("You've reached today's call limit. Please try again tomorrow."));
   }
 
-  const ctx = await loadCallerContext(user.id);
-  const kind = needsOnboarding(ctx) ? "onboarding" : "journal";
+  // Caller ID can be spoofed, so a call into the Rize number is always a
+  // journal call: it can only produce private drafts the account owner reviews,
+  // never profile writes (which only the onboarding call makes).
+  const kind = "journal" as const;
 
   const [call] = await db
     .insert(voiceCalls)
     .values({ userId: user.id, kind, status: "ringing", twilioCallSid: params.CallSid })
     .returning({ id: voiceCalls.id });
-  if (kind === "onboarding") {
-    await db.update(users).set({ onboardingCallId: call.id }).where(eq(users.id, user.id));
-  }
 
   return twiml(incomingCallTwiml(call.id));
 }
