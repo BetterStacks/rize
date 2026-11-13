@@ -113,8 +113,9 @@ export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts
             Voice journal
           </CardTitle>
           <CardDescription>
-            We call you, ask about what you've been working on (Hindi or English), and turn it into 2–3
-            draft posts in your own words. Calls last up to 12 minutes. Nothing is posted until you publish it.
+            Rize's AI calls you and asks about one thing from your week, in Hindi or English. Calls take about
+            five minutes. If something you said would make a good post, you'll find a draft cut from your own words.
+            Nothing is posted until you publish it.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

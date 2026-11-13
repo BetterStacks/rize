@@ -73,6 +73,8 @@ type SidebandOptions = {
   sessionId: string;
   // Ask the assistant to wrap up at this point (ms after attach)
   wrapUpAfterMs: number;
+  // What the assistant is told at the wrap-up point
+  wrapUpMessage: string;
   // Send `session.close` at this point
   closeAfterMs: number;
   // Hang up and stop waiting at this point, whatever happens
@@ -127,8 +129,7 @@ export function runSideband(opts: SidebandOptions): Promise<SidebandResult> {
           type: "session.instructions.append",
           event_id: "wrap_up",
           delegation_id: null,
-          content:
-            "Time is almost up. Finish the current thought, thank them warmly, tell them their drafts will be ready in Rize shortly, and say goodbye.",
+          content: opts.wrapUpMessage,
         });
       }, opts.wrapUpAfterMs),
       setTimeout(() => send({ type: "session.close" }), opts.closeAfterMs),

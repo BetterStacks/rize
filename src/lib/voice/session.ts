@@ -7,9 +7,24 @@ import { runSideband } from "./openai-live";
 // Timeline inside one Vercel function (maxDuration 800s on Pro, Fluid Compute).
 // Measured from when the OpenAI webhook arrives, i.e. right after the user answers.
 export const FUNCTION_MAX_DURATION_SECONDS = 800;
-const WRAP_UP_AFTER_MS = 10 * 60 * 1000; // ask the assistant to wrap up
-const CLOSE_AFTER_MS = 11 * 60 * 1000; // send session.close
-const HARD_STOP_AFTER_MS = 11 * 60 * 1000 + 40 * 1000; // hang up + stop waiting (700s)
+// Journal calls aim for about 4.5 minutes (Rize Call Script); onboarding runs
+// a little longer. The wrap-up nudge does the real work; session.close and the
+// hard stop are backstops for calls that run on.
+const TIMINGS = {
+  journal: {
+    wrapUpAfterMs: 4 * 60 * 1000 + 30 * 1000,
+    closeAfterMs: 8 * 60 * 1000,
+    hardStopAfterMs: 8 * 60 * 1000 + 40 * 1000,
+  },
+  onboarding: {
+    wrapUpAfterMs: 6 * 60 * 1000 + 30 * 1000,
+    closeAfterMs: 11 * 60 * 1000,
+    hardStopAfterMs: 11 * 60 * 1000 + 40 * 1000, // 700s, the longest any call can hold the function
+  },
+} as const;
+
+const WRAP_UP_MESSAGE =
+  "Time is almost up. If they're mid-story, let them finish the thought. Then reflect back one line in their own words, thank them, say nothing goes public unless they say so, and say goodbye. If they're upset or in distress, don't rush them: stay kind, make sure they have the helpline, and close gently.";
 // Leaves ~100s for saving the transcript and generating drafts.
 const POST_PROCESS_BUDGET_MS = 80 * 1000;
 const TRANSCRIPT_FLUSH_MS = 20 * 1000;
@@ -43,9 +58,8 @@ export async function holdCallSession(callId: string, sessionId: string, kind: "
 
   const result = await runSideband({
     sessionId,
-    wrapUpAfterMs: WRAP_UP_AFTER_MS,
-    closeAfterMs: CLOSE_AFTER_MS,
-    hardStopAfterMs: HARD_STOP_AFTER_MS,
+    ...TIMINGS[kind],
+    wrapUpMessage: WRAP_UP_MESSAGE,
     onTranscript: (transcript) => {
       latest = transcript;
       if (Date.now() - lastFlush > TRANSCRIPT_FLUSH_MS) flush();
