@@ -34,7 +34,7 @@ bun run build        # catches what tsc misses (server/client boundaries, route 
 
 ### Production data and the database
 
-- **The `DATABASE_URL` in local `.env` points at the production database.** It's the same host as `.env.prod`. Any script you run locally against it changes real users' data. For development, use a local or branch database (a Neon branch works).
+- **Assume a `DATABASE_URL` you didn't create yourself is production.** Check the host before running anything that writes. For development, use a local or branch database (a Neon branch works).
 - **Never run `drizzle-kit push`, `drizzle-kit migrate` or `drop-database.js` against production.** The migration history has drifted: some migrations sit in `drizzle/applied/`, and local checkouts have had untracked migration files with clashing numbers. To change prod, write the SQL, show it for review, and **Tanay applies it.**
 - Reading prod to answer a question is fine. Use a read-only transaction (`PGOPTIONS='-c default_transaction_read_only=on'`), and report counts and ids, not personal details.
 - Seed, import and email scripts in `src/scripts/` act on real people. Don't run them without an explicit go from Tanay for that specific run.
