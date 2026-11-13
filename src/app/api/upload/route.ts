@@ -5,17 +5,22 @@ import { checkRateLimit } from '@/lib/rate-limit'
 import sharp from 'sharp'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+// This route only takes images (avatars and gallery images).
+const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif']
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'anonymous';
-  const { success, response } = await checkRateLimit('upload', ip);
+  const session = await requireAuth().catch(() => null)
+  if (!session) {
+    return Response.json({ message: 'Sign in to upload files' }, { status: 401 })
+  }
+
+  const { success, response } = await checkRateLimit('upload', session.user.id);
   if (!success) return response!;
 
   try {
     const data = await req.formData()
     const type = data.get('type') as string
     const files = data.getAll('file')
-    const session = await requireAuth()
     const results: string[] = []
 
     if (!files || files.length === 0) {
@@ -38,6 +43,13 @@ export async function POST(req: NextRequest) {
         fileName = `file_${Date.now()}.png`;
       } else {
         throw new Error('Unsupported file format');
+      }
+
+      if (!ALLOWED_IMAGE_TYPES.includes(contentType)) {
+        throw new Error('Only images can be uploaded here');
+      }
+      if (fileBuffer.length > MAX_FILE_SIZE) {
+        throw new Error('File exceeds 10MB limit');
       }
 
       const options: any = {

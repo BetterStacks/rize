@@ -41,7 +41,7 @@ export const auth = betterAuth({
               code,
             });
           const status = response?.status
-          console.log(`[Twilio] OTP verified for ${phoneNumber}: Status:${status}`);
+          console.log(`[Twilio] OTP verification status: ${status}`);
           return status === "approved"
 
         } catch (error: any) {
@@ -59,7 +59,7 @@ export const auth = betterAuth({
             channel: "sms",
           })
 
-          console.log(`[Twilio] OTP sent successfully to ${phoneNumber}`);
+          console.log('[Twilio] OTP sent');
         } catch (error: any) {
           console.error(`[Twilio] Error sending OTP to ${phoneNumber}:`, {
             code: error.code,
