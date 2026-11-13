@@ -50,15 +50,15 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({
     if (!check.available) {
       toast.dismiss()
       const errorMessage = check.reason === 'reserved'
-        ? 'This username is reserved and cannot be claimed'
-        : 'Username already taken'
+        ? 'That name is reserved. Try another one.'
+        : 'That name is taken. Try another one.'
       toast.error(errorMessage)
       setError(errorMessage)
       setIsSearching(false)
       setIsAvailable(false)
     } else {
       toast.dismiss()
-      toast.success('Username is available')
+      toast.success('That name is free')
       setError(null)
       setIsSearching(false)
       setIsAvailable(true)
@@ -76,51 +76,53 @@ const ClaimUsernameForm: FC<ClaimUsernameFormProps> = ({
     >
       <div
         className={cn(
-          'w-full border mt-2 border-neutral-400/60 overflow-hidden dark:border-none rounded-3xl text-lg md:text-xl  p-1 flex items-center justify-center bg-white dark:bg-neutral-900',
+          'w-full border mt-2 border-hairline overflow-hidden rounded-3xl text-lg md:text-xl p-1 flex items-center justify-center bg-surface text-ink focus-within:border-ink',
           className
         )}
       >
         <div
           className={cn(
-            'px-3  ml-0.5 border border-neutral-300 dark:border-none py-1 bg-white dark:bg-dark-border rounded-3xl shadow-lg ',
+            'px-3 ml-0.5 border border-hairline py-1 bg-subtle rounded-3xl',
             badgeClassName
           )}
         >
-          <span className="tracking-tight text-neutral-700 dark:text-neutral-300 ">
+          <span className="tracking-tight text-ink-secondary">
             rize.so
           </span>
         </div>
         <div className="w-full flex items-center justify-center mx-1">
-          <span className="dark:text-neutral-500 opacity-50 pr-0.5">/</span>
+          <span aria-hidden="true" className="text-ink-secondary pr-0.5">/</span>
           <input
             type="text"
-            placeholder="your-username"
+            aria-label="Username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder="your-name"
             value={username}
             onChange={(e) => {
               setUsername(e.target.value?.trim())
               handleCheck(e.target.value?.trim())
             }}
-            className="text-lg w-full dark:text-opacity-80 bg-transparent dark:placeholder:text-neutral-500 focus-visible:outline-none"
+            className="text-lg w-full bg-transparent text-ink placeholder:text-ink-secondary/70 focus-visible:outline-none"
           />
         </div>
         {isSearching ? (
-          <Loader className="animate-spin size-6 mr-4" />
+          <Loader aria-label="Checking" className="animate-spin size-6 mr-4 text-ink-secondary" />
         ) : (
           <Button
             type="submit"
             disabled={!isAvailable || isSearching!}
+            variant="brand"
             size={isDesktop ? 'default' : 'sm'}
-            className={cn(
-              'rounded-3xl  bg-black text-white dark:bg-white dark:text-neutral-800 hover:dark:bg-neutral-100 dark:hover:bg-neutral-300',
-              buttonClassName
-            )}
+            className={cn('rounded-3xl', buttonClassName)}
           >
             Claim
           </Button>
         )}
       </div>
       {error && (
-        <p className="text-sm text-red-500 leading-tight px-3 mt-2">{error}</p>
+        <p role="alert" className="text-sm text-danger leading-tight px-3 mt-2">{error}</p>
       )}
     </form>
   )

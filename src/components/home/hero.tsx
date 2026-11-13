@@ -9,20 +9,20 @@ import {
   useTransform,
   Variants,
 } from 'framer-motion'
-import { Star } from 'lucide-react'
+import { BookLock, Lock, PenLine, Phone } from 'lucide-react'
 import { useSession } from '@/hooks/useAuth'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FC, useRef, useState } from 'react'
 import ClaimUsernameForm from '../claim-username'
 import Logo from '../logo'
 import { CreativeAvatar } from '../ui/creative-avatar'
-import { ProfileContainer } from '../window'
+import { GalleryTile, ProfileContainer } from '../window'
+import { MockProfileWindow } from './mock-profile-card'
 
-const heading = 'Own Your Story \n Not Just Your Resume'
+const heading = 'Your story, \n in your own words.'
 const description =
-  'Because your journey is more than bullet points. Share your growth,\n projects, and adventures in a way that\'s uniquely you.'
+  'Rize calls you, asks one good question about your week and keeps what you say\n in a private journal. When something\'s worth sharing, you get a post made from your own words.'
 
 const headingVariants: Variants = {
   initial: {
@@ -127,75 +127,57 @@ const itemVariants: Variants = {
   },
 }
 
-export const usedByAvatars = [
-  'https://i.pinimg.com/736x/6e/81/48/6e8148281a25fb25230a983b09371ae5.jpg',
-  'https://i.pinimg.com/736x/59/59/52/5959526847cf6be79778c37505604411.jpg',
-  'https://i.pinimg.com/736x/cf/6e/c4/cf6ec445df41899479978aa16f05c996.jpg',
-  'https://i.pinimg.com/736x/0d/00/fa/0d00faf7e0a04fe724ecd886df774e4c.jpg',
-  'https://i.pinimg.com/736x/af/6c/76/af6c761bac0ef8d3e5f775fe1200b1a9.jpg',
-  'https://i.pinimg.com/736x/70/5a/2c/705a2c53fa0b166937c6847410ccb3d5.jpg',
-  'https://lh3.googleusercontent.com/a/AEdFTp6zJR7vEcGJmGFt0Gxk2Ech8ic0LGCVTPDTB95lVpg=s256-c',
-]
-
-const avatars = [
-  'https://i.pinimg.com/736x/6e/81/48/6e8148281a25fb25230a983b09371ae5.jpg',
-  'https://i.pinimg.com/736x/59/59/52/5959526847cf6be79778c37505604411.jpg',
-  'https://i.pinimg.com/736x/cf/6e/c4/cf6ec445df41899479978aa16f05c996.jpg',
-  'https://i.pinimg.com/736x/0d/00/fa/0d00faf7e0a04fe724ecd886df774e4c.jpg',
-  'https://i.pinimg.com/736x/af/6c/76/af6c761bac0ef8d3e5f775fe1200b1a9.jpg',
-  'https://i.pinimg.com/736x/70/5a/2c/705a2c53fa0b166937c6847410ccb3d5.jpg',
-  'https://lh3.googleusercontent.com/a/AEdFTp6zJR7vEcGJmGFt0Gxk2Ech8ic0LGCVTPDTB95lVpg=s256-c',
-]
-const items = [
+// Example profiles for the scroll showcase. Names, handles and bios are made up.
+// Avatars use initials on purpose: no photos of real people next to invented names.
+const items: GalleryTile[] = [
   '/mock_profiles/1/image_1.png',
   '/mock_profiles/1/image_2.png',
-  '/mock_profiles/1/image_3.png',
+  { note: 'Showed my sketchbook to someone for the first time.' },
   '/mock_profiles/1/image_4.png',
   '/mock_profiles/1/image_5.png',
 ]
 
-const displayNames = [
+const displayNames: {
+  username: string;
+  name: string;
+  bio: string;
+  avatar: string | null;
+  gallery: GalleryTile[];
+  projects?: { name: string; link: string; description: string }[];
+  writings?: { title: string; description: string; thumbnail: string }[];
+}[] = [
   {
-    username: 'ashhhwwinnn',
-    name: 'Ashwin Parande🌻🌊',
-    bio: `Blessed Stressed and Football obsessed 🌱💫
-    MUACM Techical Head | Footballer by passion, Creative by destiny`,
-    avatar: '/mock_profiles/1/avatar.png',
+    username: 'meera.makes',
+    name: 'Meera',
+    bio: 'Second-year design student. Sketchbooks, slow mornings and one very good dog.',
+    avatar: null,
     gallery: items,
   },
   {
-    username: 'haileyvannn',
-    banner:
-      'https://i.pinimg.com/736x/0b/ec/ed/0becedda2022942f1a991eddd04d3b57.jpg',
-    name: 'Hailey Van🌻🌊',
-    bio: `Blessed Stressed and Football obsessed 🌱💫
-    MUACM Techical Head | Footballer by passion, Creative by destiny`,
-    avatar:
-      'https://i.pinimg.com/736x/94/3e/46/943e468e2193f42206c4640dfec13ea4.jpg',
+    username: 'kabir.builds',
+    name: 'Kabir',
+    bio: 'Building small tools for my college club. Shipping things, breaking things, talking about both.',
+    avatar: null,
     gallery: items,
     projects: [
       {
-        name: 'pluto.ai',
-        link: 'https://pluto.ai',
+        name: 'Hostel lost & found',
+        link: '',
         description:
-          'AI powered platform for creating and managing your own AI agents',
-        // image:"https://i.pinimg.com/736x/0b/ec/ed/0becedda2022942f1a991eddd04d3b57.jpg"
+          'A tiny site our hostel uses to return lost things. Built over one long weekend.',
       },
       {
-        name: 'make.ai',
-        link: 'https://make.ai',
-        description: 'Create your own AI agents with ease',
-        // image:"https://i.pinimg.com/736x/0b/ec/ed/0becedda2022942f1a991eddd04d3b57.jpg"
+        name: 'Mess menu bot',
+        link: '',
+        description: 'Sends the day\'s menu to forty friends every morning. Mostly for me.',
       },
     ],
   },
   {
-    username: 'singhrajat',
-    banner:
-      'https://i.pinimg.com/736x/0b/ec/ed/0becedda2022942f1a991eddd04d3b57.jpg',
-    name: 'Rajat Singh 🍵💫',
-    bio: 'Caffe Hoping in Delhi | Fashion Enthusiast | on a mission to redefine style and elegance',
-    avatar: avatars[3],
+    username: 'tara.wears',
+    name: 'Tara',
+    bio: 'Café hopping in Delhi, thrifting on weekends, styling my friends for free.',
+    avatar: null,
     gallery: [
       'https://i.pinimg.com/736x/d6/c2/e4/d6c2e416f4f5b6f59fad89f6c7f138fe.jpg',
       'https://i.pinimg.com/736x/f6/6b/d6/f66bd6960d1907de075ea330a13d4858.jpg',
@@ -205,17 +187,14 @@ const displayNames = [
     ],
   },
   {
-    username: 'linusatwork',
-    banner:
-      'https://i.pinimg.com/736x/0b/ec/ed/0becedda2022942f1a991eddd04d3b57.jpg',
-    name: 'Linus Mathew 🐉🌌',
-    bio: 'Content Creator by passion, Developer by profession | Exploring the intersection of technology and creativity',
-    avatar: avatars[1],
+    username: 'dev.after.dark',
+    name: 'Dev',
+    bio: 'Developer by day, making videos about it at night. Mostly about getting stuck and unstuck.',
+    avatar: null,
     writings: [
       {
-        title:
-          'How to understand hard CS concepts and scale applications using the Black Box method',
-        description: 'A journey of self-discovery and growth',
+        title: 'The week recursion finally clicked (on a bus, of all places)',
+        description: 'A post from one of my calls',
         thumbnail:
           'https://i.pinimg.com/736x/11/25/7b/11257b84f71336ba7e78574d24189fc2.jpg',
       },
@@ -228,6 +207,13 @@ const displayNames = [
       'https://i.pinimg.com/736x/a8/4f/2b/a84f2bffe3cb7ce568da6c88f60770ca.jpg',
     ],
   },
+]
+
+// What the hero promises, in three small steps (replaces the old avatar stack).
+const steps = [
+  { icon: Phone, label: 'A short call' },
+  { icon: BookLock, label: 'A private journal' },
+  { icon: PenLine, label: 'Posts in your words' },
 ]
 
 const HeroSection = () => {
@@ -292,7 +278,7 @@ const HeroSection = () => {
     >
       {isSessionLoading ? (
         <div className="absolute top-4 right-4 z-50">
-          <div className="size-10 md:size-12 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
+          <div className="size-10 md:size-12 rounded-full bg-subtle animate-pulse" />
         </div>
       ) : session?.data?.user ? (
         <Link
@@ -314,22 +300,20 @@ const HeroSection = () => {
         <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
           <Link
             href="/login"
-            className="px-4 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-ink-secondary hover:text-ink rounded-lg transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
           >
-            Login
+            Log in
           </Link>
           <Link
             href="/signup"
-            className="px-4 py-2 text-sm font-medium bg-black text-white dark:bg-white dark:text-black rounded-lg hover:opacity-90 transition-opacity"
+            className="px-4 py-2 text-sm font-medium bg-ink text-on-ink rounded-lg hover:opacity-90 transition-opacity duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-ground"
           >
-            Sign Up
+            Sign up
           </Link>
         </div>
       )}
       <div className="w-fit md:mt-16 mb-32 relative">
         <motion.div className="flex flex-col  items-center justify-center md:mt-24 gap-3 relative">
-          <div className="absolute top-24 -left-14 blur-[100px] -z-10 size-[250px] rounded-full bg-gradient-to-b dark:from-purple-700/60 dark:to-purple-500/60 from-purple-500/80 to-purple-200 " />
-          <div className="absolute  top-48 -right-14 blur-[100px] -z-10 size-[250px] rounded-full bg-gradient-to-b dark:from-blue-700/60 dark:to-blue-500/60 from-blue-500/80 to-blue-200 " />
           <motion.div
             className="mb-3 md:mb-6 relative overflow-hidden size-12 md:size-14"
             variants={imageVariants}
@@ -343,7 +327,7 @@ const HeroSection = () => {
             variants={headingVariants}
             initial="initial"
             animate="animate"
-            className="text-4xl font-inter text-black dark:text-white md:text-5xl space-x-2  text-center font-semibold md:font-bold tracking-tighter leading-none relative "
+            className="text-5xl font-instrument text-ink md:text-7xl space-x-2 text-center font-normal tracking-tight leading-[0.95] relative "
           >
             {heading.split(' ').map((line, index) => {
               return (
@@ -359,7 +343,7 @@ const HeroSection = () => {
             variants={headingVariants}
             initial="initial"
             animate="animate"
-            className="text-center mt-2 font-medium tracking-tight font-inter px-4 md:px-5 text-neutral-600 dark:text-neutral-400 md:leading-tight md:text-lg "
+            className="text-center mt-3 max-w-2xl tracking-tight font-inter px-4 md:px-5 text-ink-secondary leading-snug md:text-lg "
           >
             {description.split('\n').map((line, index) => (
               <motion.span className="" key={index} variants={headingVariants}>
@@ -395,18 +379,17 @@ const HeroSection = () => {
               {isLoggedIn ? (
                 <div
                   className={cn(
-                    'w-full border mt-2 border-neutral-400/60 overflow-hidden dark:border-none rounded-3xl text-lg md:text-xl p-1 flex items-center justify-center bg-white dark:bg-neutral-900',
-                    hideClaimUsernameNavbar &&
-                    'shadow-2xl w-fit shadow-black/50 border border-neutral-300/60 dark:border-dark-border/80'
+                    'w-full border mt-2 border-hairline overflow-hidden rounded-3xl text-lg md:text-xl p-1 flex items-center justify-center bg-surface',
+                    hideClaimUsernameNavbar && 'shadow-float w-fit'
                   )}
                 >
-                  <div className="px-4 ml-0.5 border border-neutral-300 dark:border-none py-1 bg-white dark:bg-dark-border rounded-3xl shadow-lg">
+                  <div className="px-4 ml-0.5 border border-hairline py-1 bg-subtle rounded-3xl">
                     <button
                       onClick={handleGoToDashboard}
-                      className="tracking-tight text-neutral-700 dark:text-neutral-300 text-base flex items-center gap-2 py-1"
+                      className="tracking-tight text-ink text-base flex items-center gap-2 py-1 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
                     >
-                      Go to Dashboard
-                      <kbd className="px-2 py-0.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-700 rounded border border-neutral-300 dark:border-neutral-600">
+                      Go to your profile
+                      <kbd className="px-2 py-0.5 text-xs font-medium text-ink-secondary bg-surface rounded border border-hairline">
                         Enter
                       </kbd>
                     </button>
@@ -416,8 +399,7 @@ const HeroSection = () => {
                 <ClaimUsernameForm
                   onSubmit={handleSubmit}
                   className={cn(
-                    hideClaimUsernameNavbar &&
-                    'shadow-2xl w-fit shadow-black/50  border border-neutral-300/60 dark:border-dark-border/80'
+                    hideClaimUsernameNavbar && 'shadow-float w-fit'
                   )}
                 />
               )}
@@ -429,33 +411,35 @@ const HeroSection = () => {
                 animate="visible"
                 className=" flex -space-x-4"
               >
-                {[...usedByAvatars]?.slice(0, 3)?.map((url, index) => {
+                {steps.map(({ icon: Icon, label }, index) => {
                   return (
                     <motion.div
-                      key={index}
+                      key={label}
                       variants={itemVariants}
                       whileHover={{ scale: 1.1, zIndex: 20 }}
                       style={{ zIndex: index }}
-                      className="size-10 md:size-12 outline outline-2 outline-white saturate-[75%]  dark:border-dark-border bg-white aspect-square rounded-full shadow-xl dark:bg-dark-bg relative overflow-hidden"
+                      title={label}
+                      className={cn(
+                        'size-10 md:size-12 outline outline-2 outline-ground aspect-square rounded-full flex items-center justify-center relative',
+                        index === 0
+                          ? 'bg-brand text-brand-ink'
+                          : 'bg-subtle text-ink border border-hairline'
+                      )}
                     >
-                      <img src={url} style={{ objectFit: 'cover' }} alt="" />
+                      <Icon aria-hidden="true" strokeWidth={1.6} className="size-4 md:size-5" />
+                      <span className="sr-only">{label}</span>
                     </motion.div>
                   )
                 })}
               </motion.div>
-              <div className="flex flex-col items-start ml-2 gap-x-1">
-                <span className="text-neutral-500 font-medium text-sm md:text-base dark:text-neutral-600 ">
-                  Trusted by 1000+ users
+              <div className="flex flex-col items-start ml-3 gap-x-1">
+                <span className="text-ink font-medium text-sm md:text-base flex items-center gap-1.5">
+                  <Lock aria-hidden="true" strokeWidth={1.8} className="size-3.5" />
+                  Private by default
                 </span>
-                <div className="flex items-center gap-x-1">
-                  {[...Array(5)].map((_, index) => (
-                    <Star
-                      key={index}
-                      fill="yellow"
-                      className="size-4 stroke-yellow-500"
-                    />
-                  ))}
-                </div>
+                <span className="text-ink-secondary text-sm">
+                  Nothing goes public unless you approve it.
+                </span>
               </div>
             </div>
           </motion.div>
@@ -494,22 +478,20 @@ const HeroSection = () => {
         initial="initial"
         className=" p-4 w-full h-screen  flex md:hidden  absolute -bottom-[45%]  items-center justify-center"
       >
-        <motion.div className=" rounded-2xl shadow-2xl   bg-white  border  border-neutral-200 dark:border-dark-border md:max-w-5xl aspect-video   w-full ">
+        <motion.div className=" rounded-2xl shadow-float bg-surface border border-hairline md:max-w-5xl aspect-video w-full ">
           <div className="flex w-full px-4 py-3 items-center justify-start gap-x-2">
             {[...Array(3)].map((_, index) => (
               <div
                 key={index}
-                className="size-3 md:size-4 bg-neutral-200   rounded-full"
+                className="size-3 md:size-4 bg-subtle border border-hairline rounded-full"
               />
             ))}
           </div>
           <div className="  rounded-b-2xl relative overflow-hidden flex flex-col items-center justify-center w-full h-full">
-            <Image
-              alt=""
-              fill
-              draggable={false}
-              className="object-cover scale-125"
-              src="/minimal3.png"
+            <MockProfileWindow
+              name="Meera"
+              bio="Second-year design student. Sketchbooks, slow mornings and one very good dog."
+              className="absolute inset-0 px-6 py-4"
             />
           </div>
         </motion.div>
@@ -528,16 +510,15 @@ type TScrollableProfileContainerProps = {
 const ScrollableProfileSectionHeader = () => {
   return (
     <div className="max-w-5xl flex flex-col items-center justify-center  w-full mx-auto px-4 mb-10">
-      <h3 className="text-2xl md:text-3xl font-medium tracking-tight leading-tight">
-        Rize is for{' '}
-        <span className="font-instrument font-thin text-3xl md:text-4xl italic">
-          Everyone
-        </span>
+      <h3 className="font-instrument text-4xl md:text-5xl text-ink leading-tight text-center">
+        Profiles made of <span className="italic">moments</span>
       </h3>
-      <p className="text-neutral-600 text-center dark:text-neutral-400 font-medium mt-2">
-        Real people. Diverse stories. One platform to express it all — see how
-        creators, professionals, <br className="hidden md:block" /> and dreamers
-        showcase their authentic selves on Rize.
+      <p className="text-ink-secondary text-center mt-2 max-w-xl">
+        Not just job titles. What you made, where you went and the weeks that
+        mattered, shared because you chose to.
+      </p>
+      <p className="text-ink-secondary/80 text-center text-sm mt-2">
+        Example profiles. The names are made up.
       </p>
     </div>
   )
@@ -565,7 +546,7 @@ const ScrollableProfileContainer: FC<TScrollableProfileContainerProps> = ({
             <motion.div
               key={index}
               className={cn(
-                'border border-neutral-200 aspect-video flex items-center shadow-xl flex-col dark:bg-neutral-900 dark:border-dark-border rounded-3xl snap-center relative bg-white mr-10',
+                'border border-hairline aspect-video flex items-center shadow-float flex-col rounded-3xl snap-center relative bg-surface text-ink mr-10',
                 'max-w-screen-md lg:max-w-screen-lg 4k:rounded-[3rem] 4k:pt-10 4k:max-w-screen-2xl 4k:min-h-[900px] h-[600px] w-full flex-shrink-0',
                 insideContainer && 'overflow-hidden'
               )}
@@ -577,8 +558,8 @@ const ScrollableProfileContainer: FC<TScrollableProfileContainerProps> = ({
                 bio={item.bio}
                 gallery={item.gallery}
                 username={item.username}
-                projects={item.projects as any}
-                writings={item.writings as any}
+                projects={item.projects}
+                writings={item.writings}
                 scrollYProgress={scrollYProgress}
               />
             </motion.div>
@@ -590,11 +571,6 @@ const ScrollableProfileContainer: FC<TScrollableProfileContainerProps> = ({
 }
 
 export default HeroSection
-
-{
-  /* <div className="absolute top-24 -left-14 blur-[100px] -z-10 size-[250px] rounded-full bg-gradient-to-b dark:from-purple-700/60 dark:to-purple-500/60 from-purple-500/80 to-purple-200 " />
-<div className="absolute  top-48 -right-14 blur-[100px] -z-10 size-[250px] rounded-full bg-gradient-to-b dark:from-blue-700/60 dark:to-blue-500/60 from-blue-500/80 to-blue-200 " /> */
-}
 
 const SquigglyLine = ({
   x1,
