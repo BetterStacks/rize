@@ -4,12 +4,12 @@ import { GetExplorePosts, TPostMedia } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { sanitizeHtml } from "@/lib/sanitize";
 import moment from "moment";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FC } from "react";
-import { canOptimize } from "../profile/person-avatar";
+import { FC, useState } from "react";
 import toast from "react-hot-toast";
+import Image from "next/image";
+import { canOptimize, usableImageSrc } from "../profile/person-avatar";
 import PostInteractions, {
   PostAvatar,
   PostCardContainer,
@@ -22,9 +22,12 @@ type PostCardProps = {
   className?: string;
   mediaContainerClassName?: string;
   addDarkStyles?: boolean;
+  /** Kept for callers; the author line always shows. */
   showHeader?: boolean;
 };
 
+// Other screens (writing cards) still read moment's relative time with
+// these short labels, so the override stays here.
 moment.updateLocale("en", {
   relativeTime: {
     past: "%s",
@@ -45,12 +48,144 @@ moment.updateLocale("en", {
   },
 });
 
-const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
-  const hasMedia = post?.media;
-  const onlyMedia = hasMedia && !post?.content;
-  const onlyContent = !hasMedia && post?.content?.length > 0;
-  const onlyLink = !post?.content && post?.link;
+/** "now", "12m", "3h", "5d", then "Mar 4" (and the year once it's not this one). */
+export const shortTime = (value: Date | string) => {
+  const date = new Date(value);
+  const diff = Math.max(0, Date.now() - date.getTime());
+  const min = Math.floor(diff / 60_000);
+  if (min < 1) return "now";
+  if (min < 60) return `${min}m`;
+  const hours = Math.floor(min / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d`;
+  const sameYear = date.getFullYear() === new Date().getFullYear();
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+};
 
+/** Avatar, name, "@handle · time" and the options menu. */
+export const PostAuthorLine: FC<{
+  post: GetExplorePosts;
+  /** Link the time to the post (off on the post page itself). */
+  linkTime?: boolean;
+  avatarSize?: number;
+  onDeleted?: () => void;
+}> = ({ post, linkTime = true, avatarSize = 36, onDeleted }) => {
+  const name = post.name || post.username || "Someone";
+  const time = shortTime(post.createdAt);
+  return (
+    <div className="flex items-start gap-3">
+      <Link
+        href={`/${post.username}`}
+        onClick={(e) => e.stopPropagation()}
+        className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-ground"
+        tabIndex={-1}
+        aria-hidden
+      >
+        <PostAvatar avatar={post.avatar as string} name={name} size={avatarSize} />
+      </Link>
+      <div className="min-w-0 flex-1 leading-tight">
+        <Link
+          href={`/${post.username}`}
+          onClick={(e) => e.stopPropagation()}
+          className="block truncate text-sm font-medium text-ink hover:underline hover:underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink rounded-sm"
+        >
+          {name}
+        </Link>
+        <p className="mt-0.5 flex min-w-0 items-center gap-1 text-[13px] text-ink-secondary">
+          <span className="truncate">@{post.username}</span>
+          <span aria-hidden>·</span>
+          {linkTime ? (
+            <Link
+              href={`/post/${post.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="shrink-0 hover:text-ink hover:underline hover:underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink rounded-sm"
+            >
+              <time dateTime={new Date(post.createdAt).toISOString()}>{time}</time>
+              <span className="sr-only">, open post</span>
+            </Link>
+          ) : (
+            <time className="shrink-0" dateTime={new Date(post.createdAt).toISOString()}>
+              {time}
+            </time>
+          )}
+        </p>
+      </div>
+      <PostCardOptions
+        postId={post.id}
+        profileId={post.profileId as string}
+        onDeleted={onDeleted}
+      />
+    </div>
+  );
+};
+
+/**
+ * A post's one image or video. Keeps the shape it was uploaded with (capped
+ * so tall photos don't take over a column) and disappears if it can't load.
+ */
+export const PostMedia: FC<{
+  media: TPostMedia;
+  sizes: string;
+  className?: string;
+  maxHeight?: number;
+  controls?: boolean;
+}> = ({ media, sizes, className, maxHeight = 520, controls = true }) => {
+  const [videoFailed, setVideoFailed] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
+  const src = usableImageSrc(media?.url);
+  if (!src) return null;
+  const ratio =
+    media.width && media.height ? `${media.width} / ${media.height}` : "4 / 3";
+
+  if (media.type === "video") {
+    if (videoFailed) return null;
+    return (
+      <div
+        className={cn("relative w-full overflow-hidden bg-subtle", className)}
+        style={{ aspectRatio: ratio, maxHeight }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <video
+          className="size-full select-none object-cover"
+          src={src}
+          autoPlay
+          loop
+          muted
+          playsInline
+          controls={controls}
+          draggable={false}
+          onError={() => setVideoFailed(true)}
+        />
+      </div>
+    );
+  }
+
+  if (imageFailed) return null;
+  return (
+    <div
+      className={cn("relative w-full overflow-hidden bg-subtle", className)}
+      style={{ aspectRatio: ratio, maxHeight }}
+    >
+      <Image
+        src={src}
+        alt=""
+        fill
+        sizes={sizes}
+        unoptimized={!canOptimize(src)}
+        draggable={false}
+        className="select-none object-cover"
+        onError={() => setImageFailed(true)}
+      />
+    </div>
+  );
+};
+
+const PostCard: FC<PostCardProps> = ({ post, className, mediaContainerClassName }) => {
   const router = useRouter();
 
   const mutation = useVotePost({
@@ -63,505 +198,69 @@ const PostCard: FC<PostCardProps> = ({ post, mediaContainerClassName }) => {
     isBookmarked: !!post.bookmarked,
   });
 
-  const handleVoteClick = (value: number) => {
-    mutation.mutate(value);
-  };
-
-  const handleBookmarkClick = () => {
-    bookmarkMutation.mutate();
-  };
-
   const handleShareClick = async () => {
     const url = `${window.location.origin}/post/${post.id}`;
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: `Post by ${post.name}`,
-          url: url,
-        });
+        await navigator.share({ title: `Post by ${post.name}`, url });
       } catch (err) {
         console.error("Error sharing", err);
       }
     } else {
       navigator.clipboard.writeText(url);
-      toast.success("Link copied to clipboard");
+      toast.success("Link copied");
     }
   };
 
-  const handleViewPost = () => {
-    router.push(`/post/${post?.id}`);
-  };
+  const media = post?.media as TPostMedia | undefined;
 
-  const isValidUrl = (url?: string) => {
-    if (!url) return false;
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  // Normalize src for next/image: must be absolute URL or start with '/'
-  const normalizeSrc = (raw?: string) => {
-    if (!raw) return null;
-    if (isValidUrl(raw)) return raw;
-    return raw.startsWith("/") ? raw : `/${raw}`;
-  };
-  if (onlyContent) {
-    return (
-      <OnlyContentCard
-        handleViewPost={handleViewPost}
-        upvoteCount={Number(post.upvoteCount)}
-        downvoteCount={Number(post.downvoteCount)}
-        userVote={post?.userVote ?? null}
-        post={post}
-        handleVote={handleVoteClick}
-        commentCount={Number(post?.commentCount)}
-        commented={Boolean(post?.commented)}
-        isBookmarked={!!post.bookmarked}
-        handleBookmark={handleBookmarkClick}
-        handleShare={handleShareClick}
-      />
-    );
-  } else if (onlyMedia) {
-    return (
-      <OnlyMediaCard
-        handleViewPost={handleViewPost}
-        upvoteCount={Number(post.upvoteCount)}
-        downvoteCount={Number(post.downvoteCount)}
-        userVote={post?.userVote ?? null}
-        post={post}
-        handleVote={handleVoteClick}
-        commentCount={Number(post?.commentCount)}
-        commented={Boolean(post?.commented)}
-        isBookmarked={!!post.bookmarked}
-        handleBookmark={handleBookmarkClick}
-        handleShare={handleShareClick}
-      />
-    );
-  }
   return (
     <PostCardContainer
-      handlePostClick={handleViewPost}
-      className="group shadow-none"
+      handlePostClick={() => router.push(`/post/${post?.id}`)}
+      className={cn("group", className)}
     >
-      <div onClick={(e) => e.stopPropagation()} className="">
-        {(post.media as TPostMedia) && (
-          <div
-            key={(post?.media as TPostMedia)?.id}
-            className={cn(
-              "relative border-b border-neutral-300/80  w-full overflow-hidden ",
-              "dark:border-dark-border",
-              mediaContainerClassName,
-            )}
-            style={{
-              // aspectRatio: 1 / 1,
-              objectFit: "cover",
-              height: post?.media?.height,
-              maxHeight: "500px",
-            }}
-          >
-            <div className="absolute top-2 z-[2] px-4 pt-2 w-full gap-x-2 flex items-center justify-between">
-              <PostAvatar
-                avatar={post?.avatar as string}
-                name={post?.name as string}
-              />
-              <PostCardOptions
-                postId={post?.id}
-                profileId={post?.profileId as string}
-              />
-            </div>
-            {(post?.media as TPostMedia)?.type === "image" ? (
-              <>
-                {normalizeSrc((post?.media as TPostMedia).url) ? (
-                  <Image
-                    fill
-                    src={normalizeSrc((post?.media as TPostMedia).url)!}
-                    unoptimized={!canOptimize(normalizeSrc((post?.media as TPostMedia).url)!)}
-                    alt="Post media"
-                    sizes="(min-width: 768px) 336px, 100vw"
-                    loading="lazy"
-                    style={{ objectFit: "cover" }}
-                    draggable={false}
-                    className=" select-none "
-                  />
-                ) : (
-                  // fallback to plain img when src isn't valid for next/image
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={(post?.media as TPostMedia).url}
-                    alt="Post media"
-                    className="w-full h-full object-cover"
-                    draggable={false}
-                  />
-                )}
-              </>
-            ) : (
-              <>
-                <video
-                  style={{ objectFit: "cover" }}
-                  className="size-full select-none  "
-                  src={(post?.media as TPostMedia).url}
-                  autoPlay
-                  draggable={false}
-                  loop
-                  muted
-                  controls={true}
-                />
-              </>
-            )}
-          </div>
-        )}
-      </div>
-      <div className={cn("flex  gap-y-2 px-4 py-2 mt-4", !hasMedia && "mt-4")}>
-        {!hasMedia && (
-          <PostAvatar avatar={post?.avatar as string} name={post?.name as string} />
-        )}
-        <div
-          className={cn(
-            " flex flex-1 flex-col items-start",
-            !hasMedia && "ml-3",
-          )}
-        >
-          <Link href={`/${post?.username}`}>
-            <h2 className={cn(" text-sm text-black  ", "dark:text-white")}>
-              {post.name}
-            </h2>
-          </Link>
-          <div
-            className={cn(
-              "flex items-center justify-start dark:text-gray-400 text-sm leading-snug text-gray-700 ",
-            )}
-          >
-            <p className={cn("mr-1")}>@{post.username}</p>
-            {"•"}
-            <span className="ml-1">{moment(post?.createdAt).fromNow()}</span>
-          </div>
-        </div>
-        {onlyLink && (
-          <PostCardOptions
-            postId={post?.id}
-            profileId={post?.profileId as string}
-          />
-        )}
+      <div className="px-4 pt-4">
+        <PostAuthorLine post={post} />
       </div>
 
       {post?.content && (
         <div
           className={cn(
-            "text-neutral-600 leading-loose text-sm p-4",
-            "dark:text-neutral-400",
-            "prose prose-sm dark:prose-invert max-w-none",
+            "prose prose-sm max-w-none px-4 pt-3 text-[15px] leading-relaxed text-ink dark:prose-invert",
+            "prose-p:my-2 first:prose-p:mt-0 last:prose-p:mb-0 prose-a:text-ink prose-a:underline-offset-4",
+            "line-clamp-[10] break-words",
           )}
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content ?? "") }}
         />
       )}
-      {post?.link && (
-        <div className={cn("")}>
-          <PostLinkCard {...post?.link} />
+
+      {media?.url && (
+        <div className="px-4 pt-3">
+          <PostMedia
+            media={media}
+            sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+            className={cn("rounded-lg border border-hairline", mediaContainerClassName)}
+          />
         </div>
       )}
 
+      {post?.link && <PostLinkCard {...post.link} />}
+
       <PostInteractions
+        className="mt-2"
         upvoteCount={Number(post.upvoteCount)}
         downvoteCount={Number(post.downvoteCount)}
         userVote={post?.userVote ?? null}
-        handleVoteClick={handleVoteClick}
+        handleVoteClick={(value) => mutation.mutate(value)}
         commentCount={Number(post?.commentCount)}
         hasCommented={Boolean(post?.commented)}
-        handleCommentClick={() => {}}
+        handleCommentClick={() => router.push(`/post/${post?.id}`)}
         isBookmarked={!!post.bookmarked}
-        handleBookmarkClick={handleBookmarkClick}
+        handleBookmarkClick={() => bookmarkMutation.mutate()}
         handleShareClick={handleShareClick}
-      />
-    </PostCardContainer>
-  );
-};
-type GeneralPostProps = {
-  handleVote?: (value: number) => void;
-  post: GetExplorePosts;
-  upvoteCount: number;
-  downvoteCount: number;
-  userVote: number | null;
-  commentCount: number;
-  commented: boolean;
-  handleComment?: () => void;
-  handleViewPost: () => void;
-  isBookmarked: boolean;
-  handleBookmark: () => void;
-  handleShare: () => void;
-};
-
-const OnlyContentCard: FC<GeneralPostProps> = ({
-  post,
-  upvoteCount,
-  downvoteCount,
-  userVote,
-  handleVote,
-  commentCount,
-  commented,
-  handleComment,
-  handleViewPost,
-  isBookmarked,
-  handleBookmark,
-  handleShare,
-}) => {
-  return (
-    <PostCardContainer
-      handlePostClick={handleViewPost}
-      className="group shadow-none"
-    >
-      <div
-        className={cn(
-          "flex w-full items-center justify-between   px-4 py-2 mt-4",
-        )}
-      >
-        <div className="flex items-center justify-start">
-          <PostAvatar
-            avatar={post?.avatar as string}
-            name={post?.name as string}
-          />
-          <div className={cn(" flex flex-col items-start", "ml-3")}>
-            <Link href={`/${post?.username}`}>
-              <h2 className={cn(" text-sm text-black  ", "dark:text-white")}>
-                {post.name}
-              </h2>
-            </Link>
-            <div
-              className={cn(
-                "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 ",
-              )}
-            >
-              <p className={cn("mr-1")}>@{post.username}</p>
-              {"•"}
-              <span className="ml-1">{moment(post?.createdAt).fromNow()}</span>
-            </div>
-          </div>
-        </div>
-        <PostCardOptions
-          postId={post?.id}
-          profileId={post?.profileId as string}
-        />
-      </div>
-      <div
-        className={cn(
-          "text-neutral-600 leading-normal line-clamp-[10] text-sm p-4",
-          "dark:text-neutral-400",
-          "prose prose-sm dark:prose-invert max-w-none",
-        )}
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(post?.content ?? "") }}
-      />
-      {post?.link && <PostLinkCard {...post?.link} />}
-      <PostInteractions
-        upvoteCount={upvoteCount}
-        downvoteCount={downvoteCount}
-        userVote={userVote}
-        handleVoteClick={handleVote!}
-        commentCount={commentCount}
-        hasCommented={post?.commented}
-        handleCommentClick={handleComment!}
-        isBookmarked={isBookmarked}
-        handleBookmarkClick={handleBookmark}
-        handleShareClick={handleShare}
-      />
-    </PostCardContainer>
-  );
-};
-const OnlyMediaCard: FC<GeneralPostProps> = ({
-  post,
-  upvoteCount,
-  downvoteCount,
-  userVote,
-  handleVote,
-  handleViewPost,
-  isBookmarked,
-  handleBookmark,
-  handleShare,
-}) => {
-  const media = post?.media;
-  return (
-    <PostCardContainer
-      handlePostClick={handleViewPost}
-      className=" relative group shadow-none "
-    >
-      <div
-        className="bg-gradient-to-b transition-all duration-75 ease-in group-hover:opacity-100 opacity-0 w-full dark:from-black dark:via-black/60
-      from-black/60 via-black/40 to-transparent h-40 absolute z-[6] inset-0"
-      />
-      <div
-        className={cn(
-          "flex w-full group-hover:opacity-100 transition-all duration-75 ease-in opacity-0 absolute top-5 z-[8]   items-center justify-between   px-4 ",
-        )}
-      >
-        <div className="flex items-center justify-start">
-          <PostAvatar
-            avatar={post?.avatar as string}
-            name={post?.name as string}
-          />
-          <div className={cn(" flex flex-col items-start", "ml-3")}>
-            <Link href={`/${post?.username}`}>
-              <h2 className={cn(" text-sm   ", "text-white")}>{post.name}</h2>
-            </Link>
-            <div
-              className={cn(
-                "flex items-center justify-start text-neutral-400 text-sm font-light leading-snug  ",
-              )}
-            >
-              <p className={cn("mr-1")}>@{post.username}</p>
-              {"•"}
-              <span className="ml-1">{moment(post?.createdAt).fromNow()}</span>
-            </div>
-          </div>
-        </div>
-        <PostCardOptions
-          postId={post?.id}
-          profileId={post?.profileId as string}
-        />
-      </div>
-      <div
-        style={{
-          aspectRatio: 9 / 16,
-        }}
-        className={cn("relative  overflow-hidden ")}
-      >
-        {(post?.media as TPostMedia)?.type === "image" ? (
-          <>
-            <Image
-              fill
-              src={(post?.media as TPostMedia).url}
-              unoptimized={!canOptimize((post?.media as TPostMedia).url)}
-              alt="Post media"
-              sizes="(min-width: 768px) 336px, 100vw"
-              draggable={false}
-              loading="lazy"
-              style={{ objectFit: "cover" }}
-              className="select-none "
-            />
-          </>
-        ) : (
-          <>
-            <video
-              style={{ objectFit: "cover" }}
-              className="w-full h-full select-none  "
-              src={(post?.media as TPostMedia)?.url}
-              autoPlay
-              draggable={false}
-              loop
-              muted
-              controls={false}
-            />
-          </>
-        )}
-      </div>
-
-      <PostInteractions
-        className="mt-0"
-        upvoteCount={upvoteCount}
-        downvoteCount={downvoteCount}
-        userVote={userVote}
-        handleVoteClick={handleVote!}
-        commentCount={post.commentCount}
-        hasCommented={post.commented}
-        handleCommentClick={() => {}}
-        isBookmarked={isBookmarked}
-        handleBookmarkClick={handleBookmark}
-        handleShareClick={handleShare}
       />
     </PostCardContainer>
   );
 };
 
 export default PostCard;
-
-// if (onlyMedia) {
-//   return (
-//     <div
-//       className={cn(
-//         " first:mt-0 mt-4 relative bg-white w-full border  overflow-hidden break-inside-avoid  border-neutral-300/80  rounded-3xl ",
-//         addDarkStyles && "dark:bg-neutral-800 dark:border-dark-border",
-//         className
-//       )}
-//     >
-//       {showHeader && (
-//         <>
-//           {" "}
-//           <div className="bg-gradient-to-b w-full from-black via-black/60 to-transparent h-36 absolute z-[6] inset-0"></div>
-//           <div className="absolute top-2 z-[8] px-4 pt-2 w-full gap-x-2 flex items-center justify-between">
-//             {" "}
-//             <div className="flex items-center justify-start">
-//               <PostAvatar
-//                 avatar={post?.avatar as string}
-//                 name={post?.name as string}
-//               />
-//               <div className={cn(" flex items-start flex-col ml-2")}>
-//                 <h2 className={cn(" text-sm text-white")}>{post.name}</h2>
-//                 <div
-//                   className={cn(
-//                     "flex items-center justify-center dark:text-neutral-400 text-sm font-light leading-snug text-neutral-400 "
-//                   )}
-//                 >
-//                   <p
-//                     className={
-//                       cn("mr-1")
-//                       // "text-sm font-light leading-tight text-neutral-600 ",
-//                       // addDarkStyles && "dark:text-neutral-400"
-//                     }
-//                   >
-//                     @{post.username}
-//                   </p>
-//                   {"•"}
-//                   <span className="ml-1">
-//                     {moment(post?.createdAt).fromNow()}
-//                   </span>
-//                 </div>
-//               </div>
-//             </div>
-//             <DropdownMenu>
-//               <DropdownMenuTrigger asChild>
-//                 <Button
-//                   size={"smallIcon"}
-//                   className="rounded-full"
-//                   variant={"outline"}
-//                 >
-//                   <MoreHorizontal
-//                     className={cn(
-//                       "text-neutral-500 size-4 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
-//                     )}
-//                   />
-//                 </Button>
-//               </DropdownMenuTrigger>
-//               <DropdownMenuContent className="rounded-xl dark:bg-dark-bg border dark:border-dark-border border-neutral-300/60 bg-white p-0">
-//                 <DropdownMenuItem className="px-4 py-1.5 ">
-//                   <Link2 className="opacity-80 -rotate-45 size-4" />
-//                   <span>Copy Link</span>
-//                 </DropdownMenuItem>
-//                 <DropdownMenuItem className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border">
-//                   <Bookmark className="opacity-80  size-4" />
-//                   <span>Save</span>
-//                 </DropdownMenuItem>
-//                 {isMine && (
-//                   <DropdownMenuItem
-//                     onClick={() => handleDeletePost(post?.id)}
-//                     className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border"
-//                   >
-//                     {isDeleting ? (
-//                       <Loader className="opacity-80 size-4 animate-spin" />
-//                     ) : (
-//                       <Trash2 className="opacity-80 size-4" />
-//                     )}
-//                     <span>Delete</span>
-//                   </DropdownMenuItem>
-//                 )}
-//               </DropdownMenuContent>
-//             </DropdownMenu>
-//           </div>
-//         </>
-//       )}
-//       <PostMediaContainer
-//         mediaContainerClassName={mediaContainerClassName}
-//         media={post?.media}
-//       />
-//     </div>
-//   );
-// }

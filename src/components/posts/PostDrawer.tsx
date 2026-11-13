@@ -1,13 +1,15 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { X } from "lucide-react";
 import { usePostsDialog } from "../dialog-provider";
 import { PostForm } from "./PostForm";
 
@@ -17,21 +19,30 @@ const PostDrawer = () => {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent
-        className="dark:bg-neutral-900 overflow-y-auto p-0 dark:border-dark-border sm:max-w-2xl"
+        className="flex w-full flex-col gap-0 border-hairline bg-ground p-0 sm:max-w-xl [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        {/* <div className="flex items-center justify-between px-6 pt-6">
-          <h3 className="text-base font-semibold tracking-tight">Create Post</h3>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setOpen(false)}
-            className="rounded-full"
-          >
-            <X className="size-4" />
-          </Button>
-        </div> */}
+        <SheetHeader className="flex-row items-start justify-between gap-4 space-y-0 px-5 pb-2 pt-5 text-left sm:px-6 sm:pt-6">
+          <div className="min-w-0">
+            <SheetTitle className="font-instrument text-3xl font-normal leading-tight text-ink">
+              New post
+            </SheetTitle>
+            <SheetDescription className="mt-1 text-sm text-ink-secondary">
+              Share an update, a photo or video, or a link.
+            </SheetDescription>
+          </div>
+          <SheetClose asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Close"
+              className="-mr-2 -mt-1 shrink-0 text-ink-secondary hover:text-ink"
+            >
+              <X className="size-5" aria-hidden />
+            </Button>
+          </SheetClose>
+        </SheetHeader>
         <PostForm onSuccess={() => setOpen(false)} />
       </SheetContent>
     </Sheet>

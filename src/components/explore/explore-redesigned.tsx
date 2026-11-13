@@ -27,18 +27,18 @@ const SectionHeader = ({
   description: string;
   href: string;
 }) => (
-  <div className="mb-5 flex items-end justify-between gap-4 border-b border-[#E7E2D8] pb-3 dark:border-[#2E2923]">
+  <div className="mb-5 flex items-end justify-between gap-4 border-b border-hairline pb-3">
     <div className="min-w-0">
-      <h2 id={id} className="font-instrument text-2xl leading-tight text-[#1F1B16] md:text-3xl dark:text-[#F3EEE6]">
+      <h2 id={id} className="font-instrument text-2xl leading-tight text-ink md:text-3xl">
         {title}
       </h2>
-      <p className="mt-0.5 text-sm text-[#5A5248] dark:text-[#B3A999]">
+      <p className="mt-0.5 text-sm text-ink-secondary">
         {description}
       </p>
     </div>
     <Link
       href={href}
-      className="-mr-2 inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg px-2 text-sm font-medium text-[#1F1B16] outline-none transition-colors hover:text-[#5A5248] focus-visible:ring-2 focus-visible:ring-main-yellow dark:text-[#F3EEE6] dark:hover:text-[#B3A999]"
+      className="-mr-2 inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg px-2 text-sm font-medium text-ink outline-none transition-colors hover:text-ink-secondary focus-visible:ring-2 focus-visible:ring-ink"
     >
       See all
       <ArrowRight className="size-4" aria-hidden="true" />
@@ -47,7 +47,7 @@ const SectionHeader = ({
 );
 
 const EmptyState = ({ children }: { children: ReactNode }) => (
-  <p className="rounded-xl border border-dashed border-[#E7E2D8] px-4 py-10 text-center text-sm text-[#5A5248] dark:border-[#2E2923] dark:text-[#B3A999]">
+  <p className="py-10 text-[15px] text-ink-secondary">
     {children}
   </p>
 );
@@ -81,10 +81,10 @@ const ExploreRedesigned = ({ profiles, posts }: ExploreProps) => {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6">
       <header className="pb-10 pt-10 md:pb-14 md:pt-14">
-        <h1 className="font-instrument text-4xl leading-[1.05] tracking-tight text-[#1F1B16] md:text-5xl dark:text-[#F3EEE6]">
+        <h1 className="font-instrument text-4xl leading-[1.05] tracking-tight text-ink md:text-5xl">
           Explore
         </h1>
-        <p className="mt-2 max-w-md text-base text-[#5A5248] dark:text-[#B3A999]">
+        <p className="mt-2 max-w-md text-base text-ink-secondary">
           New people on Rize, and the posts getting the most votes.
         </p>
       </header>

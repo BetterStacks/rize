@@ -1,7 +1,7 @@
 "use client";
 
 import { createPost, getTopics } from "@/actions/post-actions";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -10,6 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Popover,
@@ -17,7 +18,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
-import { Separator } from "@/components/ui/separator";
 import { TUploadFilesResponse } from "@/lib/types";
 import { cn, isValidUrl } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,14 +35,11 @@ import toast from "react-hot-toast";
 import { z } from "zod";
 import {
   X,
-  Loader,
   Image as ImageIcon,
   Check,
   ChevronsUpDown,
 } from "lucide-react";
 import { queryClient } from "@/lib/providers";
-import UserAvatar from "../user-avatar";
-import { useSession } from "@/lib/auth-client";
 
 const PostSchema = z.object({
   content: z.string().max(5000).optional(),
@@ -67,7 +64,6 @@ const stripHtml = (html: string) => html.replace(/<[^>]+>/g, "").trim();
 
 export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
   const [mediaFile, setMediaFile] = useState<MediaFile | undefined>();
-  const session = useSession();
   const { data: topicsData, isLoading: isTopicsLoading } = useQuery({
     queryKey: ["topics"],
     queryFn: getTopics,
@@ -192,180 +188,166 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
     },
   });
 
-  return (
-    <div className="w-full max-w-xl mx-auto p-6">
-      <h2 className="text-xl mt-2 tracking-tight font-medium">Create Post</h2>
-      <span className="text-neutral-700 dark:text-neutral-300 text-sm">
-        Share an update, media, or a link.
-      </span>
+  const selectedTopicIds = form.watch("topicIds") || [];
+  const linkValue = form.watch("link");
 
-      <form
-        onSubmit={form.handleSubmit((data) => mutate(data))}
-        className="mt-6 space-y-4"
+  return (
+    <form
+      onSubmit={form.handleSubmit((data) => mutate(data))}
+      className="flex min-h-0 flex-1 flex-col"
+    >
+      <div
+        {...getRootProps()}
+        className={cn(
+          "flex-1 space-y-6 overflow-y-auto px-5 pb-6 pt-4 sm:px-6",
+          isDragActive && "bg-subtle",
+        )}
       >
+        <input {...getInputProps()} />
+
         <div>
-          <Label className="dark:text-neutral-300 text-neutral-700">
-            Content
-          </Label>
-          <RichTextEditor
-            value={form.watch("content") || ""}
-            onChange={(val) =>
-              form.setValue("content", val, {
-                shouldDirty: true,
-                shouldTouch: true,
-              })
-            }
-            placeholder="What's on your mind?"
-            minHeight="160px"
-          />
+          {/* The editor is a contenteditable inside ui/; the sheet title names it. */}
+          <div>
+            <RichTextEditor
+              value={form.watch("content") || ""}
+              onChange={(val) =>
+                form.setValue("content", val, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                })
+              }
+              placeholder="What are you working on?"
+              minHeight="160px"
+            />
+          </div>
         </div>
 
-        <div>
-          <Label className="dark:text-neutral-300 text-neutral-700">Link</Label>
-          <input
-            type="url"
-            className={cn(
-              "mt-1 w-full rounded-md border border-neutral-200 dark:border-dark-border bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-main-yellow",
-              form.formState.errors.link && "border-red-500",
-            )}
-            placeholder="https://example.com"
-            {...form.register("link")}
-            disabled={!!mediaFile || isPending}
-          />
-          {!!mediaFile && (
-            <p className="text-xs text-neutral-400 mt-1">
-              Remove media to add a link.
-            </p>
+        {/* One photo or video, or a link: not both */}
+        <div className="space-y-3">
+          {mediaFile ? (
+            <div className="relative w-full overflow-hidden rounded-xl border border-hairline bg-subtle">
+              <Button
+                size="smallIcon"
+                variant="outline"
+                type="button"
+                aria-label="Remove photo or video"
+                className="absolute right-2 top-2 z-10 rounded-full"
+                onClick={() => setMediaFile(undefined)}
+              >
+                <X className="size-4" aria-hidden />
+              </Button>
+              {mediaFile.type === "image" ? (
+                <Image
+                  src={mediaFile.url}
+                  alt="Preview of your photo"
+                  width={600}
+                  height={400}
+                  className="max-h-72 w-full object-contain"
+                  unoptimized
+                />
+              ) : (
+                <video
+                  src={mediaFile.url}
+                  className="max-h-72 w-full object-contain"
+                  controls
+                />
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={openDropZone}
+                className="gap-2"
+                disabled={!!linkValue || isPending}
+              >
+                <ImageIcon className="size-4" aria-hidden />
+                Add a photo or video
+              </Button>
+              <span className="text-[13px] text-ink-secondary">
+                {linkValue
+                  ? "Remove the link to add a photo or video."
+                  : "Photos are resized for you. GIFs up to 3.5 MB, videos up to 4 MB."}
+              </span>
+            </div>
           )}
         </div>
 
-        <Separator className="my-6" />
-
-        <div {...getRootProps()}>
-          <div
-            className={cn(
-              "border-dashed h-[220px] dark:bg-dark-bg dark:border-dark-border bg-neutral-50 border-neutral-200 flex flex-col items-center justify-center border-2 p-4 rounded-lg",
-              isDragActive && "border-main-yellow/70 bg-yellow-50/30",
-              form.watch("link") && "opacity-50 pointer-events-none",
-            )}
-          >
-            <ImageIcon className="size-6 opacity-70" />
-            <h3 className="mt-2 dark:text-neutral-200">
-              Add an image or video
-            </h3>
-            <span className="text-sm text-neutral-700 dark:text-neutral-400">
-              Photos are resized for you. GIFs up to 3.5 MB, videos up to 4 MB.
-            </span>
-            <input {...getInputProps()} />
-          </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="post-link">Link</Label>
+          <Input
+            id="post-link"
+            type="url"
+            inputMode="url"
+            aria-invalid={!!form.formState.errors.link}
+            className={cn(form.formState.errors.link && "border-danger")}
+            placeholder="https://"
+            {...form.register("link")}
+            disabled={!!mediaFile || isPending}
+          />
+          {form.formState.errors.link ? (
+            <p className="text-[13px] text-danger">
+              {form.formState.errors.link.message}
+            </p>
+          ) : (
+            !!mediaFile && (
+              <p className="text-[13px] text-ink-secondary">
+                Remove the photo or video to add a link.
+              </p>
+            )
+          )}
         </div>
 
-        {mediaFile && (
-          <div className="relative w-full rounded-xl overflow-hidden border border-neutral-200 dark:border-dark-border group">
-            <Button
-              size="smallIcon"
-              variant="outline"
-              type="button"
-              className="absolute top-2 right-2 z-10 dark:bg-dark-bg opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => setMediaFile(undefined)}
-            >
-              <X className="size-3" />
-            </Button>
-            {mediaFile.type === "image" ? (
-              <Image
-                src={mediaFile.url}
-                alt="Preview"
-                width={600}
-                height={400}
-                className="w-full max-h-64 object-cover"
-                unoptimized
-              />
-            ) : (
-              <video
-                src={mediaFile.url}
-                className="w-full max-h-64 object-cover"
-                controls
-              />
-            )}
-          </div>
-        )}
-
-        <div className="space-y-2">
-          <Label className="dark:text-neutral-300 text-neutral-700">
-            Topics
-          </Label>
+        <div className="space-y-1.5">
+          <Label id="post-topics-label">Topics</Label>
           <Popover>
             <PopoverTrigger asChild>
-              <div
-                role="combobox"
+              <button
+                type="button"
+                aria-labelledby="post-topics-label"
                 className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "w-full dark:border-dark-border dark:bg-transparent justify-between h-auto min-h-10 px-3 py-2 flex-wrap gap-2 hover:bg-neutral-50 dark:hover:bg-dark-border/20 active:scale-100 cursor-pointer",
+                  "flex min-h-11 w-full items-center justify-between gap-2 rounded-xl border border-hairline bg-surface px-3 py-2 text-left text-sm",
+                  "transition-colors duration-fast ease-calm hover:border-ink/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink",
                 )}
               >
-                <div className="flex flex-wrap gap-2">
-                  {(form.watch("topicIds") || []).length > 0 ? (
-                    (form.watch("topicIds") || []).map((topicId) => {
-                      const topic = topics.find((t: any) => t.id === topicId);
-                      return (
-                        <Button
-                          key={topicId}
-                          size="sm"
-                          variant="outline"
-                          className="flex items-center"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const current = form.getValues("topicIds") || [];
-                            form.setValue(
-                              "topicIds",
-                              current.filter((id) => id !== topicId),
-                            );
-                          }}
-                        >
-                          {topic?.emoji ? `${topic.emoji} ` : ""}
-                          {topic?.name}
-                          <X className="size-4 ml-2" />
-                        </Button>
-                      );
-                    })
-                  ) : (
-                    <span className="text-neutral-400 font-normal">
-                      Select topics...
-                    </span>
-                  )}
-                </div>
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </div>
+                <span className={cn(selectedTopicIds.length ? "text-ink" : "text-ink-secondary")}>
+                  {selectedTopicIds.length
+                    ? `${selectedTopicIds.length} of 5 chosen`
+                    : "Pick up to 5"}
+                </span>
+                <ChevronsUpDown className="size-4 shrink-0 text-ink-secondary" aria-hidden />
+              </button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-[var(--radix-popover-trigger-width)] dark:border-dark-border sm:rounded-lg max-h-[260px] h-auto p-0"
+              className="max-h-[300px] w-[var(--radix-popover-trigger-width)] p-0"
               align="start"
             >
               <Command>
-                <CommandInput placeholder="Search topics..." />
-                <CommandList className="max-h-[220px] overflow-y-auto">
-                  <CommandEmpty>No topic found.</CommandEmpty>
+                <CommandInput placeholder="Search topics" />
+                <CommandList className="max-h-[240px] overflow-y-auto">
+                  <CommandEmpty>No topics match.</CommandEmpty>
                   <CommandGroup>
                     {isTopicsLoading ? (
-                      <div className="p-3 text-sm text-neutral-500">
-                        Loading topics...
+                      <div className="p-3 text-sm text-ink-secondary">
+                        Loading topics
                       </div>
                     ) : (
                       topics
                         .filter(
                           (topic: any) =>
-                            !(form.watch("topicIds") || []).includes(topic.id),
+                            !selectedTopicIds.includes(topic.id),
                         )
                         .map((topic: any) => (
                           <CommandItem
-                            className="rounded-md"
+                            className="rounded-lg"
                             key={topic.id}
                             value={topic.name}
                             onSelect={() => {
                               const current = form.getValues("topicIds") || [];
                               if (!current.includes(topic.id)) {
                                 if (current.length >= 5) {
-                                  toast.error("Maximum 5 topics allowed");
+                                  toast.error("You can pick up to 5 topics");
                                   return;
                                 }
                                 form.setValue("topicIds", [
@@ -375,17 +357,7 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
                               }
                             }}
                           >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                (form.watch("topicIds") || []).includes(
-                                  topic.id,
-                                )
-                                  ? "opacity-100"
-                                  : "opacity-0",
-                              )}
-                            />
-                            {topic.emoji ? `${topic.emoji} ` : ""}
+                            <Check className="mr-2 size-4 opacity-0" aria-hidden />
                             {topic.name}
                           </CommandItem>
                         ))
@@ -395,40 +367,55 @@ export const PostForm: FC<PostFormProps> = ({ onSuccess }) => {
               </Command>
             </PopoverContent>
           </Popover>
+          {selectedTopicIds.length > 0 && (
+            <ul className="flex flex-wrap gap-1.5 pt-1" aria-label="Chosen topics">
+              {selectedTopicIds.map((topicId) => {
+                const topic = topics.find((t: any) => t.id === topicId);
+                return (
+                  <li
+                    key={topicId}
+                    className="inline-flex h-8 items-center gap-1 rounded-full border border-hairline bg-surface pl-3 pr-1 text-[13px] text-ink"
+                  >
+                    {topic?.name}
+                    <button
+                      type="button"
+                      aria-label={`Remove ${topic?.name ?? "topic"}`}
+                      className="touch-target inline-flex size-6 items-center justify-center rounded-full text-ink-secondary hover:bg-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                      onClick={() => {
+                        const current = form.getValues("topicIds") || [];
+                        form.setValue(
+                          "topicIds",
+                          current.filter((id) => id !== topicId),
+                        );
+                      }}
+                    >
+                      <X className="size-3.5" aria-hidden />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
           {form.formState.errors.topicIds && (
-            <p className="text-sm text-red-500">
+            <p className="text-[13px] text-danger">
               {form.formState.errors.topicIds.message}
             </p>
           )}
         </div>
+      </div>
 
-        <div className="flex items-center justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={openDropZone}
-            className="rounded-full"
-            disabled={!!form.watch("link")}
-          >
-            <ImageIcon className="size-4 mr-2" /> Add Media
-          </Button>
-        </div>
-
+      <div className="flex items-center justify-end gap-3 border-t border-hairline bg-ground px-5 py-4 sm:px-6">
         <Button
           type="submit"
-          variant="outline"
-          className="w-full rounded-md"
+          variant="brand"
+          size="lg"
+          className="w-full sm:w-auto sm:min-w-32"
+          loading={isPending}
           disabled={isPending || !canPublish()}
         >
-          {isPending ? (
-            <span className="flex items-center gap-2">
-              <Loader className="size-4 animate-spin" /> Publishing...
-            </span>
-          ) : (
-            "Publish"
-          )}
+          {isPending ? "Publishing" : "Publish"}
         </Button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 };

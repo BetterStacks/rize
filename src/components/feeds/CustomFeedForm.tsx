@@ -25,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import {
     Sheet,
     SheetContent,
+    SheetDescription,
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet";
@@ -32,7 +33,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type { CustomFeedPayload } from "@/lib/schemas/custom-feed";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, Globe, Loader, Lock, X } from "lucide-react";
+import { Check, ChevronsUpDown, Globe, Lock, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -105,24 +106,24 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
     const { mutate, isPending: isCreatePending } = useMutation({
         mutationFn: (payload: CustomFeedPayload) => createCustomFeed(payload),
         onSuccess: (_, vars) => {
-            toast.success("Feed saved!");
+            toast.success("Feed saved");
             qc.invalidateQueries({ queryKey: ["my-custom-feeds"] });
             onSaved?.({ ...vars, title });
             reset();
             onOpenChange(false);
         },
-        onError: (e: Error) => toast.error(e.message ?? "Failed to save feed"),
+        onError: (e: Error) => toast.error(e.message ?? "Couldn't save the feed"),
     });
 
     const { mutate: mutateUpdate, isPending: isUpdatePending } = useMutation({
         mutationFn: (payload: CustomFeedPayload) => updateCustomFeed(initialData!.id, payload),
         onSuccess: (_, vars) => {
-            toast.success("Feed updated!");
+            toast.success("Feed updated");
             qc.invalidateQueries({ queryKey: ["my-custom-feeds"] });
             onSaved?.({ ...vars, title });
             onOpenChange(false);
         },
-        onError: (e: Error) => toast.error(e.message ?? "Failed to update feed"),
+        onError: (e: Error) => toast.error(e.message ?? "Couldn't update the feed"),
     });
 
     const isPending = isCreatePending || isUpdatePending;
@@ -174,47 +175,52 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
                 side="right"
-                className="w-full sm:max-w-md flex flex-col gap-0 p-0 dark:bg-dark-bg [&>button]:hidden"
+                className="flex w-full flex-col gap-0 border-hairline bg-ground p-0 sm:max-w-md [&>button]:hidden"
             >
                 {/* Header */}
-                <SheetHeader className="px-6 py-4 border-b dark:border-dark-border">
-                    <div className="flex items-center justify-between">
-                        <SheetTitle className="text-lg font-semibold">
-                            {initialData ? "Update feed" : "Create feed"}
+                <SheetHeader className="flex-row items-start justify-between gap-4 space-y-0 px-5 pb-4 pt-5 text-left sm:px-6 sm:pt-6">
+                    <div className="min-w-0">
+                        <SheetTitle className="font-instrument text-3xl font-normal leading-tight text-ink">
+                            {initialData ? "Edit feed" : "New feed"}
                         </SheetTitle>
-                        <button
-                            onClick={() => onOpenChange(false)}
-                            className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
-                        >
-                            <X className="size-5" />
-                        </button>
+                        <SheetDescription className="mt-1 text-sm text-ink-secondary">
+                            Posts from the topics and people you pick.
+                        </SheetDescription>
                     </div>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400 text-left">
-                        Your personalised stream of posts by topic &amp; people.
-                    </p>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Close"
+                        onClick={() => onOpenChange(false)}
+                        className="-mr-2 -mt-1 shrink-0 text-ink-secondary hover:text-ink"
+                    >
+                        <X className="size-5" aria-hidden />
+                    </Button>
                 </SheetHeader>
 
                 {/* Scrollable body */}
-                <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+                <div className="flex-1 space-y-6 overflow-y-auto border-t border-hairline px-5 py-5 sm:px-6">
 
                     {/* Title */}
                     <div className="space-y-1.5">
                         <Label htmlFor="feed-title">
-                            Title <span className="text-red-500">*</span>
+                            Name
                         </Label>
                         <Input
                             id="feed-title"
-                            placeholder="e.g. Design Inspo, AI Weekly…"
+                            placeholder="Design, Climate, Friends…"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             maxLength={100}
-                            className="dark:bg-neutral-900 dark:border-dark-border"
                         />
                     </div>
 
                     {/* Description */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="feed-desc">Description</Label>
+                        <Label htmlFor="feed-desc">
+                            Description <span className="font-normal text-ink-secondary">(optional)</span>
+                        </Label>
                         <Textarea
                             id="feed-desc"
                             placeholder="What is this feed about?"
@@ -222,17 +228,17 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
                             onChange={(e) => setDescription(e.target.value)}
                             rows={3}
                             maxLength={500}
-                            className="resize-none dark:bg-neutral-900 dark:border-dark-border"
+                            className="resize-none"
                         />
                     </div>
 
-                    <Separator className="dark:bg-dark-border" />
+                    <Separator className="bg-hairline" />
 
                     {/* Topics */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <Label>Topics</Label>
-                            <span className="text-xs text-neutral-400">{selectedTopicIds.length} selected</span>
+                            <span className="text-xs tabular-nums text-ink-secondary">{selectedTopicIds.length} chosen</span>
                         </div>
 
                         <Popover open={topicPopoverOpen} onOpenChange={setTopicPopoverOpen}>
@@ -240,17 +246,17 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
                                 <Button
                                     variant="outline"
                                     role="combobox"
-                                    className="w-full justify-between dark:bg-neutral-900 dark:border-dark-border font-normal"
+                                    className="h-11 w-full justify-between rounded-xl font-normal"
                                 >
                                     {selectedTopicIds.length === 0
-                                        ? "Pick topics…"
+                                        ? "Pick topics"
                                         : `${selectedTopicIds.length} topic${selectedTopicIds.length > 1 ? "s" : ""} selected`}
                                     <ChevronsUpDown className="size-4 opacity-50 ml-2 shrink-0" />
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-80 p-0 dark:bg-neutral-900 dark:border-dark-border" align="start">
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                                 <Command>
-                                    <CommandInput placeholder="Search topics…" />
+                                    <CommandInput placeholder="Search topics" />
                                     <CommandList className="max-h-52">
                                         <CommandEmpty>No topics found.</CommandEmpty>
                                         <CommandGroup>
@@ -261,10 +267,9 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
                                                     onSelect={() => toggleTopic(t.id)}
                                                     className="gap-2"
                                                 >
-                                                    <span>{t.emoji}</span>
                                                     {t.name}
                                                     {selectedTopicIds.includes(t.id) && (
-                                                        <Check className="ml-auto size-4 text-green-500" />
+                                                        <Check className="ml-auto size-4 text-ink" aria-hidden />
                                                     )}
                                                 </CommandItem>
                                             ))}
@@ -280,12 +285,17 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
                                 {selectedTopics.map((t) => (
                                     <Badge
                                         key={t.id}
-                                        variant="secondary"
-                                        className="gap-1 pr-1 dark:bg-neutral-800"
+                                        variant="outline"
+                                        className="h-8 gap-1 rounded-full pl-3 pr-1 text-[13px] font-normal"
                                     >
-                                        {t.emoji} {t.name}
-                                        <button onClick={() => toggleTopic(t.id)} className="ml-1 hover:text-red-500">
-                                            <X className="size-3" />
+                                        {t.name}
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleTopic(t.id)}
+                                            aria-label={`Remove ${t.name}`}
+                                            className="touch-target inline-flex size-6 items-center justify-center rounded-full text-ink-secondary hover:bg-subtle hover:text-ink"
+                                        >
+                                            <X className="size-3.5" aria-hidden />
                                         </button>
                                     </Badge>
                                 ))}
@@ -293,13 +303,13 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
                         )}
                     </div>
 
-                    <Separator className="dark:bg-dark-border" />
+                    <Separator className="bg-hairline" />
 
                     {/* Profiles */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <Label>Profiles</Label>
-                            <span className="text-xs text-neutral-400">{selectedProfileIds.length} selected</span>
+                            <span className="text-xs tabular-nums text-ink-secondary">{selectedProfileIds.length} chosen</span>
                         </div>
 
                         <Popover open={profilePopoverOpen} onOpenChange={setProfilePopoverOpen}>
@@ -307,25 +317,25 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
                                 <Button
                                     variant="outline"
                                     role="combobox"
-                                    className="w-full justify-between dark:bg-neutral-900 dark:border-dark-border font-normal"
+                                    className="h-11 w-full justify-between rounded-xl font-normal"
                                 >
                                     {selectedProfileIds.length === 0
-                                        ? "Search people to follow…"
+                                        ? "Find people"
                                         : `${selectedProfileIds.length} profile${selectedProfileIds.length > 1 ? "s" : ""} selected`}
                                     <ChevronsUpDown className="size-4 opacity-50 ml-2 shrink-0" />
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-80 p-0 dark:bg-neutral-900 dark:border-dark-border" align="start">
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                                 <Command>
                                     <CommandInput
-                                        placeholder="Type a name or @username…"
+                                        placeholder="Name or @username"
                                         value={profileSearch}
                                         onValueChange={setProfileSearch}
                                     />
                                     <CommandList className="max-h-52">
                                         <CommandEmpty>
                                             {profileSearch.length < 1
-                                                ? "Start typing to search…"
+                                                ? "Start typing to search"
                                                 : "No profiles found."}
                                         </CommandEmpty>
                                         <CommandGroup>
@@ -345,10 +355,10 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
                                                     />
                                                     <div className="flex flex-col leading-tight">
                                                         <span className="text-sm font-medium">{p.displayName}</span>
-                                                        <span className="text-xs text-neutral-400">@{p.username}</span>
+                                                        <span className="text-xs text-ink-secondary">@{p.username}</span>
                                                     </div>
                                                     {selectedProfileIds.includes(p.id) && (
-                                                        <Check className="ml-auto size-4 text-green-500" />
+                                                        <Check className="ml-auto size-4 text-ink" aria-hidden />
                                                     )}
                                                 </CommandItem>
                                             ))}
@@ -364,8 +374,8 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
                                 {selectedProfiles.map((p) => (
                                     <Badge
                                         key={p.id}
-                                        variant="secondary"
-                                        className="gap-1.5 pr-1 dark:bg-neutral-800"
+                                        variant="outline"
+                                        className="h-8 gap-1.5 rounded-full pl-1 pr-1 text-[13px] font-normal"
                                     >
                                         <CreativeAvatar
                                             src={p.profileImage ?? undefined}
@@ -375,8 +385,13 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
                                             showHoverEffect={false}
                                         />
                                         {p.displayName ?? p.username}
-                                        <button onClick={() => toggleProfile(p.id)} className="ml-1 hover:text-red-500">
-                                            <X className="size-3" />
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleProfile(p.id)}
+                                            aria-label={`Remove ${p.displayName ?? p.username}`}
+                                            className="touch-target inline-flex size-6 items-center justify-center rounded-full text-ink-secondary hover:bg-subtle hover:text-ink"
+                                        >
+                                            <X className="size-3.5" aria-hidden />
                                         </button>
                                     </Badge>
                                 ))}
@@ -384,36 +399,36 @@ export const CustomFeedForm = ({ open, onOpenChange, onSaved, initialData }: Pro
                         )}
                     </div>
 
-                    <Separator className="dark:bg-dark-border" />
+                    <Separator className="bg-hairline" />
 
                     {/* Visibility toggle */}
                     <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                            <Label className="flex items-center gap-1.5">
-                                {isPublic ? <Globe className="size-4" /> : <Lock className="size-4" />}
-                                {isPublic ? "Public feed" : "Private feed"}
+                            <Label htmlFor="feed-public" className="flex items-center gap-1.5">
+                                {isPublic ? <Globe className="size-4" aria-hidden /> : <Lock className="size-4" aria-hidden />}
+                                {isPublic ? "Public" : "Private"}
                             </Label>
-                            <p className="text-xs text-neutral-400">
+                            <p className="text-[13px] text-ink-secondary">
                                 {isPublic
-                                    ? "Anyone on Rize can view this feed"
-                                    : "Only you can access this feed"}
+                                    ? "Anyone on Rize can see this feed"
+                                    : "Only you can see this feed"}
                             </p>
                         </div>
-                        <Switch checked={isPublic} onCheckedChange={setIsPublic} />
+                        <Switch id="feed-public" checked={isPublic} onCheckedChange={setIsPublic} />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t dark:border-dark-border flex items-center justify-between gap-3">
-                    <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full">
+                <div className="flex items-center justify-end gap-2 border-t border-hairline px-5 py-4 sm:px-6">
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>
                         Cancel
                     </Button>
                     <Button
                         onClick={handleSave}
                         disabled={!canSave || isPending}
-                        className="rounded-full px-6"
+                        loading={isPending}
+                        className="px-5"
                     >
-                        {isPending && <Loader className="size-4 mr-2 animate-spin" />}
                         Save feed
                     </Button>
                 </div>

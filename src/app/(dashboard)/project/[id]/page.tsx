@@ -51,9 +51,9 @@ const Page: FC<PageProps> = async ({ params }) => {
                 contentPadding="px-0"
                 leftSidebarSlot={appSidebarSlot}
             >
-                <div className="flex flex-col items-center justify-center min-h-[50vh]">
-                    <h1 className="text-2xl font-bold">Project not found</h1>
-                    <p className="text-neutral-500">The project you are looking for does not exist or has been removed.</p>
+                <div className="px-4 pt-16 sm:px-6">
+                    <h1 className="font-instrument text-4xl leading-tight text-ink">Project not found</h1>
+                    <p className="mt-2 text-base text-ink-secondary">It may have been removed, or the link is wrong.</p>
                 </div>
             </DashboardLayout>
         )

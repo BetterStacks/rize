@@ -23,9 +23,13 @@ type RecentlyJoinedProfile = {
 type ProfileCardProps = {
   profile: RecentlyJoinedProfile;
   className?: string;
+  /** Optional tags under the bio (discover by skill). */
+  skills?: Array<{ id: string; name: string }>;
+  /** The skill being browsed, shown first and in ink. */
+  activeSkillId?: string;
 };
 
-const ProfileCard: FC<ProfileCardProps> = ({ profile, className }) => {
+const ProfileCard: FC<ProfileCardProps> = ({ profile, className, skills, activeSkillId }) => {
   const session = useSession();
   const isOwnProfile =
     (session?.data?.user as { username?: string } | undefined)?.username ===
@@ -40,10 +44,9 @@ const ProfileCard: FC<ProfileCardProps> = ({ profile, className }) => {
     <Link
       href={`/${profile.username}`}
       className={cn(
-        "group flex h-full flex-col rounded-xl border p-4 transition-colors duration-150 ease-out",
-        "border-[#E7E2D8] bg-white hover:border-[#D3CCBE]",
-        "dark:border-[#2E2923] dark:bg-[#1C1916] dark:hover:border-[#3D362E]",
-        "outline-none focus-visible:ring-2 focus-visible:ring-main-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#141210]",
+        "group flex h-full flex-col rounded-xl border p-4 transition-colors duration-fast ease-calm",
+        "border-hairline bg-surface hover:border-ink/20",
+        "outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-ground",
         className,
       )}
     >
@@ -54,21 +57,47 @@ const ProfileCard: FC<ProfileCardProps> = ({ profile, className }) => {
           size={44}
         />
         <div className="min-w-0">
-          <p className="truncate font-instrument text-xl leading-tight text-[#1F1B16] dark:text-[#F3EEE6]">
+          <p className="truncate font-instrument text-xl leading-tight text-ink">
             {name}
           </p>
-          <p className="truncate text-[13px] text-[#5A5248] dark:text-[#B3A999]">
+          <p className="truncate text-[13px] text-ink-secondary">
             @{profile.username}
           </p>
         </div>
       </div>
 
       {/* One line of their own words; the empty line keeps the grid even. */}
-      <p className="mt-3 line-clamp-1 min-h-5 text-sm text-[#3D372F] dark:text-[#D9D1C4]">
+      <p className="mt-3 line-clamp-1 min-h-5 text-sm text-ink/80">
         {line}
       </p>
 
-      <div className="mt-auto flex items-center justify-between gap-3 pt-4 text-[13px] text-[#5A5248] dark:text-[#B3A999]">
+      {skills && skills.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Skills">
+          {[...skills]
+            .sort((a, b) => Number(b.id === activeSkillId) - Number(a.id === activeSkillId))
+            .slice(0, 4)
+            .map((skill) => (
+              <li
+                key={skill.id}
+                className={cn(
+                  "rounded-full border px-2.5 py-0.5 text-xs",
+                  skill.id === activeSkillId
+                    ? "border-ink/30 text-ink"
+                    : "border-hairline text-ink-secondary",
+                )}
+              >
+                {skill.name}
+              </li>
+            ))}
+          {skills.length > 4 && (
+            <li className="px-1 py-0.5 text-xs text-ink-secondary">
+              +{skills.length - 4}
+            </li>
+          )}
+        </ul>
+      )}
+
+      <div className="mt-auto flex items-center justify-between gap-3 pt-4 text-[13px] text-ink-secondary">
         <span className="flex min-w-0 items-center gap-1">
           {profile.location ? (
             <>
@@ -77,7 +106,7 @@ const ProfileCard: FC<ProfileCardProps> = ({ profile, className }) => {
             </>
           ) : null}
         </span>
-        <span className="shrink-0 rounded-full border border-[#E7E2D8] px-3 py-1 font-medium text-[#1F1B16] transition-colors group-hover:border-[#1F1B16] dark:border-[#2E2923] dark:text-[#F3EEE6] dark:group-hover:border-[#F3EEE6]">
+        <span className="shrink-0 rounded-full border border-hairline px-3 py-1 font-medium text-ink transition-colors duration-fast ease-calm group-hover:border-ink">
           {isOwnProfile ? "Edit profile" : "View profile"}
         </span>
       </div>
