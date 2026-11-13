@@ -1,33 +1,24 @@
 import { cn } from '@/lib/utils'
 
+// Quiet placeholders for later pages only; the first screen of explore is
+// rendered on the server with real cards.
+const card =
+  'rounded-xl border border-[#E7E2D8] bg-white dark:border-[#2E2923] dark:bg-[#1C1916] overflow-hidden break-inside-avoid'
+const bar = 'rounded-md bg-[#F1EDE5] dark:bg-[#26221D] motion-safe:animate-pulse'
+
 export const ProfileCardSkeleton = ({ className }: { className?: string }) => {
   return (
-    <div className={cn("bg-white dark:bg-neutral-800 rounded-3xl border border-neutral-200 dark:border-dark-border shadow-xl overflow-hidden break-inside-avoid", className)}>
-      <div className="p-5">
-        {/* Profile Image Skeleton */}
-        <div className="flex justify-center mb-4">
-          <div className="size-16 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
+    <div className={cn(card, 'p-4', className)} aria-hidden="true">
+      <div className="flex items-center gap-3">
+        <div className={cn(bar, 'size-11 rounded-full')} />
+        <div className="flex-1 space-y-2">
+          <div className={cn(bar, 'h-4 w-3/5')} />
+          <div className={cn(bar, 'h-3 w-2/5')} />
         </div>
-
-        {/* Name and Username Skeleton */}
-        <div className="text-center mb-3">
-          <div className="h-5 bg-neutral-200 dark:bg-neutral-700 rounded-md mx-auto mb-2 animate-pulse" style={{ width: '60%' }} />
-          <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded-md mx-auto animate-pulse" style={{ width: '40%' }} />
-        </div>
-
-        {/* Bio Skeleton */}
-        <div className="mb-4">
-          <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded-md mx-auto mb-2 animate-pulse" style={{ width: '80%' }} />
-          <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded-md mx-auto animate-pulse" style={{ width: '60%' }} />
-        </div>
-
-        {/* Details Skeleton */}
-        <div className="flex flex-col items-center gap-2 mb-4">
-          <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded-md animate-pulse" style={{ width: '50%' }} />
-        </div>
-
-        {/* Button Skeleton */}
-        <div className="h-9 bg-neutral-200 dark:bg-neutral-700 rounded-full animate-pulse" />
+      </div>
+      <div className={cn(bar, 'mt-4 h-3 w-4/5')} />
+      <div className="mt-6 flex justify-end">
+        <div className={cn(bar, 'h-7 w-24 rounded-full')} />
       </div>
     </div>
   )
@@ -35,29 +26,23 @@ export const ProfileCardSkeleton = ({ className }: { className?: string }) => {
 
 export const PostCardSkeleton = ({ className }: { className?: string }) => {
   return (
-    <div className={cn("bg-white dark:bg-neutral-800 rounded-3xl border border-neutral-200 dark:border-dark-border shadow-xl overflow-hidden break-inside-avoid", className)}>
-      {/* Random height for variety */}
+    <div className={cn(card, className)} aria-hidden="true">
       <div className="p-4">
-        {/* Header with avatar and name */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="size-10 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
-          <div className="flex-1">
-            <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded-md mb-1 animate-pulse" style={{ width: '40%' }} />
-            <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded-md animate-pulse" style={{ width: '60%' }} />
+        <div className="mb-4 flex items-center gap-3">
+          <div className={cn(bar, 'size-9 rounded-full')} />
+          <div className="flex-1 space-y-1.5">
+            <div className={cn(bar, 'h-3.5 w-2/5')} />
+            <div className={cn(bar, 'h-3 w-1/4')} />
           </div>
         </div>
-
-        {/* Content lines */}
-        <div className="space-y-2 mb-4">
-          <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded-md animate-pulse" style={{ width: '90%' }} />
-          <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded-md animate-pulse" style={{ width: '75%' }} />
-          <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded-md animate-pulse" style={{ width: '60%' }} />
+        <div className="mb-4 space-y-2">
+          <div className={cn(bar, 'h-3.5 w-11/12')} />
+          <div className={cn(bar, 'h-3.5 w-3/4')} />
+          <div className={cn(bar, 'h-3.5 w-3/5')} />
         </div>
-
-        {/* Interaction buttons */}
         <div className="flex gap-2">
-          <div className="h-8 bg-neutral-200 dark:bg-neutral-700 rounded-full animate-pulse" style={{ width: '60px' }} />
-          <div className="h-8 bg-neutral-200 dark:bg-neutral-700 rounded-full animate-pulse" style={{ width: '60px' }} />
+          <div className={cn(bar, 'h-7 w-14 rounded-full')} />
+          <div className={cn(bar, 'h-7 w-14 rounded-full')} />
         </div>
       </div>
     </div>
@@ -66,30 +51,23 @@ export const PostCardSkeleton = ({ className }: { className?: string }) => {
 
 export const PostCardSkeletonWithImage = ({ className }: { className?: string }) => {
   return (
-    <div className={cn("bg-white dark:bg-neutral-800 rounded-3xl border border-neutral-200 dark:border-dark-border shadow-xl overflow-hidden break-inside-avoid", className)}>
-      {/* Image skeleton */}
-      <div className="h-48 bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
-      
+    <div className={cn(card, className)} aria-hidden="true">
+      <div className={cn(bar, 'h-48 rounded-none')} />
       <div className="p-4">
-        {/* Header with avatar and name */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="size-10 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
-          <div className="flex-1">
-            <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded-md mb-1 animate-pulse" style={{ width: '40%' }} />
-            <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded-md animate-pulse" style={{ width: '60%' }} />
+        <div className="mb-4 flex items-center gap-3">
+          <div className={cn(bar, 'size-9 rounded-full')} />
+          <div className="flex-1 space-y-1.5">
+            <div className={cn(bar, 'h-3.5 w-2/5')} />
+            <div className={cn(bar, 'h-3 w-1/4')} />
           </div>
         </div>
-
-        {/* Content lines */}
-        <div className="space-y-2 mb-4">
-          <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded-md animate-pulse" style={{ width: '80%' }} />
-          <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded-md animate-pulse" style={{ width: '60%' }} />
+        <div className="mb-4 space-y-2">
+          <div className={cn(bar, 'h-3.5 w-4/5')} />
+          <div className={cn(bar, 'h-3.5 w-3/5')} />
         </div>
-
-        {/* Interaction buttons */}
         <div className="flex gap-2">
-          <div className="h-8 bg-neutral-200 dark:bg-neutral-700 rounded-full animate-pulse" style={{ width: '60px' }} />
-          <div className="h-8 bg-neutral-200 dark:bg-neutral-700 rounded-full animate-pulse" style={{ width: '60px' }} />
+          <div className={cn(bar, 'h-7 w-14 rounded-full')} />
+          <div className={cn(bar, 'h-7 w-14 rounded-full')} />
         </div>
       </div>
     </div>

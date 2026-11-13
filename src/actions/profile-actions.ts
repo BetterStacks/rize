@@ -25,6 +25,7 @@ import { and, desc, eq, getTableColumns, not, sql, lt } from "drizzle-orm";
 import { cache } from "react";
 import { z } from "zod";
 import { getEnrichedSession } from "./auth-actions";
+import { getNewFaces } from "@/lib/explore-data";
 
 export async function updateProfile(data: z.infer<typeof profileSchema>) {
   try {
@@ -378,21 +379,10 @@ export async function updateSectionsAction(
   );
 }
 
-export const getRecentlyJoinedProfiles = async (limit: number = 5) => {
-  return await db
-    .select({
-      displayName: profile.displayName,
-      username: profile.username,
-      profileImage: profile.profileImage,
-      image: users.image,
-      name: users.name,
-    })
-    .from(profile)
-    .innerJoin(users, eq(profile.userId, users.id))
-    .where(eq(users.isClaimed, true))
-    .orderBy(desc(profile.createdAt))
-    .limit(limit);
-};
+// Public list shared by everyone, served from a one-minute cache (see
+// src/lib/explore-data.ts). Same filter as before: users.isClaimed = true.
+export const getRecentlyJoinedProfiles = async (limit: number = 5) =>
+  getNewFaces(limit);
 
 export const getRecentlyJoinedProfilesCached = cache(
   async (limit: number = 5) => {

@@ -401,8 +401,9 @@ export const PostCardContainer: FC<PostCardContainerProps> = ({
     <div
       onClick={handlePostClick}
       className={cn(
-        " first:mt-0 mt-4 bg-neutral-50 w-full border cursor-pointer overflow-hidden break-inside-avoid  border-neutral-200  ",
-        "dark:bg-neutral-800/80 dark:border-dark-border rounded-2xl",
+        "first:mt-0 mt-4 w-full cursor-pointer overflow-hidden break-inside-avoid rounded-xl border",
+        "border-[#E7E2D8] bg-white transition-colors duration-150 ease-out hover:border-[#D3CCBE]",
+        "dark:border-[#2E2923] dark:bg-[#1C1916] dark:hover:border-[#3D362E]",
         className
       )}
     >

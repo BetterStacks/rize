@@ -13,9 +13,18 @@ import {
   topics,
 } from "@/db/schema";
 import {
+  auth,
   requireAuth,
   requireProfile
 } from "@/lib/auth";
+import {
+  loadViewerPostState,
+  postCardColumns,
+  postScore,
+  viewerColumns,
+  type ViewerPostState,
+} from "@/lib/explore-data";
+import { headers } from "next/headers";
 import instance from "@/lib/axios-instance";
 import db from "@/lib/db";
 import { profileIdIsClaimed } from "@/lib/claimed-profiles";
@@ -46,18 +55,12 @@ export const getExploreFeed = async (
   topicIds: string[] = [],
   profileIds: string[] = []
 ) => {
-  const { ...rest } = getTableColumns(posts);
-  // Optional auth - show different content for logged in vs anonymous users
-  let session = null;
-  let userProfileId = null;
-  try {
-    session = await requireAuth();
-    userProfileId = session.user.profileId;
-  } catch {
-    // User not logged in - continue with anonymous access
-  }
+  // Optional auth: the viewer's own votes and bookmarks are looked up by user
+  // id inside the main query, so we only need the session, not the profile.
+  const viewerUserId = await getViewerUserId();
 
-  const offset = pageParam * PAGE_SIZE;
+  const page = Math.max(0, Math.trunc(Number(pageParam)) || 0);
+  const offset = page * PAGE_SIZE;
 
   // Build the WHERE clause. Posts by unclaimed (seeded) profiles stay private.
   const conditions: SQL[] = [profileIdIsClaimed(posts.profileId)];
@@ -82,94 +85,52 @@ export const getExploreFeed = async (
     conditions.push(or(...filters)!);
   }
 
-  const query = db
-    .select({
-      ...rest,
-      username: profile.username,
-      name: profile.displayName,
-      avatar: profile.profileImage,
-      upvoteCount: sql<number>`COALESCE(SUM(CASE WHEN ${postVotes.value} = 1 THEN 1 ELSE 0 END), 0)`.as("upvoteCount"),
-      downvoteCount: sql<number>`COALESCE(SUM(CASE WHEN ${postVotes.value} = -1 THEN 1 ELSE 0 END), 0)`.as("downvoteCount"),
-      commentCount: sql<number>`COUNT(DISTINCT ${comments.id})`.as("commentCount"),
-      userVote:
-        session && userProfileId
-          ? sql<number | null>`MAX(CASE WHEN ${postVotes.profileId} = ${userProfileId} THEN ${postVotes.value} ELSE NULL END)`.as("userVote")
-          : sql<number | null>`NULL`.as("userVote"),
-
-      commented:
-        session && userProfileId
-          ? sql<boolean>`COALESCE(BOOL_OR(comments.profile_id = ${userProfileId}), false)`.as(
-            "commented"
-          )
-          : sql<boolean>`false`.as("commented"),
-      bookmarked:
-        session && userProfileId
-          ? sql<boolean>`COALESCE(bool_or(${bookmarks.profileId} = ${userProfileId}), false)`.as("bookmarked")
-          : sql<boolean>`false`.as("bookmarked"),
-      media: sql`
-      CASE 
-        WHEN media.id IS NOT NULL THEN json_build_object(
-          'id', media.id,
-          'url', media.url,
-          'type', media.type,
-          'width', media.width,
-          'height', media.height
-        )
-        ELSE NULL
-      END
-    `.as("media"),
-
-      link: sql`
-      CASE 
-        WHEN post_links.id IS NOT NULL THEN json_build_object(
-          'id', post_links.id,
-          'url', post_links.url,
-          'data', post_links.data,
-          'createdAt', post_links.created_at
-        )
-        ELSE NULL
-      END
-    `.as("link"),
-    })
+  // One statement per page: fetch one extra row to know whether there's a
+  // next page instead of running a separate count(*).
+  const rows = await db
+    .select({ ...postCardColumns(), ...viewerColumns(viewerUserId) })
     .from(posts)
     .innerJoin(profile, eq(posts.profileId, profile.id))
-    .leftJoin(postMedia, eq(posts.id, postMedia.postId))
-    .leftJoin(postVotes, eq(posts.id, postVotes.postId))
-    .leftJoin(comments, eq(posts.id, comments.postId))
-    .leftJoin(media, eq(postMedia.mediaId, media.id))
-    .leftJoin(postLinks, eq(posts.id, postLinks.postId))
-    .leftJoin(bookmarks, eq(posts.id, bookmarks.postId))
     .where(and(...conditions))
-    .groupBy(
-      posts.id,
-      profile.username,
-      profile.displayName,
-      profile.profileImage,
-      media.id,
-      postLinks.id
-    )
     .orderBy(
-      sort === "trending"
-        ? desc(sql<number>`(SUM(CASE WHEN ${postVotes.value} = 1 THEN 1 WHEN ${postVotes.value} = -1 THEN -1 ELSE 0 END) + COUNT(DISTINCT ${comments.id}))`)
-        : desc(posts.createdAt)
+      ...(sort === "trending"
+        ? [desc(postScore()), desc(posts.createdAt)]
+        : [desc(posts.createdAt)])
     )
-    .limit(PAGE_SIZE)
+    .limit(PAGE_SIZE + 1)
     .offset(offset);
 
-  const postsData = await query;
-
-  const [{ totalCount }] = await db
-    .select({ totalCount: sql<number>`count(*)` })
-    .from(posts)
-    .where(and(...conditions));
-
-  const hasMore = offset + postsData.length < totalCount;
+  const hasMore = rows.length > PAGE_SIZE;
 
   return {
-    posts: postsData as GetExplorePosts[],
-    nextCursor: hasMore ? pageParam + 1 : undefined,
+    posts: rows.slice(0, PAGE_SIZE) as unknown as GetExplorePosts[],
+    nextCursor: hasMore ? page + 1 : undefined,
   };
 };
+
+/**
+ * The signed-in viewer's vote, comment and bookmark on the given posts. The
+ * explore page renders a cached, viewer-free list and fills these in after.
+ */
+export const getPostViewerState = async (
+  postIds: string[]
+): Promise<ViewerPostState> => {
+  const ids = z.array(z.string().uuid()).max(50).safeParse(postIds);
+  if (!ids.success || ids.data.length === 0) return {};
+  const viewerUserId = await getViewerUserId();
+  if (!viewerUserId) return {};
+  return loadViewerPostState(viewerUserId, ids.data);
+};
+
+const getViewerUserId = async (): Promise<string | null> => {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    return session?.user?.id ?? null;
+  } catch {
+    return null;
+  }
+};
+
 export const getUserPosts = async (username: string) => {
   const targetProfileId = await getProfileIdByUsername(username);
   if (!targetProfileId) {
