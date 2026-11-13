@@ -1,6 +1,6 @@
-import { profile, users } from "@/db/schema";
+import { accounts, profile, users } from "@/db/schema";
 import db from "@/lib/db";
-import { eq, inArray, or, type AnyColumn, type SQL } from "drizzle-orm";
+import { eq, exists, inArray, or, type AnyColumn, type SQL } from "drizzle-orm";
 
 /*
  * Profiles seeded from resumes belong to people who never signed up. Until
@@ -8,15 +8,24 @@ import { eq, inArray, or, type AnyColumn, type SQL } from "drizzle-orm";
  * it must not show up on any public page, list or search.
  */
 
+// An account counts as claimed when it's marked claimed or when the person has
+// ever signed in (has an auth account row). The second part keeps people who
+// signed in before isClaimed was kept up to date visible.
+const isClaimedUser = (): SQL =>
+  or(
+    eq(users.isClaimed, true),
+    exists(db.select({ one: accounts.id }).from(accounts).where(eq(accounts.userId, users.id)))
+  )!;
+
 const claimedUserIds = () =>
-  db.select({ id: users.id }).from(users).where(eq(users.isClaimed, true));
+  db.select({ id: users.id }).from(users).where(isClaimedUser());
 
 const claimedProfileIds = () =>
   db
     .select({ id: profile.id })
     .from(profile)
     .innerJoin(users, eq(users.id, profile.userId))
-    .where(eq(users.isClaimed, true));
+    .where(isClaimedUser());
 
 /** For queries that select from `profile`: keep only claimed accounts. */
 export const profileIsClaimed = (): SQL =>
