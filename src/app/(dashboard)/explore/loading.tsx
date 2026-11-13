@@ -7,11 +7,11 @@ export default function ExploreLoading() {
     <div className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6" aria-busy="true">
       <span className="sr-only">Loading</span>
       <div className="pb-10 pt-10 md:pb-14 md:pt-14">
-        <div className="h-10 w-40 rounded-md bg-[#F1EDE5] dark:bg-[#26221D] motion-safe:animate-pulse" />
-        <div className="mt-3 h-4 w-72 max-w-full rounded-md bg-[#F1EDE5] dark:bg-[#26221D] motion-safe:animate-pulse" />
+        <div className="h-10 w-40 rounded-md bg-subtle motion-safe:animate-pulse" />
+        <div className="mt-3 h-4 w-72 max-w-full rounded-md bg-subtle motion-safe:animate-pulse" />
       </div>
-      <div className="mb-5 border-b border-[#E7E2D8] pb-3 dark:border-[#2E2923]">
-        <div className="h-7 w-32 rounded-md bg-[#F1EDE5] dark:bg-[#26221D] motion-safe:animate-pulse" />
+      <div className="mb-5 border-b border-hairline pb-3">
+        <div className="h-7 w-32 rounded-md bg-subtle motion-safe:animate-pulse" />
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (

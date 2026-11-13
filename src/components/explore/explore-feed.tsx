@@ -3,12 +3,12 @@ import { getExploreFeed, type FeedSort } from "@/actions/post-actions";
 import { getMyCustomFeeds } from "@/actions/custom-feed-actions";
 import { FeedMode } from "@/app/(dashboard)/explore/posts/page";
 import CustomFeedForm from "@/components/feeds/CustomFeedForm";
-import { EmptyFeed } from "@/components/ui/empty-feed";
+import { Button } from "@/components/ui/button";
 import { useInViewport } from "@mantine/hooks";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Loader, Plus } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 import PostCard from "./post-card";
 import { PostCardSkeleton, PostCardSkeletonWithImage } from "./skeletons";
 
@@ -34,6 +34,7 @@ const ExploreFeed = ({
   initialData?: any;
 }) => {
   const { ref, inViewport: inView } = useInViewport();
+  const reduceMotion = useReducedMotion();
 
 
   // Fetch current custom feed if active
@@ -77,21 +78,22 @@ const ExploreFeed = ({
 
 
   return (
-    <div className="w-full relative overflow-x-hidden min-h-screen">
-      <div className="w-full h-20 bg-gradient-to-t from-neutral-50/60 via-neutral-50/40 dark:from-dark-bg dark:via-dark-bg/60 to-transparent fixed bottom-0 z-10 pointer-events-none" />
-
-      {/* ── Following empty state ────────────────────────────────────────── */}
+    <div className="relative mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6">
+      {/* ── Following: not built yet, so point at custom feeds ─────────── */}
       {mode === "following" && (
-        <EmptyFeed
+        <FeedNote
           title="Nothing here yet"
-          description="Create a custom feed to follow topics and profiles you care about."
+          text="Make a feed of the topics and people you care about."
           action={
-            <button
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
               onClick={() => setFeedFormOpen(true)}
-              className="flex items-center gap-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-200 border border-neutral-200 dark:border-dark-border rounded-full px-3 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="h-10 gap-1.5 px-4"
             >
-              <Plus className="size-3.5" /> Create feed
-            </button>
+              <Plus className="size-4" aria-hidden /> New feed
+            </Button>
           }
         />
       )}
@@ -103,48 +105,73 @@ const ExploreFeed = ({
         onSaved={() => setMode("recent")}
       />
 
-      {/* ── Posts grid ──────────────────────────────────────────────────── */}
+      {/* ── Posts ──────────────────────────────────────────────────────── */}
       {mode !== "following" && (
         <>
-          <div className="w-full">
-            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 px-4 mt-6 mb-16">
-              {isLoading
-                ? Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="break-inside-avoid mb-4">
-                    {i % 3 === 0 ? <PostCardSkeletonWithImage /> : <PostCardSkeleton />}
-                  </div>
-                ))
-                : posts.map((post, i) => (
-                  <motion.div
-                    key={`post-${post.id}`}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: i * 0.01 }}
-                    className="break-inside-avoid mb-4"
-                  >
-                    <PostCard post={post} />
-                  </motion.div>
-                ))}
-            </div>
+          <div className="mt-6 columns-1 gap-4 sm:columns-2 lg:columns-3">
+            {isLoading
+              ? Array.from({ length: 9 }).map((_, i) => (
+                <div key={i} className="mb-4 break-inside-avoid">
+                  {i % 3 === 0 ? <PostCardSkeletonWithImage /> : <PostCardSkeleton />}
+                </div>
+              ))
+              : posts.map((post) => (
+                <motion.div
+                  key={`post-${post.id}`}
+                  initial={reduceMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className="mb-4 break-inside-avoid"
+                >
+                  <PostCard post={post} />
+                </motion.div>
+              ))}
           </div>
 
           {posts.length === 0 && !isLoading && (
-            <EmptyFeed
-              title="No posts found"
-              description="Try selecting different topics or check back later."
+            <FeedNote
+              title="No posts here"
+              text={
+                isCustomMode
+                  ? "Nothing in this feed yet. Edit it to add more topics or people."
+                  : "Try other topics, or check back later."
+              }
             />
           )}
 
           <div ref={ref} className="h-10" />
           {isFetchingNextPage && (
-            <div className="flex justify-center mb-10">
-              <Loader strokeWidth={1.4} className="size-5 opacity-60 animate-spin" />
+            <div className="mb-10 flex items-center justify-center gap-2 text-sm text-ink-secondary" role="status">
+              <Loader className="size-4 motion-safe:animate-spin" aria-hidden />
+              Loading more
             </div>
+          )}
+          {!hasNextPage && !isLoading && posts.length > 0 && (
+            <p className="mb-10 text-center text-sm text-ink-secondary">
+              You&apos;re all caught up
+            </p>
           )}
         </>
       )}
     </div>
   );
 };
+
+/** A calm empty state: serif line, one sentence, maybe one action. */
+const FeedNote = ({
+  title,
+  text,
+  action,
+}: {
+  title: string;
+  text: string;
+  action?: ReactNode;
+}) => (
+  <div className="mx-auto flex max-w-sm flex-col items-center gap-2 py-20 text-center">
+    <h2 className="font-instrument text-3xl leading-tight text-ink">{title}</h2>
+    <p className="text-[15px] text-ink-secondary">{text}</p>
+    {action && <div className="mt-3">{action}</div>}
+  </div>
+);
 
 export default ExploreFeed;

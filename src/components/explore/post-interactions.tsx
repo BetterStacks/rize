@@ -1,37 +1,48 @@
 import { deletePost } from "@/actions/post-actions";
-import { TPostMedia } from "@/lib/types";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowBigDown,
+  ArrowBigUp,
   Bookmark,
-  Globe,
   Link2,
-  Loader,
-  MoreHorizontalIcon,
-  Share2,
+  MessageSquare,
+  MoreHorizontal,
   Trash2,
   X,
-  ArrowBigUp,
-  ArrowBigDown,
-  MessageCircleMore,
-  MessageSquareText,
 } from "lucide-react";
-import moment from "moment";
-import { useSession } from "@/lib/auth-client";
-import Image from "next/image";
 import Link from "next/link";
-import { FC, useState, useEffect } from "react";
+import { FC, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Result } from "url-metadata";
+import { useAuthDialog } from "../dialog-provider";
 import PersonAvatar, { usableImageSrc } from "../profile/person-avatar";
-import { useAlertDialog, useAuthDialog } from "../dialog-provider";
-import { Button } from "../ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
+import { Button, buttonVariants } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+
+/** One quiet icon action in the interaction row. */
+const actionClass = cn(
+  "touch-target inline-flex h-8 min-w-8 items-center justify-center gap-1.5 rounded-lg px-1.5 text-[13px] tabular-nums",
+  "text-ink-secondary transition-colors duration-fast ease-calm hover:bg-subtle hover:text-ink",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink",
+);
 
 type PostInteractionsProps = {
   className?: string;
@@ -47,6 +58,7 @@ type PostInteractionsProps = {
   handleShareClick?: () => void;
 };
 
+/** Votes, comments, save and copy link: a quiet row under a post. */
 const PostInteractions: FC<PostInteractionsProps> = ({
   userVote,
   upvoteCount,
@@ -58,12 +70,10 @@ const PostInteractions: FC<PostInteractionsProps> = ({
   isBookmarked,
   handleBookmarkClick,
   handleShareClick,
-  className
+  className,
 }) => {
-  const [open, setOpen] = useAuthDialog();
+  const setOpen = useAuthDialog()[1];
   const session = useSession();
-
-  const score = upvoteCount - downvoteCount;
 
   const [localVote, setLocalVote] = useState(userVote);
   const [localScore, setLocalScore] = useState(upvoteCount - downvoteCount);
@@ -89,7 +99,7 @@ const PostInteractions: FC<PostInteractionsProps> = ({
       const isRemove = localVote === val;
       const delta = isRemove ? -val : val - (localVote || 0);
       setLocalVote(isRemove ? null : val);
-      setLocalScore(s => s + delta);
+      setLocalScore((s) => s + delta);
       handleVoteClick(val);
     });
   };
@@ -102,278 +112,217 @@ const PostInteractions: FC<PostInteractionsProps> = ({
   };
 
   return (
-    <div className={cn("flex items-center justify-between w-full mt-4 px-6 py-2 border-t border-neutral-100 dark:border-dark-border", className)}>
-      {/* Voting Section */}
-      <div className="flex items-center gap-x-2">
-        <div
-          onClick={(e) => onVote(e, 1)}
-          className={cn(
-            "cursor-pointer transition-colors p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-dark-border",
-            localVote === 1 && "text-blue-500"
-          )}
-        >
-          <ArrowBigUp
+    <div
+      className={cn(
+        "flex w-full items-center justify-between gap-2 px-3 pb-3 pt-1",
+        className,
+      )}
+    >
+      <div className="flex items-center gap-1">
+        <div className="flex items-center">
+          <button
+            type="button"
+            onClick={(e) => onVote(e, 1)}
+            aria-label="Upvote"
+            aria-pressed={localVote === 1}
+            className={cn(actionClass, localVote === 1 && "text-ink")}
+          >
+            <ArrowBigUp
+              className={cn("size-[18px]", localVote === 1 && "fill-current")}
+              aria-hidden
+            />
+          </button>
+          <span
             className={cn(
-              "size-5",
-              localVote === 1 ? "fill-blue-500 stroke-blue-500" : "stroke-neutral-500 dark:stroke-neutral-400"
+              "min-w-5 text-center text-[13px] tabular-nums",
+              localVote !== null ? "font-medium text-ink" : "text-ink-secondary",
             )}
-          />
+            aria-label={`Score ${localScore}`}
+          >
+            {localScore}
+          </span>
+          <button
+            type="button"
+            onClick={(e) => onVote(e, -1)}
+            aria-label="Downvote"
+            aria-pressed={localVote === -1}
+            className={cn(actionClass, localVote === -1 && "text-ink")}
+          >
+            <ArrowBigDown
+              className={cn("size-[18px]", localVote === -1 && "fill-current")}
+              aria-hidden
+            />
+          </button>
         </div>
 
-        <span className={cn(
-          "text-sm font-bold min-w-[1rem] text-center",
-          localVote !== null ? "text-blue-500" : "text-neutral-500 dark:text-neutral-400"
-        )}>
-          {localScore}
-        </span>
-
-        <div
-          onClick={(e) => onVote(e, -1)}
-          className={cn(
-            "cursor-pointer transition-colors p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-dark-border",
-            localVote === -1 && "text-blue-500"
-          )}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCommentClick?.();
+          }}
+          aria-label={`${commentCount} ${commentCount === 1 ? "comment" : "comments"}`}
+          className={cn(actionClass, "px-2", hasCommented && "text-ink")}
         >
-          <ArrowBigDown
-            className={cn(
-              "size-5",
-              localVote === -1 ? "fill-blue-500 stroke-blue-500" : "stroke-neutral-500 dark:stroke-neutral-400"
-            )}
+          <MessageSquare
+            className={cn("size-4", hasCommented && "fill-current")}
+            aria-hidden
           />
-        </div>
+          <span>{commentCount}</span>
+        </button>
       </div>
 
-      {/* Comment Section */}
-      <div
-        onClick={(e) => {
-          e.stopPropagation();
-          handleCommentClick?.();
-        }}
-        className="flex items-center gap-x-2 cursor-pointer group"
-      >
-        <div className="p-1 rounded-md transition-colors hover:bg-neutral-100 dark:hover:bg-dark-border">
-          <MessageSquareText
-            className={cn(
-              "size-5",
-              hasCommented
-                ? "stroke-blue-500 fill-blue-500"
-                : "stroke-neutral-500 dark:stroke-neutral-400"
-            )}
-          />
-        </div>
-        <span className={cn(
-          "text-sm font-bold",
-          hasCommented ? "text-blue-500" : "text-neutral-500 dark:text-neutral-400"
-        )}>
-          {commentCount}
-        </span>
-      </div>
-
-      {/* Save Button */}
-      <div
-        onClick={onBookmark}
-        className="flex items-center cursor-pointer group"
-      >
-        <div className="p-1 rounded-md transition-colors hover:bg-neutral-100 dark:hover:bg-dark-border">
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={onBookmark}
+          aria-label={localIsBookmarked ? "Saved" : "Save"}
+          aria-pressed={!!localIsBookmarked}
+          className={cn(actionClass, localIsBookmarked && "text-ink")}
+        >
           <Bookmark
-            className={cn(
-              "size-5",
-              localIsBookmarked
-                ? "fill-blue-500 stroke-blue-500"
-                : "stroke-neutral-500 dark:stroke-neutral-400"
-            )}
+            className={cn("size-4", localIsBookmarked && "fill-current")}
+            aria-hidden
           />
-        </div>
-      </div>
-
-      {/* Copy Link Button */}
-      <div
-        onClick={(e) => {
-          e.stopPropagation();
-          handleShareClick?.();
-        }}
-        className="flex items-center cursor-pointer group"
-      >
-        <div className="p-1 rounded-md transition-colors hover:bg-neutral-100 dark:hover:bg-dark-border">
-          <Link2
-            className="size-5 stroke-neutral-500 dark:stroke-neutral-400 -rotate-45"
-          />
-        </div>
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleShareClick?.();
+          }}
+          aria-label="Copy link"
+          className={actionClass}
+        >
+          <Link2 className="size-4 -rotate-45" aria-hidden />
+        </button>
       </div>
     </div>
   );
-};
-
-export const MessageIcon = (props: React.SVGProps<SVGSVGElement>) => {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="transparent"
-      viewBox="0 0 24 24"
-      {...props}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.923 1.785A5.969 5.969 0 0 0 6 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337Z"
-      />
-    </svg>
-  );
-};
-
-type PostMediaContainerProps = {
-  media: TPostMedia[];
-  mediaContainerClassName?: string;
-  hasContentAndMedia?: boolean;
-  onlyMedia?: boolean;
 };
 
 type PostaAvatarProps = {
   avatar: string;
   name: string;
   className?: string;
+  size?: number;
 };
+
 export const PostAvatar: FC<PostaAvatarProps> = ({
   avatar,
   name,
   className,
+  size = 36,
 }) => {
   // Photo, or initials on a soft yellow tint if there's none or it fails.
-  return <PersonAvatar src={avatar} name={name} size={36} className={className} />;
-};
-
-type PostCardHeaderProps = {
-  avatar: string;
-  name: string;
-  onlyContent?: boolean;
-  hasContentAndMedia?: boolean;
-  onlyMedia?: boolean;
-  createdAt: Date;
-  username: string;
-};
-
-export const PostCardHeader: FC<PostCardHeaderProps> = ({
-  avatar,
-  createdAt,
-  hasContentAndMedia,
-  onlyContent,
-  onlyMedia,
-  name,
-  username,
-}) => {
-  return (
-    <div
-      className={cn(
-        "flex items-center text-white px-4 justify-between w-full",
-        hasContentAndMedia && "absolute   top-3 z-[2]",
-        onlyMedia && "absolute   top-3 z-[8]"
-      )}
-    >
-      <PostAvatar avatar={avatar} name={name} />
-      <div className={cn(" flex flex-col", onlyContent && "ml-4")}>
-        <h2
-        // className={cn(
-        //   " text-sm text-black  ",
-        //   addDarkStyles && "dark:text-white"
-        // )}
-        >
-          {name}
-        </h2>
-        <div
-          className={cn(
-            "flex items-center justify-center dark:text-neutral-400 text-sm font-light leading-snug text-neutral-400 "
-          )}
-        >
-          <p
-            className={
-              cn("mr-1")
-              // "text-sm font-light leading-tight text-neutral-600 ",
-              // addDarkStyles && "dark:text-neutral-400"
-            }
-          >
-            @{username}
-          </p>
-          {"•"}
-          <span className="ml-1">{moment(createdAt).fromNow()}</span>
-        </div>
-      </div>
-    </div>
-  );
+  return <PersonAvatar src={avatar} name={name} size={size} className={className} />;
 };
 
 type PostCardOptionsProps = {
   profileId: string;
   postId: string;
+  /** Called after the post is deleted (e.g. to leave the post page). */
+  onDeleted?: () => void;
 };
 
+/** The "…" menu on a post: copy link for everyone, delete for the author. */
 export const PostCardOptions: FC<PostCardOptionsProps> = ({
   postId,
   profileId,
+  onDeleted,
 }) => {
   const queryClient = useQueryClient();
   const session = useSession();
-  const isMine = (session?.data?.user as any)?.profileId === profileId;
+  const isMine =
+    (session?.data?.user as { profileId?: string } | undefined)?.profileId ===
+    profileId;
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const { mutate, isPending } = useMutation({
     mutationFn: deletePost,
     onSuccess: () => {
-      toast.success("Post deleted successfully");
+      toast.success("Post deleted");
+      setConfirmOpen(false);
       queryClient.invalidateQueries({ queryKey: ["explore-feed"] });
       queryClient.invalidateQueries({ queryKey: ["get-user-posts"] });
+      onDeleted?.();
     },
     onError: (error) => {
       console.error("Error deleting post:", error);
+      toast.error("Couldn't delete the post. Try again.");
     },
   });
-  const [open, setOpen] = useAlertDialog();
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/post/${postId}`,
+      );
+      toast.success("Link copied");
+    } catch {
+      toast.error("Couldn't copy the link");
+    }
+  };
 
   return (
-    <>
+    <div onClick={(e) => e.stopPropagation()} className="shrink-0">
       <DropdownMenu>
-        <DropdownMenuTrigger
-          asChild
-          className="z-[6]  transition-all duration-200 ease-in"
-        >
+        <DropdownMenuTrigger asChild>
           <Button
-            size={"smallIcon"}
-            className="rounded-full aspect-square "
-            variant={"outline"}
+            size="smallIcon"
+            variant="ghost"
+            aria-label="Post options"
+            className="text-ink-secondary hover:text-ink"
           >
-            <MoreHorizontalIcon
-              className={cn(
-                "text-neutral-500 size-4 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
-              )}
-            />
+            <MoreHorizontal className="size-4" aria-hidden />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className={cn("w-52 dark:bg-dark-bg dark:border-dark-border border-neutral-300/80 mt-2 rounded-xl")} align="end">
-          <DropdownMenuItem >
-            <Link2 className=" -rotate-45 size-4" />
-            <span>Copy Link</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="">
-            <Bookmark className="  size-4" />
-            <span>Bookmark</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="">
-            <Share2 className="  size-4" />
-            <span>Share</span>
+        <DropdownMenuContent className="w-44" align="end">
+          <DropdownMenuItem onSelect={copyLink}>
+            <Link2 className="size-4 -rotate-45" aria-hidden />
+            <span>Copy link</span>
           </DropdownMenuItem>
           {isMine && (
-            <DropdownMenuItem
-              onClick={() => mutate(postId)}
-              className='text-red-500'
-            >
-              {isPending ? (
-                <Loader className="size-4 animate-spin" />
-              ) : (
-                <Trash2 className="size-4" />
-              )}
-              <span>Delete</span>
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() => setConfirmOpen(true)}
+                className="text-danger focus:text-danger"
+              >
+                <Trash2 className="size-4" aria-hidden />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-    </>
+
+      {isMine && (
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this post?</AlertDialogTitle>
+              <AlertDialogDescription>
+                It will be removed from your profile and the feed, along with
+                its comments. This can&apos;t be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isPending}>Keep it</AlertDialogCancel>
+              <AlertDialogAction
+                className={buttonVariants({ variant: "destructive" })}
+                disabled={isPending}
+                onClick={(e) => {
+                  e.preventDefault();
+                  mutate(postId);
+                }}
+              >
+                {isPending ? "Deleting…" : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </div>
   );
 };
 
@@ -384,6 +333,7 @@ type PostCardContainerProps = {
   handlePostClick: () => void;
 };
 
+/** A post, writing or project in a list: hairline card on surface. */
 export const PostCardContainer: FC<PostCardContainerProps> = ({
   children,
   className,
@@ -394,9 +344,8 @@ export const PostCardContainer: FC<PostCardContainerProps> = ({
       onClick={handlePostClick}
       className={cn(
         "first:mt-0 mt-4 w-full cursor-pointer overflow-hidden break-inside-avoid rounded-xl border",
-        "border-[#E7E2D8] bg-white transition-colors duration-150 ease-out hover:border-[#D3CCBE]",
-        "dark:border-[#2E2923] dark:bg-[#1C1916] dark:hover:border-[#3D362E]",
-        className
+        "border-hairline bg-surface transition-colors duration-fast ease-calm hover:border-ink/20",
+        className,
       )}
     >
       {children}
@@ -417,7 +366,8 @@ const LinkPreviewImage = ({ src }: { src?: string }) => {
   const [failed, setFailed] = useState(false);
   if (!usable || failed) return null;
   return (
-    <div className="relative aspect-video w-full">
+    <div className="relative aspect-[1.91/1] w-full border-b border-hairline bg-subtle">
+      {/* eslint-disable-next-line @next/next/no-img-element -- og:image can be any host */}
       <img
         src={usable}
         alt=""
@@ -431,6 +381,15 @@ const LinkPreviewImage = ({ src }: { src?: string }) => {
   );
 };
 
+const hostOf = (url: string) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+};
+
+/** A link preview: og:image when it loads, the title, and the site. */
 export const PostLinkCard: FC<PostLinkCardProps> = ({
   data,
   url,
@@ -440,43 +399,44 @@ export const PostLinkCard: FC<PostLinkCardProps> = ({
 }) => {
   const displayUrl = data?.url || url;
   if (!displayUrl) return null;
+  const title = (data?.title as string | undefined) || displayUrl;
 
   return (
     <div
       className={cn(
         !hasRemove && "mx-4",
         hasRemove && "max-w-xs",
-        " rounded-2xl z-[6] mt-4 relative transition-all duration-200 ease-in-out overflow-hidden  border border-neutral-300/80 dark:border-dark-border",
-        className
+        "relative mt-3 overflow-hidden rounded-xl border border-hairline bg-surface transition-colors duration-fast ease-calm hover:border-ink/20",
+        className,
       )}
     >
-      <div className="relative overflow-hidden w-full h-fit">
-        {hasRemove && (
-          <button
-            onClick={onRemove}
-            className="border border-neutral-200  z-10 dark:bg-dark-bg bg-white dark:border-dark-border rounded-full  absolute top-2 right-2 p-2"
-          >
-            <X className="size-4 opacity-80  " />
-          </button>
-        )}
-        {/* og:image comes from any site: load it directly, and drop the
-            image area entirely if it fails, rather than showing alt text. */}
-        <LinkPreviewImage src={data?.["og:image"] as string | undefined} />
-      </div>
-      <div className="px-4 pt-4 mb-6  border-t border-neutral-300/80 dark:border-dark-border">
-        <Link
-          href={displayUrl}
-          onClick={(e) => {
-            e.stopPropagation(); // prevent handleViewPost from firing
-          }}
-          target="_blank"
-          className="w-full "
+      {hasRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Remove link"
+          className="touch-target absolute right-2 top-2 z-10 inline-flex size-8 items-center justify-center rounded-full border border-hairline bg-surface text-ink-secondary hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
         >
-          <h4 className="font-medium line-clamp-2 dark:text-neutral-300 text-neutral-600 text-sm">
-            {data?.title || displayUrl}
-          </h4>
-        </Link>
-      </div>
+          <X className="size-4" aria-hidden />
+        </button>
+      )}
+      {/* og:image comes from any site: load it directly, and drop the
+          image area entirely if it fails, rather than showing alt text. */}
+      <LinkPreviewImage src={data?.["og:image"] as string | undefined} />
+      <Link
+        href={displayUrl}
+        onClick={(e) => e.stopPropagation()}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block px-3 py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink"
+      >
+        <span className="line-clamp-2 text-sm font-medium text-ink">
+          {title}
+        </span>
+        <span className="mt-0.5 block truncate text-xs text-ink-secondary">
+          {hostOf(displayUrl)}
+        </span>
+      </Link>
     </div>
   );
 };

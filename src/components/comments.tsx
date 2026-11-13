@@ -5,26 +5,27 @@ import { queryClient } from "@/lib/providers";
 import { GetCommentWithProfile, TUploadFilesResponse } from "@/lib/types";
 import { cn, isValidUrl } from "@/lib/utils";
 import { uploadErrorMessage, uploadFiles } from "@/lib/prepare-upload";
-import { useMediaQuery } from "@mantine/hooks";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import {
-  Bookmark,
+  ImagePlus,
   Link2,
   Loader,
-  MoreHorizontalIcon,
+  MoreHorizontal,
   Trash2,
   X,
 } from "lucide-react";
 import { useSession } from "@/hooks/useAuth";
 import Image from "next/image";
+import Link from "next/link";
 import React, { FC, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
 import Textarea from "react-textarea-autosize";
 import { Result } from "url-metadata";
 import { v4 } from "uuid";
-import { GalleryIcon } from "./explore/post-form";
+import { useAuthDialog } from "./dialog-provider";
+import { isoOf, PostMedia, shortTime } from "./explore/post-card";
 import { PostAvatar, PostLinkCard } from "./explore/post-interactions";
 import { Button } from "./ui/button";
 import {
@@ -59,53 +60,79 @@ const Comments: FC<CommentsProps> = ({
   });
 
   const { removeCommentMutation } = useComment({ postId: id, orderBy });
+  const setAuthOpen = useAuthDialog()[1];
+
+  const count = Number(commentCount) || comments?.length || 0;
 
   return (
-    <div className=" mb-10">
-      {session?.data && <CommentForm orderBy={orderBy} id={id} />}
-      <div className="space-y-4 ">
-        {isLoading ? (
-          <div className="mt-6 flex flex-col items-center justify-center">
-            <Loader className="size-6 animate-spin text-neutral-500 dark:text-neutral-400" />
-          </div>
-        ) : comments?.length === 0 ? (
-          <div className="mt-6 flex flex-col items-center justify-center">
-            <span className="dark:text-neutral-400 text-neutral-600">
-              0 Comments Found
+    <section id="comments" aria-labelledby="comments-title" className="scroll-mt-24 pt-8">
+      <div className="mb-2 flex min-h-11 items-center justify-between gap-3">
+        <h2 id="comments-title" className="font-instrument text-[28px] leading-none text-ink">
+          Comments
+          {count > 0 && (
+            <span className="ml-2 font-inter text-sm tabular-nums text-ink-secondary">
+              {count}
             </span>
+          )}
+        </h2>
+        {(comments?.length ?? 0) > 1 && (
+          <div className="flex items-center">
+            <label htmlFor="comment-order" className="sr-only">
+              Sort comments
+            </label>
+            <select
+              id="comment-order"
+              onChange={(e) => setOrderBy(e?.target.value as any)}
+              value={orderBy}
+              className="h-9 rounded-lg border border-hairline bg-surface px-2.5 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="popular">Most liked</option>
+            </select>
           </div>
-        ) : (
-          <>
-            <div className="px-6 pt-4 flex items-center justify-between">
-              <span className="dark:text-neutral-400 text-neutral-600">
-                {commentCount} Comments
-              </span>
-              <div>
-                <select
-                  onChange={(e) => setOrderBy(e?.target.value as any)}
-                  value={orderBy}
-                  className="dark:bg-dark-bg bg-white dark:border-dark-border border-neutral-300 rounded-lg px-3 py-1.5 text-sm text-neutral-600 dark:text-neutral-400 focus-visible:outline-none"
-                >
-                  <option value="newest">Newest</option>
-                  <option value="oldest">Oldest</option>
-                  <option value="popular">Popular Liked</option>
-                </select>
-              </div>
-            </div>
-            {comments?.map((comment, i) => {
-              return (
-                <CommentCard
-                  key={i}
-                  comment={comment}
-                  handleDelete={removeCommentMutation.mutate}
-                  isDeleting={removeCommentMutation?.isPending}
-                />
-              );
-            })}
-          </>
         )}
       </div>
-    </div>
+
+      {session?.data ? (
+        <CommentForm orderBy={orderBy} id={id} />
+      ) : (
+        <p className="flex flex-wrap items-center gap-x-2 border-b border-hairline pb-5 pt-1 text-[15px] text-ink-secondary">
+          <span>Join the conversation</span>
+          <span aria-hidden>·</span>
+          <button
+            type="button"
+            onClick={() => setAuthOpen(true)}
+            className="min-h-11 rounded-md font-medium text-ink underline decoration-brand decoration-2 underline-offset-4 hover:decoration-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+          >
+            Sign in to comment
+          </button>
+        </p>
+      )}
+
+      {isLoading ? (
+        <div className="flex justify-center py-8" role="status">
+          <Loader className="size-5 text-ink-secondary motion-safe:animate-spin" aria-hidden />
+          <span className="sr-only">Loading comments</span>
+        </div>
+      ) : comments?.length === 0 ? (
+        <p className="py-8 text-[15px] text-ink-secondary">
+          No comments yet.
+        </p>
+      ) : (
+        <ul className="divide-y divide-hairline">
+          {comments?.map((comment, i) => (
+            <li key={comment?.id ?? i}>
+              <CommentCard
+                comment={comment}
+                handleDelete={removeCommentMutation.mutate}
+                isDeleting={removeCommentMutation?.isPending}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 };
 
@@ -126,7 +153,6 @@ const CommentForm: FC<TCommentForm> = ({ id, orderBy }) => {
   const [link, setLink] = useState<string | null>();
   const [content, setContent] = React.useState<string>("");
   const [file, setFile] = React.useState<MediaFile | null>(null);
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
 
   const onDrop = (acceptedFiles: File[]) => {
@@ -172,56 +198,56 @@ const CommentForm: FC<TCommentForm> = ({ id, orderBy }) => {
     orderBy: orderBy,
   });
 
+  const hasDraft = content?.length > 0 || !!file;
+  const userName =
+    session?.data?.user?.displayName || session?.data?.user?.name || "";
+
   return (
     <div
       {...getRootProps()}
       className={cn(
-        "pt-4 pb-6 border-b border-neutral-300 dark:border-dark-border px-6 group flex items-center justify-center w-full",
-        isDragActive && "bg-blue-400/20",
+        "flex w-full items-start gap-3 border-b border-hairline pb-4 pt-1",
+        isDragActive && "rounded-xl bg-subtle",
       )}
     >
       <input {...getInputProps()} className="hidden" />
-      {isDesktop && session?.data && (
-        <div className="mr-4 self-start flex-shrink-0">
-          <PostAvatar
-            className="size-8"
-            avatar={
-              session?.data?.user?.profileImage ||
-              session?.data?.user?.image ||
-              ""
-            }
-            name={
-              session?.data?.user?.displayName ||
-              session?.data?.user?.name ||
-              ""
-            }
-          />
-        </div>
+      {session?.data && (
+        <PostAvatar
+          className="mt-1 hidden sm:inline-flex"
+          size={32}
+          avatar={
+            session?.data?.user?.profileImage ||
+            session?.data?.user?.image ||
+            ""
+          }
+          name={userName}
+        />
       )}
-      <div className="flex-1  ">
+      <div className="min-w-0 flex-1">
+        <label htmlFor="comment-input" className="sr-only">
+          Write a comment
+        </label>
         <Textarea
-          autoFocus
-          className={cn(
-            "appearance-none  px-2 text-sm md:text-base w-full bg-transparent text-neutral-600 dark:text-neutral-200 tracking-tight font-medium focus-visible:outline-none shadow-none resize-none border-none",
-            (content?.length > 0 || file) && "mb-4",
-          )}
+          id="comment-input"
+          minRows={2}
+          className="w-full resize-none rounded-xl border border-hairline bg-surface px-3 py-2.5 text-[15px] leading-relaxed text-ink placeholder:text-ink-secondary transition-[border-color,box-shadow] duration-fast ease-calm focus:border-ink focus:outline-none focus:ring-4 focus:ring-brand/40"
           value={content}
           onChange={(e) => {
             setContent(e.target.value);
           }}
-          placeholder={"What's on your mind?"}
+          placeholder="Add a comment"
         />
         {link && !linkMetadata?.data?.metadata && (
-          <div className="max-w-xs w-full mt-4 rounded-2xl relative overflow-hidden  border border-neutral-300/80 dark:border-dark-border">
-            <Skeleton className="h-[180px] bg-neutral-200/80 rounded-b-none dark:bg-dark-border " />
-            <div className="h-[40px] pb-6 mt-4 flex flex-col items-start justify-center px-4">
-              <Skeleton className="bg-neutral-200 dark:bg-dark-border h-4 w-1/2 rounded-lg" />
+          <div className="mt-3 w-full max-w-xs overflow-hidden rounded-xl border border-hairline" aria-hidden>
+            <Skeleton className="h-[140px] rounded-none bg-subtle" />
+            <div className="px-3 py-3">
+              <Skeleton className="h-4 w-1/2 rounded-md bg-subtle" />
             </div>
           </div>
         )}
         {linkMetadata?.data?.metadata && (
           <PostLinkCard
-            className="mt-4"
+            className="mx-0 mt-3"
             data={linkMetadata?.data?.metadata}
             hasRemove
             onRemove={() => {
@@ -232,92 +258,76 @@ const CommentForm: FC<TCommentForm> = ({ id, orderBy }) => {
         )}
 
         {file && (
-          <div className="w-full flex gap-2 mt-4 ">
-            <div
-              key={file.id}
-              className="aspect-video max-w-xs flex items-center justify-center gap-x-2 border border-neutral-300/60 dark:border-dark-border rounded-xl relative group overflow-hidden "
+          <div className="relative mt-3 aspect-video w-full max-w-xs overflow-hidden rounded-xl border border-hairline bg-subtle">
+            <button
+              type="button"
+              onClick={() => setFile(null)}
+              aria-label="Remove attachment"
+              className="touch-target absolute right-2 top-2 z-10 inline-flex size-8 items-center justify-center rounded-full border border-hairline bg-surface text-ink-secondary hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
             >
-              <div
-                className="absolute top-2 right-2 opacity-0 z-30 group-hover:opacity-100 transition-all duration-200"
-                onClick={() => {
-                  setFile(null);
-                }}
-              >
-                <button
-                  onClick={() => {
-                    setLink(null);
-                    queryClient.setQueryData(["get-link-metadata"], null);
-                  }}
-                  className="border border-neutral-200 dark:bg-dark-bg bg-white dark:border-dark-border rounded-full p-2"
-                >
-                  <X className="size-4 opacity-80  " />
-                </button>
-              </div>
-              <div className="aspect-video w-full relative rounded-lg overflow-hidden">
-                {file.type === "image" ? (
-                  <Image
-                    height={400}
-                    width={400}
-                    priority
-                    src={file.url}
-                    alt="Preview"
-                    className="w-full aspect-video  object-contain"
-                  />
-                ) : (
-                  <video
-                    src={file.url}
-                    controls
-                    autoPlay={true}
-                    className="w-full object-top aspect-video "
-                  />
-                )}
-              </div>
-            </div>
+              <X className="size-4" aria-hidden />
+            </button>
+            {file.type === "image" ? (
+              <Image
+                fill
+                unoptimized
+                src={file.url}
+                alt="Attachment preview"
+                className="object-contain"
+              />
+            ) : (
+              <video
+                src={file.url}
+                controls
+                className="size-full object-contain"
+              />
+            )}
           </div>
         )}
         <div
           className={cn(
-            "hidden items-center mt-4 justify-between w-full",
-            (content?.length > 0 || file) && "flex",
+            "mt-2 hidden w-full items-center justify-between",
+            hasDraft && "flex",
           )}
         >
-          <div className="space-x-2 ">
+          <div className="flex items-center gap-1">
             <Button
-              size={"icon"}
-              className="rounded-full"
-              variant={"ghost"}
+              type="button"
+              size="smallIcon"
+              variant="ghost"
+              aria-label="Add a photo or video"
+              className="text-ink-secondary hover:text-ink"
               disabled={!!link || addCommentMutation?.isPending}
               onClick={openDropZone}
             >
-              <GalleryIcon
-                strokeWidth={1.2}
-                className="opacity-80 size-6  stroke-black dark:stroke-neutral-100"
-              />
+              <ImagePlus className="size-4" aria-hidden />
             </Button>
-
             <Button
+              type="button"
+              size="smallIcon"
+              variant="ghost"
+              aria-label="Add a link"
+              className="text-ink-secondary hover:text-ink"
               disabled={!!link || !!file || addCommentMutation?.isPending}
               onClick={async () => {
-                const url = prompt("Enter a link:");
+                const url = prompt("Paste a link");
                 if (!url) return;
                 if (!isValidUrl(url)) {
-                  toast.error("Invalid URL");
+                  toast.error("That link doesn't look right");
                   return;
                 }
 
                 setLink(url);
               }}
-              size={"icon"}
-              className="rounded-full"
-              variant={"ghost"}
             >
-              <Link2 strokeWidth={1.4} className="-rotate-45 opacity-80" />
+              <Link2 className="size-4 -rotate-45" aria-hidden />
             </Button>
           </div>
           <Button
-            className="rounded-3xl px-6"
-            variant={"outline"}
-            size={"sm"}
+            type="button"
+            size="sm"
+            className="h-9 px-4"
+            loading={isUploadingMedia}
             onClick={async () => {
               let media: TUploadFilesResponse | undefined = undefined;
 
@@ -384,10 +394,7 @@ const CommentForm: FC<TCommentForm> = ({ id, orderBy }) => {
               addCommentMutation.isPending
             }
           >
-            {isUploadingMedia && (
-              <Loader className="size-4 opacity-80 animate-spin mr-2" />
-            )}
-            <span className="">Comment</span>
+            Comment
           </Button>
         </div>
       </div>
@@ -409,137 +416,82 @@ const CommentCard: FC<CommentCardProps> = ({
   const session = useSession();
   const isMine =
     (session?.data?.user as any)?.profileId === (comment?.profileId as string);
-  // const isDesktop = useMediaQuery("(min-width: 1024px)");
+
+  const name = comment?.displayName || comment?.username || "Someone";
+  const media = comment?.media?.url ? comment.media : null;
 
   return (
-    <div
-      className={cn(
-        "w-full border-t first:border-none border-neutral-300 dark:border-dark-border px-2 md:px-6 py-4 flex  items-center justify-start",
-      )}
-    >
-      {/* {isDesktop && ( */}
-      <div className="pt-0.5 self-start flex-shrink-0">
-        <PostAvatar
-          className="size-8"
-          avatar={comment?.profileImage}
-          name={comment?.displayName}
-        />
-      </div>
+    <div className="flex w-full items-start gap-3 py-4">
+      <Link
+        href={`/${comment?.username}`}
+        tabIndex={-1}
+        aria-hidden
+        className="mt-0.5 shrink-0 rounded-full"
+      >
+        <PostAvatar size={32} avatar={comment?.profileImage} name={name} />
+      </Link>
 
-      <div className={cn("w-full flex flex-col items-start ml-4")}>
-        <div className="w-full flex items-center justify-between">
-          <div className="flex items-center justify-start gap-1 md:gap-2">
-            <h3 className="tracking-tight  text-sm md:text-base">
-              {comment?.displayName}
-            </h3>
-            <span className="text-neutral-500 dark:text-neutral-400">
-              {"•"}
-            </span>
-
-            <span className="text-sm text-neutral-500 dark:text-neutral-400">
-              {new Date(comment?.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </span>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              asChild
-              className="z-[6]  transition-all duration-200 ease-in"
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <p className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 text-[13px] leading-tight text-ink-secondary">
+            <Link
+              href={`/${comment?.username}`}
+              className="truncate rounded-sm text-sm font-medium text-ink hover:underline hover:underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
             >
-              <Button
-                size={"smallIcon"}
-                className="rounded-full focus-visible:ring-0 focus-visible:ring-offset-0  aspect-square "
-                variant={"ghost"}
-              >
-                <MoreHorizontalIcon
-                  className={cn(
-                    "text-neutral-500 size-4 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300",
-                  )}
-                />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="shadow-2xl shadow-black/40 dark:shadow-black rounded-xl dark:bg-dark-bg border dark:border-dark-border border-neutral-300/60 bg-white p-0">
-              <DropdownMenuItem className="px-4 py-1.5 ">
-                <Link2 className="opacity-80 -rotate-45 size-4" />
-                <span>Copy Link</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border">
-                <Bookmark className="opacity-80  size-4" />
-                <span>Save</span>
-              </DropdownMenuItem>
-              {isMine && (
+              {name}
+            </Link>
+            <span aria-hidden>·</span>
+            <time dateTime={isoOf(comment?.createdAt)}>
+              {shortTime(comment?.createdAt)}
+            </time>
+          </p>
+          {isMine && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="smallIcon"
+                  variant="ghost"
+                  aria-label="Comment options"
+                  className="-mr-1.5 -mt-1.5 shrink-0 text-ink-secondary hover:text-ink"
+                >
+                  <MoreHorizontal className="size-4" aria-hidden />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
                 <DropdownMenuItem
-                  onClick={() => handleDelete(comment?.id)}
-                  className="px-4 py-1.5 border-t border-neutral-300/60 dark:border-dark-border"
+                  onSelect={() => handleDelete(comment?.id)}
+                  disabled={isDeleting}
+                  className="text-danger focus:text-danger"
                 >
                   {isDeleting ? (
-                    <Loader className="opacity-80 size-4 animate-spin" />
+                    <Loader className="size-4 motion-safe:animate-spin" aria-hidden />
                   ) : (
-                    <Trash2 className="opacity-80 size-4" />
+                    <Trash2 className="size-4" aria-hidden />
                   )}
                   <span>Delete</span>
                 </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <span className="dark:text-neutral-300/80 md:text-base text-sm mt-2 text-neutral-600">
-          {comment?.content?.split("\n").map((line, i) => {
-            return (
-              <span className={cn("")} key={i}>
-                {line} <br className="" />
-              </span>
-            );
-          })}
-        </span>
-
-        <div className="mt-4 w-full flex items-center justify-start">
-          {comment?.media && (
-            <div
-              className={cn(
-                "relative border  border-neutral-300/80 aspect-video  w-full rounded-xl overflow-hidden ",
-                "dark:border-dark-border",
-              )}
-              style={{
-                objectFit: "cover",
-              }}
-            >
-              {comment?.media?.type === "image" ? (
-                <>
-                  <Image
-                    fill
-                    src={comment?.media.url}
-                    alt="Post media"
-                    quality={100}
-                    priority
-                    style={{ objectFit: "cover" }}
-                    draggable={false}
-                    className=" select-none "
-                  />
-                </>
-              ) : (
-                <>
-                  <video
-                    style={{ objectFit: "cover" }}
-                    className="w-full h-full select-none  "
-                    src={comment?.media?.url}
-                    autoPlay
-                    draggable={false}
-                    loop
-                    muted
-                    controls={false}
-                  />
-                </>
-              )}
-            </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
+
+        {comment?.content && (
+          <p className="mt-1.5 whitespace-pre-line break-words text-[15px] leading-relaxed text-ink">
+            {comment.content}
+          </p>
+        )}
+
+        {media && (
+          <PostMedia
+            media={media}
+            sizes="(min-width: 768px) 400px, 100vw"
+            maxHeight={400}
+            className="mt-3 max-w-md rounded-xl border border-hairline"
+          />
+        )}
         {comment?.data && (
           <PostLinkCard
-            className="mx-0 w-full max-w-sm "
+            className="mx-0 w-full max-w-sm"
             data={comment?.data as Result}
           />
         )}

@@ -4,7 +4,7 @@ import {
     ArrowBigDown,
     ArrowBigUp,
     Bookmark,
-    Share2,
+    Share,
 } from "lucide-react";
 import { FC } from "react";
 import { useAuthDialog } from "../dialog-provider";
@@ -21,6 +21,13 @@ type ProjectInteractionsProps = {
     compact?: boolean;
 };
 
+const action = cn(
+    "touch-target inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-sm",
+    "text-ink-secondary transition-colors duration-fast ease-calm hover:bg-subtle hover:text-ink",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink",
+);
+
+/** Votes, save and share for a project, in the same quiet style as posts. */
 const ProjectInteractions: FC<ProjectInteractionsProps> = ({
     userVote,
     upvoteCount,
@@ -32,116 +39,77 @@ const ProjectInteractions: FC<ProjectInteractionsProps> = ({
     className,
     compact = false,
 }) => {
-    const [open, setOpen] = useAuthDialog();
+    const setOpen = useAuthDialog()[1];
     const session = useSession();
 
     const score = upvoteCount - downvoteCount;
 
-    const handleAction = (e: React.MouseEvent, action: () => void) => {
+    const handleAction = (e: React.MouseEvent, run: () => void) => {
         e.stopPropagation();
         e.preventDefault();
         if (!session?.data) {
             setOpen(true);
             return;
         }
-        action();
+        run();
     };
 
     return (
-        <div className={cn("flex flex-wrap items-center gap-2", className)}>
-            {/* Voting Section */}
-            <div className="flex border dark:border-dark-border border-neutral-300/80 rounded-3xl p-1 items-center bg-neutral-50/50 dark:bg-dark-bg/50">
-                <div
+        <div className={cn("flex flex-wrap items-center gap-1", className)}>
+            <div className="flex items-center">
+                <button
+                    type="button"
                     onClick={(e) => handleAction(e, () => handleVoteClick(1))}
-                    className={cn(
-                        "p-1 rounded-full transition-colors hover:bg-orange-500/10 group",
-                        userVote === 1 && "bg-orange-500/10"
-                    )}
+                    aria-label="Upvote"
+                    aria-pressed={userVote === 1}
+                    className={cn(action, "w-9 px-0", userVote === 1 && "text-ink")}
                 >
-                    <ArrowBigUp
-                        className={cn(
-                            compact ? "size-5" : "size-6",
-                            "transition-colors",
-                            userVote === 1
-                                ? "fill-orange-600 stroke-orange-600"
-                                : "stroke-neutral-500 dark:stroke-neutral-400 group-hover:stroke-orange-500"
-                        )}
-                    />
-                </div>
-
-                <span className={cn(
-                    "text-sm font-bold min-w-[1.2rem] text-center transition-colors",
-                    userVote === 1 && "text-orange-600",
-                    userVote === -1 && "text-blue-600",
-                    !userVote && "text-neutral-600 dark:text-neutral-300"
-                )}>
+                    <ArrowBigUp className={cn("size-5", userVote === 1 && "fill-current")} aria-hidden />
+                </button>
+                <span
+                    className={cn(
+                        "min-w-6 text-center text-sm tabular-nums",
+                        userVote ? "font-medium text-ink" : "text-ink-secondary",
+                    )}
+                    aria-label={`Score ${score}`}
+                >
                     {score}
                 </span>
-
-                <div
+                <button
+                    type="button"
                     onClick={(e) => handleAction(e, () => handleVoteClick(-1))}
-                    className={cn(
-                        "p-1 rounded-full transition-colors hover:bg-blue-500/10 group",
-                        userVote === -1 && "bg-blue-500/10"
-                    )}
+                    aria-label="Downvote"
+                    aria-pressed={userVote === -1}
+                    className={cn(action, "w-9 px-0", userVote === -1 && "text-ink")}
                 >
-                    <ArrowBigDown
-                        className={cn(
-                            compact ? "size-5" : "size-6",
-                            "transition-colors",
-                            userVote === -1
-                                ? "fill-blue-600 stroke-blue-600"
-                                : "stroke-neutral-500 dark:stroke-neutral-400 group-hover:stroke-blue-500"
-                        )}
-                    />
-                </div>
+                    <ArrowBigDown className={cn("size-5", userVote === -1 && "fill-current")} aria-hidden />
+                </button>
             </div>
 
-            {/* Save Button */}
-            <div
+            <button
+                type="button"
                 onClick={(e) => handleAction(e, () => handleBookmarkClick?.())}
-                className={cn(
-                    "flex border dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 rounded-3xl items-center justify-center gap-x-2 transition-all bg-neutral-50/50 dark:bg-dark-bg/50",
-                    compact ? "py-1.5 px-3" : "py-2 px-4",
-                    isBookmarked && "bg-yellow-400/10"
-                )}
+                aria-label={compact ? (isBookmarked ? "Saved" : "Save") : undefined}
+                aria-pressed={!!isBookmarked}
+                className={cn(action, isBookmarked && "text-ink")}
             >
-                <Bookmark
-                    className={cn(
-                        compact ? "size-4" : "size-5",
-                        isBookmarked
-                            ? "fill-yellow-500 stroke-yellow-500"
-                            : "stroke-neutral-500 dark:stroke-neutral-400"
-                    )}
-                />
-                {!compact && (
-                    <span className="text-sm font-bold text-neutral-600 dark:text-neutral-300">
-                        {isBookmarked ? "Saved" : "Save"}
-                    </span>
-                )}
-            </div>
+                <Bookmark className={cn("size-4", isBookmarked && "fill-current")} aria-hidden />
+                {!compact && <span>{isBookmarked ? "Saved" : "Save"}</span>}
+            </button>
 
-            {/* Share Button */}
-            <div
+            <button
+                type="button"
                 onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     handleShareClick?.();
                 }}
-                className={cn(
-                    "flex border dark:border-dark-border text-neutral-500 dark:text-neutral-400 hover:dark:bg-dark-border hover:bg-neutral-100 cursor-pointer border-neutral-300/80 rounded-3xl items-center justify-center gap-x-2 transition-all bg-neutral-50/50 dark:bg-dark-bg/50",
-                    compact ? "py-1.5 px-3" : "py-2 px-4"
-                )}
+                aria-label={compact ? "Share" : undefined}
+                className={action}
             >
-                <Share2
-                    className={cn(compact ? "size-4" : "size-5", "stroke-neutral-500 dark:stroke-neutral-400")}
-                />
-                {!compact && (
-                    <span className="text-sm font-bold text-neutral-600 dark:text-neutral-300">
-                        Share
-                    </span>
-                )}
-            </div>
+                <Share className="size-4" aria-hidden />
+                {!compact && <span>Share</span>}
+            </button>
         </div>
     );
 };

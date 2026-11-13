@@ -3,8 +3,8 @@ import { cn } from '@/lib/utils'
 // Quiet placeholders for later pages only; the first screen of explore is
 // rendered on the server with real cards.
 const card =
-  'rounded-xl border border-[#E7E2D8] bg-white dark:border-[#2E2923] dark:bg-[#1C1916] overflow-hidden break-inside-avoid'
-const bar = 'rounded-md bg-[#F1EDE5] dark:bg-[#26221D] motion-safe:animate-pulse'
+  'rounded-xl border border-hairline bg-surface overflow-hidden break-inside-avoid'
+const bar = 'rounded-md bg-subtle motion-safe:animate-pulse'
 
 export const ProfileCardSkeleton = ({ className }: { className?: string }) => {
   return (

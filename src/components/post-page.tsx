@@ -2,24 +2,19 @@
 import { getPostById } from "@/actions/post-actions";
 import { useTogglePostBookmark } from "@/hooks/useTogglePostBookmark";
 import { useVotePost } from "@/hooks/useVotePost";
-import { useSession } from "@/lib/auth-client";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { GetCommentWithProfile, GetExplorePosts } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
-import Image from "next/image";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FC } from "react";
 import toast from "react-hot-toast";
 import Comments from "./comments";
-import { useAuthDialog } from "./dialog-provider";
-import PostInteractions, {
-  PostAvatar,
-  PostCardOptions,
-  PostLinkCard,
-} from "./explore/post-interactions";
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
+import { isoOf, PostAuthorLine, PostMedia } from "./explore/post-card";
+import PostInteractions, { PostLinkCard } from "./explore/post-interactions";
 
 type PostPageProps = {
   id: string;
@@ -32,13 +27,12 @@ const PostPage: FC<PostPageProps> = ({
   initialCommentsData,
   id,
 }) => {
-  const session = useSession();
+  const router = useRouter();
   const { data: post } = useQuery({
     initialData: initialPostData,
     queryKey: ["get-post-by-id", id],
     queryFn: () => getPostById(id),
   });
-  const setOpen = useAuthDialog()[1];
   const mutation = useVotePost({
     userVote: post.userVote ?? null,
     postId: id,
@@ -70,148 +64,91 @@ const PostPage: FC<PostPageProps> = ({
       }
     } else {
       navigator.clipboard.writeText(url);
-      toast.success("Link copied to clipboard");
+      toast.success("Link copied");
     }
   };
 
-  const score = (post.upvoteCount || 0) - (post.downvoteCount || 0);
-  return (
-    <div className="w-full max-w-2xl mx-auto">
-      <Card className="w-full shadow-none bg-transparent dark:bg-transparent border-none">
-        <CardHeader className="px-0  mt-4 z-50 top-0 dark:bg-dark-bg/80 pt-0 backdrop-blur-md bg-white/80 border-b border-neutral-200 dark:border-dark-border pb-4">
-          <div className={cn("flex items-center justify-between px-4 mt-4")}>
-            <div className="w-full flex items-center justify-start">
-              <PostAvatar
-                avatar={post?.avatar as string}
-                name={post?.name as string}
-                className="size-10"
-              />
+  const media = post?.media?.url ? post.media : null;
+  const created = new Date(post?.createdAt);
 
-              <div className={cn(" flex flex-col items-start ml-4")}>
-                <Link href={`/${post?.username}`}>
-                  <h2
-                    className={cn(
-                      " leading-tight text-black  ",
-                      "dark:text-white",
-                    )}
-                  >
-                    {post.name}
-                  </h2>
-                </Link>
-                <div
-                  className={cn(
-                    "flex items-center justify-start dark:text-neutral-400 text-sm font-light leading-snug text-neutral-600 ",
-                  )}
-                >
-                  <p className={cn("mr-1")}>@{post.username}</p>
-                </div>
-              </div>
-            </div>{" "}
-            <PostCardOptions
-              postId={post.id}
-              profileId={post.profileId as string}
-            />
-          </div>
-        </CardHeader>
-        <CardContent className="px-0 mb-2 mt-4">
-          {post?.content && (
-            <div
-              className={cn(
-                "text-neutral-600 leading-snug mb-8 mt-4 px-4  ",
-                "dark:text-neutral-300  prose dark:prose-invert dark:prose-gray-300",
-              )}
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(post?.content ?? "") }}
-            />
+  return (
+    <article className="mx-auto w-full max-w-2xl px-4 pb-24 pt-6 sm:px-6 md:pt-10">
+      <Link
+        href="/explore/posts"
+        className="-ml-2 mb-6 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm text-ink-secondary transition-colors duration-fast ease-calm hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+      >
+        <ArrowLeft className="size-4" aria-hidden />
+        Posts
+      </Link>
+
+      <PostAuthorLine
+        post={post}
+        linkTime={false}
+        avatarSize={44}
+        onDeleted={() => router.push("/explore/posts")}
+      />
+
+      {post?.content && (
+        <div
+          className={cn(
+            "prose mt-5 max-w-none break-words text-[17px] leading-relaxed text-ink dark:prose-invert",
+            "prose-p:my-3 first:prose-p:mt-0 prose-a:text-ink prose-a:underline-offset-4",
           )}
-          <div className="overflow-x-auto px-4 w-full flex items-center justify-center">
-            {post.media && (
-              <div
-                className={cn(
-                  "relative border  border-neutral-200 aspect-video  w-full rounded-2xl overflow-hidden ",
-                  "dark:border-dark-border",
-                )}
-                style={{
-                  objectFit: "cover",
-                  // aspectRatio: post?.media?.width / post?.media?.height,
-                }}
-              >
-                {post?.media?.type === "image" ? (
-                  <>
-                    <Image
-                      fill
-                      src={post?.media.url}
-                      alt="Post media"
-                      quality={100}
-                      priority
-                      style={{ objectFit: "cover" }}
-                      draggable={false}
-                      className=" select-none "
-                    />
-                  </>
-                ) : (
-                  <>
-                    <video
-                      style={{ objectFit: "cover" }}
-                      className="w-full h-full select-none  "
-                      src={post?.media?.url}
-                      autoPlay
-                      draggable={false}
-                      loop
-                      muted
-                      controls={false}
-                    />
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-          {post?.link && <PostLinkCard {...post?.link} />}
-          <div
-            className={cn(
-              "px-4 text-sm  text-neutral-500 dark:text-neutral-400 mt-2",
-              (post?.media || post?.link) && "mt-4 px-6",
-            )}
-          >
-            <span className="mr-1.5">
-              {new Date(post?.createdAt).toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              })}
-            </span>
-            {"•"}
-            <span className="ml-1.5 ">
-              {new Date(post?.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </span>
-          </div>
-        </CardContent>
-        <CardFooter className="flex border-y border-neutral-200 dark:border-dark-border flex-col p-0">
-          <PostInteractions
-            className="border-none mt-0 py-4"
-            upvoteCount={Number(post.upvoteCount)}
-            downvoteCount={Number(post.downvoteCount)}
-            userVote={post.userVote ?? null}
-            handleVoteClick={handleVoteClick}
-            commentCount={Number(post.commentCount)}
-            hasCommented={Boolean(post.commented)}
-            handleCommentClick={() => {}}
-            isBookmarked={!!post.bookmarked}
-            handleBookmarkClick={handleBookmarkClick}
-            handleShareClick={handleShareClick}
-          />
-        </CardFooter>
-        <Comments
-          commentCount={post?.commentCount}
-          commented={Boolean(post?.commented)}
-          initialData={initialCommentsData}
-          id={id}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(post?.content ?? "") }}
         />
-      </Card>
-    </div>
+      )}
+
+      {media && (
+        <PostMedia
+          media={media}
+          sizes="(min-width: 768px) 640px, 100vw"
+          maxHeight={720}
+          className="mt-5 rounded-xl border border-hairline"
+        />
+      )}
+
+      {post?.link && <PostLinkCard {...post.link} className="mx-0 mt-5" />}
+
+      <p className="mt-5 text-[13px] text-ink-secondary">
+        <time dateTime={isoOf(post?.createdAt)}>
+          {created.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+          })}
+          <span aria-hidden> · </span>
+          {created.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </time>
+      </p>
+
+      <div className="mt-4 border-y border-hairline py-1">
+        <PostInteractions
+          className="px-0 pb-0 pt-0 [&>div:first-child]:-ml-1.5 [&>div:last-child]:-mr-1.5"
+          upvoteCount={Number(post.upvoteCount)}
+          downvoteCount={Number(post.downvoteCount)}
+          userVote={post.userVote ?? null}
+          handleVoteClick={handleVoteClick}
+          commentCount={Number(post.commentCount)}
+          hasCommented={Boolean(post.commented)}
+          handleCommentClick={() =>
+            document.getElementById("comments")?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+          isBookmarked={!!post.bookmarked}
+          handleBookmarkClick={handleBookmarkClick}
+          handleShareClick={handleShareClick}
+        />
+      </div>
+
+      <Comments
+        commentCount={post?.commentCount}
+        commented={Boolean(post?.commented)}
+        initialData={initialCommentsData}
+        id={id}
+      />
+    </article>
   );
 };
 
