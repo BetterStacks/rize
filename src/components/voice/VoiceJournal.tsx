@@ -8,6 +8,7 @@ import {
   publishVoiceDraft,
   removeMyPhoneNumber,
   retryDraftGeneration,
+  setVoiceDraftMedia,
   updateVoiceDraft,
   type OnboardingSuggestions,
 } from "@/actions/voice-actions";
@@ -28,16 +29,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import type { TTranscriptTurn, TVoiceCallKind, TVoiceCallStatus, TVoiceDraftStatus } from "@/db/schema";
+import type {
+  TTranscriptTurn,
+  TVoiceCallKind,
+  TVoiceCallStatus,
+  TVoiceDraftMedia,
+  TVoiceDraftStatus,
+} from "@/db/schema";
+import { uploadErrorMessage, uploadFiles } from "@/lib/prepare-upload";
 import { SUGGESTION_TEXT_LIMITS } from "@/lib/voice/profile-suggestions";
 import { newsreader } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { draftProvenance, type ProvenancePassage, type ProvenanceWord } from "@/lib/voice/draft-provenance";
 import "@/styles/rize-tokens.css";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronRight, Lock, Pencil, Phone, PhoneCall, Share, type LucideIcon } from "lucide-react";
+import { ChevronRight, ImagePlus, Lock, Pencil, Phone, PhoneCall, Share, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Fragment, forwardRef, useEffect, useMemo, useState } from "react";
+import { Fragment, forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import PhoneVerifyForm from "./PhoneVerifyForm";
 import { startVoiceCall } from "./startVoiceCall";
@@ -59,6 +67,8 @@ export type VoiceDraftRow = {
   callId: string;
   content: string;
   status: TVoiceDraftStatus;
+  // A photo or video the person attached; it goes up with the post
+  media: TVoiceDraftMedia | null;
   postId: string | null;
   createdAt: Date;
   // What the user said on the draft's call, for "From your call"
@@ -555,6 +565,12 @@ function DraftCard({ draft, onChange }: { draft: VoiceDraftRow; onChange: () => 
         <p className="rize-display whitespace-pre-wrap text-[23px] leading-[1.3] sm:text-[26px]">{draft.content}</p>
       )}
 
+      {draft.media && <DraftMediaPreview media={draft.media} />}
+
+      {!isPublished && (
+        <DraftMediaControl draftId={draft.id} media={draft.media} disabled={busy} onBusy={setBusy} onChange={onChange} />
+      )}
+
       {provenance && !editing && <FromYourCall passages={provenance} />}
 
       {!isPublished && (
@@ -640,6 +656,117 @@ function DraftCard({ draft, onChange }: { draft: VoiceDraftRow; onChange: () => 
         </>
       )}
     </article>
+  );
+}
+
+// The photo or video attached to a draft, shown the way it will look on the post.
+function DraftMediaPreview({ media }: { media: TVoiceDraftMedia }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-[var(--rize-paper-border)] bg-black/5">
+      {media.type === "video" ? (
+        <video src={media.url} controls playsInline preload="metadata" className="max-h-[420px] w-full" />
+      ) : (
+        <img
+          src={media.url}
+          alt="Photo attached to this draft"
+          width={media.width ?? undefined}
+          height={media.height ?? undefined}
+          className="max-h-[420px] w-full object-contain"
+        />
+      )}
+    </div>
+  );
+}
+
+const DRAFT_MEDIA_ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif,video/mp4,video/webm,video/quicktime";
+
+// Add, replace or remove the draft's photo or video. The file is uploaded
+// right away but stays private on the draft until the person shares it.
+function DraftMediaControl({
+  draftId,
+  media,
+  disabled,
+  onBusy,
+  onChange,
+}: {
+  draftId: string;
+  media: TVoiceDraftMedia | null;
+  disabled: boolean;
+  onBusy: (busy: boolean) => void;
+  onChange: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const attach = async (file: File) => {
+    setUploading(true);
+    onBusy(true);
+    try {
+      const [uploaded] = await uploadFiles([file], "fyp-stacks/posts");
+      const result = await setVoiceDraftMedia(draftId, {
+        url: uploaded.url,
+        width: uploaded.width || null,
+        height: uploaded.height || null,
+      });
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success(media ? "Replaced" : "Added to your draft");
+      onChange();
+    } catch (error) {
+      toast.error(uploadErrorMessage(error));
+    } finally {
+      setUploading(false);
+      onBusy(false);
+    }
+  };
+
+  const remove = async () => {
+    onBusy(true);
+    const result = await setVoiceDraftMedia(draftId, null);
+    onBusy(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Removed");
+    onChange();
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <input
+        ref={inputRef}
+        type="file"
+        accept={DRAFT_MEDIA_ACCEPT}
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) attach(file);
+        }}
+      />
+      <Button
+        variant="outline"
+        className="h-11 rounded-full border-[var(--rize-paper-border)] bg-transparent px-4 text-[var(--rize-ink)] hover:bg-[var(--rize-paper-border)] dark:border-[var(--rize-paper-border)] dark:bg-transparent"
+        disabled={disabled}
+        onClick={() => inputRef.current?.click()}
+      >
+        <ImagePlus className="mr-2 h-4 w-4" aria-hidden="true" />
+        {uploading ? "Uploading…" : media ? "Replace photo or video" : "Add a photo or video"}
+      </Button>
+      {media && (
+        <Button
+          variant="ghost"
+          className={cn("h-11 rounded-full px-4", paperMuted)}
+          disabled={disabled}
+          onClick={remove}
+        >
+          Remove
+        </Button>
+      )}
+    </div>
   );
 }
 
