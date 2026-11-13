@@ -4,8 +4,6 @@ import { useState, useCallback, useTransition } from 'react'
 import { useSession } from '@/lib/auth-client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { StoryPrompts } from '@/components/story/story-prompts'
 import { 
   getMyStoryElements, 
@@ -16,15 +14,25 @@ import {
   toggleStoryElementVisibility 
 } from '@/actions/story-actions'
 import { StoryElement } from '@/components/story/story-element'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { BookOpen, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { buttonVariants } from '@/components/ui/button'
 
 export function StoryElementsForm() {
-  const { data: session } = useSession()
+  const { data: session, isPending: sessionPending } = useSession()
   const queryClient = useQueryClient()
   const [isPending, startTransition] = useTransition()
+  // The story waiting for a yes in the delete dialog.
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { data: storyElementsData, isLoading } = useQuery({
     queryKey: ['my-story-elements'],
@@ -37,13 +45,13 @@ export function StoryElementsForm() {
     onSuccess: (result) => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ['my-story-elements'] })
-        toast.success('Story element added!')
+        toast.success('Added')
       } else {
-        toast.error(typeof result.error === 'string' ? result.error : 'Failed to add story element')
+        toast.error(typeof result.error === 'string' ? result.error : "Couldn't add that")
       }
     },
     onError: (error) => {
-      toast.error('Failed to add story element')
+      toast.error("Couldn't add that")
       console.error('Create story element error:', error)
     },
   })
@@ -53,13 +61,13 @@ export function StoryElementsForm() {
     onSuccess: (result) => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ['my-story-elements'] })
-        toast.success('Story element updated!')
+        toast.success('Saved')
       } else {
-        toast.error(typeof result.error === 'string' ? result.error : 'Failed to update story element')
+        toast.error(typeof result.error === 'string' ? result.error : "Couldn't save that")
       }
     },
     onError: (error) => {
-      toast.error('Failed to update story element')
+      toast.error("Couldn't save that")
       console.error('Update story element error:', error)
     },
   })
@@ -69,13 +77,13 @@ export function StoryElementsForm() {
     onSuccess: (result) => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ['my-story-elements'] })
-        toast.success('Story element deleted')
+        toast.success('Deleted')
       } else {
-        toast.error(typeof result.error === 'string' ? result.error : 'Failed to delete story element')
+        toast.error(typeof result.error === 'string' ? result.error : "Couldn't delete that")
       }
     },
     onError: (error) => {
-      toast.error('Failed to delete story element')
+      toast.error("Couldn't delete that")
       console.error('Delete story element error:', error)
     },
   })
@@ -117,10 +125,8 @@ export function StoryElementsForm() {
   }, [updateMutation])
 
   const handleDeleteElement = useCallback((elementId: string) => {
-    if (window.confirm('Are you sure you want to delete this story element?')) {
-      deleteMutation.mutate(elementId)
-    }
-  }, [deleteMutation])
+    setDeleteId(elementId)
+  }, [])
 
   const handleToggleVisibility = useCallback((elementId: string, isPublic: boolean) => {
     startTransition(async () => {
@@ -128,7 +134,7 @@ export function StoryElementsForm() {
         const result = await toggleStoryElementVisibility(elementId, isPublic)
         if (result.success) {
           queryClient.invalidateQueries({ queryKey: ['my-story-elements'] })
-          toast.success(isPublic ? 'Made public' : 'Made private')
+          toast.success(isPublic ? 'Shown on your profile' : 'Now private')
         } else {
           toast.error(typeof result.error === 'string' ? result.error : 'Failed to update visibility')
         }
@@ -156,33 +162,33 @@ export function StoryElementsForm() {
     })
   }, [queryClient])
 
-  if (!session?.user?.id) {
+  // Wait for the session and the list before showing anything, so the prompt
+  // picker doesn't open on an empty first render for people who have stories.
+  if (sessionPending || (!!session?.user?.id && isLoading)) {
     return (
-      <Card className="max-w-2xl">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 text-orange-600 dark:text-orange-400">
-            <AlertCircle className="h-5 w-5" />
-            <p>Please log in to manage your story elements.</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div aria-busy="true" aria-label="Loading your stories" className="space-y-3 motion-safe:animate-pulse">
+        <div className="h-4 w-24 rounded-lg bg-subtle" />
+        <div className="h-4 w-full rounded-lg bg-subtle" />
+        <div className="h-4 w-2/3 rounded-lg bg-subtle" />
+      </div>
     )
+  }
+
+  if (!session?.user?.id) {
+    return <p className="text-sm text-ink-secondary">Sign in to add your story.</p>
   }
 
   const elements = (storyElementsData?.success ? (storyElementsData.data || []) : []) as any[]
 
+  // The settings page gives this its section title and description.
   return (
-    <div className="space-y-4 w-full max-w-2xl">
-      <div>
-        <h2 className="text-2xl font-medium flex items-center gap-2">
-          <BookOpen className="h-6 w-6 text-muted-foreground" />
-          Story Elements
-        </h2>
-        <p className="text-sm opacity-80 mt-1">
-          Share what makes you unique beyond your resume. These story elements help others understand your values, dreams, and what drives you.
+    <div className="w-full space-y-4">
+      {storyElementsData?.success === false && (
+        <p role="alert" className="flex items-start gap-2 text-sm text-danger">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+          Couldn&apos;t load your stories: {storyElementsData.error}
         </p>
-        <Separator className="my-4" />
-      </div>
+      )}
 
       <StoryPrompts
         elements={elements}
@@ -191,21 +197,29 @@ export function StoryElementsForm() {
         onDeleteElement={handleDeleteElement}
         onToggleVisibility={handleToggleVisibility}
         onReorderElements={handleReorderElements}
-        isLoading={isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending || isPending}
+        isLoading={createMutation.isPending || updateMutation.isPending || deleteMutation.isPending || isPending}
       />
 
-      {storyElementsData?.success === false && (
-        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/10">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
-              <AlertCircle className="h-4 w-4" />
-              <p className="text-sm">
-                Failed to load story elements: {storyElementsData.error}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this story?</AlertDialogTitle>
+            <AlertDialogDescription>It comes off your profile. This can&apos;t be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: 'destructive' })}
+              onClick={() => {
+                if (deleteId) deleteMutation.mutate(deleteId)
+                setDeleteId(null)
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

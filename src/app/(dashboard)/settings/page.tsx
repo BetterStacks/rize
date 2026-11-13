@@ -3,11 +3,9 @@ import { ProfileForm } from '@/components/settings/ProfileForm'
 import { StoryElementsForm } from '@/components/settings/StoryElementsForm'
 import { ResumeForm } from '@/components/settings/ResumeForm'
 import { DeleteAccountCard } from '@/components/settings/DeleteAccountCard'
+import { SettingsHeader, SettingsLink, SettingsSection } from '@/components/settings/settings-section'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, BarChart3, PhoneCall } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { BarChart3, PhoneCall } from 'lucide-react'
 
 const Page = async () => {
 	const session = await getServerSession()
@@ -16,73 +14,71 @@ const Page = async () => {
 		redirect('/login')
 	}
 
+	const confirmValue = session.user.username || session.user.email
+
 	return (
-		<div className="w-full flex flex-col items-center justify-center">
-			{/* Back Button */}
-			<div className="w-full max-w-3xl mb-6 pt-6">
-				<Link
-					href={session.user.username ? `/${session.user.username}` : '/explore'}
-					className="inline-flex items-center gap-2 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 h-8 px-3 text-xs rounded-2xl hover:bg-neutral-100 dark:hover:bg-dark-border/60 backdrop-blur-sm transition-all duration-200"
-				>
-					<ArrowLeft className="h-4 w-4" />
-					{session.user.username ? 'Back to Profile' : 'Back to Explore'}
-				</Link>
-			</div>
+		<>
+			<SettingsHeader
+				title="Settings"
+				description="Your profile details, story and resume, and your account."
+				back={
+					session.user.username
+						? { href: `/${session.user.username}`, label: 'Back to profile' }
+						: { href: '/explore', label: 'Back to explore' }
+				}
+			/>
 
-			<div className="space-y-8 max-w-3xl py-12 rounded-3xl w-full flex flex-col items-center justify-center">
-				<div className="text-center mb-8">
-					<h1 className="text-3xl font-bold mb-2">Settings</h1>
-					<p className="text-muted-foreground">Manage your profile, story, and resume</p>
-				</div>
+			<ul className="border-t border-hairline" aria-label="More settings">
+				<SettingsLink
+					href="/settings/voice"
+					icon={PhoneCall}
+					title="Voice journal"
+					description="Rize calls you about your week and keeps it in your private journal."
+				/>
+				<SettingsLink
+					href="/settings/analytics"
+					icon={BarChart3}
+					title="Stats"
+					description="Views on your profile, and likes, comments and saves on your posts."
+				/>
+			</ul>
 
-				{/* Analytics Card */}
-				<Card className="w-full">
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<BarChart3 className="h-5 w-5" />
-							Analytics Dashboard
-						</CardTitle>
-						<CardDescription>
-							Views, likes and comments on your profile
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Button asChild variant="default" className="w-full">
-							<Link href="/settings/analytics">
-								View Analytics Dashboard
-							</Link>
-						</Button>
-					</CardContent>
-				</Card>
+			<SettingsSection
+				id="profile"
+				title="Profile"
+				description="What people see at the top of your profile."
+				className="mt-10"
+			>
+				<ProfileForm bare />
+			</SettingsSection>
 
-				{/* Voice Journal Card */}
-				<Card className="w-full">
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<PhoneCall className="h-5 w-5" />
-							Voice Journal
-						</CardTitle>
-						<CardDescription>
-							Rize's AI calls you about your week, in Hindi or English, and keeps it in your private journal
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<Button asChild variant="default" className="w-full">
-							<Link href="/settings/voice">
-								Open Voice Journal
-							</Link>
-						</Button>
-					</CardContent>
-				</Card>
-
-				<ProfileForm />
+			<SettingsSection
+				id="story"
+				title="Story"
+				description="What drives you, beyond your resume."
+			>
 				<StoryElementsForm />
-				<ResumeForm />
-				{(session.user.username || session.user.email) && (
-					<DeleteAccountCard confirmValue={session.user.username || session.user.email} />
-				)}
-			</div>
-		</div>
+			</SettingsSection>
+
+			<SettingsSection
+				id="resume"
+				title="Resume"
+				description="Upload a resume to fill in your experience, education, skills and projects. You pick what gets added."
+			>
+				<ResumeForm bare />
+			</SettingsSection>
+
+			{confirmValue && (
+				<SettingsSection
+					id="delete-account"
+					title="Delete account"
+					description="Permanently delete your account and everything in it. This can't be undone."
+					className="mt-16"
+				>
+					<DeleteAccountCard confirmValue={confirmValue} />
+				</SettingsSection>
+			)}
+		</>
 	)
 }
 

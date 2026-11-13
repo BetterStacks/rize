@@ -3,7 +3,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
+import PersonAvatar from '@/components/profile/person-avatar'
 import {
   Form,
   FormControl,
@@ -28,11 +29,10 @@ import { getProfileByUsername, updateProfile } from '@/actions/profile-actions'
 import { getAllSkills } from '@/actions/project-actions'
 import { uploadMedia } from '@/actions/client-actions'
 import { UploadError } from '@/lib/prepare-upload'
-import { Separator } from '../ui/separator'
 import { Skeleton } from '../ui/skeleton'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import { Check, ChevronsUpDown, Loader, Plus, X } from 'lucide-react'
+import { Check, ChevronsUpDown, Loader, X } from 'lucide-react'
 import Image from 'next/image'
 import { useDropzone } from 'react-dropzone'
 import { cn } from '@/lib/utils'
@@ -67,9 +67,11 @@ type FormData = z.infer<typeof profileFormSchema>
 
 type TProfileFormProps = {
   className?: string
+  /** Leave out the heading: the settings page gives each form its own section title. */
+  bare?: boolean
 }
 
-export function ProfileForm({ className }: TProfileFormProps) {
+export function ProfileForm({ className, bare = false }: TProfileFormProps) {
   const { data: session } = useSession()
   const queryClient = useQueryClient()
 
@@ -122,7 +124,7 @@ export function ProfileForm({ className }: TProfileFormProps) {
   }, [data, isLoading, form])
 
   // ── Avatar dropzone ───────────────────────────────────────────────────
-  const { getRootProps, getInputProps } = useDropzone({
+  const { getRootProps, getInputProps, open: openFilePicker } = useDropzone({
     onDrop: useCallback((files: File[]) => {
       setAvatarFile(files[0])
     }, []),
@@ -143,12 +145,12 @@ export function ProfileForm({ className }: TProfileFormProps) {
   const { mutateAsync: mutateUpdate, isPending: isUpdating } = useMutation({
     mutationFn: updateProfile,
     onSuccess: async () => {
-      toast.success('Profile updated!')
+      toast.success('Saved')
       queryClient.invalidateQueries({ queryKey: ['get-profile-by-username'] })
       queryClient.invalidateQueries({ queryKey: ['get-profile'] })
     },
     onError: (error: any) => {
-      toast.error('Failed to update profile: ' + (error?.message || 'Unknown error'))
+      toast.error(error?.message ? `Couldn't save: ${error.message}` : "Couldn't save your profile")
     },
   })
 
@@ -180,86 +182,80 @@ export function ProfileForm({ className }: TProfileFormProps) {
   const busy = isUploading || isUpdating
 
   // ── Render ────────────────────────────────────────────────────────────
+  const skillIds = form.watch('skillIds') || []
+  const descClass = 'text-xs leading-relaxed text-ink-secondary'
+  const messageClass = 'text-xs text-danger'
+
   return (
-    <div className={cn("space-y-4 w-full max-w-2xl", className)}>
-      <div>
-        <h2 className="text-xl font-medium">Profile Details</h2>
-        <p className="text-sm opacity-80 mt-1">
-          Update your profile information that will be displayed to other users.
-        </p>
-        <Separator className="my-4" />
-      </div>
+    <div className={cn('w-full max-w-[640px]', className)}>
+      {!bare && (
+        <div className="mb-8">
+          <h2 className="font-instrument text-[28px] leading-none text-ink">Profile details</h2>
+          <p className="mt-2 text-sm text-ink-secondary">What people see at the top of your profile.</p>
+        </div>
+      )}
 
       {isLoading ? (
         <ProfileFormSkeleton />
       ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Profile Image */}
+            {/* Photo. The file input stays mounted so an existing photo can be replaced too. */}
             <div className="flex items-center gap-4">
-              <div
-                {...getRootProps()}
-                className="border-2 relative border-neutral-200 dark:border-dark-border size-20 aspect-square rounded-full cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors"
-              >
-                {avatarPreviewUrl ? (
-                  <>
-                    <Button
-                      size="smallIcon"
-                      variant="outline"
-                      type="button"
-                      className="dark:bg-dark-bg dark:hover:bg-dark-border absolute size-6 right-0 bottom-0 z-[2]"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setAvatarFile(null)
-                      }}
-                    >
-                      <X className="size-3" />
-                    </Button>
-                    <div className="relative rounded-full size-full overflow-hidden">
-                      <Image
-                        className="object-cover"
-                        src={avatarPreviewUrl}
-                        fill
-                        alt="Profile"
-                        unoptimized={!avatarFile}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      size="smallIcon"
-                      variant="outline"
-                      className="dark:bg-dark-bg dark:hover:bg-dark-border absolute size-6 bottom-0 right-0 z-[2]"
-                      type="button"
-                    >
-                      <Plus className="size-3" />
-                    </Button>
-                    <input {...getInputProps()} />
-                  </>
+              <div className="relative shrink-0">
+                <div
+                  {...getRootProps({
+                    'aria-label': avatarPreviewUrl ? 'Change profile photo' : 'Add a profile photo',
+                    role: 'button',
+                  })}
+                  className="block size-20 cursor-pointer rounded-full ring-1 ring-hairline transition-shadow duration-fast ease-calm hover:ring-ink-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-ground"
+                >
+                  <input {...getInputProps()} />
+                  {avatarFile && avatarPreviewUrl ? (
+                    <span className="relative block size-full overflow-hidden rounded-full">
+                      <Image className="object-cover" src={avatarPreviewUrl} fill alt="" unoptimized />
+                    </span>
+                  ) : (
+                    <PersonAvatar src={existingAvatar} name={data?.displayName || session?.user?.name} size={80} />
+                  )}
+                </div>
+                {avatarFile && (
+                  <Button
+                    size="smallIcon"
+                    variant="outline"
+                    type="button"
+                    aria-label="Remove the new photo"
+                    className="absolute -bottom-1 -right-1 size-7 rounded-full"
+                    onClick={() => setAvatarFile(null)}
+                  >
+                    <X className="size-3.5" aria-hidden />
+                  </Button>
                 )}
               </div>
-              <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                Click to upload a profile photo
+              <div className="min-w-0">
+                <Button type="button" variant="outline" size="sm" className="touch-target" onClick={openFilePicker}>
+                  {existingAvatar || avatarFile ? 'Change photo' : 'Add photo'}
+                </Button>
+                <p className={cn(descClass, 'mt-1.5')}>
+                  {avatarFile ? 'The new photo is saved when you save.' : 'A clear photo of your face works best.'}
+                </p>
               </div>
             </div>
 
-            {/* Display Name */}
             <FormField
               control={form.control}
               name="displayName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Display Name</FormLabel>
+                  <FormLabel>Display name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your display name" {...field} />
+                    <Input placeholder="Your name" autoComplete="name" {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className={messageClass} />
                 </FormItem>
               )}
             />
 
-            {/* Bio */}
             <FormField
               control={form.control}
               name="bio"
@@ -268,36 +264,20 @@ export function ProfileForm({ className }: TProfileFormProps) {
                   <FormLabel>Bio</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Tell us about yourself"
+                      placeholder="A line or two about what you do"
                       className="resize-none"
                       rows={3}
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    {(field.value?.length || 0)}/200 characters
+                  <FormDescription className={cn(descClass, 'tabular-nums')}>
+                    {(field.value?.length || 0)}/200
                   </FormDescription>
-                  <FormMessage />
+                  <FormMessage className={messageClass} />
                 </FormItem>
               )}
             />
 
-            {/* Website */}
-            <FormField
-              control={form.control}
-              name="website"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Website</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://your-website.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Location */}
             <FormField
               control={form.control}
               name="location"
@@ -305,14 +285,27 @@ export function ProfileForm({ className }: TProfileFormProps) {
                 <FormItem>
                   <FormLabel>Location</FormLabel>
                   <FormControl>
-                    <Input placeholder="San Francisco, CA" {...field} />
+                    <Input placeholder="City, country" {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className={messageClass} />
                 </FormItem>
               )}
             />
 
-            {/* Age */}
+            <FormField
+              control={form.control}
+              name="website"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website</FormLabel>
+                  <FormControl>
+                    <Input type="url" inputMode="url" placeholder="https://" {...field} />
+                  </FormControl>
+                  <FormMessage className={messageClass} />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="age"
@@ -322,7 +315,9 @@ export function ProfileForm({ className }: TProfileFormProps) {
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="25"
+                      inputMode="numeric"
+                      placeholder="Optional"
+                      className="max-w-[8rem]"
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => {
@@ -331,124 +326,111 @@ export function ProfileForm({ className }: TProfileFormProps) {
                       }}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className={messageClass} />
                 </FormItem>
               )}
             />
 
-            <Separator />
+            <div className="space-y-6 border-t border-hairline pt-6">
+              <FormField
+                control={form.control}
+                name="personalMission"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Personal mission</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="What drives you?"
+                        className="resize-none"
+                        rows={2}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className={messageClass} />
+                  </FormItem>
+                )}
+              />
 
-            {/* Personal Mission */}
-            <FormField
-              control={form.control}
-              name="personalMission"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Personal Mission</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="What drives you?"
-                      className="resize-none"
-                      rows={2}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="lifePhilosophy"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Life philosophy</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="The ideas you try to live by"
+                        className="resize-none"
+                        rows={2}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className={messageClass} />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            {/* Life Philosophy */}
-            <FormField
-              control={form.control}
-              name="lifePhilosophy"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Life Philosophy</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Your guiding principles..."
-                      className="resize-none"
-                      rows={2}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Separator />
-
-            {/* Skills */}
-            <div className="space-y-2">
+            <div className="space-y-2 border-t border-hairline pt-6">
               <FormLabel>Skills</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <div
                     role="combobox"
-                    className={cn(
-                      buttonVariants({ variant: 'outline' }),
-                      'w-full dark:border-dark-border dark:bg-transparent justify-between h-auto min-h-10 px-3 py-2 flex-wrap gap-2 hover:bg-neutral-50 dark:hover:bg-dark-border/20 active:scale-100 cursor-pointer'
-                    )}
+                    tabIndex={0}
+                    className="flex min-h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-hairline px-3 py-2 text-sm transition-[border-color,box-shadow] duration-fast ease-calm hover:border-ink-secondary focus-visible:border-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/50"
                   >
-                    <div className="flex flex-wrap gap-2">
-                      {form.watch('skillIds') && form.watch('skillIds')!.length > 0 ? (
-                        form.watch('skillIds')!.map((skillId) => {
+                    <div className="flex flex-wrap gap-1.5">
+                      {skillIds.length > 0 ? (
+                        skillIds.map((skillId) => {
                           const skill = skillsData?.find((s) => s.id === skillId)
                           return (
-                            <Button
+                            <button
+                              type="button"
                               key={skillId}
-                              size="sm"
-                              variant="outline"
-                              className="flex items-center"
+                              aria-label={`Remove ${skill?.name ?? 'skill'}`}
+                              className="inline-flex h-7 items-center gap-1 rounded-lg bg-subtle px-2.5 text-xs font-medium text-ink transition-colors duration-fast ease-calm hover:bg-hairline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                const current = form.getValues('skillIds') || []
                                 form.setValue(
                                   'skillIds',
-                                  current.filter((id) => id !== skillId)
+                                  skillIds.filter((id) => id !== skillId)
                                 )
                               }}
                             >
                               {skill?.name}
-                              <X className="size-4 ml-2" />
-                            </Button>
+                              <X className="size-3 text-ink-secondary" aria-hidden />
+                            </button>
                           )
                         })
                       ) : (
-                        <span className="text-neutral-400 font-normal">
-                          Select your skills...
-                        </span>
+                        <span className="text-ink-secondary">Add skills</span>
                       )}
                     </div>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <ChevronsUpDown className="size-4 shrink-0 text-ink-secondary" aria-hidden />
                   </div>
                 </PopoverTrigger>
                 <PopoverContent
-                  className="w-[var(--radix-popover-trigger-width)] dark:border-dark-border sm:rounded-lg max-h-[260px] h-auto p-0"
+                  className="h-auto max-h-[260px] w-[var(--radix-popover-trigger-width)] p-0"
                   align="start"
                 >
                   <Command>
-                    <CommandInput placeholder="Search skills..." />
+                    <CommandInput placeholder="Search skills" />
                     <CommandList className="max-h-[220px] overflow-y-auto">
-                      <CommandEmpty>No skill found.</CommandEmpty>
+                      <CommandEmpty>No skill by that name.</CommandEmpty>
                       <CommandGroup>
                         {skillsData
-                          ?.filter(
-                            (skill) =>
-                              !(form.watch('skillIds') || []).includes(skill.id)
-                          )
+                          ?.filter((skill) => !skillIds.includes(skill.id))
                           .map((skill) => (
                             <CommandItem
-                              className="rounded-md"
+                              className="rounded-lg"
                               key={skill.id}
                               value={skill.name}
                               onSelect={() => {
                                 const current = form.getValues('skillIds') || []
                                 if (!current.includes(skill.id)) {
                                   if (current.length >= 20) {
-                                    toast.error('Maximum 20 skills allowed')
+                                    toast.error('You can add up to 20 skills')
                                     return
                                   }
                                   form.setValue('skillIds', [
@@ -460,13 +442,10 @@ export function ProfileForm({ className }: TProfileFormProps) {
                             >
                               <Check
                                 className={cn(
-                                  'mr-2 h-4 w-4',
-                                  (form.watch('skillIds') || []).includes(
-                                    skill.id
-                                  )
-                                    ? 'opacity-100'
-                                    : 'opacity-0'
+                                  'mr-2 size-4',
+                                  skillIds.includes(skill.id) ? 'opacity-100' : 'opacity-0'
                                 )}
+                                aria-hidden
                               />
                               {skill.name}
                             </CommandItem>
@@ -476,26 +455,20 @@ export function ProfileForm({ className }: TProfileFormProps) {
                   </Command>
                 </PopoverContent>
               </Popover>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                Add skills to help others discover and connect with you.
-              </p>
+              <p className={descClass}>Up to 20. They help people find you.</p>
             </div>
 
-            {/* Submit */}
-            <Button
-              type="submit"
-              variant="outline"
-              className="w-full rounded-md"
-              disabled={busy}
-            >
-              {busy ? (
-                <span className="flex items-center gap-2">
-                  <Loader className="size-4 animate-spin" /> Saving...
-                </span>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
+            <div className="pt-2">
+              <Button type="submit" className="w-full sm:w-auto sm:min-w-32" disabled={busy}>
+                {busy ? (
+                  <span className="flex items-center gap-2">
+                    <Loader className="size-4 animate-spin" aria-hidden /> Saving…
+                  </span>
+                ) : (
+                  'Save profile'
+                )}
+              </Button>
+            </div>
           </form>
         </Form>
       )}
@@ -505,16 +478,16 @@ export function ProfileForm({ className }: TProfileFormProps) {
 
 // ── Skeleton ──────────────────────────────────────────────────────────────
 const ProfileFormSkeleton = () => (
-  <div className="space-y-4">
+  <div className="space-y-6" aria-busy="true" aria-label="Loading your profile">
     <div className="flex items-center gap-4">
       <Skeleton className="size-20 rounded-full" />
-      <Skeleton className="h-4 w-40" />
+      <Skeleton className="h-8 w-28 rounded-lg" />
     </div>
     {[...Array(6)].map((_, i) => (
       <div key={i} className="space-y-2">
         <Skeleton className="h-4 w-20" />
         <Skeleton
-          className={cn('h-[40px] w-full rounded-lg', i === 1 && 'h-[80px]')}
+          className={cn('h-10 w-full rounded-xl', i === 1 && 'h-20')}
         />
       </div>
     ))}
