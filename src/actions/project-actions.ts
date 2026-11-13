@@ -15,13 +15,14 @@ import {
 } from "@/db/schema";
 import { requireAuth, requireProfile } from "@/lib/auth";
 import db from "@/lib/db";
+import { profileIdIsClaimed } from "@/lib/claimed-profiles";
 import {
   GetAllProjects,
   newProjectSchema,
   TProject,
   UpsertProjectPayload,
 } from "@/lib/types";
-import { and, eq, getTableColumns, inArray, sql } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
 import { deleteFromS3, getS3KeyFromUrl } from "@/lib/s3";
@@ -123,7 +124,9 @@ export const getAllProjects = async (username: string) => {
             END
           FROM project_collaborators pc
           JOIN profile p ON pc.profile_id = p.id
+          JOIN "user" u ON u.id = p."userId"
           WHERE pc.project_id = projects.id
+            AND u.is_claimed = true
         )
       `.as("collaborators"),
     })
@@ -217,14 +220,26 @@ export const getProjectByID = async (id: string) => {
             END
           FROM project_collaborators pc
           JOIN profile p ON pc.profile_id = p.id
+          JOIN "user" u ON u.id = p."userId"
           WHERE pc.project_id = projects.id
+            AND u.is_claimed = true
         )
       `.as("collaborators"),
     })
     .from(projects)
     .leftJoin(media, eq(media.id, projects.logo))
     .leftJoin(profile, eq(profile.id, projects.profileId))
-    .where(eq(projects.id, id as string))
+    .where(
+      and(
+        eq(projects.id, id as string),
+        userProfileId
+          ? or(
+              profileIdIsClaimed(projects.profileId),
+              eq(projects.profileId, userProfileId),
+            )
+          : profileIdIsClaimed(projects.profileId),
+      ),
+    )
     .limit(1);
   return allProjects[0] as GetAllProjects;
 };

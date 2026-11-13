@@ -15,6 +15,17 @@ import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { useRouter } from 'next/navigation'
 import { signInWithCredentials } from '@/lib/auth-client'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from './ui/alert-dialog'
 
 const ClaimProfileSchema = z.object({
   password: z
@@ -71,6 +82,21 @@ async function claimProfile(token: string, password: string): Promise<{ email: s
   return response.json()
 }
 
+async function removeProfile(token: string): Promise<void> {
+  const response = await fetch('/api/claim-profile/remove', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.message || error.error || 'Could not remove the profile. Please try again.')
+  }
+}
+
 const ClaimProfileForm = () => {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -82,6 +108,7 @@ const ClaimProfileForm = () => {
   const [validationError, setValidationError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [removed, setRemoved] = useState(false)
 
   const form = useForm<ClaimProfileValues>({
     resolver: zodResolver(ClaimProfileSchema),
@@ -136,8 +163,41 @@ const ClaimProfileForm = () => {
     },
   })
 
+  const { mutate: removeProfileMutation, isPending: isRemoving } = useMutation({
+    mutationFn: () => removeProfile(token!),
+    onSuccess: () => setRemoved(true),
+    onError: (error) => {
+      toast.error(error.message || 'Could not remove the profile. Please try again.')
+    },
+  })
+
   const onSubmit = (values: ClaimProfileValues) => {
     claimProfileMutation(values)
+  }
+
+  // Shown after "This isn't me". Kept in local state: the token no longer
+  // exists, so validating it again would show "Invalid Claim Link".
+  if (removed) {
+    return (
+      <div className="w-full shadow-2xl bg-white dark:bg-dark-bg border border-neutral-300/60 dark:border-dark-border/80 space-y-4 rounded-3xl p-6">
+        <div className="flex flex-col items-center justify-center py-8">
+          <CheckCircle className="h-12 w-12 text-green-500 mb-4" />
+          <h2 className="text-xl font-medium text-center">
+            Profile removed
+          </h2>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 text-center mt-2 max-w-sm">
+            We deleted this profile, including the name, email, work history and education on it. This link no longer works.
+          </p>
+          <Button
+            variant="outline"
+            className="mt-6"
+            onClick={() => window.location.href = '/'}
+          >
+            Go to Homepage
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   // Loading state while validating token
@@ -333,11 +393,37 @@ const ClaimProfileForm = () => {
       </motion.div>
 
       {/* Footer */}
-      <div className="pt-4 border-t border-neutral-200 dark:border-neutral-700">
+      <div className="pt-4 border-t border-neutral-200 dark:border-neutral-700 space-y-3">
         <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center">
           By claiming this profile, you agree to our terms of service and privacy policy.
           {resumeId && ' Your resume will be processed during onboarding.'}
         </p>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              type="button"
+              disabled={isPending || isRemoving}
+              className="block mx-auto text-xs text-neutral-500 dark:text-neutral-400 underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-200 disabled:opacity-50"
+            >
+              {isRemoving ? 'Removing…' : 'This isn’t me — remove this profile'}
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove this profile?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This deletes the profile made for {userData.name || 'this person'} ({userData.email}) and everything on it,
+                including the work history and education taken from the resume. It can&apos;t be undone, and this link will stop working.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => removeProfileMutation()}>
+                Remove profile
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </motion.div>
   )

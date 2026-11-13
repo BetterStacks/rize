@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { timingSafeEqual } from 'crypto'
+import { randomUUID, timingSafeEqual } from 'crypto'
 import { parseResumeContent, ExtractedData } from '@/lib/resume-parser'
 import db from '@/lib/db'
-import { users, profile, experience, education, socialLinks } from '@/db/schema'
+import { users, profile, experience, education } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-
-/**
- * Generate a random date between start and end
- */
-function generateRandomDate(start: Date, end: Date): Date {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()))
-}
+import { sanitizeHtml } from '@/lib/sanitize'
 
 /**
  * Bulk Resume Import API
@@ -87,6 +81,8 @@ export async function POST(request: NextRequest) {
         email: extractedData.email,
         name: extractedData.name,
         username: profileData.username,
+        // Needed to build the claim link: /claim-profile?token=<claimToken>
+        claimToken: profileData.claimToken,
         experienceCount: extractedData.experience.length,
         educationCount: extractedData.education.length,
         skillsCount: extractedData.skills.length,
@@ -126,29 +122,34 @@ async function createProfileFromExtractedData(data: ExtractedData) {
     username = `${baseUsername}${Math.floor(Math.random() * 9999) + 1000}`
   }
   
-  // Create user first
+  // These people never signed up. The account stays unclaimed (and the
+  // profile private) until they open their claim link. Only data taken from
+  // the resume is stored: nothing is guessed or made up.
   const userId = `resume-import-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-  
+  const claimToken = randomUUID()
+
   const insertedUser = await db.insert(users).values({
     id: userId,
     name: data.name!,
     email: data.email!,
-    emailVerified: true,
-    image: `https://images.unsplash.com/photo-${1500000000 + Math.floor(Math.random() * 1000)}?w=400&h=400&fit=crop&crop=face`,
-    isOnboarded: true,
+    password: null,
+    emailVerified: false,
+    image: null,
+    isOnboarded: false,
+    isClaimed: false,
+    claimToken,
   }).returning()
 
-  // Create profile
-  
+  // Create profile. age and pronouns are left to their column defaults
+  // (both columns are NOT NULL); the person sets them after claiming.
+  const summary = data.summary?.trim()
   const insertedProfile = await db.insert(profile).values({
     userId: insertedUser[0].id,
     username,
     displayName: data.name!,
-    bio: data.summary || generateBioFromData(data),
+    bio: summary ? sanitizeHtml(summary) : null,
     location: data.location || null,
-    profileImage: `https://images.unsplash.com/photo-${1500000000 + Math.floor(Math.random() * 1000)}?w=400&h=400&fit=crop&crop=face`,
-    age: Math.floor(Math.random() * 10) + 22, // 22-32 years old
-    pronouns: 'they/them', // Default, can be updated later
+    profileImage: null,
     isLive: false,
     hasCompletedWalkthrough: true,
   }).returning()
@@ -161,12 +162,13 @@ async function createProfileFromExtractedData(data: ExtractedData) {
       profileId,
       title: exp.title,
       company: exp.company,
-      location: exp.location || data.location || null,
+      location: exp.location || null,
+      // employment_type is NOT NULL and the resume parser doesn't return it.
       employmentType: 'Full-time' as const,
-      startDate: exp.startDate ? new Date(exp.startDate) : generateRandomDate(new Date(2020, 0, 1), new Date(2023, 0, 1)),
+      startDate: exp.startDate ? new Date(exp.startDate) : null,
       endDate: exp.endDate ? new Date(exp.endDate) : null,
       currentlyWorking: exp.currentlyWorking || false,
-      description: exp.description || `${exp.title} at ${exp.company}`,
+      description: exp.description || null,
     }))
 
     await db.insert(experience).values(experienceData)
@@ -177,62 +179,20 @@ async function createProfileFromExtractedData(data: ExtractedData) {
     const educationData = data.education.map(edu => ({
       profileId,
       school: edu.school,
-      degree: edu.degree || 'Bachelor\'s Degree',
-      fieldOfStudy: edu.fieldOfStudy || 'Computer Science',
-      startDate: edu.startDate ? new Date(edu.startDate) : generateRandomDate(new Date(2015, 8, 1), new Date(2018, 8, 1)),
-      endDate: edu.endDate ? new Date(edu.endDate) : generateRandomDate(new Date(2019, 4, 1), new Date(2022, 4, 1)),
+      degree: edu.degree || null,
+      fieldOfStudy: edu.fieldOfStudy || null,
+      startDate: edu.startDate ? new Date(edu.startDate) : null,
+      endDate: edu.endDate ? new Date(edu.endDate) : null,
       grade: edu.grade || null,
     }))
 
     await db.insert(education).values(educationData)
   }
 
-  // Add social links if email suggests GitHub/LinkedIn
-  const socialLinksData = []
-  
-  // Try to infer GitHub username from email or create one
-  if (data.email?.includes('github') || Math.random() > 0.5) {
-    socialLinksData.push({
-      profileId,
-      platform: 'github' as const,
-      url: `https://github.com/${username.toLowerCase()}`
-    })
-  }
-
-  // Add LinkedIn profile
-  if (Math.random() > 0.3) {
-    socialLinksData.push({
-      profileId,
-      platform: 'linkedin' as const,
-      url: `https://linkedin.com/in/${username.toLowerCase()}`
-    })
-  }
-
-  if (socialLinksData.length > 0) {
-    await db.insert(socialLinks).values(socialLinksData)
-  }
-
   return {
     userId: insertedUser[0].id,
     profileId,
-    username
-  }
-}
-
-/**
- * Generate a bio from extracted data
- */
-function generateBioFromData(data: ExtractedData): string {
-  const currentJob = data.experience.find(exp => exp.currentlyWorking) || data.experience[0]
-  const topSkills = data.skills.slice(0, 3).join(', ')
-  
-  if (currentJob && topSkills) {
-    return `${currentJob.title} at ${currentJob.company}. Experienced with ${topSkills}. Passionate about technology and innovation.`
-  } else if (currentJob) {
-    return `${currentJob.title} at ${currentJob.company}. Passionate about technology and building great products.`
-  } else if (topSkills) {
-    return `Experienced with ${topSkills}. Always learning and building cool stuff.`
-  } else {
-    return 'Passionate developer and problem solver. Always excited to work on new challenges.'
+    username,
+    claimToken,
   }
 }

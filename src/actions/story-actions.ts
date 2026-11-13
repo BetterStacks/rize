@@ -3,6 +3,7 @@
 import { storyElements, profile } from '@/db/schema'
 import { requireAuth, requireProfile, requireAuthWithProfile } from '@/lib/auth'
 import db from '@/lib/db'
+import { profileIsClaimed } from '@/lib/claimed-profiles'
 import { eq, and, desc, asc, sql } from 'drizzle-orm'
 import { cache } from 'react'
 import { z } from 'zod'
@@ -41,7 +42,8 @@ export const getStoryElementsByUsername = cache(async (username: string) => {
       .innerJoin(profile, eq(profile.id, storyElements.profileId))
       .where(and(
         eq(profile.username, username.toLowerCase()),
-        eq(storyElements.isPublic, true) // Only return public elements for public viewing
+        eq(storyElements.isPublic, true), // Only return public elements for public viewing
+        profileIsClaimed()
       ))
       .orderBy(asc(storyElements.order), asc(storyElements.createdAt))
 

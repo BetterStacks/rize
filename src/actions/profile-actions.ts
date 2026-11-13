@@ -16,6 +16,10 @@ import {
   type EnrichedSession,
 } from "@/lib/auth";
 import db from "@/lib/db";
+import {
+  profileIsClaimed,
+  profileIsClaimedOrOwnedBy,
+} from "@/lib/claimed-profiles";
 import { GetProfileByUsername, profileSchema } from "@/lib/types";
 import { and, desc, eq, getTableColumns, not, sql, lt } from "drizzle-orm";
 import { cache } from "react";
@@ -87,7 +91,7 @@ export const getProfileById = async (id: string) => {
     })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
-    .where(eq(profile.id, id))
+    .where(and(eq(profile.id, id), profileIsClaimed()))
     .limit(1);
   if (!p || p.length === 0) {
     throw new Error("Profile not found");
@@ -101,6 +105,8 @@ export const getProfileByUsernameCached = cache(async (username: string) =>
 
 export const getProfileByUsername = async (username: string) => {
   const { ...rest } = getTableColumns(profile);
+  // Unclaimed (seeded) profiles are private: only their owner can load them.
+  const session = await getServerSession().catch(() => null);
   const p = await db
     .select({
       ...rest,
@@ -125,8 +131,12 @@ export const getProfileByUsername = async (username: string) => {
     })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
-    .where(eq(profile.username, username.toLowerCase()))
-
+    .where(
+      and(
+        eq(profile.username, username.toLowerCase()),
+        profileIsClaimedOrOwnedBy(session?.user?.id),
+      ),
+    )
     .limit(1);
 
   if (!p || p.length === 0) {
@@ -135,7 +145,6 @@ export const getProfileByUsername = async (username: string) => {
 
   // The account email (for phone sign-ups it contains the phone number) is
   // only returned to the profile's owner.
-  const session = await getServerSession().catch(() => null);
   const isOwner = !!session?.user?.id && session.user.id === p[0].userId;
   if (!isOwner) {
     return { ...p[0], email: null } as unknown as GetProfileByUsername;
@@ -224,6 +233,7 @@ export const searchProfiles = async (query: string) => {
         profileImage: profile.profileImage,
       })
       .from(profile)
+      .where(profileIsClaimed())
       .limit(10);
   }
   return await db
@@ -235,16 +245,22 @@ export const searchProfiles = async (query: string) => {
     })
     .from(profile)
     .where(
-      sql`(${profile.displayName} ILIKE ${"%" + q + "%"} OR ${profile.username} ILIKE ${"%" + q + "%"})`,
+      and(
+        sql`(${profile.displayName} ILIKE ${"%" + q + "%"} OR ${profile.username} ILIKE ${"%" + q + "%"})`,
+        profileIsClaimed(),
+      ),
     )
     .limit(10);
 };
 
 export const getProfileIdByUsername = async (username: string) => {
+  // Unclaimed (seeded) profiles are private, so their sections are too.
   const profileId = await db
     .select({ id: profile.id })
     .from(profile)
-    .where(eq(profile.username, username?.toLowerCase()));
+    .where(
+      and(eq(profile.username, username?.toLowerCase()), profileIsClaimed()),
+    );
   if (profileId.length === 0) {
     throw new Error("Profile not found");
   }
@@ -373,6 +389,7 @@ export const getRecentlyJoinedProfiles = async (limit: number = 5) => {
     })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
+    .where(eq(users.isClaimed, true))
     .orderBy(desc(profile.createdAt))
     .limit(limit);
 };
@@ -393,9 +410,12 @@ export const getRecentlyJoinedProfilesCached = cache(
       .from(profile)
       .innerJoin(users, eq(profile.userId, users.id))
       .where(
-        session && session.user.username
-          ? not(eq(profile.username, session.user.username))
-          : undefined,
+        and(
+          eq(users.isClaimed, true),
+          session && session.user.username
+            ? not(eq(profile.username, session.user.username))
+            : undefined,
+        ),
       )
       .orderBy(desc(profile.createdAt))
       .limit(limit);
@@ -445,7 +465,12 @@ export const getProfiles = async ({
     })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
-    .where(cursor ? lt(profile.createdAt, new Date(cursor)) : undefined)
+    .where(
+      and(
+        eq(users.isClaimed, true),
+        cursor ? lt(profile.createdAt, new Date(cursor)) : undefined,
+      ),
+    )
     .orderBy(desc(profile.createdAt))
     .limit(limit + 1);
 

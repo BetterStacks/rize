@@ -2,6 +2,7 @@
 
 import { profile, profileSkills, skills, users } from "@/db/schema";
 import db from "@/lib/db";
+import { profileIdIsClaimed } from "@/lib/claimed-profiles";
 import { desc, eq, sql, lt, and, ilike } from "drizzle-orm";
 
 /**
@@ -19,6 +20,7 @@ export const getSkillsWithProfileCount = async () => {
         })
         .from(skills)
         .innerJoin(profileSkills, eq(profileSkills.skillId, skills.id))
+        .where(profileIdIsClaimed(profileSkills.profileId))
         .groupBy(skills.id, skills.name, skills.slug)
         .orderBy(desc(sql`COUNT(${profileSkills.profileId})`));
 };
@@ -69,6 +71,7 @@ export const getProfilesBySkill = async ({
         .where(
             and(
                 eq(profileSkills.skillId, skillId),
+                eq(users.isClaimed, true),
                 cursor ? lt(profile.createdAt, new Date(cursor)) : undefined
             )
         )
@@ -103,7 +106,12 @@ export const searchSkills = async (query: string) => {
         })
         .from(skills)
         .innerJoin(profileSkills, eq(profileSkills.skillId, skills.id))
-        .where(ilike(skills.name, `%${query}%`))
+        .where(
+            and(
+                ilike(skills.name, `%${query}%`),
+                profileIdIsClaimed(profileSkills.profileId)
+            )
+        )
         .groupBy(skills.id, skills.name, skills.slug)
         .orderBy(desc(sql`COUNT(${profileSkills.profileId})`));
 };
