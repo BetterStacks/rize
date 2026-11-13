@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
     }
 
     const processFile = async (item: any) => {
-      let uploadResult;
       let fileBuffer: Buffer;
       let contentType: string;
       let fileName: string;
@@ -54,7 +53,7 @@ export async function POST(req: NextRequest) {
         fileName = `${Date.now()}_${fileName.replace(/\s+/g, '_')}`;
       }
 
-      uploadResult = await uploadToS3(fileBuffer, {
+      const uploadResult = await uploadToS3(fileBuffer, {
         ...options,
         contentType,
         fileName,

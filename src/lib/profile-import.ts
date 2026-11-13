@@ -3,6 +3,8 @@
  * Automatically imports profile data from GitHub, LinkedIn during OAuth
  */
 
+import { isUsernameReserved } from './reserved-usernames'
+
 interface GitHubRepo {
   name: string;
   description: string | null;
@@ -305,7 +307,6 @@ export function generateUsername(profile: ImportedProfile, fallbackName?: string
     .slice(0, 15)
   
   // Check if base name is reserved and modify if needed
-  const { isUsernameReserved } = require('./reserved-usernames')
   if (isUsernameReserved(cleanName)) {
     cleanName = `${cleanName}user`
   }

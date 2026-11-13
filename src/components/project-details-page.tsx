@@ -124,9 +124,9 @@ const ProjectPage: FC<ProjectPageProps> = ({
                     </div>
 
                     <div className="px-4 mt-1">
-                        {project?.topics!?.length > 0 && <div className="flex items-center justify-start dark:text-gray-400 text-gray-700 gap-2">
+                        {(project?.topics?.length ?? 0) > 0 && <div className="flex items-center justify-start dark:text-gray-400 text-gray-700 gap-2">
                             <Tags className="mr-2 size-5" />
-                            {project?.topics!?.map((topic, index) => (
+                            {project?.topics?.map((topic, index) => (
                                 <React.Fragment key={topic.id} >
                                     <span className="cursor-pointer hover:dark:text-main-yellow hover:text-yellow-500 hover:underline transition-all ease-in duration-75 underline-offset-2">
                                         {topic.name}
@@ -266,11 +266,11 @@ const ProjectPage: FC<ProjectPageProps> = ({
                             </div>
                         )}
 
-                        {project?.collaborators!?.length > 0 && (
+                        {(project?.collaborators?.length ?? 0) > 0 && (
                             <div className="mt-4 mb-6">
                                 <h3 className="text-sm font-semibold text-neutral-400 tracking-wider mb-4">Collaborators</h3>
                                 <div className="flex flex-wrap gap-2">
-                                    {project.collaborators!?.map(collaborator => (
+                                    {project.collaborators?.map(collaborator => (
                                         <Button key={collaborator.id} variant={"outline"} >
                                             <div className="size-5 rounded-full overflow-hidden relative mr-2">
                                                 {collaborator.profileImage && <Image src={collaborator.profileImage} alt={collaborator.username!} fill className="object-cover" />}
