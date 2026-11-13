@@ -53,6 +53,14 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
 
     const isLoading = status === 'streaming';
 
+    // A proposed change that hasn't been approved or rejected yet. Sending a new
+    // message before answering it would leave the tool call without a result,
+    // which the AI SDK rejects, so the input waits until the card is answered.
+    const lastMessage = messages.at(-1);
+    const hasPendingApproval =
+        lastMessage?.role === 'assistant' &&
+        lastMessage.parts.some((part) => 'state' in part && part.state === 'approval-requested');
+
     const handleNewChat = () => {
         setChatId(v4());
         hasLoadedWelcomeRef.current = false;
@@ -90,7 +98,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
     };
 
     const handleFormSubmit = async (message: PromptInputMessage, event: FormEvent<HTMLFormElement>) => {
-        if (!message?.text.trim() || isLoading) return;
+        if (!message?.text.trim() || isLoading || hasPendingApproval) return;
 
         const currentInput = message.text;
         setInput('');
@@ -349,8 +357,8 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                     <PromptInputTextarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="Send a message..."
-                        disabled={isLoading}
+                        placeholder={hasPendingApproval ? 'Approve or reject the change above first' : 'Send a message...'}
+                        disabled={isLoading || hasPendingApproval}
                         rows={1}
                         className="flex-1 min-h-[60px] rounded-2xl focus-visible:ring-0"
                     />
@@ -363,7 +371,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                         </PromptInputActionMenu>
                         <PromptInputSubmit
                             className="rounded-full h-8 w-8 p-0 disabled:bg-neutral-400"
-                            disabled={isLoading || !input.trim()}
+                            disabled={isLoading || hasPendingApproval || !input.trim()}
                         />
                     </PromptInputFooter>
 
