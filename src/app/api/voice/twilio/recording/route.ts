@@ -22,7 +22,12 @@ export async function POST(req: Request) {
     where: and(eq(voiceCalls.id, callId), eq(voiceCalls.twilioCallSid, params.CallSid)),
     columns: { id: true, recordingKey: true },
   });
-  if (!call || call.recordingKey) return new NextResponse(null, { status: 204 });
+  if (!call) {
+    // The call was deleted before its recording arrived: don't keep Twilio's copy.
+    after(() => deleteTwilioRecording(params.RecordingSid).catch(() => {}));
+    return new NextResponse(null, { status: 204 });
+  }
+  if (call.recordingKey) return new NextResponse(null, { status: 204 });
 
   after(async () => {
     try {

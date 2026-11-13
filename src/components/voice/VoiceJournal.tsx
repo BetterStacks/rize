@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  deleteVoiceCall,
   deleteVoiceDraft,
   publishVoiceDraft,
+  removeMyPhoneNumber,
   retryDraftGeneration,
   updateVoiceDraft,
 } from "@/actions/voice-actions";
@@ -130,17 +132,51 @@ export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts
                 <span className="text-muted-foreground">
                   We'll call <span className="font-medium text-foreground">{phoneNumber}</span>
                 </span>
-                <Button variant="ghost" size="sm" onClick={() => setChangingNumber(true)}>
-                  Change number
-                </Button>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" onClick={() => setChangingNumber(true)}>
+                    Change number
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-muted-foreground">
+                        Remove number
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remove your number?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Rize won't be able to call you, and calls from this number won't reach your journal.
+                          Your past calls and drafts stay until you delete them.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={async () => {
+                            const result = await removeMyPhoneNumber();
+                            if (!result.success) {
+                              toast.error(result.error);
+                              return;
+                            }
+                            toast.success("Number removed");
+                            router.refresh();
+                          }}
+                        >
+                          Remove
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
               <Button className="w-full" onClick={callMe} disabled={calling || live}>
                 <Phone className="mr-2 h-4 w-4" />
                 {live ? "Call in progress…" : calling ? "Starting call…" : "Call me"}
               </Button>
               <p className="text-xs text-muted-foreground">
-                Calls are recorded. Recordings are deleted automatically after 7 days; transcripts and drafts stay
-                in your account.
+                Calls are recorded. Recordings are deleted automatically after 7 days. Transcripts and drafts stay
+                in your account until you delete them in Call history.
               </p>
             </>
           )}
@@ -322,6 +358,40 @@ function CallRow({ call, onChange }: { call: VoiceCallRow; onChange: () => void 
               <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>
                 {open ? "Hide transcript" : "Transcript"}
               </Button>
+            )}
+            {!["queued", "ringing", "in_progress"].includes(call.status) && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="ghost" className="text-red-600">
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this call?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This deletes the recording, the transcript and any drafts from this call. Posts you already
+                      published stay on your profile.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={async () => {
+                        const result = await deleteVoiceCall(call.id);
+                        if (!result.success) {
+                          toast.error(result.error);
+                          return;
+                        }
+                        toast.success("Call deleted");
+                        onChange();
+                      }}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>
