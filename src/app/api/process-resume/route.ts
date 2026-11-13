@@ -2,6 +2,7 @@ import { requireAuth } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { NextRequest, NextResponse } from 'next/server'
 import { parseResumeContent } from '@/lib/resume-parser'
+import { safeFetch } from '@/lib/safe-url'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,9 +20,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file URL provided' }, { status: 400 })
     }
 
+    if (typeof fileUrl !== 'string') {
+      return NextResponse.json({ error: 'Invalid file URL' }, { status: 400 })
+    }
+
     try {
-      // Download the file from S3 (or any URL)
-      const response = await fetch(fileUrl)
+      // Download the resume (Rize's S3 bucket, or Cloudinary for claim links).
+      // safeFetch only reaches public hosts.
+      const response = await safeFetch(fileUrl)
       if (!response.ok) {
         throw new Error('Failed to download resume from URL')
       }
