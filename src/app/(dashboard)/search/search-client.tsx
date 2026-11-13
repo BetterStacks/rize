@@ -251,6 +251,16 @@ export default function SearchPageClient() {
     const totalVisible = visibleSections.reduce((sum, key) => sum + (results[key]?.length || 0), 0)
     const recent = (recentProfiles ?? []).filter((p: any) => p?.username).slice(0, 6)
 
+    const announcement = !hasSearched
+        ? ''
+        : loading
+            ? 'Searching…'
+            : failed
+                ? "Search didn't load."
+                : totalVisible === 0
+                    ? `Nothing matches ${query.trim()}.`
+                    : `${totalVisible} ${totalVisible === 1 ? 'result' : 'results'} for ${query.trim()}.`
+
     let body: ReactNode
     if (loading) {
         body = <ResultsSkeleton />
@@ -262,6 +272,7 @@ export default function SearchPageClient() {
                     <Button
                         variant="outline"
                         size="sm"
+                        className="touch-target"
                         onClick={() => rerun(query, activeTab, selectedTopicIds, selectedSkillIds)}
                     >
                         Try again
@@ -278,12 +289,12 @@ export default function SearchPageClient() {
                 {(activeTab !== 'all' || hasFilters) && (
                     <div className="mt-4 flex flex-wrap gap-2">
                         {activeTab !== 'all' && (
-                            <Button variant="outline" size="sm" onClick={() => handleTabChange('all')}>
+                            <Button variant="outline" size="sm" className="touch-target" onClick={() => handleTabChange('all')}>
                                 Search everything
                             </Button>
                         )}
                         {hasFilters && (
-                            <Button variant="outline" size="sm" onClick={clearFilters}>
+                            <Button variant="outline" size="sm" className="touch-target" onClick={clearFilters}>
                                 Clear filters
                             </Button>
                         )}
@@ -379,17 +390,17 @@ export default function SearchPageClient() {
                     )}
                 </div>
 
-                <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mt-3 flex flex-col gap-2">
                     <Tabs value={activeTab} onValueChange={(value) => handleTabChange(value as TabKey)}>
-                        <div className="-mx-4 overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
+                        <div className="-mx-4 -my-1 overflow-x-auto px-4 py-1 scrollbar-hide sm:mx-0 sm:px-0">
                             <TabsList aria-label="What to search" className="h-10">
                                 {TABS.map((tab) => {
                                     const count =
                                         tab.key === 'all' ? results.total : results[tab.key]?.length || 0
                                     return (
-                                        <TabsTrigger key={tab.key} value={tab.key} className="h-8 gap-1.5 px-3">
+                                        <TabsTrigger key={tab.key} value={tab.key} className="touch-target h-8 gap-1.5 px-3">
                                             {tab.label}
-                                            {hasSearched && !loading && count > 0 && (
+                                            {activeTab === 'all' && hasSearched && !loading && count > 0 && (
                                                 <span className="text-xs font-normal tabular-nums text-ink-secondary">
                                                     {count}
                                                 </span>
@@ -401,7 +412,7 @@ export default function SearchPageClient() {
                         </div>
                     </Tabs>
 
-                    <div className="flex shrink-0 items-center gap-1">
+                    <div className="-ml-3 flex items-center gap-1">
                         <FilterPicker
                             label="Topics"
                             searchLabel="Find a topic"
@@ -428,7 +439,7 @@ export default function SearchPageClient() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={clearFilters}
-                                className="text-ink-secondary hover:text-ink"
+                                className="touch-target text-ink-secondary hover:text-ink"
                             >
                                 Clear
                             </Button>
@@ -437,9 +448,10 @@ export default function SearchPageClient() {
                 </div>
             </div>
 
-            <div aria-live="polite" aria-busy={loading}>
-                {body}
-            </div>
+            <p className="sr-only" role="status" aria-live="polite">
+                {announcement}
+            </p>
+            {body}
         </div>
     )
 }
@@ -472,7 +484,7 @@ function FilterPicker({
                     variant="ghost"
                     size="sm"
                     aria-label={count > 0 ? `${label}, ${count} selected` : label}
-                    className={cn('gap-1 text-ink-secondary hover:text-ink', count > 0 && 'text-ink')}
+                    className={cn('touch-target gap-1 text-ink-secondary hover:text-ink', count > 0 && 'text-ink')}
                 >
                     {label}
                     {count > 0 && (
@@ -529,7 +541,7 @@ function StateMessage({ title, children }: { title: ReactNode; children: ReactNo
 
 function ResultsSkeleton({ rows = 5, className }: { rows?: number; className?: string }) {
     return (
-        <div className={cn('mt-8', className)} role="status" aria-label="Searching">
+        <div className={cn('mt-8', className)}>
             <ul className="divide-y divide-hairline border-t border-hairline" aria-hidden>
                 {Array.from({ length: rows }).map((_, i) => (
                     <li key={i} className="flex items-center gap-3 py-4">
@@ -576,7 +588,7 @@ function ResultGroup({
                         variant="link"
                         size="sm"
                         onClick={onSeeAll}
-                        className="h-auto px-0 text-ink-secondary hover:text-ink"
+                        className="touch-target h-auto px-0 text-ink-secondary hover:text-ink"
                     >
                         See all {SECTION_LABEL[type].toLowerCase()}
                     </Button>
@@ -657,7 +669,7 @@ function PersonRow({ item }: { item: any }) {
 }
 
 function ProjectRow({ item }: { item: any }) {
-    const line = item.tagline || item.description
+    const line = item.tagline || plainText(item.description)
     return (
         <Link href={`/project/${item.id}`} className={rowClass}>
             <KindIcon icon={FolderOpen} />

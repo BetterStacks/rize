@@ -14,7 +14,8 @@ export default function SearchLoading() {
             contentPadding="px-4 sm:px-6"
             leftSidebarSlot={appSidebarSlot}
         >
-            <div className="w-full pt-10 pb-28 sm:pt-14 lg:pb-12" role="status" aria-label="Loading search">
+            <div className="w-full pt-10 pb-28 sm:pt-14 lg:pb-12">
+                <p className="sr-only" role="status">Loading search</p>
                 <h1 className="font-instrument text-4xl text-ink">Search</h1>
                 <p className="mt-1 text-sm text-ink-secondary">
                     Find people, projects, posts, schools and companies on Rize.
