@@ -1,0 +1,33 @@
+/*
+ * Rize "paper" tokens: the warm surface, ink and highlight used where people's
+ * own words are the content (draft review first). Reuse these on later screens
+ * instead of new hex values. Dark mode follows the site's `.dark` class.
+ *
+ * Contrast (WCAG): ink on paper 16.8:1, secondary on paper 7.6:1, ink on
+ * highlight 12.9:1; dark: 14.9:1, 7.4:1, 7.5:1.
+ */
+:root {
+  --rize-paper: #fffdf8;
+  --rize-paper-border: #e3dacb;
+  --rize-ink: #1f1b16;
+  --rize-ink-secondary: #5a5248;
+  --rize-highlight: #f1dfa8;
+  --rize-button-fill: #1f1b16;
+  --rize-button-ink: #fffdf8;
+  --rize-radius-card: 20px;
+}
+
+/* Display serif for people's words. Needs `newsreader.variable` (src/lib/fonts.ts) on an ancestor. */
+.rize-display {
+  font-family: var(--font-newsreader), "Iowan Old Style", Georgia, serif;
+}
+
+.dark {
+  --rize-paper: #1e1b17;
+  --rize-paper-border: #3a332b;
+  --rize-ink: #f3eee6;
+  --rize-ink-secondary: #b3a999;
+  --rize-highlight: #5a4a1f;
+  --rize-button-fill: #f3eee6;
+  --rize-button-ink: #1e1b17;
+}
