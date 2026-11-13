@@ -21,6 +21,8 @@ export const MAX_SOURCE_IMAGE_BYTES = 25 * MB
 export const MAX_IMAGE_EDGE = 2560
 /** Longest edge of an avatar. */
 export const MAX_AVATAR_EDGE = 1024
+/** Most files one upload action may send. */
+export const MAX_FILES_PER_BATCH = 10
 
 export const UPLOAD_MESSAGES = {
   imageTooLarge: 'That image is too large to upload. Try a smaller one.',
@@ -29,6 +31,7 @@ export const UPLOAD_MESSAGES = {
   pdfTooLarge: 'PDFs can be up to 4 MB for now.',
   resumeTooLarge: 'Resumes can be up to 4 MB for now.',
   unreadableImage: "We couldn't read that image. Try a JPG or PNG.",
+  tooManyFiles: 'You can upload up to 10 files at a time.',
   rateLimited: "You're uploading a lot at once. Wait a minute and try again.",
   generic: "That upload didn't go through. Try again.",
 } as const
@@ -88,6 +91,7 @@ async function decodeImage(blob: Blob): Promise<Decoded> {
     img.decoding = 'async'
     img.src = url
     await img.decode()
+    if (!img.naturalWidth || !img.naturalHeight) throw new Error('no size')
     return {
       source: img,
       width: img.naturalWidth,
@@ -286,6 +290,11 @@ export async function uploadFiles(
   files: File[],
   folder: string
 ): Promise<UploadFilesWithTypeResponse[]> {
+  // Same cap the route enforces per request; one request per file would
+  // otherwise bypass it.
+  if (files.length > MAX_FILES_PER_BATCH) {
+    throw new UploadError(UPLOAD_MESSAGES.tooManyFiles)
+  }
   // Check everything first so a bad file doesn't leave half a batch uploaded.
   const prepared: File[] = []
   for (const file of files) prepared.push(await prepareUpload(file))
