@@ -78,9 +78,11 @@ const ProfilePage: FC<Props> = async ({ username }) => {
 
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
-  const hasSkipped = session?.session?.token
-    ? cookieStore.get(`phone_skipped_${session.session.token}`)
-    : null;
+  // "Later" on the call setup dialog, remembered per user (see skipOnboarding).
+  // The session-token key is the old format, still honoured until it expires.
+  const hasSkipped =
+    (session?.user?.id && cookieStore.get(`phone_skipped_${session.user.id}`)) ||
+    (session?.session?.token && cookieStore.get(`phone_skipped_${session.session.token}`));
 
   const shouldShowPhoneModal =
     isMine &&

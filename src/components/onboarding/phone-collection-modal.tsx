@@ -3,94 +3,187 @@
 import { skipOnboarding } from "@/actions/onboarding-actions";
 import { Button } from "@/components/ui/button";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import PhoneVerifyForm from "@/components/voice/PhoneVerifyForm";
+import PhoneVerifyForm, {
+  primaryButtonClass,
+  quietLinkClass,
+} from "@/components/voice/PhoneVerifyForm";
 import { startVoiceCall } from "@/components/voice/startVoiceCall";
 import { useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
+import { ChevronDown, Loader2, PhoneCall, PhoneOff } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "react-hot-toast";
 
 type Props = {
   isOpen: boolean;
-  userName: string;
+  userName?: string;
   onClose?: () => void;
 };
 
-export default function PhoneCollectionModal({
-  isOpen,
-  userName,
-  onClose,
-}: Props) {
-  const { data: session } = useSession()
-  const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+type Stage = "setup" | "placing" | "calling" | "call_failed";
 
-  // After the number is verified, GPT-Live calls the user for the onboarding interview.
-  const handleVerified = async () => {
-    setIsSubmitting(true);
-    const result = await startVoiceCall("onboarding");
-    setIsSubmitting(false);
-    if (result.ok) {
-      toast.success("Verified! You will receive a call shortly.");
-      onClose?.();
+const ink = "text-[#1F1B16] dark:text-[#F3EEE6]";
+const muted = "text-[#5A5248] dark:text-[#B3A999]";
+
+export default function PhoneCollectionModal({ isOpen, onClose }: Props) {
+  const { data: session } = useSession();
+  const router = useRouter();
+  // Local state, so a server refresh after verification (which stops the
+  // profile page rendering this dialog) can't cut the "calling" screen short.
+  const [open, setOpen] = useState(isOpen);
+  const [stage, setStage] = useState<Stage>("setup");
+  const [howOpen, setHowOpen] = useState(false);
+
+  const close = () => {
+    setOpen(false);
+    onClose?.();
+    if (stage === "setup") {
+      // Esc, the close button and "Later" all count as "not now", remembered
+      // for this account on this browser.
+      void skipOnboarding().catch(() => undefined);
     } else {
-      toast.error(`${result.error} You can try again from Settings → Voice journal.`);
+      router.refresh();
     }
-    router.refresh();
   };
 
-  const handleSkip = async () => {
-    setIsSubmitting(true);
-    try {
-      const result = await skipOnboarding();
-      if (result.success) {
-        toast.success("We will remind you next time! 👋");
-      }
-    } catch (error) {
-      toast.error("Something went wrong");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const placeCall = async () => {
+    setStage("placing");
+    const result = await startVoiceCall("onboarding");
+    setStage(result.ok ? "calling" : "call_failed");
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent showCloseButton={Boolean(onClose)} className="sm:max-w-md sm:rounded-xl dark:bg-neutral-900">
-        <DialogHeader>
-          <DialogTitle className="font-medium tracking-wide">
-            Welcome,{" "}
-            <span className="tracking-tight">{userName}</span> 👋
-          </DialogTitle>
-        </DialogHeader>
+    <Dialog open={open} onOpenChange={(next) => !next && close()}>
+      <DialogContent
+        showCloseButton
+        className="max-w-[420px] gap-0 p-6 sm:p-8"
+        // A stray tap on the backdrop (common when dismissing the phone
+        // keyboard) shouldn't count as "Later". Esc, the X and Later do.
+        onInteractOutside={(e) => e.preventDefault()}
+      >
 
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Once your number is verified, Rize's AI calls you right away and asks a few questions to set up your profile, in Hindi or English. The call is recorded. Afterwards you'll see what we heard and choose what goes on your profile.
-          </p>
+        {stage === "setup" && (
+          <>
+            <DialogHeader className="space-y-3 pr-8 text-left">
+              <DialogTitle className={cn("font-instrument text-[34px] font-normal leading-[1.05] tracking-normal", ink)}>
+                Rize calls you
+              </DialogTitle>
+              <DialogDescription className={cn("text-[15px] leading-relaxed", muted)}>
+                A short call with Rize&apos;s AI to set up your profile. It&apos;s recorded, and you choose what goes on your profile.
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="space-y-4">
-            <PhoneVerifyForm
-              initialPhone={session?.user?.phoneNumber || ""}
-              onVerified={handleVerified}
-              disabled={isSubmitting}
-            />
+            <Collapsible open={howOpen} onOpenChange={setHowOpen} className="mt-3">
+              <CollapsibleTrigger className={cn(quietLinkClass, "inline-flex min-h-11 items-center gap-1 -ml-1 px-1")}>
+                How it works
+                <ChevronDown
+                  className={cn("h-4 w-4 transition-transform duration-200 motion-reduce:transition-none", howOpen && "rotate-180")}
+                  aria-hidden
+                />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <ol className={cn("mb-2 space-y-2 border-l border-[#E7E2D8] pl-4 text-sm leading-relaxed dark:border-[#2E2923]", muted)}>
+                  <li>We text you a code to confirm the number.</li>
+                  <li>Rize&apos;s AI calls right away and asks about you, in Hindi or English.</li>
+                  <li>Afterwards you see what it heard. Nothing goes on your profile until you add it.</li>
+                  <li>You can delete the recording any time in Settings.</li>
+                </ol>
+              </CollapsibleContent>
+            </Collapsible>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleSkip}
-              disabled={isSubmitting}
+            <div className="mt-5">
+              <PhoneVerifyForm
+                initialPhone={session?.user?.phoneNumber || ""}
+                onVerified={() => void placeCall()}
+              />
+            </div>
+
+            <div className="mt-3 flex justify-center">
+              <button type="button" onClick={close} className={cn(quietLinkClass, "min-h-11 px-4")}>
+                Later
+              </button>
+            </div>
+          </>
+        )}
+
+        {(stage === "placing" || stage === "calling") && (
+          <div className="pr-8">
+            <span
+              className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-full bg-main-yellow text-[#1F1B16]"
+              aria-hidden
             >
-              I'll do this later
-            </Button>
+              {stage === "placing" ? (
+                <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" />
+              ) : (
+                <PhoneCall className="h-5 w-5" />
+              )}
+            </span>
+            <DialogHeader className="space-y-3 text-left" aria-live="polite">
+              <DialogTitle className={cn("font-instrument text-[34px] font-normal leading-[1.05] tracking-normal", ink)}>
+                {stage === "placing" ? "Number confirmed" : "Calling you now"}
+              </DialogTitle>
+              <DialogDescription className={cn("text-[15px] leading-relaxed", muted)}>
+                {stage === "placing"
+                  ? "Placing your call."
+                  : "Your phone should ring in a few seconds."}
+              </DialogDescription>
+            </DialogHeader>
+            {stage === "calling" && (
+              <>
+                <ul className={cn("mt-6 space-y-3 border-t border-[#E7E2D8] pt-5 text-sm leading-relaxed dark:border-[#2E2923]", muted)}>
+                  <li>
+                    <span className={cn("font-medium", ink)}>On the call.</span> A few questions about you, in Hindi or English.
+                  </li>
+                  <li>
+                    <span className={cn("font-medium", ink)}>After.</span> You&apos;ll see what Rize heard and pick what goes on your profile.
+                  </li>
+                </ul>
+                <Button type="button" onClick={close} className={cn(primaryButtonClass, "mt-7")}>
+                  Got it
+                </Button>
+              </>
+            )}
           </div>
-        </div>
+        )}
+
+        {stage === "call_failed" && (
+          <div className="pr-8">
+            <span
+              className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#F3EFE7] text-[#5A5248] dark:bg-[#2E2923] dark:text-[#B3A999]"
+              aria-hidden
+            >
+              <PhoneOff className="h-5 w-5" />
+            </span>
+            <DialogHeader className="space-y-3 text-left">
+              <DialogTitle className={cn("font-instrument text-[34px] font-normal leading-[1.05] tracking-normal", ink)}>
+                The call didn&apos;t go through
+              </DialogTitle>
+              <DialogDescription className={cn("text-[15px] leading-relaxed", muted)}>
+                Your number is confirmed. Try again now, or start the call later from Settings.
+              </DialogDescription>
+            </DialogHeader>
+            <Button type="button" onClick={() => void placeCall()} className={cn(primaryButtonClass, "mt-7")}>
+              Try again
+            </Button>
+            <div className="mt-3 flex justify-center">
+              <Link href="/settings/voice" onClick={close} className={cn(quietLinkClass, "inline-flex min-h-11 items-center px-4")}>
+                Go to Settings
+              </Link>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

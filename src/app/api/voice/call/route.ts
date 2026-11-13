@@ -1,5 +1,5 @@
 import { users, voiceCalls } from "@/db/schema";
-import { getServerSession } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { loadCallerContext, needsOnboarding } from "@/lib/voice/prompt";
@@ -10,33 +10,38 @@ import { NextResponse } from "next/server";
 // Starts an outbound call: Twilio dials the user, then bridges the call over
 // SIP to our OpenAI project, where GPT-Live takes over.
 export async function POST(req: Request) {
-  const session = await getServerSession();
+  // Session only; the profile fields getServerSession adds aren't needed here.
+  const session = await auth.api.getSession({ headers: req.headers }).catch(() => null);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
   const userId = session.user.id;
 
-  const [user] = await db
-    .select({ phoneNumber: users.phoneNumber, phoneNumberVerified: users.phoneNumberVerified })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+  // Independent reads, run together. The daily call limit is checked only
+  // after these pass, so a rejected request never uses up a call.
+  const [[user], active, body] = await Promise.all([
+    db
+      .select({ phoneNumber: users.phoneNumber, phoneNumberVerified: users.phoneNumberVerified })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1),
+    // One live call at a time per user.
+    db
+      .select({ id: voiceCalls.id })
+      .from(voiceCalls)
+      .where(
+        and(
+          eq(voiceCalls.userId, userId),
+          inArray(voiceCalls.status, ["queued", "ringing", "in_progress"]),
+          gt(voiceCalls.createdAt, new Date(Date.now() - 15 * 60 * 1000))
+        )
+      )
+      .limit(1),
+    req.json().catch(() => ({})),
+  ]);
   if (!user?.phoneNumber || !user.phoneNumberVerified) {
     return NextResponse.json({ error: "Verify your phone number first" }, { status: 400 });
   }
-
-  // One live call at a time per user.
-  const active = await db
-    .select({ id: voiceCalls.id })
-    .from(voiceCalls)
-    .where(
-      and(
-        eq(voiceCalls.userId, userId),
-        inArray(voiceCalls.status, ["queued", "ringing", "in_progress"]),
-        gt(voiceCalls.createdAt, new Date(Date.now() - 15 * 60 * 1000))
-      )
-    )
-    .limit(1);
   if (active.length) {
     return NextResponse.json({ error: "A call is already in progress" }, { status: 409 });
   }
@@ -49,9 +54,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const body = await req.json().catch(() => ({}));
-  const ctx = await loadCallerContext(userId);
-  const kind = body?.kind === "onboarding" || needsOnboarding(ctx) ? "onboarding" : "journal";
+  // An explicit onboarding request doesn't need the profile read to decide.
+  const kind =
+    body?.kind === "onboarding" || needsOnboarding(await loadCallerContext(userId))
+      ? "onboarding"
+      : "journal";
 
   const [call] = await db
     .insert(voiceCalls)
@@ -60,13 +67,15 @@ export async function POST(req: Request) {
 
   try {
     const twilioCall = await startOutboundCall({ callId: call.id, to: user.phoneNumber });
-    await db
-      .update(voiceCalls)
-      .set({ twilioCallSid: twilioCall.sid })
-      .where(eq(voiceCalls.id, call.id));
-    if (kind === "onboarding") {
-      await db.update(users).set({ onboardingCallId: call.id }).where(eq(users.id, userId));
-    }
+    await Promise.all([
+      db
+        .update(voiceCalls)
+        .set({ twilioCallSid: twilioCall.sid })
+        .where(and(eq(voiceCalls.id, call.id), eq(voiceCalls.userId, userId))),
+      kind === "onboarding"
+        ? db.update(users).set({ onboardingCallId: call.id }).where(eq(users.id, userId))
+        : null,
+    ]);
   } catch (error: any) {
     console.error("[voice] Twilio call create failed", error?.code, error?.message);
     await db
