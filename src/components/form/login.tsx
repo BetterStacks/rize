@@ -74,7 +74,7 @@ const Login = () => {
           Welcome back
         </h2>
         <span className="opacity-80 mt-2 text-sm">
-          Back to your journal and profile.
+          Please enter your details to login
         </span>
       </div>
       <div className="flex flex-col w-full space-y-2">

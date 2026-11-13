@@ -20,24 +20,9 @@ const instrument = Instrument_Serif({
   weight: ['400'],
 })
 
-const siteDescription =
-  "Rize calls you for a few minutes, asks about your week and keeps it in a private journal. When something's worth sharing, you get a post made from what you actually said."
-
-// Pages set their own titles; these are the defaults for pages that don't.
 export const metadata: Metadata = {
   title: 'Rize',
-  description: siteDescription,
-  openGraph: {
-    title: 'Rize',
-    description: siteDescription,
-    siteName: 'Rize',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary',
-    title: 'Rize',
-    description: siteDescription,
-  },
+  description: 'Own your digital identity',
 }
 
 export default function RootLayout({
