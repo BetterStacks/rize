@@ -2,6 +2,7 @@
 
 How to work in this repo, for people and AI coding agents (Claude Code, Codex, Cursor, …).
 `CLAUDE.md` just points here, so keep everything in this one file.
+Read [RIZE_NORTH_STAR.md](RIZE_NORTH_STAR.md) first. It covers why we're building Rize and for whom; this file covers how to work in the code.
 
 ## Context in 30 seconds
 
@@ -105,6 +106,7 @@ docs/                      setup notes (voice journaling)
 
 ## Checklist before you push
 
+- [ ] The change fits RIZE_NORTH_STAR.md ("How to decide what to build")
 - [ ] Branch and PR, not `main`
 - [ ] `bunx tsc --noEmit`, `bun run lint` and `bun run build` are clean
 - [ ] Ownership check and a field allowlist on every write
