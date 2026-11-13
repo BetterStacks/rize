@@ -2,6 +2,7 @@ import { getServerSession } from '@/lib/auth'
 import { ProfileForm } from '@/components/settings/ProfileForm'
 import { StoryElementsForm } from '@/components/settings/StoryElementsForm'
 import { ResumeForm } from '@/components/settings/ResumeForm'
+import { DeleteAccountCard } from '@/components/settings/DeleteAccountCard'
 import { redirect } from 'next/navigation'
 import { ArrowLeft, BarChart3, PhoneCall } from 'lucide-react'
 import Link from 'next/link'
@@ -77,6 +78,9 @@ const Page = async () => {
 				<ProfileForm />
 				<StoryElementsForm />
 				<ResumeForm />
+				{(session.user.username || session.user.email) && (
+					<DeleteAccountCard confirmValue={session.user.username || session.user.email} />
+				)}
 			</div>
 		</div>
 	)

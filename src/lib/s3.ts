@@ -293,6 +293,20 @@ export function getS3KeyFromUrl(url: string): string {
 }
 
 /**
+ * Returns the key if the URL is exactly the URL uploadToS3 builds for a file
+ * in our bucket, otherwise null. Use this before deleting by URL: stored URLs
+ * can come from the client, and variants of someone else's URL (another host
+ * form, a query string, different encoding) must not resolve to their key.
+ */
+export function getOwnS3KeyFromUrl(url: string): string | null {
+    if (!BUCKET_NAME) return null
+    const key = getS3KeyFromUrl(url)
+    if (!key) return null
+    const region = process.env.AWS_S3_REGION || 'us-west-2'
+    return url === `https://${BUCKET_NAME}.s3.${region}.amazonaws.com/${key}` ? key : null
+}
+
+/**
  * Sanitize filename to be URL-safe by removing or replacing special characters.
  * S3 keys with characters like '#' or '?' can break direct URL access in browsers.
  */
