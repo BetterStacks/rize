@@ -116,7 +116,7 @@ export const profile = pgTable("profile", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
-});
+}, (t) => [index("idx_profile_created_at").on(t.createdAt.desc()), index("idx_profile_user_id").on(t.userId)]);
 
 export const sections = pgTable("sections", {
   id: uuid("id")
@@ -191,7 +191,7 @@ export const posts = pgTable("posts", {
   }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (t) => [index("idx_posts_created_at").on(t.createdAt.desc()), index("idx_posts_profile_id").on(t.profileId)]);
 
 export const postLinks = pgTable("post_links", {
   id: uuid("id")
@@ -203,7 +203,7 @@ export const postLinks = pgTable("post_links", {
   url: text("url").notNull(),
   data: jsonb("data").$type<Result | null>().notNull().default(null),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+}, (t) => [index("idx_post_links_post_id").on(t.postId)]);
 
 export const postVotes = pgTable(
   "post_votes",
@@ -222,8 +222,9 @@ export const postVotes = pgTable(
   (table) => {
     return {
       pk: primaryKey({ columns: [table.profileId, table.postId] }),
+      postvotespostid: index("idx_post_votes_post_id").on(table.postId),
     };
-  },
+  }
 );
 
 export const comments = pgTable("comments", {
@@ -246,7 +247,7 @@ export const comments = pgTable("comments", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
-});
+}, (t) => [index("idx_comments_post_id").on(t.postId)]);
 export const bookmarks = pgTable(
   "bookmarks",
   {
@@ -263,8 +264,9 @@ export const bookmarks = pgTable(
   (table) => {
     return {
       pk: primaryKey({ columns: [table.profileId, table.postId] }),
+      bookmarkspostid: index("idx_bookmarks_post_id").on(table.postId),
     };
-  },
+  }
 );
 
 export const projectBookmarks = pgTable(
@@ -297,7 +299,7 @@ export const postMedia = pgTable("post_media", {
   mediaId: uuid("mediaId").references(() => media.id, {
     onDelete: "cascade",
   }),
-});
+}, (t) => [index("idx_post_media_post_id").on(t.postId)]);
 export const page = pgTable("page", {
   id: uuid("id")
     .primaryKey()
@@ -935,7 +937,7 @@ export const accounts = pgTable("account", {
   password: text("password"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
-});
+}, (t) => [index("idx_account_user_id").on(t.userId)]);
 
 export const sessions = pgTable("session", {
   id: text("id")
