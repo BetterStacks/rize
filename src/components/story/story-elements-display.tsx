@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Sparkles } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { StoryElement } from '@/components/story/story-element'
 
@@ -29,7 +29,7 @@ const typeConfig = {
   },
   dream: {
     label: 'Dream',
-    emoji: '✨',
+    emoji: '🌍',
     color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
   },
   superpower: {
@@ -92,7 +92,7 @@ export function StoryElementsDisplay({
       {showTitle && (
         <div className="space-y-1">
           <h3 className="text-xl font-semibold flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-500" />
+            <BookOpen className="h-5 w-5 text-muted-foreground" />
             Their Story
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { 
-  Sparkles, 
+  Sun, 
   Zap, 
   Heart, 
   Star, 
@@ -67,7 +67,7 @@ const gradients = [
 
 // Fun emojis that Gen Z/Alpha love
 const emojiSets = [
-  ['🚀', '✨', '🌟', '💫'], // Space vibes
+  ['🪐', '🌙', '🌟', '💫'], // Space vibes
   ['🎨', '🎭', '🎪', '🎨'], // Creative energy
   ['🌈', '🦄', '🍭', '💖'], // Aesthetic vibes
   ['⚡', '🔥', '💥', '⭐'], // Energy/power
@@ -79,7 +79,7 @@ const emojiSets = [
 
 // Creative icons for different personalities
 const creativeIcons = [
-  Sparkles, Zap, Heart, Star, Flame, Coffee, Music, Camera,
+  Sun, Zap, Heart, Star, Flame, Coffee, Music, Camera,
   Palette, Code, Gamepad2, Rocket
 ]
 
@@ -264,18 +264,7 @@ export function CreativeAvatar({
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
       {renderCreativeAvatar()}
-      
-      {/* Hover sparkle effect */}
-      {showHoverEffect && (
-        <motion.div
-          className="absolute -top-1 -right-1 text-yellow-400"
-          initial={{ opacity: 0, scale: 0 }}
-          whileHover={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Sparkles className="w-3 h-3" />
-        </motion.div>
-      )}
+
     </motion.div>
   )
 }

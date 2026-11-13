@@ -55,7 +55,7 @@ const AvatarSelectionDialog: FC<AvatarSelectionDialogProps> = ({ file, setFile }
     { type: 'gradient' as const, label: 'Gradient', icon: '🌈' },
     { type: 'emoji' as const, label: 'Emoji', icon: '😀' },
     { type: 'geometric' as const, label: 'Geometric', icon: '🔷' },
-    { type: 'neon' as const, label: 'Neon', icon: '✨' },
+    { type: 'neon' as const, label: 'Neon', icon: '💡' },
     { type: 'minimal' as const, label: 'Minimal', icon: '◯' },
   ]
 

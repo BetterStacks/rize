@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { useChat } from '@ai-sdk/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { DefaultChatTransport } from 'ai';
-import { CheckIcon, ChevronDown, ChevronLeft, ChevronUp, Copy, Plus, RefreshCcw, Sparkles, XIcon } from 'lucide-react';
+import { CheckCircle2, CheckIcon, ChevronDown, ChevronLeft, ChevronUp, Copy, Plus, RefreshCcw, Trash2, XIcon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { FormEvent, Fragment, useEffect, useRef, useState } from 'react';
 import { v4 } from 'uuid';
@@ -319,7 +319,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                             key={`${message?.id}-tool-${i}`}
                                                             className="flex items-center gap-2 p-2 bg-indigo-50/30 dark:bg-indigo-900/10 rounded-xl border border-indigo-100/50 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium shadow-sm"
                                                         >
-                                                            <Sparkles className="size-3" />
+                                                            <Trash2 className="size-3" />
                                                             {(part as any)?.state === 'output-available'
                                                                 ? `Successfully deleted ${part.type.replace('tool-delete', '')}`
                                                                 : `Processing deletion...`}
@@ -344,7 +344,7 @@ export default function ProfileChat({ profileName = 'there', incompleteTasks = [
                                                             key={`${message?.id}-tool-${i}`}
                                                             className="flex items-center gap-2 p-2 bg-indigo-50/30 dark:bg-indigo-900/10 rounded-xl border border-indigo-100/50 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium shadow-sm"
                                                         >
-                                                            <Sparkles className="size-3" />
+                                                            <CheckCircle2 className="size-3" />
                                                             {(part as any)?.state === 'output-available'
                                                                 ? `Successfully executed ${part.type}`
                                                                 : `Executing ${part.type}...`}
@@ -488,7 +488,7 @@ const MessageLoadingState = ({ notFreshChat }: { notFreshChat: boolean }) => {
                         onClick={() => sendMessage({ text: 'Help me improve my latest experience description using power verbs.' })}
                         className="rounded-full text-xs gap-1.5 h-8 border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/20 transition-all font-medium"
                     >
-                        <Sparkles className="size-3" />
+                        <PenLine className="size-3" />
                         Auto-Improve
                     </Button>
                 </div> */}
@@ -570,7 +570,7 @@ const MessageLoadingState = ({ notFreshChat }: { notFreshChat: boolean }) => {
                                                     key={`${m.id}-tool-${i}`}
                                                     className="flex items-center gap-2 p-2 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 text-xs text-indigo-700 dark:text-indigo-300 font-medium"
                                                 >
-                                                    <Sparkles className="size-3" />
+                                                    <CheckCircle2 className="size-3" />
                                                     {part?.state === 'output-available'
                                                         ? `Successfully executed ${part.type}`
                                                         : `Executing ${part.type}...`}

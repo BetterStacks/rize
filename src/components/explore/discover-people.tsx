@@ -10,7 +10,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Search,
     Users,
-    Sparkles,
     MapPin,
     User2,
     ArrowLeft,
@@ -279,7 +278,7 @@ const DiscoverPeople = () => {
                     transition={{ duration: 0.6 }}
                 >
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-sm text-neutral-600 dark:text-neutral-400 mb-6">
-                        <Sparkles className="size-4" />
+                        <Search className="size-4" />
                         <span>Discover by skills</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl text-neutral-900 dark:text-white mb-4 tracking-tight leading-tight">

@@ -22,7 +22,6 @@ type DialogContextType = {
   isAlertDialogOpen: boolean;
   isCommentDialogOpen?: boolean;
   isSearchDialogOpen?: boolean;
-  isAIPromptDialogOpen?: boolean;
 };
 
 type setDialogContextType = [
@@ -41,7 +40,6 @@ type setDialogContextType = [
     setIsAlertDialogOpen: UpdateStateFunctionType;
     setIsCommentDialogOpen: UpdateStateFunctionType;
     setIsSearchDialogOpen: UpdateStateFunctionType;
-    setIsAIPromptDialogOpen: UpdateStateFunctionType;
   }
 ];
 
@@ -59,7 +57,6 @@ const defaultContextState: DialogContextType = {
   isAlertDialogOpen: false,
   isCommentDialogOpen: false,
   isSearchDialogOpen: false,
-  isAIPromptDialogOpen: false,
 }
 
 const DialogContext = createContext([
@@ -78,7 +75,6 @@ const DialogContext = createContext([
     setIsAlertDialogOpen: () => { },
     setIsCommentDialogOpen: () => { },
     setIsSearchDialogOpen: () => { },
-    setIsAIPromptDialogOpen: () => { },
   },
 ] as setDialogContextType)
 
@@ -218,19 +214,6 @@ export const useSearchDialog = () => {
   ] as const
 }
 
-export const useAIPromptDialog = () => {
-  const context = useContext(DialogContext)
-  if (!context) {
-    throw new Error(
-      'useAIPromptDialog must be used within DialogContextProvider'
-    )
-  }
-  return [
-    context[0].isAIPromptDialogOpen,
-    context[1].setIsAIPromptDialogOpen,
-  ] as const
-}
-
 const DialogContextProvider = ({ children }: { children: ReactNode }) => {
   const [openContext, setOpenContext] =
     useState<DialogContextType>(defaultContextState)
@@ -313,12 +296,6 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
     },
     [openContext, setOpenContext]
   )
-  const setIsAIPromptDialogOpen = useCallback(
-    (isOpen: boolean) => {
-      setOpenContext({ ...openContext, isAIPromptDialogOpen: isOpen })
-    },
-    [openContext, setOpenContext]
-  )
   return (
     <DialogContext.Provider
       value={[
@@ -337,7 +314,6 @@ const DialogContextProvider = ({ children }: { children: ReactNode }) => {
           setIsAlertDialogOpen,
           setIsCommentDialogOpen,
           setIsSearchDialogOpen,
-          setIsAIPromptDialogOpen,
         },
       ]}
     >

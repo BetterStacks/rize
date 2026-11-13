@@ -280,10 +280,10 @@ export function generateEnhancedBio(profile: ImportedProfile): string {
     
     // Add a motivational ending
     const endings = [
-      'Building the future, one project at a time ✨',
-      'Always learning, always building 🚀',
-      'Turning ideas into reality 💡',
-      'Creating solutions that matter 🌟'
+      'Building the future, one project at a time',
+      'Always learning, always building',
+      'Turning ideas into reality',
+      'Creating solutions that matter'
     ]
     
     if (parts.length > 0) {
@@ -291,7 +291,7 @@ export function generateEnhancedBio(profile: ImportedProfile): string {
     }
   }
   
-  return parts.join(' • ') || 'Building something awesome ✨'
+  return parts.join(' • ') || 'Building something awesome'
 }
 
 /**

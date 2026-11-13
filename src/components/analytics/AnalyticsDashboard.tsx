@@ -134,7 +134,7 @@ export default function AnalyticsDashboard({ username }: AnalyticsDashboardProps
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h2>
           <p className="text-muted-foreground">
-            Track your profile views, engagement, and interactions
+            Views, likes, comments and bookmarks on your profile
           </p>
         </div>
         
@@ -175,13 +175,13 @@ export default function AnalyticsDashboard({ username }: AnalyticsDashboardProps
         >
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Unique Visitors</CardTitle>
+              <CardTitle className="text-sm font-medium">Unique Views</CardTitle>
               <Users className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{overview.uniqueViews.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                Unique IP addresses
+                Repeat views counted once
               </p>
             </CardContent>
           </Card>
@@ -346,10 +346,10 @@ export default function AnalyticsDashboard({ username }: AnalyticsDashboardProps
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="size-5" />
-                Top Referrers
+                Top Sources
               </CardTitle>
               <CardDescription>
-                Where your visitors are coming from
+                Sites and links that led to your profile
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -359,17 +359,17 @@ export default function AnalyticsDashboard({ username }: AnalyticsDashboardProps
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium truncate max-w-xs">
-                          {referrer.referrer || 'Direct traffic'}
+                          {referrer.referrer || 'Direct'}
                         </span>
                       </div>
                       <Badge variant="secondary">
-                        {referrer.count} visits
+                        {referrer.count} views
                       </Badge>
                     </div>
                   ))
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No referrer data available for this timeframe
+                    No source data for this timeframe
                   </p>
                 )}
               </div>

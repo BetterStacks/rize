@@ -6,7 +6,6 @@ import { getProfileByUsername } from "@/actions/profile-actions";
 import { getAllProjects } from "@/actions/project-actions";
 import { getSocialLinks } from '@/actions/social-links-actions';
 import { getStoryElementsByUsername } from "@/actions/story-actions";
-import { useAIPromptDialog } from "@/components/dialog-provider";
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
 import { useEnrichedSession } from "@/lib/auth-client";
 import { useActiveSidebarTab } from '@/lib/context';
@@ -27,7 +26,7 @@ import { capitalizeFirstLetter } from '@/lib/utils';
 import { useLocalStorage } from "@mantine/hooks";
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import BottomBanner from '../bottom-banner';
 import CertificatesList from "../certificates/certificates-list";
 import Education from '../education/education';
@@ -39,7 +38,6 @@ import { Separator } from '../ui/separator';
 import Writings from '../writings/writings';
 import Profile from './profile';
 import { ProfileCompletionWidget } from './ProfileCompletionWidget';
-import ResumeRoaster from './ResumeRoaster';
 import SocialLinks from './social-links';
 import ProfileDrawer from './ProfileDrawer';
 import { motion } from "framer-motion";
@@ -134,7 +132,7 @@ const UserProfile = ({
     enabled: !!params.username,
   });
 
-  const { tasks, isComplete, hasBasicInfo } = useProfileCompletion({
+  const { tasks, hasBasicInfo } = useProfileCompletion({
     profile: profileData || data,
     gallery,
     writings,
@@ -148,22 +146,6 @@ const UserProfile = ({
       setActiveSidebarTab({ id: null, tab: 'chat' })
     }
   })
-
-  const [isAIPromptDismissed] = useLocalStorage<boolean>({
-    key: 'ai-prompt-dismissed',
-    defaultValue: false,
-  })
-
-  const [, setIsAIPromptDialogOpen] = useAIPromptDialog()
-
-  useEffect(() => {
-    if (isMine && !isComplete && !isAIPromptDismissed && !isLoading) {
-      const timer = setTimeout(() => {
-        setIsAIPromptDialogOpen(true)
-      }, 2000) // Show after 2 seconds
-      return () => clearTimeout(timer)
-    }
-  }, [isMine, isComplete, isAIPromptDismissed, isLoading, setIsAIPromptDialogOpen])
 
   const handleDismissWidget = () => {
     setIsWidgetDismissed(true)
@@ -257,12 +239,6 @@ const UserProfile = ({
       <Profile isMine={isMine} data={profileData!} isLoading={isLoading} username={profileData?.username || params.username} />
       <SocialLinks isMine={isMine} />
       {isMine && <ProfileDrawer />}
-
-      {isMine && (
-        <div className='w-full max-w-2xl'>
-          <ResumeRoaster />
-        </div>
-      )}
 
       {/* Story Elements Section */}
       {/* {storyElements && storyElements.length > 0 && (

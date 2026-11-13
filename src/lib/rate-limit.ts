@@ -36,7 +36,7 @@ export const rateLimiters = {
     ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(50, '60 s') })
     : null,
 
-  // AI and document parsing (chat, roast, resume, metadata): 60 per hour
+  // AI and document parsing (chat, resume, metadata): 60 per hour
   ai: redis
     ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(60, '3600 s') })
     : null,

@@ -65,7 +65,7 @@ const TestimonialsMarquee = () => {
     <div className="overflow-hidden h-[70vh] mb-10  py-16 w-full">
       <div className="mb-12 text-center">
         <h2 className="text-3xl md:text-4xl font-medium md:font-semibold tracking-tight  mb-3">
-          Word From Our Users ✨
+          Word From Our Users
         </h2>
       </div>
 

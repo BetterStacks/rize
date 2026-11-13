@@ -17,8 +17,7 @@ import {
   Linkedin, 
   Facebook,
   CheckCircle,
-  Palette,
-  Sparkles
+  Palette
 } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
@@ -163,15 +162,6 @@ export function ShareCard({ profile }: ShareCardProps) {
             align-items: center;
             gap: 10px;
           ">
-            <div style="
-              width: 24px;
-              height: 24px;
-              border-radius: 6px;
-              background: rgba(255, 255, 255, 0.2);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            ">✨</div>
             rize.so/${profile.username}
           </div>
         </div>
@@ -313,7 +303,7 @@ export function ShareCard({ profile }: ShareCardProps) {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5" />
+              <Share2 className="w-5 h-5" />
               Share Your Profile
             </DialogTitle>
             <DialogDescription>
@@ -364,7 +354,7 @@ export function ShareCard({ profile }: ShareCardProps) {
                   )}
                   
                   <div className="absolute bottom-4 right-4 text-xs opacity-70">
-                    ✨ rize.so/{profile.username}
+                    rize.so/{profile.username}
                   </div>
                 </div>
               </div>

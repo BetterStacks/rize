@@ -14,12 +14,12 @@ export function AvatarShowcase({ name, onSelectVariant }: AvatarShowcaseProps) {
     {
       id: 'gradient',
       name: 'Gradient Vibes',
-      description: 'Colorful gradients that pop ✨',
+      description: 'Colorful gradients',
     },
     {
       id: 'emoji',
       name: 'Emoji Energy',
-      description: 'Express yourself with fun emojis 🚀',
+      description: 'A set of emojis picked from your name',
     },
     {
       id: 'geometric', 
@@ -82,7 +82,7 @@ export function AvatarShowcase({ name, onSelectVariant }: AvatarShowcaseProps) {
       </div>
 
       <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl p-4 space-y-3">
-        <h4 className="font-medium text-sm">Pro Tip ✨</h4>
+        <h4 className="font-medium text-sm">Tip</h4>
         <p className="text-xs text-neutral-600 dark:text-neutral-400">
           Your avatar is automatically generated based on your name, so it's unique to you! 
           Each style creates a different vibe while keeping your personal touch.

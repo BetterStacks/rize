@@ -19,7 +19,7 @@ import { StoryElement } from '@/components/story/story-element'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Sparkles, AlertCircle } from 'lucide-react'
+import { BookOpen, AlertCircle } from 'lucide-react'
 
 export function StoryElementsForm() {
   const { data: session } = useSession()
@@ -175,7 +175,7 @@ export function StoryElementsForm() {
     <div className="space-y-4 w-full max-w-2xl">
       <div>
         <h2 className="text-2xl font-medium flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-purple-500" />
+          <BookOpen className="h-6 w-6 text-muted-foreground" />
           Story Elements
         </h2>
         <p className="text-sm opacity-80 mt-1">

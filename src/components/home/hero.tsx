@@ -22,7 +22,7 @@ import { ProfileContainer } from '../window'
 
 const heading = 'Own Your Story \n Not Just Your Resume'
 const description =
-  'Because your journey is more than bullet points. Share your growth,\n projects, and adventures in a way that\'s uniquely you ✨'
+  'Because your journey is more than bullet points. Share your growth,\n projects, and adventures in a way that\'s uniquely you.'
 
 const headingVariants: Variants = {
   initial: {
