@@ -105,8 +105,7 @@ export async function GET(request: NextRequest) {
         })
         .from(accounts)
         .where(eq(accounts.userId, session.user.id))
-        
-      console.log('✅ User accounts query result:', userAccounts)
+
     } catch (dbError) {
       console.error('Database query error:', dbError)
       // Continue with empty accounts array
