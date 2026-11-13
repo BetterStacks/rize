@@ -16,7 +16,8 @@ import {
   messyGridItemVariants,
   messyGridVariants,
 } from './gallery-config'
-import { EmptyGalleryState } from './gallery-empty-state'
+import { EmptyLine, ProfileSection, SectionNewButton } from '../profile/profile-section'
+import { PROFILE_STALE_TIME } from '@/lib/profile-query'
 import GalleryItem from './gallery-item'
 
 export const galleryLayouts = {
@@ -73,13 +74,13 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
   const { username } = useParams<{ username: string }>()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['get-gallery-items', username],
     initialData: items,
     queryFn: () => getGalleryItems(username!),
+    staleTime: PROFILE_STALE_TIME,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    refetchOnMount: false,
   })
   const [sortedItems, setSortedItems] = useState(data || [])
 
@@ -151,8 +152,21 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
     setCurrentImageIndex(index)
   }, [])
 
+  const addAction = isMine ? (
+    <SectionNewButton
+      onClick={handleAddImages}
+      what="images"
+      label={isPending ? 'Uploading…' : 'New'}
+      disabled={isPending}
+    />
+  ) : undefined
+
+  const isEmpty = !sortedItems || sortedItems.length === 0
+
+  if (!isMine && isEmpty) return null
+
   return (
-    <div className="w-full my-12 flex flex-col items-center justify-center">
+    <ProfileSection id="gallery" title="Gallery" actions={addAction}>
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -160,83 +174,69 @@ const Gallery: FC<GalleryProps> = ({ isMine, items }) => {
         multiple
         accept="image/*,video/*"
         onChange={handleFileChange}
-        style={{ display: 'none' }}
+        className="hidden"
+        aria-hidden
+        tabIndex={-1}
       />
 
-      <motion.div className="w-full relative max-w-3xl hidden md:flex flex-col  items-center justify-center mt-4">
-        {isLoading ? (
-          <GallerySkeleton />
-        ) : sortedItems?.length === 0 ? (
-          <EmptyGalleryState
-            onAddImages={handleAddImages}
-            ctaText={isPending ? 'Uploading...' : 'Add Images'}
-            disabled={isPending}
-          />
-        ) : (
-          <motion.div
-            variants={imagesContainerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-5"
-          >
-            {sortedItems?.map((item, i) => {
-              return (
-                <SortableGalleryItem
-                  key={i}
-                  index={i}
-                  isMine={isMine}
-                  item={item}
-                  onImageClick={openLightbox}
-                />
-              )
-            })}
-          </motion.div>
-        )}
-      </motion.div>
-      <motion.div className="w-full relative  flex md:hidden flex-col  items-center justify-center mt-4">
-        {isLoading ? (
-          <GallerySkeleton />
-        ) : sortedItems?.length === 0 ? (
-          <EmptyGalleryState
-            onAddImages={handleAddImages}
-            ctaText={isPending ? 'Uploading...' : 'Add Images'}
-            disabled={isPending}
-          />
-        ) : (
-          <motion.div
-            variants={imagesContainerVariants}
-            initial="hidden"
-            animate="visible"
-            className="columns-3 gap-0"
-          >
-            {sortedItems?.map((item, i) => {
-              return (
-                <motion.div
-                  key={i}
-                  style={{
-                    aspectRatio: (item?.width || 1) / (item?.height || 1),
-                  }}
-                  className="relative  object-cover  overflow-hidden"
-                >
-                  <GalleryItem index={i} isMine={isMine} item={item} onImageClick={openLightbox} />
-                </motion.div>
-              )
-            })}
-          </motion.div>
-        )}
-      </motion.div>
-
-      {/* Lightbox */}
-      {sortedItems && sortedItems.length > 0 && (
-        <GalleryLightbox
-          items={sortedItems}
-          currentIndex={currentImageIndex}
-          isOpen={lightboxOpen}
-          onClose={closeLightbox}
-          onNavigate={navigateLightbox}
+      {isEmpty ? (
+        <EmptyLine
+          text="No images yet"
+          actionLabel={isPending ? 'Uploading…' : 'Add images'}
+          onAction={handleAddImages}
+          disabled={isPending}
         />
+      ) : (
+        <>
+          <div className="relative hidden w-full flex-col items-center justify-center pt-4 md:flex">
+            <motion.div
+              variants={imagesContainerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-5"
+            >
+              {sortedItems.map((item, i) => {
+                return (
+                  <SortableGalleryItem
+                    key={item.galleryMediaId ?? i}
+                    index={i}
+                    isMine={isMine}
+                    item={item}
+                    onImageClick={openLightbox}
+                  />
+                )
+              })}
+            </motion.div>
+          </div>
+          <div className="relative flex w-full flex-col items-center justify-center md:hidden">
+            <div className="columns-3 gap-1 space-y-1">
+              {sortedItems.map((item, i) => {
+                return (
+                  <div
+                    key={item.galleryMediaId ?? i}
+                    style={{
+                      aspectRatio: (item?.width || 1) / (item?.height || 1),
+                    }}
+                    className="group relative overflow-hidden rounded-lg"
+                  >
+                    <GalleryItem index={i} isMine={isMine} item={item} onImageClick={openLightbox} />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Lightbox */}
+          <GalleryLightbox
+            items={sortedItems}
+            currentIndex={currentImageIndex}
+            isOpen={lightboxOpen}
+            onClose={closeLightbox}
+            onNavigate={navigateLightbox}
+          />
+        </>
       )}
-    </div>
+    </ProfileSection>
   )
 }
 

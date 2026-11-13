@@ -8,8 +8,8 @@ import { getSocialLinks } from '@/actions/social-links-actions';
 import { getStoryElementsByUsername } from "@/actions/story-actions";
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
 import { useEnrichedSession } from "@/lib/auth-client";
-import { useActiveSidebarTab } from '@/lib/context';
-import { usePanel } from "@/lib/panel-context";
+import { useActiveSidebarTab, useRightSidebar } from '@/lib/context';
+import { PROFILE_STALE_TIME } from "@/lib/profile-query";
 import { useSections } from "@/lib/section-context";
 import {
   GalleryItemProps,
@@ -20,30 +20,27 @@ import {
   TCertificate,
   TEducation,
   TExperience,
+  TSocialLink,
   TStoryElement,
 } from '@/lib/types';
-import { capitalizeFirstLetter } from '@/lib/utils';
-import { useLocalStorage } from "@mantine/hooks";
+import { cn } from "@/lib/utils";
+import { useLocalStorage, useMediaQuery } from "@mantine/hooks";
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
-import React, { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import BottomBanner from '../bottom-banner';
 import CertificatesList from "../certificates/certificates-list";
 import Education from '../education/education';
-import WorkExperience from '../experience/experience';
+import WorkExperience, { sortExperience } from '../experience/experience';
 import Gallery from '../gallery/gallery';
 import PostSection from '../posts-section';
 import Projects from '../projects/projects';
-import { Separator } from '../ui/separator';
 import Writings from '../writings/writings';
 import Profile from './profile';
+import { hairline, inkSecondary } from "./profile-section";
 import { ProfileCompletionWidget } from './ProfileCompletionWidget';
-import SocialLinks from './social-links';
 import ProfileDrawer from './ProfileDrawer';
-import { motion } from "framer-motion";
-import { ScrollArea, ScrollBar } from "../ui/scroll-area";
-import toast from "react-hot-toast";
-import EmptyFeed from "../ui/empty-feed";
+import SocialLinks from './social-links';
 
 type UserProfileProps = {
   data: GetProfileByUsername;
@@ -56,7 +53,13 @@ type UserProfileProps = {
   posts: GetExplorePosts[];
   storyElements: TStoryElement[];
   certificates: TCertificate[];
+  socialLinks?: TSocialLink[];
 };
+
+// Everything here was loaded on the server and seeded into React Query, so
+// these queries read the cache; they refetch only when a mutation invalidates
+// their key (or the data is over a minute old).
+const cached = { staleTime: PROFILE_STALE_TIME, refetchOnWindowFocus: false } as const;
 
 const UserProfile = ({
   data,
@@ -69,39 +72,44 @@ const UserProfile = ({
   posts,
   storyElements,
   certificates,
+  socialLinks: initialSocialLinks = [],
 }: UserProfileProps) => {
   const params = useParams<{ username: string }>();
   const session = useEnrichedSession();
   const [, setActiveSidebarTab] = useActiveSidebarTab();
-  const [activeTab, setActiveTab] = useState<string>('gallery')
+  const setRightSidebarOpen = useRightSidebar()[1];
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
 
-
-  const { data: profileData, isLoading } = useQuery({
+  const { data: profileData } = useQuery({
     queryKey: ['get-profile', params.username],
     queryFn: () => getProfileByUsername(params.username),
+    initialData: data,
     enabled: !!params.username,
+    ...cached,
   })
 
   const { data: socialLinks = [] } = useQuery({
     queryKey: ['get-social-links', params.username],
     queryFn: () => getSocialLinks(params.username),
+    initialData: initialSocialLinks,
     enabled: !!params.username,
+    ...cached,
   });
 
   const { sections } = useSections();
 
-  // Profile completion tracking
+  // Profile completion tracking (same key, so earlier dismissals stick)
   const [isWidgetDismissed, setIsWidgetDismissed] = useLocalStorage<boolean>({
     key: 'profile-completion-dismissed',
     defaultValue: false,
   })
-
 
   const { data: educationData } = useQuery({
     queryKey: ['get-education', params.username],
     queryFn: () => getAllEducation(params.username),
     initialData: education,
     enabled: !!params.username,
+    ...cached,
   });
 
   const { data: experienceData } = useQuery({
@@ -109,6 +117,7 @@ const UserProfile = ({
     queryFn: () => getAllExperience(params.username),
     initialData: workExperience,
     enabled: !!params.username,
+    ...cached,
   });
 
   const { data: projectsData } = useQuery({
@@ -116,6 +125,7 @@ const UserProfile = ({
     queryFn: () => getAllProjects(params.username),
     initialData: projects,
     enabled: !!params.username,
+    ...cached,
   });
 
   const { data: storyElementsData } = useQuery({
@@ -123,6 +133,7 @@ const UserProfile = ({
     queryFn: () => getStoryElementsByUsername(params.username),
     initialData: { success: true, data: storyElements },
     enabled: !!params.username,
+    ...cached,
   });
 
   const { data: certificatesData } = useQuery({
@@ -130,10 +141,13 @@ const UserProfile = ({
     queryFn: () => getAllCertificates(params.username),
     initialData: certificates,
     enabled: !!params.username,
+    ...cached,
   });
 
+  const profile = profileData || data;
+
   const { tasks, hasBasicInfo } = useProfileCompletion({
-    profile: profileData || data,
+    profile,
     gallery,
     writings,
     projects: projectsData || projects,
@@ -144,12 +158,19 @@ const UserProfile = ({
     socialLinks,
     onOpenChat: () => {
       setActiveSidebarTab({ id: null, tab: 'chat' })
+      // On phones the right sidebar is a sheet: open it too.
+      if (!isDesktop) setRightSidebarOpen(true)
     }
   })
 
-  const handleDismissWidget = () => {
-    setIsWidgetDismissed(true)
-  }
+  // One line under the name: the current (or latest) role.
+  const tagline = useMemo(() => {
+    const latest = sortExperience(experienceData || workExperience)[0];
+    if (!latest?.title) return null;
+    const isCurrent = latest.currentlyWorking || !latest.endDate;
+    if (!isCurrent) return null;
+    return latest.company ? `${latest.title} at ${latest.company}` : latest.title;
+  }, [experienceData, workExperience]);
 
   const sectionMap = {
     gallery: {
@@ -196,26 +217,18 @@ const UserProfile = ({
       (section) => sectionMap[section.id as keyof typeof sectionMap]?.enabled
     );
 
-    // For authenticated users, sort sections to show populated ones first
+    // For the owner, populated sections come first, empty ones after.
     if (isMine) {
-      return updated.sort((a, b) => {
-        const aSectionData = sectionMap[a.id as keyof typeof sectionMap];
-        const bSectionData = sectionMap[b.id as keyof typeof sectionMap];
-
-        const aHasData = aSectionData?.hasData || false;
-        const bHasData = bSectionData?.hasData || false;
-
-        // If both have data or both don't have data, maintain original order
+      return [...updated].sort((a, b) => {
+        const aHasData = sectionMap[a.id as keyof typeof sectionMap]?.hasData || false;
+        const bHasData = sectionMap[b.id as keyof typeof sectionMap]?.hasData || false;
         if (aHasData === bHasData) {
           return a.order - b.order;
         }
-
-        // Sections with data come first
         return bHasData ? 1 : -1;
       });
     }
 
-    // For public users, keep original filtering behavior
     return updated;
   }, [
     sections,
@@ -233,92 +246,40 @@ const UserProfile = ({
     (section) => !section.enabled
   );
 
+  const firstName = (profile?.displayName || profile?.name || '').split(' ')[0];
 
   return (
-    <div className="w-full flex relative flex-col items-center mb-32 justify-start">
-      <Profile isMine={isMine} data={profileData!} isLoading={isLoading} username={profileData?.username || params.username} />
-      <SocialLinks isMine={isMine} />
+    <div className="relative mx-auto flex w-full max-w-2xl flex-col items-stretch px-1 pb-32 pt-6 sm:pt-10">
+      <Profile
+        isMine={isMine}
+        data={profile}
+        username={profile?.username || params.username}
+        tagline={tagline}
+      >
+        <SocialLinks isMine={isMine} initialLinks={initialSocialLinks} />
+        {isMine && !isWidgetDismissed && (
+          <ProfileCompletionWidget
+            tasks={tasks}
+            onDismiss={() => setIsWidgetDismissed(true)}
+            hasBasicInfo={hasBasicInfo}
+          />
+        )}
+      </Profile>
       {isMine && <ProfileDrawer />}
 
-      {/* Story Elements Section */}
-      {/* {storyElements && storyElements.length > 0 && (
-        <>
-          <div className="w-full mt-8 mb-6 max-w-2xl">
-            <StoryElementsDisplay elements={storyElements} />
-          </div>
-          <Separator className="w-full max-w-2xl" />
-        </>
-      )} */}
-
-      {areAllSectionsDisabled && !isLoading && (
-        <>
-          <Separator className="w-full mt-6 max-w-2xl" />
-          <div className="w-full border-2 py-6 px-4 border-dashed border-neutral-300/60 dark:border-dark-border rounded-2xl max-w-2xl p-4 flex flex-col md:flex-row items-center md:items-start justify-center mt-4">
-            <p className=" md:w-1/2 text-neutral-600 dark:text-neutral-400">
-              Oops ! It seems like{" "}
-              {capitalizeFirstLetter(
-                profileData?.displayName?.split(" ")[0] as string
-              )}{" "}
-              hasn't added any content yet. 🍃
-            </p>
-            {/* <EmptyFeed
-              title="No Content Yet"
-              description={`${profileData?.displayName?.split(" ")[0]} hasn't added any content yet.
-              `}
-            /> */}
-          </div>
-        </>
+      {areAllSectionsDisabled && (
+        <p className={cn('border-t py-8 text-[15px]', hairline, inkSecondary)}>
+          {firstName ? `${firstName} hasn’t added anything here yet.` : 'Nothing here yet.'}
+        </p>
       )}
-      {/* <div className="w-full border-b flex flex-row items-center border-neutral-200 dark:border-neutral-800 max-w-2xl mt-8 mb-10">
-        {Object.keys(sectionMap).map((key) => {
-          return (
-            <div className="relative px-4 py-3 cursor-pointer group" onClick={() => setActiveTab(key)} key={key}>
-              <span className={`transition-colors text-sm md:text-base duration-200 ${activeTab === key ? "text-neutral-900 dark:text-white" : "text-neutral-500 group-hover:text-neutral-700 dark:group-hover:text-neutral-300"}`}>
-                {capitalizeFirstLetter(key)}
-              </span>
-
-
-              {activeTab === key && (
-                <motion.div
-                  layoutId={`sectionTab`}
-                  layout="position"
-                  className="absolute inset-x-0 h-px bottom-0  bg-main-yellow"
-                  transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-                />
-              )}
-            </div>
-          )
-        })}
-      </div>
-      <div className="w-full mx-auto">
-
-        {sectionMap[activeTab as keyof typeof sectionMap]?.component &&
-          <React.Fragment key={activeTab}>
-            {sectionMap[activeTab as keyof typeof sectionMap]?.component}
-            <Separator className="w-full max-w-2xl mx-auto" />
-          </React.Fragment>
-        }
-      </div> */}
 
       {filteredSections.map((section) => (
-        <div key={section.id} className="w-full mx-auto">
+        <div key={section.id} className="w-full">
           {sectionMap[section.id as keyof typeof sectionMap]?.component}
-          <Separator className="w-full max-w-2xl mx-auto" />
         </div>
       ))}
 
-
-
-      {!session?.data && !session?.isPending && <BottomBanner />}
-
-      {/* Profile Completion Widget - Only show for own profile */}
-      {isMine && !isWidgetDismissed && (
-        <ProfileCompletionWidget
-          tasks={tasks}
-          onDismiss={handleDismissWidget}
-          hasBasicInfo={hasBasicInfo}
-        />
-      )}
+      {!session?.data && !session?.isPending && <BottomBanner className="mt-8" />}
     </div>
   );
 };

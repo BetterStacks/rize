@@ -122,9 +122,8 @@ export function useProfileCompletion({
                 description: 'Share about your education',
                 completed: hasContent.hasEducation,
                 action: () => {
-                    // Scroll to social links section
-                    const socialSection = document.querySelector('[data-social-links]')
-                    socialSection?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    const section = document.getElementById('education') ?? document.querySelector('[data-social-links]')
+                    section?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }
             },
             // {

@@ -4,14 +4,15 @@ import { deleteCertificate, getAllCertificates } from '@/actions/certificate-act
 import { useActiveSidebarTab } from '@/lib/context'
 import { TCertificate } from '@/lib/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
-import { Award, Download, Plus } from 'lucide-react'
-import { useParams, useRouter } from 'next/navigation'
+import { Download } from 'lucide-react'
+import { useParams } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Button } from '../ui/button'
 import CertificateCard from './certificate-card'
 import CertificateDrawer from './certificate-drawer'
+import { EmptyLine, ProfileSection, SectionNewButton } from '../profile/profile-section'
+import { PROFILE_STALE_TIME } from '@/lib/profile-query'
 
 type CertificatesListProps = {
     certificates: TCertificate[]
@@ -30,6 +31,8 @@ export default function CertificatesList({ certificates, isMine = false }: Certi
         queryFn: () => getAllCertificates(params.username!),
         initialData: certificates,
         enabled: !!params.username,
+        staleTime: PROFILE_STALE_TIME,
+        refetchOnWindowFocus: false,
     })
     const deleteMutation = useMutation({
         mutationFn: deleteCertificate,
@@ -107,112 +110,45 @@ export default function CertificatesList({ certificates, isMine = false }: Certi
     }
 
     return (
-        <div
+        <ProfileSection
             id="certificates"
-            className="w-full my-12 px-2 md:px-4 flex flex-col items-center justify-start"
-        >
-            <div className="max-w-2xl w-full flex mb-4 items-center justify-between">
-                <h2 className="md:text-lg font-medium ">Certifications</h2>
-                <div className="flex">
+            title="Certifications"
+            actions={
+                <>
                     {certificatesData.length > 0 && (
                         <Button
-                            className="rounded-lg scale-90 text-sm"
+                            type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={handleDownloadAll}
-                            size={'sm'}
-                            variant={'outline'}
                             disabled={isDownloading}
+                            className="h-11 gap-1.5 rounded-lg px-3 text-sm font-medium text-[#5A5248] dark:text-[#B3A999]"
                         >
-                            <Download className="opacity-80 mr-2 size-4" />
-                            {isDownloading ? 'Downloading...' : 'Download All'}
+                            <Download className="size-4" aria-hidden />
+                            {isDownloading ? 'Downloading…' : 'Download all'}
                         </Button>
                     )}
-                    {isMine && (
-                        <Button
-                            className="rounded-lg scale-90 text-sm"
-                            onClick={handleAdd}
-                            size={'sm'}
-                            variant={'outline'}
-                        >
-                            <Plus className="opacity-80 mr-2 size-4" />
-                            New Certificate
-                        </Button>
-                    )}
+                    {isMine && <SectionNewButton onClick={handleAdd} what="certificate" />}
+                </>
+            }
+        >
+            {certificatesData.length === 0 ? (
+                <EmptyLine text="No certificates yet" actionLabel="Add a certificate" onAction={handleAdd} />
+            ) : (
+                <div className="flex flex-col gap-3">
+                    {certificatesData.map((certificate) => (
+                        <CertificateCard
+                            key={certificate.id}
+                            certificate={certificate}
+                            isMine={isMine}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                        />
+                    ))}
                 </div>
-            </div>
-
-            <div className="w-full max-w-2xl mt-2 flex flex-col space-y-4 ">
-                {certificatesData.length === 0 ? (
-                    <EmptyCertificatesState onCreateNew={handleAdd} />
-                ) : (
-                    certificatesData.map((certificate, i) => (
-                        <motion.div key={certificate.id} custom={i}>
-                            <CertificateCard
-                                certificate={certificate}
-                                isMine={isMine}
-                                onEdit={handleEdit}
-                                onDelete={handleDelete}
-                            />
-                        </motion.div>
-                    ))
-                )}
-            </div>
+            )}
 
             {isMine && <CertificateDrawer />}
-        </div>
-    )
-}
-
-interface EmptyCertificatesStateProps {
-    title?: string
-    description?: string
-    ctaText?: string
-    onCreateNew?: () => void
-}
-
-export function EmptyCertificatesState({
-    title = 'Showcase Your Achievements',
-    description = 'Your certifications demonstrate your expertise. Add them to highlight your professional accomplishments.',
-    ctaText = 'Add Your First Certificate',
-    onCreateNew = () => { },
-}: EmptyCertificatesStateProps) {
-    const [isHovering, setIsHovering] = useState(false)
-
-    return (
-        <div className="flex h-full min-h-[400px] border-2 border-neutral-300/60 dark:border-dark-border/80 rounded-3xl border-dashed w-full items-center justify-center">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="flex max-w-md flex-col items-center text-center"
-            >
-                <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/20 dark:to-amber-900/20">
-                    <motion.div
-                        animate={{ rotate: isHovering ? 15 : 0 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                    >
-                        <div className="relative">
-                            <Award
-                                className="size-6 text-yellow-500 dark:text-yellow-400"
-                                strokeWidth={1.5}
-                            />
-                        </div>
-                    </motion.div>
-                </div>
-                <h3 className="mb-2 md:text-xl font-medium tracking-tight">{title}</h3>
-                <p className="mb-6 opacity-80 text-sm md:text-base leading-tight px-6">
-                    {description}
-                </p>
-                <Button
-                    size="sm"
-                    className="gap-2 !bg-main-yellow text-black rounded-lg scale-90"
-                    onMouseEnter={() => setIsHovering(true)}
-                    onMouseLeave={() => setIsHovering(false)}
-                    onClick={onCreateNew}
-                >
-                    <Plus className="h-4 w-4" />
-                    {ctaText}
-                </Button>
-            </motion.div>
-        </div>
+        </ProfileSection>
     )
 }

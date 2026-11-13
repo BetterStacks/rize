@@ -22,7 +22,7 @@ import {
 import { useVoteProject } from "@/hooks/useVoteProject";
 import { useSession } from "@/lib/auth-client";
 import { useAuthDialog } from "../dialog-provider";
-import Image from "next/image";
+import SafeImage from "../profile/safe-image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { FC, useEffect, useRef, useState } from "react";
@@ -112,7 +112,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
 
   return (
     <motion.div
-      className={cn("flex w-full group relative transition-all items-center")}
+      className={cn("flex w-full group relative items-center gap-2")}
     >
       {/* <ProjectInteractions
         upvoteCount={project.upvoteCount}
@@ -126,52 +126,49 @@ const ProjectCard: FC<ProjectCardProps> = ({
         className="flex-col mr-3"
       /> */}
 
-      <Link href={`/project/${project.id}`} target="_blank" className="flex flex-1 items-center">
-        <div className=" flex border-2 border-neutral-200 mr-4 dark:border-dark-border items-center justify-center relative overflow-hidden h-16  w-20 rounded-lg aspect-square">
-          {project.logo ? (
-            <Image
-              fill
-              style={{ objectFit: "cover" }}
-              src={project.logo!}
-              alt={project.name}
-            />
-          ) : (
-            <Globe strokeWidth={1.5} className="size-4 opacity-80" />
-          )}
+      <Link
+        href={`/project/${project.id}`}
+        target="_blank"
+        className="flex min-w-0 flex-1 items-center gap-4 rounded-xl py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow"
+      >
+        <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E7E2D8] bg-[#FCFBF8] dark:border-[#2E2923] dark:bg-[#1C1916]">
+          <SafeImage
+            src={project.logo}
+            sizes="56px"
+            fallback={<Globe strokeWidth={1.5} className="size-4 text-[#5A5248] dark:text-[#B3A999]" aria-hidden />}
+          />
         </div>
-        <div className="flex w-full py-2 items-start justify-center flex-col">
-          <h2 className="font-medium text-nowrap tracking-tight leading-tight flex items-center gap-1 group/link">
+        <div className="flex min-w-0 flex-1 flex-col items-start justify-center">
+          <h3 className="w-full truncate text-[15px] font-medium leading-snug text-[#1F1B16] dark:text-[#F3EEE6]">
             {project.name}
-          </h2>
+          </h3>
           {project.tagline && (
-            <p className="dark:text-gray-300 text-sm text-gray-700 line-clamp-1 mt-1 leading-tight">
+            <p className="w-full truncate text-[15px] leading-snug text-[#5A5248] dark:text-[#B3A999]">
               {project.tagline}
             </p>
           )}
-          {(project?.topics?.length ?? 0) > 0 && <div className="flex items-center justify-start dark:text-gray-400 text-gray-700 gap-1 mt-1">
-            <Tags className="mr-1 size-4" />
-            {project?.topics?.map((topic, index) => (
-              <React.Fragment key={topic.id} >
-                <span className="cursor-pointer hover:dark:text-main-yellow hover:text-yellow-500 hover:underline transition-all ease-in duration-75 underline-offset-2 text-sm">
-                  {topic.name}
-                </span>
-                {project.topics!.length - 1 !== index && <span className="">•</span>}
-              </React.Fragment>
-            ))}
-          </div>}
-
+          {(project?.topics?.length ?? 0) > 0 && (
+            <p className="mt-1 w-full truncate text-sm text-[#5A5248] dark:text-[#B3A999]">
+              {project?.topics?.map((topic) => topic.name).join(" · ")}
+            </p>
+          )}
         </div>
       </Link>
       {
         isMine && (
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="absolute right-2 ">
-              <Button variant={"outline"} size={"smallIcon"}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`Options for ${project.name}`}
+                className="size-11 shrink-0 rounded-lg text-[#5A5248] dark:text-[#B3A999] sm:size-9"
+              >
                 <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="mt-2 dark:bg-dark-bg dark:border-dark-border border-neutral-200/80 rounded-xl">
+            <DropdownMenuContent align="end" className="rounded-xl">
               <DropdownMenuItem onClick={(e) => {
                 e.stopPropagation();
                 onEditProject(project.id);
@@ -179,7 +176,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
                 <Edit2 className="size-4" />
                 <span>Edit</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="stroke-red-500 text-red-500" onClick={(e) => {
+              <DropdownMenuItem className="text-red-600 dark:text-red-400" onClick={(e) => {
                 e.stopPropagation();
                 handleDeleteProject(project.id);
               }}>

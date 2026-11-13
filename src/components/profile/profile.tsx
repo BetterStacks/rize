@@ -2,110 +2,153 @@
 
 import { useActiveSidebarTab } from "@/lib/context";
 import { GetProfileByUsername } from "@/lib/types";
+import { safeHref } from "@/lib/safe-href";
 import { cleanUrl, cn } from "@/lib/utils";
-import { Link2 } from "lucide-react";
-import Link from "next/link";
+import { CalendarDays, Link2, MapPin, Pencil } from "lucide-react";
+import { ReactNode } from "react";
 import { Button } from "../ui/button";
 import UserAvatar from "../user-avatar";
+import { ink, inkSecondary } from "./profile-section";
 import QRcode from "./QRcode";
 
 type ProfileProps = {
   data: GetProfileByUsername;
-  isLoading: boolean;
+  isLoading?: boolean;
   isMine: boolean;
   bioContainerClassName?: string;
   username?: string;
+  /** One line under the name, e.g. the current role. */
+  tagline?: string | null;
+  /** Rendered under the meta line: social links, owner checklist. */
+  children?: ReactNode;
 };
 
-export const defaultBio = `I'm still setting up, but this is where it all starts 🌱.\n
-A place to share what I do, what I love, and where I'm headed.It's quiet for now, but trust me, it won't stay that way for long.`;
 
 const Profile = ({
   data,
   isMine,
-  isLoading,
   bioContainerClassName,
   username,
+  tagline,
+  children,
 }: ProfileProps) => {
   const [, setActiveSidebarTab] = useActiveSidebarTab();
+  const name = data?.displayName || data?.name || username || "";
+  const joined = data?.createdAt
+    ? new Date(data.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC",
+    })
+    : null;
+  const website = safeHref(data?.website);
+  const openEditProfile = () =>
+    setActiveSidebarTab({ id: null, tab: "edit-profile" });
 
   return (
-    <div className=" w-full flex flex-col items-center justify-start   mb-2">
-      <div className=" max-w-2xl w-full flex flex-col items-start justify-start">
-        <div className="mb-6 w-full flex justify-between items-center">
-          <UserAvatar
-            isMyProfile={isMine}
-            isLoading={isLoading}
-            data={{
-              image: data?.profileImage as string,
-              name: data?.displayName as string,
-            }}
-          />
+    <header className="mx-auto flex w-full max-w-2xl flex-col items-start pb-8">
+      <div className="mb-5 flex w-full items-start justify-between gap-4">
+        <UserAvatar
+          isMyProfile={isMine}
+          data={{
+            image: data?.profileImage as string,
+            name,
+          }}
+          size={88}
+        />
+        <div className="flex items-center gap-1">
           <QRcode
             username={username}
             profileImage={data?.profileImage as string}
+            name={name}
           />
-        </div>
-        <h1 className="profile-displayName self-start text-base sm:text-lg font-medium md:text-xl lg:text-2xl tracking-tight">
-          {" "}
-          {data?.displayName || data?.name}
-        </h1>
-        <div className="flex mt-2 text-gray-700 dark:text-gray-300 justify-start items-center">
-          {/* {data?.website && (
-                    <div className="inline-flex items-center bg-neutral-100 dark:bg-dark-border px-3 py-1 rounded-3xl justify-start mt-4 text-xs md:text-sm font-medium text-neutral-600 dark:text-neutral-300 ">
-                        <Link2 strokeWidth={1.3} className="-rotate-45 size-4 mr-1 " />
-                        <span>{cleanUrl(data?.website)}</span>
-                    </div>
-                )} */}
-          <span className="text-sm font-medium tracking-tight md:text-base">
-            Joined at{" "}
-            {(data?.createdAt as Date)?.toLocaleDateString("en-US", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
-          </span>
-
-          {data?.website && (
-            <>
-              <span className="mx-2">•</span>
-              <Link
-                target="_blank"
-                href={data?.website}
-                className="inline-flex tracking-tight items-center justify-start text-sm md:text-base font-medium hover:underline underline-offset-2 cursor-pointer"
-              >
-                <Link2 strokeWidth={1.3} className="-rotate-45 size-4 mr-1 " />
-                <span>{cleanUrl(data?.website)}</span>
-              </Link>
-            </>
+          {isMine && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={openEditProfile}
+              className={cn("h-11 gap-1.5 rounded-lg px-3 text-sm font-medium", inkSecondary, "hover:text-[#1F1B16] dark:hover:text-[#F3EEE6]")}
+            >
+              <Pencil className="size-3.5" aria-hidden />
+              Edit profile
+            </Button>
           )}
         </div>
-        <div
-          className={cn(
-            "w-full  flex flex-col items-start justify-center mt-4 mb-4",
-            bioContainerClassName,
-          )}
-        >
-          <div className="profile-Bio flex flex-col items-start text-sm md:text-base gap-y-0.5 text-neutral-800 dark:text-neutral-300  leading-tight">
-            {(data?.bio || defaultBio)?.split("\n").map((line, i) => (
-              <span key={i}>
-                {line}
-                <br />
-              </span>
-            ))}
-          </div>
-        </div>
-        {(data?.skills?.length ?? 0) > 0 && (
-          <div className="flex flex-wrap items-center gap-2 mt-4">
-            {data?.skills.slice(0, 10).map((skill) => (
-              <Button key={skill.id} variant="outline" size="sm">
-                {skill?.name}
-              </Button>
-            ))}
-          </div>
-        )}
       </div>
-    </div>
+
+      <h1 className={cn("profile-displayName font-instrument text-[40px] leading-[1.05] tracking-normal sm:text-5xl", ink)}>
+        {name}
+      </h1>
+      {tagline && (
+        <p className={cn("mt-1.5 text-base", inkSecondary)}>{tagline}</p>
+      )}
+
+      <div className={cn("mt-4 w-full", bioContainerClassName)}>
+        {data?.bio ? (
+          <p className={cn("profile-Bio max-w-[60ch] whitespace-pre-line text-base leading-relaxed", ink)}>
+            {data.bio}
+          </p>
+        ) : isMine ? (
+          <button
+            type="button"
+            onClick={openEditProfile}
+            className={cn(
+              "min-h-11 text-left text-base underline decoration-main-yellow decoration-2 underline-offset-4",
+              inkSecondary,
+            )}
+          >
+            Add a line or two about yourself
+          </button>
+        ) : null}
+      </div>
+
+      <ul className={cn("mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm", inkSecondary)}>
+        {data?.location && (
+          <li className="inline-flex items-center gap-1.5">
+            <MapPin className="size-3.5" aria-hidden />
+            {data.location}
+          </li>
+        )}
+        {joined && (
+          <li className="inline-flex items-center gap-1.5">
+            <CalendarDays className="size-3.5" aria-hidden />
+            Joined {joined}
+          </li>
+        )}
+        {website && (
+          <li>
+            <a
+              target="_blank"
+              rel="noopener noreferrer me"
+              href={website}
+              className="inline-flex min-h-11 items-center gap-1.5 underline-offset-4 hover:text-[#1F1B16] hover:underline dark:hover:text-[#F3EEE6] sm:min-h-0"
+            >
+              <Link2 className="size-3.5 -rotate-45" aria-hidden />
+              {cleanUrl(website)}
+            </a>
+          </li>
+        )}
+      </ul>
+
+      {(data?.skills?.length ?? 0) > 0 && (
+        <ul className="mt-4 flex flex-wrap items-center gap-1.5" aria-label="Skills">
+          {data?.skills.slice(0, 10).map((skill) => (
+            <li
+              key={skill.id}
+              className={cn(
+                "rounded-md bg-[#F4F1EA] px-2 py-0.5 text-sm dark:bg-[#1C1916]",
+                ink,
+              )}
+            >
+              {skill?.name}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {children && <div className="mt-5 flex w-full flex-col gap-4">{children}</div>}
+    </header>
   );
 };
 

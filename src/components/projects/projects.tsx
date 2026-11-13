@@ -1,14 +1,12 @@
 "use client";
 import { getAllProjects } from "@/actions/project-actions";
 import { useActiveSidebarTab } from "@/lib/context";
+import { PROFILE_STALE_TIME } from "@/lib/profile-query";
 import { GetAllProjects } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { Brain, Plus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { Skeleton } from "../ui/skeleton";
+import { EmptyLine, ProfileSection, SectionNewButton } from "../profile/profile-section";
 import ProjectCard from "./project-card";
 import ProjectDetailsDialog from "./ProjectDetailsDialog";
 import ProjectDrawer from "./ProjectDrawer";
@@ -21,10 +19,12 @@ type ProjectsProps = {
 const Projects = ({ isMine, projects }: ProjectsProps) => {
   const { username } = useParams<{ username: string }>();
   const setActiveTab = useActiveSidebarTab()[1];
-  const { data, isFetching } = useQuery({
+  const { data = [] } = useQuery({
     queryKey: ["get-projects", username],
     initialData: projects,
     queryFn: () => getAllProjects(username),
+    staleTime: PROFILE_STALE_TIME,
+    refetchOnWindowFocus: false,
   });
   const [selectedProject, setSelectedProject] = useState<GetAllProjects | null>(
     null
@@ -36,10 +36,15 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
     setIsDialogOpen(true);
   };
 
+  const openForm = () => setActiveTab({ id: null, tab: "projects" });
+
+  if (!isMine && data.length === 0) return null;
+
   return (
-    <div
+    <ProfileSection
       id="projects"
-      className="w-full my-12 px-2 md:px-4 flex flex-col items-center justify-start"
+      title="Projects"
+      actions={isMine ? <SectionNewButton onClick={openForm} what="project" /> : undefined}
     >
       <ProjectDetailsDialog
         open={isDialogOpen}
@@ -47,107 +52,25 @@ const Projects = ({ isMine, projects }: ProjectsProps) => {
         project={selectedProject}
       />
       <ProjectDrawer />
-      <div className="w-full max-w-2xl mb-4 flex items-center justify-between">
-        <h2 className="text-lg md:text-lg font-medium">Projects</h2>
-        {isMine && (
-          <Button
-            variant={"outline"}
-            className="  rounded-lg scale-90 text-sm"
-            size={"sm"}
-            onClick={() => {
-              setActiveTab({ id: null, tab: "projects" });
-            }}
-          >
-            <Plus className="opacity-80 mr-2 size-4" />
-            New Project
-          </Button>
-        )}
-      </div>
-      <div className="w-full flex flex-col mt-2 max-w-2xl space-y-4 ">
-        {isFetching ? (
-          [...Array.from({ length: 4 })].map((_, i) => (
-            <Skeleton
-              key={i}
-              className="w-full h-[80px] rounded-xl"
+      {data.length === 0 ? (
+        <EmptyLine text="No projects yet" actionLabel="Add a project" onAction={openForm} />
+      ) : (
+        <div className="flex flex-col gap-3">
+          {data.map((project) => (
+            <ProjectCard
+              onOpenProject={openProject}
+              onEditProject={(project) => {
+                setActiveTab({ id: project, tab: "projects" });
+              }}
+              key={project.id}
+              project={project}
+              isMine={isMine}
             />
-          ))
-        ) : data?.length === 0 ? (
-          <EmptyWritingState
-            onCreateNew={() => setActiveTab({ id: null, tab: "projects" })}
-          />
-        ) : (
-          data?.map((project, i) => {
-            return (
-              <ProjectCard
-                onOpenProject={openProject}
-                onEditProject={(project) => {
-                  setActiveTab({ id: project, tab: "projects" });
-                }}
-                key={i}
-                project={project}
-                isMine={isMine}
-              />
-            );
-          })
-        )}
-      </div>
-    </div>
+          ))}
+        </div>
+      )}
+    </ProfileSection>
   );
 };
-
-interface EmptyProjectStateProps {
-  title?: string;
-  description?: string;
-  ctaText?: string;
-  onCreateNew?: () => void;
-}
-
-export function EmptyWritingState({
-  title = "Start Sharing your Projects Journey",
-  description = "Your ideas deserve to be shared. Create your first piece and let your words flow.",
-  ctaText = "Add New Project",
-  onCreateNew = () => { },
-}: EmptyProjectStateProps) {
-  const [isHovering, setIsHovering] = useState(false);
-
-  return (
-    <div className="flex h-full min-h-[400px] border-2 border-neutral-300/60 dark:border-dark-border/80 rounded-3xl border-dashed w-full items-center justify-center">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="flex max-w-md flex-col items-center text-center"
-      >
-        <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/20 dark:to-amber-900/20">
-          <motion.div
-            animate={{ rotate: isHovering ? 15 : 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 15 }}
-          >
-            <div className="relative">
-              <Brain
-                className="size-6 text-yellow-500 dark:text-yellow-400"
-                strokeWidth={1.5}
-              />
-            </div>
-          </motion.div>
-        </div>
-        <h3 className="mb-2 md:text-xl font-medium tracking-tight">{title}</h3>
-        <p className="mb-6 opacity-80 text-sm md:text-base leading-tight px-6">
-          {description}
-        </p>
-        <Button
-          size="sm"
-          className="gap-2 !bg-main-yellow text-black rounded-lg scale-90"
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-          onClick={onCreateNew}
-        >
-          <Plus className="h-4 w-4" />
-          {ctaText}
-        </Button>
-      </motion.div>
-    </div>
-  );
-}
 
 export default Projects;

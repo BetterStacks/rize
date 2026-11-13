@@ -15,7 +15,7 @@ type BottomBannerProps = {
 const BottomBanner: FC<BottomBannerProps> = ({
   className,
   icon,
-  text = 'Create your own profile on rize 🌱',
+  text = 'Make your own Rize profile',
 }) => {
   const router = useRouter()
   const handleSubmit = (data: string) => {
@@ -38,7 +38,7 @@ const BottomBanner: FC<BottomBannerProps> = ({
             className="dark:text-neutral-400 mt-2 leading-snug  text-neutral-700
            "
           >
-            Claim your profile on rize and start building your online presence.
+            Pick a username. It takes a minute.
           </p>
         </div>
       </div>

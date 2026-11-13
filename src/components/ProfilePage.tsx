@@ -156,6 +156,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
               posts={posts}
               storyElements={storyElements}
               certificates={certificates}
+              socialLinks={socialLinks}
             />
           </DashboardLayout>
         </SectionContextProvider>
