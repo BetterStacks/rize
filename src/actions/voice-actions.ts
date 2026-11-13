@@ -11,7 +11,7 @@ import {
   voiceDrafts,
   type TProfileSuggestions,
 } from "@/db/schema";
-import { requireAuth, requireAuthWithProfile, requireProfile } from "@/lib/auth";
+import { auth, requireAuth, requireAuthWithProfile, requireProfile } from "@/lib/auth";
 import db from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { generateDraftsForCall } from "@/lib/voice/after-call";
@@ -21,6 +21,7 @@ import { deleteRecording } from "@/lib/voice/r2";
 import { twilioClient } from "@/lib/voice/twilio";
 import { and, desc, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 
 const phoneSchema = z.string().regex(/^\+[1-9]\d{7,14}$/, "Enter the number with country code");
@@ -28,23 +29,48 @@ const draftContentSchema = z.string().trim().min(1, "Draft can't be empty").max(
 
 type ActionResult = { success: true } | { success: false; error: string };
 
+// Phone verification results carry a code so the form can show its own copy.
+export type PhoneVerifyErrorCode =
+  | "invalid_number"
+  | "rate_limited"
+  | "taken"
+  | "send_failed"
+  | "wrong_code"
+  | "expired";
+type PhoneVerifyResult = { success: true } | { success: false; error: string; code: PhoneVerifyErrorCode };
+
+// The signed-in user's id, from the session alone. These two actions are on
+// the "send code" critical path and don't need the profile join that
+// requireAuth adds, so this saves a database round trip before Twilio.
+async function requireUserId(): Promise<string> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.id) throw new Error("Authentication required");
+  return session.user.id;
+}
+
 // --- Phone number verification (Twilio Verify, same service as phone login) ---
 
-export async function sendPhoneVerification(phoneNumber: string): Promise<ActionResult> {
-  const session = await requireAuth();
+export async function sendPhoneVerification(phoneNumber: string): Promise<PhoneVerifyResult> {
+  const userId = await requireUserId();
   const parsed = phoneSchema.safeParse(phoneNumber);
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0].message };
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.errors[0].message, code: "invalid_number" };
+  }
 
-  const { success } = await checkRateLimit("auth", `voice-otp:${session.user.id}`);
-  if (!success) return { success: false, error: "Too many attempts. Wait a minute and try again." };
-
-  const taken = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(and(eq(users.phoneNumber, parsed.data), ne(users.id, session.user.id)))
-    .limit(1);
+  // Independent checks, run together. Both must pass before any SMS is sent.
+  const [{ success }, taken] = await Promise.all([
+    checkRateLimit("auth", `voice-otp:${userId}`),
+    db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.phoneNumber, parsed.data), ne(users.id, userId)))
+      .limit(1),
+  ]);
+  if (!success) {
+    return { success: false, error: "Too many attempts. Wait a minute and try again.", code: "rate_limited" };
+  }
   if (taken.length) {
-    return { success: false, error: "This number is linked to another account" };
+    return { success: false, error: "This number is linked to another account", code: "taken" };
   }
 
   try {
@@ -54,43 +80,47 @@ export async function sendPhoneVerification(phoneNumber: string): Promise<Action
     return { success: true };
   } catch (error: any) {
     console.error("[voice] send verification failed", error?.code, error?.message);
-    return { success: false, error: "Couldn't send the code. Check the number and try again." };
+    return { success: false, error: "Couldn't send the code. Check the number and try again.", code: "send_failed" };
   }
 }
 
 export async function confirmPhoneVerification(
   phoneNumber: string,
   code: string
-): Promise<ActionResult> {
-  const session = await requireAuth();
+): Promise<PhoneVerifyResult> {
+  const userId = await requireUserId();
   const parsed = phoneSchema.safeParse(phoneNumber);
   if (!parsed.success || !/^\d{4,10}$/.test(code)) {
-    return { success: false, error: "Invalid code" };
+    return { success: false, error: "Invalid code", code: "wrong_code" };
   }
 
-  const { success } = await checkRateLimit("auth", `voice-otp:${session.user.id}`);
-  if (!success) return { success: false, error: "Too many attempts. Wait a minute and try again." };
+  const { success } = await checkRateLimit("auth", `voice-otp:${userId}`);
+  if (!success) {
+    return { success: false, error: "Too many attempts. Wait a minute and try again.", code: "rate_limited" };
+  }
 
   try {
     const check = await twilioClient()
       .verify.v2.services(process.env.TWILIO_VERIFY_SERVICE_SID!)
       .verificationChecks.create({ to: parsed.data, code });
-    if (check.status !== "approved") return { success: false, error: "Wrong code" };
+    if (check.status !== "approved") return { success: false, error: "Wrong code", code: "wrong_code" };
   } catch (error: any) {
     console.error("[voice] verification check failed", error?.code, error?.message);
-    return { success: false, error: "Code expired or invalid. Request a new one." };
+    return { success: false, error: "Code expired or invalid. Request a new one.", code: "expired" };
   }
 
   try {
     await db
       .update(users)
       .set({ phoneNumber: parsed.data, phoneNumberVerified: true, updatedAt: new Date() })
-      .where(eq(users.id, session.user.id));
+      .where(eq(users.id, userId));
   } catch {
-    return { success: false, error: "This number is linked to another account" };
+    return { success: false, error: "This number is linked to another account", code: "taken" };
   }
 
-  revalidatePath("/settings/voice");
+  // No revalidatePath here: it would re-render the page the form is on, and
+  // on a profile that unmounts the setup dialog before the call starts.
+  // Callers refresh when they're ready (VoiceJournal does on verify).
   return { success: true };
 }
 
