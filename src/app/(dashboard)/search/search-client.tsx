@@ -2,29 +2,25 @@
 
 import { useDebouncedCallback } from '@mantine/hooks'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { sanitizeHtml } from '@/lib/sanitize'
+import { useEffect, useState, useMemo, useRef, useCallback, type ReactNode } from 'react'
 import axios from 'axios'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
-    Search,
-    Users,
-    MessageCircle,
-    FolderOpen,
-    FileText,
-    GraduationCap,
     Briefcase,
-    Loader2,
-    ArrowRight,
     Check,
-    ChevronsUpDown,
+    ChevronDown,
+    FileText,
+    FolderOpen,
+    GraduationCap,
+    Search,
     X,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import PersonAvatar from '@/components/explore/person-avatar'
+import PersonAvatar from '@/components/profile/person-avatar'
 import { Input } from '@/components/ui/input'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { badgeVariants } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
     Command,
     CommandEmpty,
@@ -37,18 +33,34 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils'
 import { getTopics } from '@/actions/post-actions'
 import { getAllSkills } from '@/actions/project-actions'
+import { getRecentlyJoinedProfiles } from '@/actions/profile-actions'
 
 const TABS = [
-    { key: 'all', label: 'All', icon: Search },
-    { key: 'people', label: 'Profiles', icon: Users },
-    { key: 'projects', label: 'Projects', icon: FolderOpen },
-    { key: 'posts', label: 'Posts', icon: MessageCircle },
-    { key: 'pages', label: 'Pages', icon: FileText },
-    { key: 'education', label: 'Education', icon: GraduationCap },
-    { key: 'experience', label: 'Experience', icon: Briefcase },
+    { key: 'all', label: 'All' },
+    { key: 'people', label: 'People' },
+    { key: 'projects', label: 'Projects' },
+    { key: 'posts', label: 'Posts' },
+    { key: 'pages', label: 'Pages' },
+    { key: 'education', label: 'Education' },
+    { key: 'experience', label: 'Experience' },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
+type SectionKey = Exclude<TabKey, 'all'>
+
+const SECTION_ORDER: SectionKey[] = ['people', 'projects', 'posts', 'pages', 'education', 'experience']
+
+const SECTION_LABEL: Record<SectionKey, string> = {
+    people: 'People',
+    projects: 'Projects',
+    posts: 'Posts',
+    pages: 'Pages',
+    education: 'Education',
+    experience: 'Experience',
+}
+
+/** How many rows a group shows in "All" before offering the full list. */
+const ALL_PREVIEW = 5
 
 type SearchResults = {
     people: any[]
@@ -70,11 +82,34 @@ const emptyResults: SearchResults = {
     total: 0,
 }
 
+const isTabKey = (value: string | null): value is TabKey =>
+    !!value && TABS.some((tab) => tab.key === value)
+
+/** Post content is stored as HTML; show it as one plain-text excerpt. */
+const plainText = (html?: string | null) =>
+    (html ?? '')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/\s+/g, ' ')
+        .trim()
+
+const STATUS_LABEL: Record<string, string> = {
+    wip: 'In progress',
+    completed: 'Completed',
+    archived: 'Archived',
+}
+
 export default function SearchPageClient() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const initialQuery = searchParams.get('q') || ''
-    const initialTab = (searchParams.get('tab') as TabKey) || 'all'
+    const tabParam = searchParams.get('tab')
+    const initialTab: TabKey = isTabKey(tabParam) ? tabParam : 'all'
     const initialTopicIds = (searchParams.get('topicIds') || '').split(',').map((id) => id.trim()).filter(Boolean)
     const initialSkillIds = (searchParams.get('skillIds') || '').split(',').map((id) => id.trim()).filter(Boolean)
 
@@ -83,8 +118,10 @@ export default function SearchPageClient() {
     const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>(initialTopicIds)
     const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>(initialSkillIds)
     const [results, setResults] = useState<SearchResults>(emptyResults)
-    const [loading, setLoading] = useState(false)
-    const [hasSearched, setHasSearched] = useState(false)
+    const [loading, setLoading] = useState(!!initialQuery)
+    const [hasSearched, setHasSearched] = useState(!!initialQuery)
+    const [failed, setFailed] = useState(false)
+    const inputRef = useRef<HTMLInputElement>(null)
 
     const { data: topicsData } = useQuery({
         queryKey: ['topics'],
@@ -98,18 +135,15 @@ export default function SearchPageClient() {
         staleTime: Infinity,
     })
 
-    const topics = topicsData ?? []
-    const skills = skillsData ?? []
+    // Shares its cache with the search dialog.
+    const { data: recentProfiles, isLoading: recentLoading } = useQuery({
+        queryKey: ['recently-joined-profiles'],
+        queryFn: () => getRecentlyJoinedProfiles(),
+        staleTime: 60_000,
+    })
 
-    const selectedTopics = useMemo(
-        () => topics.filter((t: any) => selectedTopicIds.includes(t.id)),
-        [topics, selectedTopicIds]
-    )
-
-    const selectedSkills = useMemo(
-        () => skills.filter((s: any) => selectedSkillIds.includes(s.id)),
-        [skills, selectedSkillIds]
-    )
+    const topics = useMemo(() => topicsData ?? [], [topicsData])
+    const skills = useMemo(() => skillsData ?? [], [skillsData])
 
     const updateUrl = useCallback(
         (q: string, tab: TabKey, topicIds: string[], skillIds: string[]) => {
@@ -127,9 +161,11 @@ export default function SearchPageClient() {
     const latestSearch = useRef(0)
     const doSearch = useDebouncedCallback(async (q: string, tab: TabKey, topicIds: string[], skillIds: string[]) => {
         if (!q.trim()) {
+            latestSearch.current++
             setResults(emptyResults)
             setLoading(false)
             setHasSearched(false)
+            setFailed(false)
             return
         }
         setLoading(true)
@@ -145,9 +181,15 @@ export default function SearchPageClient() {
                 },
             })
             // Ignore answers to older keystrokes that arrive late.
-            if (requestId === latestSearch.current) setResults(res.data)
+            if (requestId === latestSearch.current) {
+                setResults(res.data)
+                setFailed(false)
+            }
         } catch {
-            if (requestId === latestSearch.current) setResults(emptyResults)
+            if (requestId === latestSearch.current) {
+                setResults(emptyResults)
+                setFailed(true)
+            }
         } finally {
             if (requestId === latestSearch.current) setLoading(false)
         }
@@ -157,8 +199,14 @@ export default function SearchPageClient() {
         if (initialQuery) {
             doSearch(initialQuery, activeTab, initialTopicIds, initialSkillIds)
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // Runs once with the URL the page was opened with.
     }, [])
+
+    const rerun = (q: string, tab: TabKey, topicIds: string[], skillIds: string[]) => {
+        updateUrl(q, tab, topicIds, skillIds)
+        if (q.trim()) setLoading(true)
+        doSearch(q, tab, topicIds, skillIds)
+    }
 
     const handleQueryChange = (value: string) => {
         setQuery(value)
@@ -166,497 +214,539 @@ export default function SearchPageClient() {
         doSearch(value, activeTab, selectedTopicIds, selectedSkillIds)
     }
 
+    const clearQuery = () => {
+        handleQueryChange('')
+        inputRef.current?.focus()
+    }
+
     const handleTabChange = (tab: TabKey) => {
         setActiveTab(tab)
-        updateUrl(query, tab, selectedTopicIds, selectedSkillIds)
-        if (query.trim()) {
-            setLoading(true)
-            doSearch(query, tab, selectedTopicIds, selectedSkillIds)
-        }
+        rerun(query, tab, selectedTopicIds, selectedSkillIds)
     }
 
     const toggleTopic = (id: string) => {
         const next = selectedTopicIds.includes(id)
             ? selectedTopicIds.filter((topicId) => topicId !== id)
             : [...selectedTopicIds, id]
-
         setSelectedTopicIds(next)
-        updateUrl(query, activeTab, next, selectedSkillIds)
-        if (query.trim()) {
-            setLoading(true)
-            doSearch(query, activeTab, next, selectedSkillIds)
-        }
+        rerun(query, activeTab, next, selectedSkillIds)
     }
 
     const toggleSkill = (id: string) => {
         const next = selectedSkillIds.includes(id)
             ? selectedSkillIds.filter((skillId) => skillId !== id)
             : [...selectedSkillIds, id]
-
         setSelectedSkillIds(next)
-        updateUrl(query, activeTab, selectedTopicIds, next)
-        if (query.trim()) {
-            setLoading(true)
-            doSearch(query, activeTab, selectedTopicIds, next)
-        }
+        rerun(query, activeTab, selectedTopicIds, next)
     }
 
     const clearFilters = () => {
         setSelectedTopicIds([])
         setSelectedSkillIds([])
-        updateUrl(query, activeTab, [], [])
-        if (query.trim()) {
-            setLoading(true)
-            doSearch(query, activeTab, [], [])
-        }
+        rerun(query, activeTab, [], [])
     }
 
-    // Filter results for the active tab
-    const visibleSections =
-        activeTab === 'all'
-            ? (['people', 'projects', 'posts', 'pages', 'education', 'experience'] as const)
-            : ([activeTab] as const)
+    const hasFilters = selectedTopicIds.length > 0 || selectedSkillIds.length > 0
+    const visibleSections: SectionKey[] = activeTab === 'all' ? SECTION_ORDER : [activeTab]
+    const totalVisible = visibleSections.reduce((sum, key) => sum + (results[key]?.length || 0), 0)
+    const recent = (recentProfiles ?? []).filter((p: any) => p?.username).slice(0, 6)
 
-    const totalVisible = visibleSections.reduce(
-        (sum, key) => sum + (results[key as keyof SearchResults] as any[])?.length || 0,
-        0
-    )
+    const announcement = !hasSearched
+        ? ''
+        : loading
+            ? 'Searching…'
+            : failed
+                ? "Search didn't load."
+                : totalVisible === 0
+                    ? `Nothing matches ${query.trim()}.`
+                    : `${totalVisible} ${totalVisible === 1 ? 'result' : 'results'} for ${query.trim()}.`
+
+    let body: ReactNode
+    if (loading) {
+        body = <ResultsSkeleton />
+    } else if (hasSearched && failed) {
+        body = (
+            <StateMessage title="Search didn't load">
+                Check your connection and try again.
+                <div className="mt-4">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="touch-target"
+                        onClick={() => rerun(query, activeTab, selectedTopicIds, selectedSkillIds)}
+                    >
+                        Try again
+                    </Button>
+                </div>
+            </StateMessage>
+        )
+    } else if (hasSearched && totalVisible === 0) {
+        body = (
+            <StateMessage title={<>Nothing matches &ldquo;{query.trim()}&rdquo;</>}>
+                {activeTab !== 'all' || hasFilters
+                    ? 'Try fewer words, or widen the search.'
+                    : 'Try fewer words, a first name, or an @username.'}
+                {(activeTab !== 'all' || hasFilters) && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        {activeTab !== 'all' && (
+                            <Button variant="outline" size="sm" className="touch-target" onClick={() => handleTabChange('all')}>
+                                Search everything
+                            </Button>
+                        )}
+                        {hasFilters && (
+                            <Button variant="outline" size="sm" className="touch-target" onClick={clearFilters}>
+                                Clear filters
+                            </Button>
+                        )}
+                    </div>
+                )}
+            </StateMessage>
+        )
+    } else if (!hasSearched) {
+        body = (
+            <section aria-labelledby="search-recent" className="mt-10">
+                <h2 id="search-recent" className="font-instrument text-2xl leading-tight text-ink">
+                    New on Rize
+                </h2>
+                <p className="mt-1 text-sm text-ink-secondary">People who joined recently.</p>
+                {recentLoading ? (
+                    <ResultsSkeleton rows={4} className="mt-4" />
+                ) : recent.length > 0 ? (
+                    <ResultList className="mt-4">
+                        {recent.map((profile: any) => (
+                            <li key={profile.username}>
+                                <PersonRow item={profile} />
+                            </li>
+                        ))}
+                    </ResultList>
+                ) : null}
+            </section>
+        )
+    } else {
+        body = (
+            <div className="mt-8 flex flex-col gap-10">
+                {visibleSections.map((section) => {
+                    const items = results[section]
+                    if (!items || items.length === 0) return null
+                    const preview = activeTab === 'all' ? items.slice(0, ALL_PREVIEW) : items
+                    return (
+                        <ResultGroup
+                            key={section}
+                            type={section}
+                            count={items.length}
+                            items={preview}
+                            onSeeAll={
+                                activeTab === 'all' && items.length > ALL_PREVIEW
+                                    ? () => handleTabChange(section)
+                                    : undefined
+                            }
+                        />
+                    )
+                })}
+            </div>
+        )
+    }
 
     return (
-        <div className="w-full pb-20">
-            {/* Search input */}
-            <div className="sticky top-0 z-10 bg-light-bg/80 dark:bg-dark-bg/80 backdrop-blur-xl pt-6 pb-4">
+        <div className="w-full pt-10 pb-28 sm:pt-14 lg:pb-12">
+            <h1 className="font-instrument text-4xl text-ink">Search</h1>
+            <p className="mt-1 text-sm text-ink-secondary">
+                Find people, projects, posts, schools and companies on Rize.
+            </p>
+
+            {/* Input and filters stay in reach while scrolling results. */}
+            <div className="sticky top-0 z-10 -mx-4 mt-6 bg-ground/95 px-4 pb-3 pt-2 backdrop-blur sm:-mx-6 sm:px-6">
                 <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-neutral-400" />
+                    <label htmlFor="search-query" className="sr-only">
+                        Search Rize
+                    </label>
+                    <Search
+                        aria-hidden
+                        className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-secondary"
+                    />
                     <Input
+                        id="search-query"
+                        ref={inputRef}
+                        type="search"
                         autoFocus
+                        autoComplete="off"
+                        enterKeyHint="search"
                         value={query}
                         onChange={(e) => handleQueryChange(e.target.value)}
-                        placeholder="Search profiles, projects, posts, pages..."
-                        className="pl-12 pr-4 h-12 text-base rounded-2xl border-neutral-200 dark:border-dark-border bg-white dark:bg-neutral-900 focus-visible:ring-1 focus-visible:ring-neutral-300 dark:focus-visible:ring-neutral-700"
+                        placeholder="Name, @username, project, school…"
+                        className="h-12 pl-11 pr-12 text-base md:text-base [&::-webkit-search-cancel-button]:hidden"
                     />
-                </div>
-
-                {/* Tabs */}
-                <div className="flex items-center gap-1.5 mt-4 overflow-x-auto scrollbar-hide pb-1">
-                    {TABS.map((tab) => {
-                        const isActive = activeTab === tab.key
-                        const Icon = tab.icon
-                        const count =
-                            tab.key === 'all'
-                                ? results.total
-                                : (results[tab.key as keyof SearchResults] as any[])?.length || 0
-
-                        return (
-                            <button
-                                key={tab.key}
-                                onClick={() => handleTabChange(tab.key)}
-                                className={cn(
-                                    'relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200',
-                                    isActive
-                                        ? 'text-neutral-900 dark:text-white'
-                                        : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800/60'
-                                )}
-                            >
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="search-tab-bg"
-                                        className="absolute inset-0 bg-neutral-100 dark:bg-neutral-800 rounded-xl"
-                                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                                    />
-                                )}
-                                <span className="relative z-10 flex items-center gap-1.5">
-                                    <Icon className="size-4" strokeWidth={1.8} />
-                                    {tab.label}
-                                    {hasSearched && count > 0 && (
-                                        <span className="text-[11px] font-normal text-neutral-400 dark:text-neutral-500">
-                                            {count}
-                                        </span>
-                                    )}
-                                </span>
-                            </button>
-                        )
-                    })}
-                </div>
-
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <div
-                                role="combobox"
-                                className={cn(
-                                    buttonVariants({ variant: 'outline' }),
-                                    'h-auto min-h-10 px-3 py-2 dark:border-dark-border dark:bg-transparent justify-between gap-2 cursor-pointer'
-                                )}
-                            >
-                                <div className="flex items-center gap-2 text-xs">
-                                    <span className="font-medium">Topics</span>
-                                    {selectedTopics.length > 0 && (
-                                        <span className="text-neutral-500 dark:text-neutral-400">
-                                            ({selectedTopics.length})
-                                        </span>
-                                    )}
-                                </div>
-                                <ChevronsUpDown className="size-3.5 opacity-50" />
-                            </div>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[280px] p-0 dark:border-dark-border" align="start">
-                            <Command>
-                                <CommandInput placeholder="Search topics..." />
-                                <CommandList className="max-h-[220px] overflow-y-auto">
-                                    <CommandEmpty>No topic found.</CommandEmpty>
-                                    <CommandGroup>
-                                        {topics.map((topic: any) => (
-                                            <CommandItem
-                                                key={topic.id}
-                                                value={topic.name}
-                                                onSelect={() => toggleTopic(topic.id)}
-                                                className="rounded-md"
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        'mr-2 h-4 w-4',
-                                                        selectedTopicIds.includes(topic.id) ? 'opacity-100' : 'opacity-0'
-                                                    )}
-                                                />
-                                                {topic.emoji ? `${topic.emoji} ` : ''}
-                                                {topic.name}
-                                            </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                </CommandList>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
-
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <div
-                                role="combobox"
-                                className={cn(
-                                    buttonVariants({ variant: 'outline' }),
-                                    'h-auto min-h-10 px-3 py-2 dark:border-dark-border dark:bg-transparent justify-between gap-2 cursor-pointer'
-                                )}
-                            >
-                                <div className="flex items-center gap-2 text-xs">
-                                    <span className="font-medium">Skills</span>
-                                    {selectedSkills.length > 0 && (
-                                        <span className="text-neutral-500 dark:text-neutral-400">
-                                            ({selectedSkills.length})
-                                        </span>
-                                    )}
-                                </div>
-                                <ChevronsUpDown className="size-3.5 opacity-50" />
-                            </div>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[280px] p-0 dark:border-dark-border" align="start">
-                            <Command>
-                                <CommandInput placeholder="Search skills..." />
-                                <CommandList className="max-h-[220px] overflow-y-auto">
-                                    <CommandEmpty>No skill found.</CommandEmpty>
-                                    <CommandGroup>
-                                        {skills.map((skill: any) => (
-                                            <CommandItem
-                                                key={skill.id}
-                                                value={skill.name}
-                                                onSelect={() => toggleSkill(skill.id)}
-                                                className="rounded-md"
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        'mr-2 h-4 w-4',
-                                                        selectedSkillIds.includes(skill.id) ? 'opacity-100' : 'opacity-0'
-                                                    )}
-                                                />
-                                                {skill.name}
-                                            </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                </CommandList>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
-
-                    {(selectedTopicIds.length > 0 || selectedSkillIds.length > 0) && (
+                    {query && (
                         <Button
                             type="button"
                             variant="ghost"
-                            onClick={clearFilters}
-                            className="h-9 px-2 text-xs text-neutral-500 dark:text-neutral-400"
+                            size="icon"
+                            onClick={clearQuery}
+                            aria-label="Clear search"
+                            className="absolute right-1 top-1/2 size-10 -translate-y-1/2 text-ink-secondary hover:text-ink"
                         >
-                            Clear filters
-                            <X className="size-3 ml-1" />
+                            <X className="size-4" aria-hidden />
                         </Button>
                     )}
                 </div>
+
+                <div className="mt-3 flex flex-col gap-2">
+                    <Tabs value={activeTab} onValueChange={(value) => handleTabChange(value as TabKey)}>
+                        <div className="-mx-4 -my-1 overflow-x-auto px-4 py-1 scrollbar-hide sm:mx-0 sm:px-0">
+                            <TabsList aria-label="What to search" className="h-10">
+                                {TABS.map((tab) => {
+                                    const count =
+                                        tab.key === 'all' ? results.total : results[tab.key]?.length || 0
+                                    return (
+                                        <TabsTrigger key={tab.key} value={tab.key} className="touch-target h-8 gap-1.5 px-3">
+                                            {tab.label}
+                                            {activeTab === 'all' && hasSearched && !loading && count > 0 && (
+                                                <span className="text-xs font-normal tabular-nums text-ink-secondary">
+                                                    {count}
+                                                </span>
+                                            )}
+                                        </TabsTrigger>
+                                    )
+                                })}
+                            </TabsList>
+                        </div>
+                    </Tabs>
+
+                    <div className="-ml-3 flex items-center gap-1">
+                        <FilterPicker
+                            label="Topics"
+                            searchLabel="Find a topic"
+                            emptyLabel="No topic by that name."
+                            options={topics.map((t: any) => ({
+                                id: t.id,
+                                name: t.name,
+                                prefix: t.emoji,
+                            }))}
+                            selected={selectedTopicIds}
+                            onToggle={toggleTopic}
+                        />
+                        <FilterPicker
+                            label="Skills"
+                            searchLabel="Find a skill"
+                            emptyLabel="No skill by that name."
+                            options={skills.map((s: any) => ({ id: s.id, name: s.name }))}
+                            selected={selectedSkillIds}
+                            onToggle={toggleSkill}
+                        />
+                        {hasFilters && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={clearFilters}
+                                className="touch-target text-ink-secondary hover:text-ink"
+                            >
+                                Clear
+                            </Button>
+                        )}
+                    </div>
+                </div>
             </div>
 
-            {/* Results */}
-            <div className="mt-2">
-                {loading ? (
-                    <div className="flex items-center justify-center py-20">
-                        <Loader2 className="size-5 animate-spin text-neutral-400" />
-                    </div>
-                ) : hasSearched && totalVisible === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <div className="flex items-center gap-3 mb-4">
-                            <Users className="size-6 opacity-30" />
-                            <FolderOpen className="size-6 opacity-30" />
-                            <MessageCircle className="size-6 opacity-30" />
-                        </div>
-                        <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-                            No results found for &ldquo;{query}&rdquo;
-                        </p>
-                        <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
-                            Try different keywords or check another tab
-                        </p>
-                    </div>
-                ) : !hasSearched ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <Search className="size-10 text-neutral-300 dark:text-neutral-600 mb-4" />
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                            Start typing to search across Rize
-                        </p>
-                    </div>
-                ) : (
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeTab}
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -8 }}
-                            transition={{ duration: 0.2 }}
-                            className="space-y-6"
-                        >
-                            {visibleSections.map((section) => {
-                                const items = results[section as keyof SearchResults] as any[]
-                                if (!items || items.length === 0) return null
+            <p className="sr-only" role="status" aria-live="polite">
+                {announcement}
+            </p>
+            {body}
+        </div>
+    )
+}
+
+// --- Filters ---
+
+type FilterOption = { id: string; name: string; prefix?: string | null }
+
+function FilterPicker({
+    label,
+    searchLabel,
+    emptyLabel,
+    options,
+    selected,
+    onToggle,
+}: {
+    label: string
+    searchLabel: string
+    emptyLabel: string
+    options: FilterOption[]
+    selected: string[]
+    onToggle: (id: string) => void
+}) {
+    const count = selected.length
+    return (
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    aria-label={count > 0 ? `${label}, ${count} selected` : label}
+                    className={cn('touch-target gap-1 text-ink-secondary hover:text-ink', count > 0 && 'text-ink')}
+                >
+                    {label}
+                    {count > 0 && (
+                        <span className="tabular-nums text-ink-secondary">{count}</span>
+                    )}
+                    <ChevronDown className="size-3.5" aria-hidden />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[280px] p-0" align="end">
+                <Command>
+                    <CommandInput placeholder={searchLabel} aria-label={searchLabel} />
+                    <CommandList className="max-h-[240px] overflow-y-auto">
+                        <CommandEmpty className="py-6 text-center text-sm text-ink-secondary">
+                            {emptyLabel}
+                        </CommandEmpty>
+                        <CommandGroup>
+                            {options.map((option) => {
+                                const isSelected = selected.includes(option.id)
                                 return (
-                                    <ResultSection
-                                        key={section}
-                                        type={section}
-                                        items={items}
-                                    />
+                                    <CommandItem
+                                        key={option.id}
+                                        value={option.name}
+                                        onSelect={() => onToggle(option.id)}
+                                        aria-selected={isSelected}
+                                        className="rounded-lg"
+                                    >
+                                        <Check
+                                            aria-hidden
+                                            className={cn('mr-2 size-4', isSelected ? 'opacity-100' : 'opacity-0')}
+                                        />
+                                        {option.prefix ? `${option.prefix} ` : ''}
+                                        {option.name}
+                                    </CommandItem>
                                 )
                             })}
-                        </motion.div>
-                    </AnimatePresence>
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    )
+}
+
+// --- States ---
+
+function StateMessage({ title, children }: { title: ReactNode; children: ReactNode }) {
+    return (
+        <div className="mt-8 border-t border-hairline pt-10">
+            <p className="font-instrument text-2xl leading-tight text-ink">{title}</p>
+            <div className="mt-2 text-sm leading-relaxed text-ink-secondary">{children}</div>
+        </div>
+    )
+}
+
+function ResultsSkeleton({ rows = 5, className }: { rows?: number; className?: string }) {
+    return (
+        <div className={cn('mt-8', className)}>
+            <ul className="divide-y divide-hairline border-t border-hairline" aria-hidden>
+                {Array.from({ length: rows }).map((_, i) => (
+                    <li key={i} className="flex items-center gap-3 py-4">
+                        <span className="size-10 shrink-0 rounded-full bg-subtle motion-safe:animate-pulse" />
+                        <span className="flex flex-1 flex-col gap-2">
+                            <span className="h-3.5 w-40 max-w-[60%] rounded bg-subtle motion-safe:animate-pulse" />
+                            <span className="h-3 w-56 max-w-[80%] rounded bg-subtle motion-safe:animate-pulse" />
+                        </span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    )
+}
+
+// --- Results ---
+
+function ResultList({ children, className }: { children: ReactNode; className?: string }) {
+    return <ul className={cn('divide-y divide-hairline border-t border-hairline', className)}>{children}</ul>
+}
+
+function ResultGroup({
+    type,
+    count,
+    items,
+    onSeeAll,
+}: {
+    type: SectionKey
+    count: number
+    items: any[]
+    onSeeAll?: () => void
+}) {
+    const headingId = `search-group-${type}`
+    return (
+        <section aria-labelledby={headingId}>
+            <div className="mb-3 flex items-baseline justify-between gap-3">
+                <h2 id={headingId} className="font-instrument text-2xl leading-tight text-ink">
+                    {SECTION_LABEL[type]}
+                    <span className="ml-2 font-inter text-sm tabular-nums text-ink-secondary">{count}</span>
+                </h2>
+                {onSeeAll && (
+                    <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        onClick={onSeeAll}
+                        className="touch-target h-auto px-0 text-ink-secondary hover:text-ink"
+                    >
+                        See all {SECTION_LABEL[type].toLowerCase()}
+                    </Button>
                 )}
             </div>
-        </div>
-    )
-}
-
-// --- Result section per entity type ---
-
-function ResultSection({ type, items }: { type: string; items: any[] }) {
-    const config: Record<string, { label: string; icon: any }> = {
-        people: { label: 'Profiles', icon: Users },
-        projects: { label: 'Projects', icon: FolderOpen },
-        posts: { label: 'Posts', icon: MessageCircle },
-        pages: { label: 'Pages', icon: FileText },
-        education: { label: 'Education', icon: GraduationCap },
-        experience: { label: 'Work Experience', icon: Briefcase },
-    }
-    const { label, icon: Icon } = config[type] || { label: type, icon: Search }
-
-    return (
-        <div>
-            <div className="flex items-center gap-2 mb-3 px-1">
-                <Icon className="size-4 text-neutral-400" strokeWidth={1.6} />
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
-                    {label}
-                </h3>
-                <span className="text-xs text-neutral-400 dark:text-neutral-500">
-                    ({items.length})
-                </span>
-            </div>
-            <div className="space-y-1">
+            <ResultList>
                 {items.map((item, i) => (
-                    <ResultCard key={item.id || i} type={type} item={item} />
+                    <li key={item.id || i}>
+                        <ResultRow type={type} item={item} />
+                    </li>
                 ))}
-            </div>
-        </div>
+            </ResultList>
+        </section>
     )
 }
 
-function ResultCard({ type, item }: { type: string; item: any }) {
+function ResultRow({ type, item }: { type: SectionKey; item: any }) {
     switch (type) {
         case 'people':
-            return <ProfileCard item={item} />
+            return <PersonRow item={item} />
         case 'projects':
-            return <ProjectCard item={item} />
+            return <ProjectRow item={item} />
         case 'posts':
-            return <PostCard item={item} />
+            return <PostRow item={item} />
         case 'pages':
-            return <PageCard item={item} />
+            return <PageRow item={item} />
         case 'education':
-            return <EducationCard item={item} />
+            return <EducationRow item={item} />
         case 'experience':
-            return <ExperienceCard item={item} />
+            return <ExperienceRow item={item} />
         default:
             return null
     }
 }
 
-function ProfileCard({ item }: { item: any }) {
+const rowClass =
+    '-mx-3 flex min-h-[44px] items-start gap-3 rounded-xl px-3 py-4 transition-colors duration-fast ease-calm hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink'
+
+const nameOf = (item: any) => item.displayName || item.name || item.username
+
+/** A small icon well for rows that aren't a person. */
+function KindIcon({ icon: Icon }: { icon: typeof FolderOpen }) {
     return (
-        <Link
-            href={`/${item.username}`}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
+        <span
+            aria-hidden
+            className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-subtle text-ink-secondary"
         >
-            <PersonAvatar
-                src={item.profileImage || item.image}
-                name={item.displayName || item.name || item.username}
-                size={40}
-            />
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.displayName || item.name}</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+            <Icon className="size-[18px]" strokeWidth={1.75} />
+        </span>
+    )
+}
+
+/** "by Name" with a tiny avatar, for things a person made. */
+function Byline({ item }: { item: any }) {
+    if (!item.username) return null
+    return (
+        <span className="mt-1.5 flex min-w-0 items-center gap-1.5 text-xs text-ink-secondary">
+            <PersonAvatar src={item.profileImage} name={nameOf(item)} size={18} />
+            <span className="truncate">{nameOf(item)}</span>
+        </span>
+    )
+}
+
+function PersonRow({ item }: { item: any }) {
+    const line = item.bio || item.location
+    return (
+        <Link href={`/${item.username}`} className={cn(rowClass, 'items-center')}>
+            <PersonAvatar src={item.profileImage || item.image} name={nameOf(item)} size={40} />
+            <span className="min-w-0 flex-1">
+                <span className="block truncate font-instrument text-xl leading-tight text-ink">{nameOf(item)}</span>
+                <span className="block truncate text-[13px] text-ink-secondary">
                     @{item.username}
-                </p>
-            </div>
-            <ArrowRight className="size-4 opacity-0 group-hover:opacity-50 transition-opacity" />
+                    {line ? ` · ${line}` : ''}
+                </span>
+            </span>
         </Link>
     )
 }
 
-function ProjectCard({ item }: { item: any }) {
-    const href = item.url || `/${item.username}`
+function ProjectRow({ item }: { item: any }) {
+    const line = item.tagline || plainText(item.description)
     return (
-        <Link
-            href={`/project/${item.id}`}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
-        >
-            <div className="size-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
-                <FolderOpen className="size-5 text-neutral-400" strokeWidth={1.4} />
-            </div>
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium truncate">{item.name}</p>
-                    {item.status && (
-                        <span
-                            className={cn(
-                                'text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0',
-                                item.status === 'completed'
-                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
-                                    : item.status === 'wip'
-                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
-                                        : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400'
-                            )}
-                        >
-                            {item.status}
+        <Link href={`/project/${item.id}`} className={rowClass}>
+            <KindIcon icon={FolderOpen} />
+            <span className="min-w-0 flex-1">
+                <span className="flex min-w-0 items-center gap-2">
+                    <span className="truncate text-sm font-medium text-ink">{item.name}</span>
+                    {item.status && STATUS_LABEL[item.status] && (
+                        <span className={cn(badgeVariants({ variant: 'secondary' }), 'shrink-0 font-normal')}>
+                            {STATUS_LABEL[item.status]}
                         </span>
                     )}
-                </div>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-                    {item.tagline || item.description?.substring(0, 80)}
-                </p>
-                <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-0.5">
-                    by @{item.username}
-                </p>
-            </div>
-            <ArrowRight className="size-4 opacity-0 group-hover:opacity-50 transition-opacity shrink-0" />
+                </span>
+                {line && <span className="mt-0.5 line-clamp-2 text-sm text-ink-secondary">{line}</span>}
+                <Byline item={item} />
+            </span>
         </Link>
     )
 }
 
-function PostCard({ item }: { item: any }) {
+function PostRow({ item }: { item: any }) {
+    const text = plainText(item.content)
     return (
-        <Link
-            href={`/post/${item.id}`}
-            className="flex items-start gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
-        >
-            <PersonAvatar
-                src={item.profileImage}
-                name={item.displayName || item.username}
-                size={32}
-            />
-            <div className="flex-1 min-w-0">
-                <p className="text-sm text-neutral-800 dark:text-neutral-200 mb-0.5">
-                    {item.displayName}
-                </p>
-                <p className="text-xs text-neutral-400 dark:text-neutral-500 mb-0.5">
-                    @{item.username}
-                </p>
-                <div
-                    className={cn(
-                        "prose-gray-800 mt-2 leading-snug line-clamp-[10] font-medium text-sm",
-                        "dark:prose-gray-300",
-                        "prose prose-sm dark:prose-invert max-w-none break-words overflow-hidden"
+        <Link href={`/post/${item.id}`} className={rowClass}>
+            <PersonAvatar src={item.profileImage} name={nameOf(item)} size={40} />
+            <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm text-ink-secondary">
+                    <span className="font-medium text-ink">{nameOf(item)}</span> @{item.username}
+                </span>
+                {text && <span className="mt-1 line-clamp-3 text-sm leading-relaxed text-ink">{text}</span>}
+            </span>
+        </Link>
+    )
+}
+
+function PageRow({ item }: { item: any }) {
+    return (
+        <Link href={`/page/${item.id}`} className={rowClass}>
+            <KindIcon icon={FileText} />
+            <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium text-ink">{item.title || 'Untitled'}</span>
+                <Byline item={item} />
+            </span>
+        </Link>
+    )
+}
+
+function EducationRow({ item }: { item: any }) {
+    const detail = [item.degree, item.fieldOfStudy].filter(Boolean).join(' · ')
+    return (
+        <Link href={`/${item.username}`} className={rowClass}>
+            <KindIcon icon={GraduationCap} />
+            <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium text-ink">{item.school}</span>
+                {detail && <span className="mt-0.5 block truncate text-sm text-ink-secondary">{detail}</span>}
+                <Byline item={item} />
+            </span>
+        </Link>
+    )
+}
+
+function ExperienceRow({ item }: { item: any }) {
+    const detail = [item.company, item.location, item.employmentType].filter(Boolean).join(' · ')
+    return (
+        <Link href={`/${item.username}`} className={rowClass}>
+            <KindIcon icon={Briefcase} />
+            <span className="min-w-0 flex-1">
+                <span className="flex min-w-0 items-center gap-2">
+                    <span className="truncate text-sm font-medium text-ink">{item.title}</span>
+                    {item.currentlyWorking && (
+                        <span className={cn(badgeVariants({ variant: 'secondary' }), 'shrink-0 font-normal')}>
+                            Current
+                        </span>
                     )}
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content.substring(0, 100)) }}
-                />
-            </div>
-            <ArrowRight className="size-4 opacity-0 group-hover:opacity-50 transition-opacity shrink-0" />
-        </Link>
-    )
-}
-
-function PageCard({ item }: { item: any }) {
-    return (
-        <Link
-            href={`/page/${item.id}`}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
-        >
-            <div className="size-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
-                <FileText className="size-5 text-neutral-400" strokeWidth={1.4} />
-            </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.title}</p>
-                <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-0.5">
-                    by @{item.username}
-                </p>
-            </div>
-            <ArrowRight className="size-4 opacity-0 group-hover:opacity-50 transition-opacity shrink-0" />
-        </Link>
-    )
-}
-
-function EducationCard({ item }: { item: any }) {
-    return (
-        <Link
-            href={`/${item.username}`}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
-        >
-            <div className="size-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
-                <GraduationCap className="size-5 text-neutral-400" strokeWidth={1.4} />
-            </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.school}</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-                    {[item.degree, item.fieldOfStudy].filter(Boolean).join(' · ')}
-                </p>
-                <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-0.5">
-                    @{item.username}
-                </p>
-            </div>
-            <ArrowRight className="size-4 opacity-0 group-hover:opacity-50 transition-opacity shrink-0" />
-        </Link>
-    )
-}
-
-function ExperienceCard({ item }: { item: any }) {
-    return (
-        <Link
-            href={`/${item.username}`}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
-        >
-            <div className="size-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
-                <Briefcase className="size-5 text-neutral-400" strokeWidth={1.4} />
-            </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.title}</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-                    {item.company}
-                    {item.location ? ` · ${item.location}` : ''}
-                    {item.employmentType ? ` · ${item.employmentType}` : ''}
-                </p>
-                <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-0.5">
-                    {item.currentlyWorking ? 'Currently working' : ''} · @{item.username}
-                </p>
-            </div>
-            <ArrowRight className="size-4 opacity-0 group-hover:opacity-50 transition-opacity shrink-0" />
+                </span>
+                {detail && <span className="mt-0.5 block truncate text-sm text-ink-secondary">{detail}</span>}
+                <Byline item={item} />
+            </span>
         </Link>
     )
 }

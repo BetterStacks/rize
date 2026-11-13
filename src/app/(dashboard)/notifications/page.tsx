@@ -8,7 +8,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
-import MarkSeen from './mark-seen'
+import MarkSeen, { UnreadDot } from './mark-seen'
 
 export const dynamic = 'force-dynamic'
 
@@ -155,6 +155,7 @@ const NotificationsPage = async () => {
   const profileId = session.user.profileId
   const userId = session.user.id
   const now = new Date()
+  const seenAt = now.toISOString()
   const items = profileId ? await loadNotifications({ profileId, userId }) : []
 
   return (
@@ -164,7 +165,7 @@ const NotificationsPage = async () => {
       contentPadding="px-4 sm:px-6"
       leftSidebarSlot={appSidebarSlot}
     >
-      <MarkSeen userId={userId} seenAt={now.toISOString()} />
+      <MarkSeen userId={userId} seenAt={seenAt} />
       <div className="w-full pt-10 pb-28 sm:pt-14 lg:pb-12">
         <h1 className="font-instrument text-4xl text-ink">Notifications</h1>
         <p className="mt-1 text-sm text-ink-secondary">
@@ -194,12 +195,12 @@ const NotificationsPage = async () => {
                         </p>
                       )}
                     </div>
-                    <time
-                      dateTime={item.at.toISOString()}
-                      className="shrink-0 pt-0.5 text-xs tabular-nums text-ink-secondary"
-                    >
-                      {shortTime(item.at, now)}
-                    </time>
+                    <span className="flex shrink-0 items-center gap-2 pt-0.5">
+                      <UnreadDot userId={userId} seenAt={seenAt} at={item.at.toISOString()} />
+                      <time dateTime={item.at.toISOString()} className="text-xs tabular-nums text-ink-secondary">
+                        {shortTime(item.at, now)}
+                      </time>
+                    </span>
                   </Link>
                 </li>
               )

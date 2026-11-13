@@ -9,7 +9,7 @@ import { useSyncExternalStore } from 'react'
 const SEEN_EVENT = 'rize:notifications-seen'
 const seenKey = (userId: string) => `rize:notifications:seen:${userId}`
 
-const readSeen = (userId: string): string | null => {
+export const readSeen = (userId: string): string | null => {
   try {
     return window.localStorage.getItem(seenKey(userId))
   } catch {

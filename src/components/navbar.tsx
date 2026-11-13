@@ -1,30 +1,14 @@
-import { useSession } from '@/hooks/useAuth'
 import { useActiveSidebarTab, useRightSidebar } from '@/lib/context'
 import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@mantine/hooks'
-import { motion } from 'framer-motion'
-import {
-  Compass,
-  Edit,
-  Edit3,
-  Home,
-  MoonIcon,
-  Pencil,
-  Plus,
-  Search,
-  Sidebar,
-  SunIcon
-} from 'lucide-react'
+import { Compass, Edit3, Home, PanelRight, Plus, Search } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { FC, useState } from 'react'
-import { usePostsDialog, useProfileDialog, useSearchDialog } from './dialog-provider'
+import { usePathname } from 'next/navigation'
+import { FC } from 'react'
+import { usePostsDialog, useSearchDialog } from './dialog-provider'
 import Logo from './logo'
 import Menu from './menu'
 import { Button } from './ui/button'
-import { useTheme } from 'next-themes'
-import { Separator } from './ui/separator'
-import { Badge } from './ui/badge'
 import { ShareCard } from './profile/ShareCard'
 
 type LayoutVariant = 'profile' | 'explore' | 'post' | 'writing' | 'full' | 'default'
@@ -50,176 +34,111 @@ type NavbarProps = {
   };
 };
 
-const Navbar: FC<NavbarProps> = ({ isMine, variant = 'default', profile }) => {
-  const setOpen = useProfileDialog()[1]
+const linkClass =
+  'relative inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors duration-fast ease-calm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink'
+
+/**
+ * Top bar. Only UserProfileLayout renders it, and nothing renders that layout
+ * today; app pages use the left rail (Sidebar) and the BottomNav instead.
+ */
+const Navbar: FC<NavbarProps> = ({ isMine, profile }) => {
   const setSidebarOpen = useRightSidebar()[1]
   const setSearchOpen = useSearchDialog()[1]
   const setCreateOpen = usePostsDialog()[1]
-  const router = useRouter()
-  const session = useSession()
+  const pathname = usePathname()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
-  const [activeTab, setActiveTab] = useState<string>(variant)
   const setActiveSidebarTab = useActiveSidebarTab()[1]
-  // Navigation items for Gen Z/Alpha users
-  const navItems = [
-    {
-      id: 'home',
-      icon: Home,
-      label: 'Home',
-      href: '/',
-      active: variant === 'default',
-      dummyOnClick: () => {
-        setActiveTab('home')
-      }
-    },
-    {
-      id: 'explore',
-      icon: Compass,
-      label: 'Explore',
-      href: '/explore',
-      active: variant === 'explore',
-      badge: 'new',
-      dummyOnClick: () => {
-        setActiveTab('explore')
-      }
-    },
-    {
-      id: 'create',
-      icon: Plus,
-      label: 'Create',
-      action: () => setCreateOpen(true),
-      special: true,
-      dummyOnClick: () => {
-        setActiveTab('create')
-      }
-    }
+
+  const navLinks = [
+    { id: 'home', icon: Home, label: 'Home', href: '/' },
+    { id: 'explore', icon: Compass, label: 'Explore', href: '/explore' },
   ]
 
   return (
-
-    <motion.nav
-      className='sticky top-0 w-full flex items-center justify-center z-50 backdrop-blur-xl bg-white/80 dark:bg-dark-bg/80 border-b border-neutral-200/50 dark:border-dark-border/50'
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+    <nav
+      aria-label="Top"
+      className="sticky top-0 z-50 flex w-full items-center justify-center border-b border-hairline bg-ground/95 backdrop-blur"
     >
-      <div className="w-full max-w-7xl flex items-center justify-between px-4 py-3">
-
-        {/* Left Section - Logo + Navigation */}
+      <div className="flex w-full max-w-7xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2">
+          <Link
+            href="/"
+            aria-label="Rize home"
+            className="flex items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+          >
             <Logo className="size-8" />
-            <span className="font-bold text-xl tracking-tight hidden sm:block">
-              Rize
-            </span>
           </Link>
 
-          {/* Desktop Navigation */}
           {isDesktop && (
-            <div className="flex items-center gap-1 bg-neutral-100 dark:bg-dark-border/60 rounded-2xl p-1">
-              {navItems.map((item) => (
-                <motion.div key={item.id} className="relative">
-                  {item.href ? (
-                    <Link href={item.href}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={cn(
-                          'relative px-4 py-2 rounded-xl transition-all',
-                          item.active
-                            ? 'bg-white dark:bg-dark-bg shadow-sm'
-                            : 'hover:bg-white/50 dark:hover:bg-dark-bg/50',
-                          item.special && 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600'
-                        )}
-                      >
-                        <item.icon className="size-4 mr-2" />
-                        {item.label}
-                        {item.badge && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
-                            {item.badge}
-                          </Badge>
-                        )}
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={item.action}
-                      className={cn(
-                        'relative px-4 py-2 rounded-xl transition-all',
-                        item.special && 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black font-semibold hover:from-yellow-600 hover:to-amber-600'
-                      )}
-                    >
-                      <item.icon className="size-4 mr-2" />
-                      {item.label}
-                    </Button>
-                  )}
-                </motion.div>
-              ))}
+            <div className="flex items-center gap-1">
+              {navLinks.map((item) => {
+                const active = pathname === item.href
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      linkClass,
+                      active ? 'bg-subtle text-ink' : 'text-ink-secondary hover:bg-subtle hover:text-ink'
+                    )}
+                  >
+                    <item.icon className="size-4" aria-hidden />
+                    {item.label}
+                  </Link>
+                )
+              })}
+              <Button variant="ghost" size="sm" onClick={() => setCreateOpen(true)} className="gap-2">
+                <Plus className="size-4" aria-hidden />
+                Create
+              </Button>
             </div>
           )}
         </div>
 
-        {/* Center Section - Search (Desktop) */}
         {isDesktop && (
-          <div className="flex-1 max-w-md mx-8">
+          <div className="mx-8 max-w-md flex-1">
             <Button
               variant="outline"
-              className="w-full justify-start text-neutral-500 dark:text-neutral-400 rounded-2xl border-neutral-300/60 dark:border-dark-border/60"
+              className="w-full justify-start gap-3 rounded-xl font-normal text-ink-secondary"
               onClick={() => setSearchOpen(true)}
             >
-              <Search className="size-4 mr-3" />
-              Search creators, projects...
+              <Search className="size-4" aria-hidden />
+              Search people and projects
             </Button>
           </div>
         )}
 
-        {/* Right Section - Actions */}
         <div className="flex items-center gap-2">
-          {/* Mobile Search */}
           {!isDesktop && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-2xl"
-              onClick={() => setSearchOpen(true)}
-            >
-              <Search className="size-5" />
+            <Button variant="ghost" size="icon" aria-label="Search" onClick={() => setSearchOpen(true)}>
+              <Search className="size-5" aria-hidden />
             </Button>
           )}
 
-
-          {/* Profile Actions */}
           {profile && <ShareCard profile={profile} />}
 
           {isMine && (
             <Button
               variant="outline"
               size="icon"
-              className=""
+              aria-label="Edit profile"
               onClick={() => setActiveSidebarTab({ id: null, tab: 'edit-profile' })}
             >
-              <Edit3 className="size-4" />
+              <Edit3 className="size-4" aria-hidden />
             </Button>
           )}
 
-          {/* Mobile Sidebar Toggle */}
           {isMine && !isDesktop && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-lg"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Sidebar className="size-4" />
+            <Button variant="outline" size="icon" aria-label="Open side panel" onClick={() => setSidebarOpen(true)}>
+              <PanelRight className="size-4" aria-hidden />
             </Button>
           )}
 
           <Menu />
         </div>
       </div>
-    </motion.nav>
+    </nav>
   )
 }
 
