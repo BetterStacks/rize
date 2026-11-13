@@ -16,13 +16,19 @@ export async function createProfileAfterOAuth(
   },
   claimedUsername?: string
 ) {
-  console.log("🔍 createProfileAfterOAuth called with:", {
-    userId,
-    userInfo,
-    claimedUsername,
-  });
-
   try {
+    // The profile is always created for the signed-in user, with the name and
+    // image from their session rather than from the request.
+    const session = await getServerSession();
+    if (!session?.user?.id || session.user.id !== userId) {
+      return { success: false, error: "Not signed in" };
+    }
+    userInfo = {
+      name: session.user.name ?? null,
+      email: session.user.email ?? null,
+      image: session.user.image ?? null,
+    };
+
     // Check if profile already exists
     const existingProfile = await db
       .select()
@@ -136,9 +142,6 @@ export async function createProfileAfterOAuth(
       })
       .returning();
 
-    console.log(
-      `✅ Created profile for ${userInfo.name} with username: ${finalUsername}`
-    );
 
     return { success: true, profileId: newProfile.id, username: finalUsername };
   } catch (error) {
