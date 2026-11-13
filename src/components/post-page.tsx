@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { FC } from "react";
 import toast from "react-hot-toast";
 import Comments from "./comments";
-import { PostAuthorLine, PostMedia } from "./explore/post-card";
+import { isoOf, PostAuthorLine, PostMedia } from "./explore/post-card";
 import PostInteractions, { PostLinkCard } from "./explore/post-interactions";
 
 type PostPageProps = {
@@ -110,7 +110,7 @@ const PostPage: FC<PostPageProps> = ({
       {post?.link && <PostLinkCard {...post.link} className="mx-0 mt-5" />}
 
       <p className="mt-5 text-[13px] text-ink-secondary">
-        <time dateTime={created.toISOString()}>
+        <time dateTime={isoOf(post?.createdAt)}>
           {created.toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "2-digit",

@@ -141,7 +141,7 @@ const Page = () => {
         <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-2.5 sm:px-6">
           <div className="no-scrollbar -my-1 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-1">
             <div
-              role="tablist"
+              role="group"
               aria-label="Feed"
               className="flex shrink-0 items-center gap-0.5 rounded-lg bg-subtle p-0.5"
             >
@@ -149,8 +149,7 @@ const Page = () => {
                 <button
                   key={tab.value}
                   type="button"
-                  role="tab"
-                  aria-selected={mode === tab.value}
+                  aria-pressed={mode === tab.value}
                   onClick={() => selectMode(tab.value)}
                   className={segmentClass(mode === tab.value)}
                 >
@@ -161,8 +160,7 @@ const Page = () => {
                 <button
                   key={feed.id}
                   type="button"
-                  role="tab"
-                  aria-selected={mode === feed.id}
+                  aria-pressed={mode === feed.id}
                   onClick={() => selectMode(feed.id)}
                   className={segmentClass(mode === feed.id)}
                 >

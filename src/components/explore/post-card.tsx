@@ -48,9 +48,17 @@ moment.updateLocale("en", {
   },
 });
 
+/** An ISO string for <time dateTime>, or undefined for a missing/bad date. */
+export const isoOf = (value?: Date | string | null) => {
+  if (!value) return undefined;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+};
+
 /** "now", "12m", "3h", "5d", then "Mar 4" (and the year once it's not this one). */
 export const shortTime = (value: Date | string) => {
   const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
   const diff = Math.max(0, Date.now() - date.getTime());
   const min = Math.floor(diff / 60_000);
   if (min < 1) return "now";
@@ -105,11 +113,11 @@ export const PostAuthorLine: FC<{
               onClick={(e) => e.stopPropagation()}
               className="shrink-0 hover:text-ink hover:underline hover:underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink rounded-sm"
             >
-              <time dateTime={new Date(post.createdAt).toISOString()}>{time}</time>
+              <time dateTime={isoOf(post.createdAt)}>{time}</time>
               <span className="sr-only">, open post</span>
             </Link>
           ) : (
-            <time className="shrink-0" dateTime={new Date(post.createdAt).toISOString()}>
+            <time className="shrink-0" dateTime={isoOf(post.createdAt)}>
               {time}
             </time>
           )}

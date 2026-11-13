@@ -25,7 +25,7 @@ import Textarea from "react-textarea-autosize";
 import { Result } from "url-metadata";
 import { v4 } from "uuid";
 import { useAuthDialog } from "./dialog-provider";
-import { PostMedia, shortTime } from "./explore/post-card";
+import { isoOf, PostMedia, shortTime } from "./explore/post-card";
 import { PostAvatar, PostLinkCard } from "./explore/post-interactions";
 import { Button } from "./ui/button";
 import {
@@ -441,7 +441,7 @@ const CommentCard: FC<CommentCardProps> = ({
               {name}
             </Link>
             <span aria-hidden>·</span>
-            <time dateTime={new Date(comment?.createdAt).toISOString()}>
+            <time dateTime={isoOf(comment?.createdAt)}>
               {shortTime(comment?.createdAt)}
             </time>
           </p>
