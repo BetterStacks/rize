@@ -62,7 +62,7 @@ const Page = async () => {
 							Voice Journal
 						</CardTitle>
 						<CardDescription>
-							Get a call, talk about your work in Hindi or English, and get draft posts in your own words
+							Rize's AI calls you about your week, in Hindi or English, and keeps it in your private journal
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
