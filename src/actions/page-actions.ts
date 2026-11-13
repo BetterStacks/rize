@@ -2,7 +2,7 @@
 
 import { initialValue } from '@/components/editor/utils'
 import { media, page, profile } from '@/db/schema'
-import { requireProfile, requireAuth } from '@/lib/auth'
+import { requireProfile, requireAuth, getServerSession } from '@/lib/auth'
 import db from '@/lib/db'
 import { TPage, TUploadFilesResponse } from '@/lib/types'
 import { and, eq, getTableColumns } from 'drizzle-orm'
@@ -66,12 +66,19 @@ export const updatePage = async (payload: typeof TPage) => {
     return { ok: false, error: (error as Error)?.message }
   }
 }
+// Draft pages are only shown to their owner.
+const viewerProfileId = async () => {
+  const session = await getServerSession().catch(() => null)
+  return session?.user?.profileId ?? null
+}
+
 export const getAllPages = async (username: string) => {
   // try {
   const profileId = await getProfileIdByUsername(username)
   if (!profileId) {
     throw new Error('Profile not found')
   }
+  const isOwner = (await viewerProfileId()) === profileId?.id
   const { ...rest } = getTableColumns(page)
   const pages = await db
     .select({
@@ -82,7 +89,11 @@ export const getAllPages = async (username: string) => {
     .from(page)
     .leftJoin(media, eq(media.id, page.thumbnail))
     .innerJoin(profile, eq(profile.id, page.profileId))
-    .where(eq(page.profileId, profileId?.id as string))
+    .where(
+      isOwner
+        ? eq(page.profileId, profileId?.id as string)
+        : and(eq(page.profileId, profileId?.id as string), eq(page.status, 'published'))
+    )
   if (pages.length === 0) {
     return []
   }
@@ -101,6 +112,9 @@ export const getPageById = async (id: string) => {
     .limit(1)
   // console.log(pages);
   if (pages.length === 0) {
+    throw new Error('No page found')
+  }
+  if (pages[0].status !== 'published' && pages[0].profileId !== (await viewerProfileId())) {
     throw new Error('No page found')
   }
   return pages[0]
