@@ -2,7 +2,7 @@ import { accounts, profile, sessions, users, verification } from "@/db/schema";
 import { compareSync, hashSync } from "bcryptjs";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import db from "./db";
 import { phoneNumber } from "better-auth/plugins";
 import twilio from "twilio";
@@ -95,6 +95,22 @@ export const auth = betterAuth({
       clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
     },
 
+  },
+  databaseHooks: {
+    account: {
+      create: {
+        // A seeded (unclaimed) profile whose owner signs in with Google or
+        // LinkedIn using the same verified email gets linked to that account.
+        // Treat that as claiming it, so the profile stops being private.
+        after: async (account) => {
+          if (account.providerId === "credential") return;
+          await db
+            .update(users)
+            .set({ isClaimed: true, claimToken: null, updatedAt: new Date() })
+            .where(and(eq(users.id, account.userId), eq(users.isClaimed, false)));
+        },
+      },
+    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days

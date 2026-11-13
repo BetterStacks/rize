@@ -18,6 +18,7 @@ import {
 } from "@/lib/auth";
 import instance from "@/lib/axios-instance";
 import db from "@/lib/db";
+import { profileIdIsClaimed } from "@/lib/claimed-profiles";
 import { deleteFromS3, getS3KeyFromUrl } from "@/lib/s3";
 import {
   AddCommentPayload,
@@ -58,8 +59,8 @@ export const getExploreFeed = async (
 
   const offset = pageParam * PAGE_SIZE;
 
-  // Build the WHERE clause
-  const conditions: SQL[] = [];
+  // Build the WHERE clause. Posts by unclaimed (seeded) profiles stay private.
+  const conditions: SQL[] = [profileIdIsClaimed(posts.profileId)];
 
   if (topicIds.length > 0 || profileIds.length > 0) {
     const filters: SQL[] = [];
@@ -374,7 +375,17 @@ export const getPostById = async (id: string) => {
     .leftJoin(media, eq(postMedia.mediaId, media.id))
     .leftJoin(postLinks, eq(posts.id, postLinks.postId))
     .leftJoin(bookmarks, eq(posts.id, bookmarks.postId))
-    .where(eq(posts.id, id))
+    .where(
+      and(
+        eq(posts.id, id),
+        currentUserProfileId
+          ? or(
+              profileIdIsClaimed(posts.profileId),
+              eq(posts.profileId, currentUserProfileId),
+            )
+          : profileIdIsClaimed(posts.profileId),
+      ),
+    )
     .groupBy(
       posts.id,
       profile.username,

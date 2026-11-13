@@ -4,8 +4,9 @@ import { initialValue } from '@/components/editor/utils'
 import { media, page, profile } from '@/db/schema'
 import { requireProfile, requireAuth, getServerSession } from '@/lib/auth'
 import db from '@/lib/db'
+import { profileIdIsClaimed } from '@/lib/claimed-profiles'
 import { TPage, TUploadFilesResponse } from '@/lib/types'
-import { and, eq, getTableColumns } from 'drizzle-orm'
+import { and, eq, getTableColumns, or } from 'drizzle-orm'
 import { getProfileIdByUsername } from './profile-actions'
 
 export const createPage = async (title?: string) => {
@@ -101,6 +102,7 @@ export const getAllPages = async (username: string) => {
 }
 export const getPageById = async (id: string) => {
   const { ...rest } = getTableColumns(page)
+  const viewer = await viewerProfileId()
   const pages = await db
     .select({
       ...rest,
@@ -108,13 +110,20 @@ export const getPageById = async (id: string) => {
     })
     .from(page)
     .leftJoin(media, eq(media.id, page.thumbnail))
-    .where(and(eq(page.id, id)))
+    .where(
+      and(
+        eq(page.id, id),
+        viewer
+          ? or(profileIdIsClaimed(page.profileId), eq(page.profileId, viewer))
+          : profileIdIsClaimed(page.profileId)
+      )
+    )
     .limit(1)
   // console.log(pages);
   if (pages.length === 0) {
     throw new Error('No page found')
   }
-  if (pages[0].status !== 'published' && pages[0].profileId !== (await viewerProfileId())) {
+  if (pages[0].status !== 'published' && pages[0].profileId !== viewer) {
     throw new Error('No page found')
   }
   return pages[0]

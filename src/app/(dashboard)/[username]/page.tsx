@@ -26,7 +26,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const user = await getProfileByUsernameCached(username);
-  const titleName = user?.displayName?.trim() || username;
+
+  // Missing and unclaimed profiles get the same metadata.
+  if (!user) {
+    return {
+      title: "Not Found - Rize",
+      description: "Page not found",
+    };
+  }
+
+  const titleName = user.displayName?.trim() || username;
 
   return {
     title: `${titleName} | Rize`,

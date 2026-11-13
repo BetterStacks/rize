@@ -3,6 +3,7 @@ import db from '@/lib/db'
 import { posts, projects, profile, page, education, experience, postTopics, projectTopics, projectSkills, profileSkills } from '@/db/schema'
 import { ilike, or, and, eq, isNotNull, desc, inArray, sql, type SQL } from 'drizzle-orm'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { profileIsClaimed } from '@/lib/claimed-profiles'
 
 export async function GET(request: Request) {
   // Rate limit by IP
@@ -45,6 +46,7 @@ export async function GET(request: Request) {
           .from(profile)
           .where(
             and(
+              profileIsClaimed(),
               or(
                 ilike(profile.displayName, `%${query}%`),
                 ilike(profile.username, `%${query}%`),
@@ -69,6 +71,7 @@ export async function GET(request: Request) {
 
     if (type === 'all' || type === 'posts') {
       const postConditions: SQL[] = [
+        profileIsClaimed(),
         ilike(posts.content, `%${query}%`),
         isNotNull(posts.content),
       ]
@@ -103,6 +106,7 @@ export async function GET(request: Request) {
 
     if (type === 'all' || type === 'projects') {
       const projectConditions: SQL[] = [
+        profileIsClaimed(),
         or(
           ilike(projects.name, `%${query}%`),
           ilike(projects.description, `%${query}%`)
@@ -164,6 +168,7 @@ export async function GET(request: Request) {
         .innerJoin(profile, eq(page.profileId, profile.id))
         .where(
           and(
+            profileIsClaimed(),
             ilike(page.title, `%${query}%`),
             eq(page.status, 'published')
           )
@@ -191,10 +196,13 @@ export async function GET(request: Request) {
         .from(education)
         .innerJoin(profile, eq(education.profileId, profile.id))
         .where(
-          or(
-            ilike(education.school, `%${query}%`),
-            ilike(education.degree, `%${query}%`),
-            ilike(education.fieldOfStudy, `%${query}%`)
+          and(
+            profileIsClaimed(),
+            or(
+              ilike(education.school, `%${query}%`),
+              ilike(education.degree, `%${query}%`),
+              ilike(education.fieldOfStudy, `%${query}%`)
+            )
           )
         )
         .limit(10)
@@ -221,9 +229,12 @@ export async function GET(request: Request) {
         .from(experience)
         .innerJoin(profile, eq(experience.profileId, profile.id))
         .where(
-          or(
-            ilike(experience.title, `%${query}%`),
-            ilike(experience.company, `%${query}%`)
+          and(
+            profileIsClaimed(),
+            or(
+              ilike(experience.title, `%${query}%`),
+              ilike(experience.company, `%${query}%`)
+            )
           )
         )
         .limit(10)
