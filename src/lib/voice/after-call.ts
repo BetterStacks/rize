@@ -7,6 +7,7 @@ import {
 import db from "@/lib/db";
 import { and, eq, isNull } from "drizzle-orm";
 import OpenAI from "openai";
+import { MIN_MATCH, lcsLength, tokens } from "./draft-provenance";
 import { hasAnySuggestion, parseProfileSuggestions } from "./profile-suggestions";
 
 const TEXT_MODEL = process.env.VOICE_TEXT_MODEL || "gpt-4o-mini";
@@ -48,35 +49,8 @@ Return 1 or 2 drafts, only if there is material that genuinely stands on its own
 
 Return JSON: {"posts": ["...", "..."]}`;
 
-const FILLER_WORDS = new Set(["um", "umm", "uh", "uhh", "hmm", "like", "basically", "actually", "literally", "so", "yeah"]);
-
-// Lowercased word tokens in any script, with punctuation and filler removed.
-function tokens(text: string) {
-  return text
-    .toLowerCase()
-    .replace(/[’`]/g, "'")
-    .split(/[^\p{L}\p{N}\p{M}']+/u)
-    .map((w) => w.replace(/^'+|'+$/g, ""))
-    .filter((w) => w && !FILLER_WORDS.has(w));
-}
-
-// Longest common subsequence length, so a sentence matches only when its words
-// appear in the same order the user said them.
-function lcsLength(a: string[], b: string[]) {
-  let prev = new Array(b.length + 1).fill(0);
-  for (let i = 1; i <= a.length; i++) {
-    const cur = new Array(b.length + 1).fill(0);
-    for (let j = 1; j <= b.length; j++) {
-      cur[j] = a[i - 1] === b[j - 1] ? prev[j - 1] + 1 : Math.max(prev[j], cur[j - 1]);
-    }
-    prev = cur;
-  }
-  return prev[b.length];
-}
-
 // Every sentence in a draft has to come, in order, from a single thing the
 // user said. A little slack (MIN_MATCH) absorbs a cleaned-up word or two.
-const MIN_MATCH = 0.9;
 export function draftIsExtractive(draft: string, transcript: TTranscriptTurn[]) {
   const turns = transcript.filter((t) => t.role === "user").map((t) => tokens(t.text));
   const sentences = draft

@@ -222,8 +222,8 @@ export async function retryDraftGeneration(callId: string): Promise<ActionResult
 // --- Drafts (never published without the user clicking Publish) ---
 
 export async function getMyVoiceDrafts() {
-  const profileId = await requireProfile();
-  return db
+  const { profileId, userId } = await requireAuthWithProfile();
+  const rows = await db
     .select({
       id: voiceDrafts.id,
       callId: voiceDrafts.callId,
@@ -231,11 +231,18 @@ export async function getMyVoiceDrafts() {
       status: voiceDrafts.status,
       postId: voiceDrafts.postId,
       createdAt: voiceDrafts.createdAt,
+      transcript: voiceCalls.transcript,
     })
     .from(voiceDrafts)
+    .leftJoin(voiceCalls, and(eq(voiceCalls.id, voiceDrafts.callId), eq(voiceCalls.userId, userId)))
     .where(and(eq(voiceDrafts.profileId, profileId), ne(voiceDrafts.status, "discarded")))
     .orderBy(desc(voiceDrafts.createdAt))
     .limit(100);
+  // Only what the user said goes to the client, to show where each draft came from.
+  return rows.map(({ transcript, ...draft }) => ({
+    ...draft,
+    userTurns: (transcript ?? []).filter((t) => t.role === "user").map((t) => t.text),
+  }));
 }
 
 export async function updateVoiceDraft(draftId: string, content: string): Promise<ActionResult> {

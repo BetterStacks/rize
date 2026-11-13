@@ -30,10 +30,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { TTranscriptTurn, TVoiceCallKind, TVoiceCallStatus, TVoiceDraftStatus } from "@/db/schema";
 import { SUGGESTION_TEXT_LIMITS } from "@/lib/voice/profile-suggestions";
+import { newsreader } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
+import { draftProvenance, type ProvenancePassage, type ProvenanceWord } from "@/lib/voice/draft-provenance";
+import "@/styles/rize-tokens.css";
 import { formatDistanceToNow } from "date-fns";
-import { Phone, PhoneCall } from "lucide-react";
+import { ChevronRight, Lock, Pencil, Phone, PhoneCall, Share, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Fragment, forwardRef, useEffect, useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
 import PhoneVerifyForm from "./PhoneVerifyForm";
 import { startVoiceCall } from "./startVoiceCall";
@@ -57,6 +61,8 @@ export type VoiceDraftRow = {
   status: TVoiceDraftStatus;
   postId: string | null;
   createdAt: Date;
+  // What the user said on the draft's call, for "From your call"
+  userTurns: string[];
 };
 
 type Props = {
@@ -436,11 +442,23 @@ function SuggestionsCard({ data, onDone }: { data: OnboardingSuggestions; onDone
   );
 }
 
+// Draft review: one draft per card, on warm paper, in the person's own words.
+// Colours, radius and the display face come from src/styles/rize-tokens.css.
+const paperText = "text-[var(--rize-ink)]";
+const paperMuted = "text-[var(--rize-ink-secondary)]";
+
 function DraftCard({ draft, onChange }: { draft: VoiceDraftRow; onChange: () => void }) {
   const [content, setContent] = useState(draft.content);
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState(false);
+  // "Not now" only folds the card away on this screen; nothing is stored.
+  const [folded, setFolded] = useState(false);
   const dirty = content.trim() !== draft.content.trim();
   const isPublished = draft.status === "published";
+  const provenance = useMemo(
+    () => draftProvenance(draft.content, draft.userTurns),
+    [draft.content, draft.userTurns]
+  );
 
   const run = async (fn: () => Promise<{ success: boolean; error?: string }>, ok: string) => {
     setBusy(true);
@@ -448,52 +466,129 @@ function DraftCard({ draft, onChange }: { draft: VoiceDraftRow; onChange: () => 
     setBusy(false);
     if (!result.success) {
       toast.error(result.error || "Something went wrong");
-      return;
+      return false;
     }
     toast.success(ok);
     onChange();
+    return true;
   };
 
+  const date = formatDistanceToNow(new Date(draft.createdAt), { addSuffix: true });
+
+  if (folded) {
+    return (
+      <div
+        className={cn(
+          newsreader.variable,
+          "flex items-center gap-3 rounded-[var(--rize-radius-card)] border border-[var(--rize-paper-border)] bg-[var(--rize-paper)] py-2 pl-5 pr-2",
+          paperText
+        )}
+      >
+        <div className="min-w-0 flex-1">
+          <p className={cn("text-xs", paperMuted)}>Not now · still private · {date}</p>
+          <p className="rize-display truncate text-base">{draft.content}</p>
+        </div>
+        <Button
+          variant="ghost"
+          className={cn("h-11 shrink-0 rounded-full px-4 hover:bg-transparent dark:hover:bg-transparent", paperText)}
+          onClick={() => setFolded(false)}
+        >
+          Show
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <Card>
-      <CardContent className="space-y-3 pt-6">
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{formatDistanceToNow(new Date(draft.createdAt), { addSuffix: true })}</span>
+    <article
+      className={cn(
+        newsreader.variable,
+        "space-y-5 rounded-[var(--rize-radius-card)] border border-[var(--rize-paper-border)] bg-[var(--rize-paper)] p-5 sm:p-7",
+        paperText
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p className={cn("text-[11px] font-medium uppercase tracking-[0.12em]", paperMuted)}>In your words</p>
+        <div className={cn("flex items-center gap-2 text-xs", paperMuted)}>
+          <span>{date}</span>
           {isPublished && <Badge variant="secondary">Published</Badge>}
         </div>
-        {isPublished ? (
-          <p className="whitespace-pre-wrap text-sm">{draft.content}</p>
-        ) : (
+      </div>
+
+      {editing && !isPublished ? (
+        <div className="space-y-3">
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            rows={6}
+            rows={7}
             maxLength={5000}
             disabled={busy}
+            autoFocus
+            aria-label="Edit your draft"
+            className="rize-display rounded-xl border-[var(--rize-paper-border)] bg-transparent text-lg leading-snug text-[var(--rize-ink)] dark:border-[var(--rize-paper-border)] dark:bg-transparent"
           />
-        )}
-        {!isPublished && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2">
             <Button
-              size="sm"
               variant="outline"
+              className="h-11 rounded-full px-5"
               disabled={busy || !dirty}
-              onClick={() => run(() => updateVoiceDraft(draft.id, content), "Draft saved")}
+              onClick={async () => {
+                if (await run(() => updateVoiceDraft(draft.id, content), "Draft saved")) setEditing(false);
+              }}
             >
               Save
             </Button>
+            <Button
+              variant="ghost"
+              className={cn("h-11 rounded-full px-5", paperMuted)}
+              disabled={busy}
+              onClick={() => {
+                setContent(draft.content);
+                setEditing(false);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <p className="rize-display whitespace-pre-wrap text-[23px] leading-[1.3] sm:text-[26px]">{draft.content}</p>
+      )}
+
+      {provenance && !editing && <FromYourCall passages={provenance} />}
+
+      {!isPublished && (
+        <>
+          <div className="grid grid-cols-3 justify-items-center gap-2 pt-1">
+            <RoundAction
+              icon={Lock}
+              label="Not now"
+              ariaLabel="Not now: fold this draft away. It stays private."
+              disabled={busy}
+              onClick={() => setFolded(true)}
+            />
+            <RoundAction
+              icon={Pencil}
+              label="Edit"
+              ariaLabel="Edit this draft"
+              pressed={editing}
+              disabled={busy}
+              onClick={() => setEditing(true)}
+            />
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button size="sm" disabled={busy || !content.trim()}>
-                  Publish
-                </Button>
+                <RoundAction
+                  icon={Share}
+                  label="Share"
+                  ariaLabel="Share this draft as a post"
+                  primary
+                  disabled={busy || !content.trim()}
+                />
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Publish this post?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    It will appear on your profile and in the feed.
-                  </AlertDialogDescription>
+                  <AlertDialogTitle>Share this post?</AlertDialogTitle>
+                  <AlertDialogDescription>It will appear on your profile and in the feed.</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -505,17 +600,26 @@ function DraftCard({ draft, onChange }: { draft: VoiceDraftRow; onChange: () => 
                           if (!saved.success) return saved;
                         }
                         return publishVoiceDraft(draft.id);
-                      }, "Published")
+                      }, "Shared on your profile")
                     }
                   >
-                    Publish
+                    Share
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 border-t border-[var(--rize-paper-border)] pt-3">
+            <p className={cn("text-xs", paperMuted)}>Nothing goes public unless you say so.</p>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button size="sm" variant="ghost" className="text-red-600" disabled={busy}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn("h-11 shrink-0 px-3 hover:text-red-700 dark:hover:text-red-400", paperMuted)}
+                  disabled={busy}
+                >
                   Delete
                 </Button>
               </AlertDialogTrigger>
@@ -533,10 +637,105 @@ function DraftCard({ draft, onChange }: { draft: VoiceDraftRow; onChange: () => 
               </AlertDialogContent>
             </AlertDialog>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </>
+      )}
+    </article>
   );
+}
+
+type RoundActionProps = React.ComponentPropsWithoutRef<typeof Button> & {
+  icon: LucideIcon;
+  label: string;
+  ariaLabel: string;
+  primary?: boolean;
+  pressed?: boolean;
+};
+
+// Round icon button with its label underneath; the label is part of the button
+// so the whole thing is one touch target.
+const RoundAction = forwardRef<HTMLButtonElement, RoundActionProps>(
+  ({ icon: Icon, label, ariaLabel, primary, pressed, className, ...props }, ref) => (
+    <Button
+      ref={ref}
+      variant="ghost"
+      aria-label={ariaLabel}
+      aria-pressed={pressed}
+      className={cn(
+        "group h-auto flex-col gap-2 rounded-2xl p-1 hover:bg-transparent dark:hover:bg-transparent",
+        "text-[var(--rize-ink)]",
+        className
+      )}
+      {...props}
+    >
+      <span
+        className={cn(
+          "flex h-14 w-14 items-center justify-center rounded-full border transition-colors",
+          primary
+            ? "border-transparent bg-[var(--rize-button-fill)] text-[var(--rize-button-ink)] group-hover:opacity-90"
+            : "border-[var(--rize-paper-border)] bg-[var(--rize-paper)] group-hover:bg-[var(--rize-paper-border)]",
+          pressed && !primary && "bg-[var(--rize-paper-border)]"
+        )}
+      >
+        <Icon className="h-5 w-5" aria-hidden="true" />
+      </span>
+      <span className="text-xs font-medium">{label}</span>
+    </Button>
+  )
+);
+RoundAction.displayName = "RoundAction";
+
+// The passages of the call the draft was cut from: kept words highlighted,
+// dropped words struck out, unused sentences in between left plain.
+function FromYourCall({ passages }: { passages: ProvenancePassage[] }) {
+  return (
+    <details open className="group/call">
+      <summary
+        className={cn(
+          "flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm font-medium [&::-webkit-details-marker]:hidden",
+          paperMuted
+        )}
+      >
+        <ChevronRight className="h-4 w-4 transition-transform group-open/call:rotate-90" aria-hidden="true" />
+        From your call
+      </summary>
+      <div className="space-y-3 pt-1">
+        {passages.map((p) => (
+          <p key={p.turnIndex} className="text-[15px] leading-relaxed">
+            {p.cutBefore && <span className={paperMuted}>… </span>}
+            {wordRuns(p).map((r, i) => (
+              <Fragment key={i}>
+                {i > 0 && " "}
+                {r.kind === "kept" ? (
+                  <mark className="rounded-[3px] bg-[var(--rize-highlight)] px-0.5 text-[var(--rize-ink)]">{r.text}</mark>
+                ) : r.kind === "dropped" ? (
+                  <s className={paperMuted}>{r.text}</s>
+                ) : (
+                  <span className={paperMuted}>{r.text}</span>
+                )}
+              </Fragment>
+            ))}
+            {p.cutAfter && <span className={paperMuted}> …</span>}
+          </p>
+        ))}
+        <p className={cn("text-xs", paperMuted)}>
+          Highlighted words are in your draft. Struck-out words were left out.
+        </p>
+      </div>
+    </details>
+  );
+}
+
+// Joins neighbouring words of the same kind so a kept phrase is one highlight.
+function wordRuns(passage: ProvenancePassage) {
+  const runs: { kind: ProvenanceWord["kind"]; text: string }[] = [];
+  for (const sentence of passage.sentences) {
+    for (const w of sentence.words) {
+      const last = runs[runs.length - 1];
+      if (last && last.kind === w.kind) last.text += ` ${w.text}`;
+      else runs.push({ kind: w.kind, text: w.text });
+    }
+  }
+  return runs;
 }
 
 function CallRow({ call, onChange }: { call: VoiceCallRow; onChange: () => void }) {
