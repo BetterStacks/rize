@@ -3,6 +3,7 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   customType,
+  date,
   index,
   integer,
   jsonb,
@@ -82,6 +83,8 @@ export const users = pgTable("user", {
   missedScheduledCalls: integer("missed_scheduled_calls").notNull().default(0),
   scheduledCallsPausedAt: timestamp("scheduled_calls_paused_at", { withTimezone: true }),
   memoryContext: text("memory_context"), // rolling summary of past check-in calls
+  // Lets Rize keep short notes between calls (see callMemories). On by default; the person can switch it off.
+  callMemoryEnabled: boolean("call_memory_enabled").notNull().default(true),
 });
 
 // Summaries of past check-in calls, for call memory.
@@ -1163,6 +1166,9 @@ export const voiceCalls = pgTable(
     closeReason: text("close_reason"),
     error: text("error"),
     draftsGeneratedAt: timestamp("drafts_generated_at"),
+    // Which call memories were given to the AI for this call, to check later
+    // whether memory helps or misleads.
+    memoryIdsUsed: uuid("memory_ids_used").array(),
     // Onboarding calls only: profile additions waiting for the person to review
     profileSuggestions: jsonb("profile_suggestions").$type<TProfileSuggestions>(),
     suggestionsReviewedAt: timestamp("suggestions_reviewed_at"),
@@ -1200,6 +1206,32 @@ export const voiceDrafts = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => [index("idx_voice_drafts_profile_status").on(t.profileId, t.status)]
+);
+
+// Short notes Rize keeps between a person's calls, so a later call can ask
+// "last week you mentioned X, how did it go?". Each one carries the person's
+// exact words and the call it came from; deleting the call deletes it.
+export type TCallMemoryKind = "event" | "plan" | "person" | "project" | "feeling";
+export type TCallMemoryStatus = "active" | "resolved" | "superseded";
+export const callMemories = pgTable(
+  "call_memories",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    callId: uuid("call_id")
+      .notNull()
+      .references(() => voiceCalls.id, { onDelete: "cascade" }),
+    quote: text("quote").notNull(),
+    note: text("note").notNull(),
+    kind: text("kind").$type<TCallMemoryKind>().notNull().default("event"),
+    followUpAfter: date("follow_up_after", { mode: "string" }),
+    status: text("status").$type<TCallMemoryStatus>().notNull().default("active"),
+    lastMentionedAt: timestamp("last_mentioned_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("idx_call_memories_user_status").on(t.userId, t.status)]
 );
 
 export const voiceCallsRelations = relations(voiceCalls, ({ one, many }) => ({

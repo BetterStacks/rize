@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  callMemories,
   education,
   experience,
   posts,
@@ -616,6 +617,73 @@ export async function saveCallSchedule(input: z.input<typeof scheduleSchema>): P
         : {}),
       updatedAt: new Date(),
     })
+    .where(eq(users.id, userId));
+  revalidatePath("/settings/voice");
+  return { success: true };
+}
+
+// --- Call memory: what Rize keeps between calls ---
+
+export type CallMemoryRow = {
+  id: string;
+  quote: string;
+  note: string;
+  status: "active" | "resolved" | "superseded";
+  createdAt: string;
+  callId: string;
+};
+
+export async function getMyCallMemories(): Promise<{ enabled: boolean; memories: CallMemoryRow[] }> {
+  const userId = await requireUserId();
+  const [[user], rows] = await Promise.all([
+    db.select({ enabled: users.callMemoryEnabled }).from(users).where(eq(users.id, userId)).limit(1),
+    db
+      .select({
+        id: callMemories.id,
+        quote: callMemories.quote,
+        note: callMemories.note,
+        status: callMemories.status,
+        createdAt: callMemories.createdAt,
+        callId: callMemories.callId,
+      })
+      .from(callMemories)
+      .where(and(eq(callMemories.userId, userId), ne(callMemories.status, "superseded")))
+      .orderBy(desc(callMemories.createdAt))
+      .limit(100),
+  ]);
+  return {
+    enabled: user?.enabled ?? true,
+    memories: rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
+  };
+}
+
+/** Really deletes one memory. Only the owner's. */
+export async function deleteCallMemory(memoryId: string): Promise<ActionResult> {
+  const userId = await requireUserId();
+  if (!z.string().uuid().safeParse(memoryId).success) return { success: false, error: "Not found" };
+  const deleted = await db
+    .delete(callMemories)
+    .where(and(eq(callMemories.id, memoryId), eq(callMemories.userId, userId)))
+    .returning({ id: callMemories.id });
+  if (!deleted.length) return { success: false, error: "Not found" };
+  revalidatePath("/settings/voice");
+  return { success: true };
+}
+
+/** Deletes everything Rize remembers for this person. */
+export async function forgetAllCallMemories(): Promise<ActionResult> {
+  const userId = await requireUserId();
+  await db.delete(callMemories).where(eq(callMemories.userId, userId));
+  revalidatePath("/settings/voice");
+  return { success: true };
+}
+
+/** Turns memory between calls on or off. Off also stops using existing notes. */
+export async function setCallMemoryEnabled(enabled: boolean): Promise<ActionResult> {
+  const userId = await requireUserId();
+  await db
+    .update(users)
+    .set({ callMemoryEnabled: Boolean(enabled), updatedAt: new Date() })
     .where(eq(users.id, userId));
   revalidatePath("/settings/voice");
   return { success: true };
