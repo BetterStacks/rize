@@ -90,7 +90,9 @@
    as cards. Scoped to the home page wrapper; app pages keep --ground. */
 .landing {
   --ground: 247 245 240;          /* #F7F5F0 */
+  --subtle: 238 234 226;          /* #EEEAE2: one step deeper so wells keep the gap they had on white */
 }
 .dark .landing {
   --ground: 17 17 19;             /* unchanged in dark */
+  --subtle: 36 36 40;
 }
