@@ -74,7 +74,7 @@ type Props = {
   drafts: VoiceDraftRow[];
   suggestions: OnboardingSuggestions | null;
   schedule?: CallSchedule;
-  memory?: { enabled: boolean; memories: CallMemoryRow[] };
+  memory?: { enabled: boolean; aboutYou: string; memories: CallMemoryRow[] };
 };
 
 const STATUS_LABEL: Record<TVoiceCallStatus, string> = {
@@ -245,7 +245,7 @@ export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts
 
           {memory && (
             <TabsContent value="memory" className="pt-4">
-              <CallMemoryList enabled={memory.enabled} memories={memory.memories} />
+              <CallMemoryList enabled={memory.enabled} aboutYou={memory.aboutYou} memories={memory.memories} />
             </TabsContent>
           )}
 
