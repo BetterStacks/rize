@@ -18,8 +18,14 @@ import { generateDraftsForCall } from "@/lib/voice/after-call";
 import { findPendingOnboardingSuggestions } from "@/lib/voice/pending-suggestions";
 import { SUGGESTION_TEXT_LIMITS, cleanPlainText, suggestionDate } from "@/lib/voice/profile-suggestions";
 import { deleteRecording } from "@/lib/voice/r2";
+import {
+  CALL_DAYS,
+  isValidCallTime,
+  isValidTimezone,
+  scheduledCallsAllowed,
+} from "@/lib/voice/schedule";
 import { twilioClient } from "@/lib/voice/twilio";
-import { and, desc, eq, inArray, isNotNull, isNull, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
@@ -112,7 +118,13 @@ export async function confirmPhoneVerification(
   try {
     await db
       .update(users)
-      .set({ phoneNumber: parsed.data, phoneNumberVerified: true, updatedAt: new Date() })
+      .set({
+        phoneNumber: parsed.data,
+        phoneNumberVerified: true,
+        updatedAt: new Date(),
+        // Scheduled calls were agreed for the old number; a new number starts off.
+        dailyCallEnabled: sql`CASE WHEN ${users.phoneNumber} IS DISTINCT FROM ${parsed.data} THEN false ELSE ${users.dailyCallEnabled} END`,
+      })
       .where(eq(users.id, userId));
   } catch {
     return { success: false, error: "This number is linked to another account", code: "taken" };
@@ -178,7 +190,7 @@ export async function removeMyPhoneNumber(): Promise<ActionResult> {
   if (user.email?.endsWith("@phone.rize")) {
     return {
       success: false,
-      error: "You sign in with this number, so it can't be removed. Rize only calls you when you tap Call me.",
+      error: "You sign in with this number, so it can't be removed. Rize only calls you when you tap Call me or at times you scheduled.",
     };
   }
   const live = await db
@@ -195,7 +207,7 @@ export async function removeMyPhoneNumber(): Promise<ActionResult> {
 
   await db
     .update(users)
-    .set({ phoneNumber: null, phoneNumberVerified: false })
+    .set({ phoneNumber: null, phoneNumberVerified: false, dailyCallEnabled: false })
     .where(eq(users.id, session.user.id));
   revalidatePath("/settings/voice");
   return { success: true };
@@ -527,6 +539,90 @@ export async function dismissOnboardingSuggestions(callId: string): Promise<Acti
     )
     .returning({ id: voiceCalls.id });
   if (!updated.length) return { success: false, error: "These suggestions were already reviewed" };
+  revalidatePath("/settings/voice");
+  return { success: true };
+}
+
+// --- Scheduled calls ---
+
+export type CallSchedule = {
+  available: boolean;
+  enabled: boolean;
+  paused: boolean;
+  days: string[];
+  time: string | null;
+  timezone: string | null;
+};
+
+export async function getMyCallSchedule(): Promise<CallSchedule> {
+  const userId = await requireUserId();
+  const [row] = await db
+    .select({
+      enabled: users.dailyCallEnabled,
+      consentedAt: users.scheduledCallsConsentedAt,
+      pausedAt: users.scheduledCallsPausedAt,
+      days: users.callDays,
+      time: users.preferredCallTime,
+      timezone: users.callTimezone,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  return {
+    available: scheduledCallsAllowed(userId),
+    enabled: !!row?.enabled && !!row?.consentedAt,
+    paused: !!row?.pausedAt,
+    days: row?.days ?? [],
+    time: row?.time ?? null,
+    timezone: row?.timezone ?? null,
+  };
+}
+
+const scheduleSchema = z.object({
+  enabled: z.boolean(),
+  days: z.array(z.enum(CALL_DAYS)).min(1, "Pick at least one day").max(7),
+  time: z.string().refine(isValidCallTime, "Pick a time between 8am and 10pm"),
+  timezone: z.string().refine(isValidTimezone, "Unknown timezone"),
+});
+
+/*
+ * Saves the person's schedule. Switching it on records their consent and
+ * clears any pause; switching it off keeps their days and time for later.
+ */
+export async function saveCallSchedule(input: z.input<typeof scheduleSchema>): Promise<ActionResult> {
+  const userId = await requireUserId();
+  if (!scheduledCallsAllowed(userId)) {
+    return { success: false, error: "Scheduled calls aren't available on your account yet" };
+  }
+  const parsed = scheduleSchema.safeParse(input);
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid schedule" };
+  const { enabled, days, time, timezone } = parsed.data;
+
+  if (enabled) {
+    const [user] = await db
+      .select({ phoneNumber: users.phoneNumber, verified: users.phoneNumberVerified })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!user?.phoneNumber || !user.verified) {
+      return { success: false, error: "Verify your phone number first" };
+    }
+  }
+
+  const ordered = CALL_DAYS.filter((d) => days.includes(d));
+  await db
+    .update(users)
+    .set({
+      dailyCallEnabled: enabled,
+      callDays: ordered,
+      preferredCallTime: time,
+      callTimezone: timezone,
+      ...(enabled
+        ? { scheduledCallsConsentedAt: new Date(), scheduledCallsPausedAt: null, missedScheduledCalls: 0 }
+        : {}),
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId));
   revalidatePath("/settings/voice");
   return { success: true };
 }

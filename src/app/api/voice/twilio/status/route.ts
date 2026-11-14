@@ -1,5 +1,6 @@
 import { voiceCalls, type TVoiceCallStatus } from "@/db/schema";
 import db from "@/lib/db";
+import { recordMissedScheduledCall } from "@/lib/voice/schedule";
 import { readTwilioForm } from "@/lib/voice/twilio";
 import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -51,6 +52,15 @@ export async function POST(req: Request) {
     }
     if (!call.durationSeconds && callDuration) {
       updates.durationSeconds = Number(callDuration) || null;
+    }
+    // A scheduled call nobody picked up counts towards pausing the schedule.
+    if (
+      notConnected &&
+      call.trigger === "scheduled" &&
+      (twilioStatus === "busy" || twilioStatus === "no-answer") &&
+      ["queued", "ringing"].includes(call.status)
+    ) {
+      await recordMissedScheduledCall(call.userId);
     }
     if (Object.keys(updates).length) {
       await db
