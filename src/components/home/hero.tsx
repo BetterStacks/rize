@@ -19,6 +19,7 @@ import Logo from '../logo'
 import { CreativeAvatar } from '../ui/creative-avatar'
 import { GalleryTile, ProfileContainer } from '../window'
 import { MockProfileWindow } from './mock-profile-card'
+import { SocialPlatform } from '@/lib/types'
 
 const heading = 'Your story, \n in your own words.'
 const description =
@@ -146,6 +147,8 @@ const displayNames: {
   gallery: GalleryTile[];
   projects?: { name: string; link: string; description: string }[];
   writings?: { title: string; description: string; thumbnail: string }[];
+  moment?: { quote: string; date: string };
+  links?: SocialPlatform[];
 }[] = [
   {
     username: 'meera_makes',
@@ -153,6 +156,7 @@ const displayNames: {
     bio: 'Second-year design student. Sketchbooks, slow mornings and one very good dog.',
     avatar: null,
     gallery: items,
+    links: ['instagram', 'twitter', 'linkedin'],
   },
   {
     username: 'kabir_builds',
@@ -160,17 +164,17 @@ const displayNames: {
     bio: 'Building small tools for my college club. Shipping things, breaking things, talking about both.',
     avatar: null,
     gallery: items,
+    links: ['github', 'linkedin', 'twitter'],
+    moment: {
+      quote: 'Our club site went live at 2am. Six people used it the next morning, which felt like a lot.',
+      date: 'Nov 12',
+    },
     projects: [
       {
         name: 'Hostel lost & found',
         link: '',
         description:
           'A tiny site our hostel uses to return lost things. Built over one long weekend.',
-      },
-      {
-        name: 'Mess menu bot',
-        link: '',
-        description: 'Sends the day\'s menu to forty friends every morning. Mostly for me.',
       },
     ],
   },
@@ -179,6 +183,7 @@ const displayNames: {
     name: 'Tara',
     bio: 'Café hopping in Delhi, thrifting on weekends, styling my friends for free.',
     avatar: null,
+    links: ['instagram', 'youtube', 'linkedin'],
     gallery: [
       'https://i.pinimg.com/736x/d6/c2/e4/d6c2e416f4f5b6f59fad89f6c7f138fe.jpg',
       'https://i.pinimg.com/736x/f6/6b/d6/f66bd6960d1907de075ea330a13d4858.jpg',
@@ -199,7 +204,14 @@ const displayNames: {
         thumbnail:
           'https://i.pinimg.com/736x/11/25/7b/11257b84f71336ba7e78574d24189fc2.jpg',
       },
+      {
+        title: 'Three videos in, and the one I almost deleted is the one people watched',
+        description: 'A post from one of my calls',
+        thumbnail:
+          'https://i.pinimg.com/736x/91/fc/87/91fc87e5cc959c89d44f88f80c0c41be.jpg',
+      },
     ],
+    links: ['youtube', 'github', 'twitter'],
     gallery: [
       'https://i.pinimg.com/736x/28/8b/98/288b982eee2d40f2ef71b93d4caf8d57.jpg',
       'https://i.pinimg.com/736x/2e/1b/d5/2e1bd5c453aa330eb1e2b064a13bc883.jpg',
@@ -562,6 +574,8 @@ const ScrollableProfileContainer: FC<TScrollableProfileContainerProps> = ({
                 username={item.username}
                 projects={item.projects}
                 writings={item.writings}
+                moment={item.moment}
+                links={item.links}
                 scrollYProgress={scrollYProgress}
               />
             </motion.div>
