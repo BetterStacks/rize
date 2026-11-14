@@ -1,6 +1,6 @@
-import { education, experience, profile, projects, users } from "@/db/schema";
+import { education, experience, page, posts, profile, projects, users } from "@/db/schema";
 import db from "@/lib/db";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { aboutYouPromptSection, memoriesPromptSection, type CallMemoryForPrompt } from "./memory";
 
 export type CallerContext = {
@@ -10,10 +10,19 @@ export type CallerContext = {
   lifePhilosophy: string | null;
   experience: { title: string | null; company: string | null; current: boolean }[];
   education: { school: string | null; degree: string | null; fieldOfStudy: string | null }[];
-  projects: { name: string | null; tagline: string | null; status: string | null }[];
+  projects: { name: string | null; tagline: string | null; status: string | null; description?: string | null }[];
+  /** Filled only with { full: true }: what they've shared on Rize lately. */
+  recentPosts?: string[];
+  writing?: string[];
 };
 
-export async function loadCallerContext(userId: string): Promise<CallerContext> {
+/*
+ * What the call knows about the person. The quick form (used to decide
+ * between an onboarding and a journaling call) reads the profile basics; the
+ * full form (used for the call itself and for "What Rize knows" in settings)
+ * also reads project descriptions, recent posts and published writing.
+ */
+export async function loadCallerContext(userId: string, opts: { full?: boolean } = {}): Promise<CallerContext> {
   const [row] = await db
     .select({
       name: users.name,
@@ -55,6 +64,7 @@ export async function loadCallerContext(userId: string): Promise<CallerContext> 
             name: projects.name,
             tagline: projects.tagline,
             status: projects.status,
+            description: projects.description,
           })
           .from(projects)
           .where(eq(projects.profileId, profileId))
@@ -62,6 +72,24 @@ export async function loadCallerContext(userId: string): Promise<CallerContext> 
           .limit(5),
       ])
     : [[], [], []];
+
+  const [recent, written] =
+    profileId && opts.full
+      ? await Promise.all([
+          db
+            .select({ content: posts.content })
+            .from(posts)
+            .where(eq(posts.profileId, profileId))
+            .orderBy(desc(posts.createdAt))
+            .limit(3),
+          db
+            .select({ title: page.title })
+            .from(page)
+            .where(and(eq(page.profileId, profileId), eq(page.status, "published")))
+            .orderBy(desc(page.createdAt))
+            .limit(3),
+        ])
+      : [[], []];
 
   const fullName = row?.displayName || row?.name || "there";
   return {
@@ -72,7 +100,78 @@ export async function loadCallerContext(userId: string): Promise<CallerContext> 
     experience: exp.map((e) => ({ ...e, current: Boolean(e.current) })),
     education: edu,
     projects: proj,
+    ...(opts.full
+      ? {
+          recentPosts: recent
+            .map((p) => stripHtml(p.content ?? ""))
+            .filter((t) => t.length >= 20),
+          writing: written.map((w) => w.title).filter(Boolean),
+        }
+      : {}),
   };
+}
+
+const stripHtml = (html: string) =>
+  html.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+
+// User-written text goes into the call's instructions, so it's kept on one
+// line (it can't start a new "section") and trimmed.
+const shorten = (raw: string, max: number) => {
+  const text = raw.replace(/\s+/g, " ").trim();
+  return text.length <= max ? text : text.slice(0, max).replace(/\s+\S*$/, "") + "…";
+};
+const oneLine = (raw: string) => raw.replace(/\s+/g, " ").trim();
+
+const PROJECT_STATUS: Record<string, string> = {
+  wip: "in progress",
+  completed: "finished",
+  archived: "set aside",
+};
+
+/*
+ * A readable summary of the person's profile, the way a friend would know
+ * it. The same text goes into the call (quoted as data) and into "What Rize
+ * knows from your profile" in settings, so the person sees exactly what the
+ * call sees. Built from their own profile only; nothing is inferred.
+ */
+export function readableProfileSummary(ctx: CallerContext): string {
+  const lines: string[] = [];
+  if (ctx.bio) lines.push(`In their words: "${shorten(ctx.bio, 300)}"`);
+
+  const now = ctx.experience.filter((e) => e.current && (e.title || e.company));
+  const before = ctx.experience.filter((e) => !e.current && (e.title || e.company));
+  const role = (e: CallerContext["experience"][number]) =>
+    [e.title, e.company].filter(Boolean).map((v) => shorten(String(v), 80)).join(" at ");
+  if (now.length) lines.push(`Right now: ${now.map(role).join("; ")}.`);
+  if (before.length) lines.push(`Before that: ${before.slice(0, 3).map(role).join("; ")}.`);
+
+  const study = ctx.education
+    .map((e) =>
+      [[e.degree, e.fieldOfStudy].filter(Boolean).join(" in "), e.school]
+        .filter(Boolean)
+        .map((v) => shorten(String(v), 120))
+        .join(", ")
+    )
+    .filter(Boolean);
+  if (study.length) lines.push(`Studies: ${study.join("; ")}.`);
+
+  const projectLines = ctx.projects
+    .filter((p) => p.name)
+    .map((p) => {
+      const what = p.tagline || (p.description ? shorten(stripHtml(p.description), 120) : "");
+      const status = p.status ? PROJECT_STATUS[p.status] : "";
+      return `${shorten(p.name!, 80)}${what ? `: ${shorten(what, 120)}` : ""}${status ? ` (${status})` : ""}`;
+    });
+  if (projectLines.length) lines.push(`Projects:\n${projectLines.map((l) => `- ${l}`).join("\n")}`);
+
+  if (ctx.personalMission) lines.push(`What they're working towards: "${shorten(ctx.personalMission, 200)}"`);
+  if (ctx.lifePhilosophy) lines.push(`How they see things: "${shorten(ctx.lifePhilosophy, 200)}"`);
+
+  if (ctx.recentPosts?.length)
+    lines.push(`Recently shared on Rize:\n${ctx.recentPosts.map((t) => `- "${shorten(t, 160)}"`).join("\n")}`);
+  if (ctx.writing?.length) lines.push(`Has written: ${ctx.writing.map((t) => `"${oneLine(shorten(t, 80))}"`).join(", ")}.`);
+
+  return lines.join("\n");
 }
 
 // A user with almost nothing on their profile gets the onboarding interview
@@ -94,37 +193,8 @@ const clip = (value: string | null, max = 400) =>
   value ? JSON.stringify(value.slice(0, max)) : "(not set)";
 
 function profileSummary(ctx: CallerContext) {
-  const lines = [
-    `Name: ${ctx.firstName}`,
-    `Bio: ${clip(ctx.bio)}`,
-    `Personal mission: ${clip(ctx.personalMission)}`,
-    `Life philosophy: ${clip(ctx.lifePhilosophy)}`,
-  ];
-  if (ctx.experience.length) {
-    lines.push(
-      "Work: " +
-        ctx.experience
-          .map((e) => `${clip(e.title, 80)} at ${clip(e.company, 80)}${e.current ? " (current)" : ""}`)
-          .join("; ")
-    );
-  }
-  if (ctx.education.length) {
-    lines.push(
-      "Education: " +
-        ctx.education
-          .map((e) => [e.degree, e.fieldOfStudy, e.school].filter(Boolean).map((v) => clip(v, 80)).join(", "))
-          .join("; ")
-    );
-  }
-  if (ctx.projects.length) {
-    lines.push(
-      "Projects: " +
-        ctx.projects
-          .map((p) => `${clip(p.name, 80)}${p.tagline ? ` - ${clip(p.tagline, 120)}` : ""}${p.status ? ` [${p.status}]` : ""}`)
-          .join("; ")
-    );
-  }
-  return lines.join("\n");
+  const readable = readableProfileSummary(ctx);
+  return `Name: ${ctx.firstName}\n${readable || "(Their profile is mostly empty.)"}`;
 }
 
 // The universal seed categories from the Rize Call Script. Seeds ask about a

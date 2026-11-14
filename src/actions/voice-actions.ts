@@ -20,6 +20,7 @@ import { generateDraftsForCall } from "@/lib/voice/after-call";
 import { findPendingOnboardingSuggestions } from "@/lib/voice/pending-suggestions";
 import { SUGGESTION_TEXT_LIMITS, cleanPlainText, suggestionDate } from "@/lib/voice/profile-suggestions";
 import { ABOUT_YOU_MAX, readAboutYou, rebuildAboutYou, writeAboutYou } from "@/lib/voice/memory";
+import { loadCallerContext, readableProfileSummary } from "@/lib/voice/prompt";
 import { deleteRecording } from "@/lib/voice/r2";
 import {
   CALL_DAYS,
@@ -636,9 +637,14 @@ export type CallMemoryRow = {
   quotes: { quote: string; date: string }[];
 };
 
-export async function getMyCallMemories(): Promise<{ enabled: boolean; aboutYou: string; memories: CallMemoryRow[] }> {
+export async function getMyCallMemories(): Promise<{
+  enabled: boolean;
+  aboutYou: string;
+  profileSummary: string;
+  memories: CallMemoryRow[];
+}> {
   const userId = await requireUserId();
-  const [[user], rows, obs] = await Promise.all([
+  const [[user], rows, obs, ctx] = await Promise.all([
     db
       .select({ enabled: users.callMemoryEnabled, raw: users.memoryContext })
       .from(users)
@@ -665,11 +671,13 @@ export async function getMyCallMemories(): Promise<{ enabled: boolean; aboutYou:
       .where(eq(callObservations.userId, userId))
       .orderBy(desc(callObservations.createdAt))
       .limit(1000),
+    loadCallerContext(userId, { full: true }),
   ]);
   const byId = new Map(obs.map((o) => [o.id, o]));
   return {
     enabled: user?.enabled ?? true,
     aboutYou: readAboutYou(user?.raw),
+    profileSummary: readableProfileSummary(ctx),
     memories: rows.map((r) => ({
       id: r.id,
       note: r.note,

@@ -43,10 +43,12 @@ const dateLabel = (iso: string) =>
 export default function CallMemoryList({
   enabled,
   aboutYou,
+  profileSummary,
   memories,
 }: {
   enabled: boolean;
   aboutYou: string;
+  profileSummary: string;
   memories: CallMemoryRow[];
 }) {
   const router = useRouter();
@@ -91,6 +93,20 @@ export default function CallMemoryList({
       </div>
 
       {on && <AboutYouNote initial={aboutYou} />}
+
+      <details className="group rounded-[20px] border border-hairline bg-surface p-5">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-medium text-ink">
+          What Rize knows from your profile
+          <span className="text-sm font-normal text-ink-secondary group-open:hidden">Show</span>
+          <span className="hidden text-sm font-normal text-ink-secondary group-open:inline">Hide</span>
+        </summary>
+        <p className="mt-1 text-sm text-ink-secondary">
+          Exactly what a call reads about you. It comes from your profile; change your profile to change it.
+        </p>
+        <pre className="mt-3 whitespace-pre-wrap rounded-xl bg-subtle px-4 py-3 font-sans text-sm leading-relaxed text-ink">
+          {profileSummary || "Your profile is empty, so calls start from what you tell them."}
+        </pre>
+      </details>
 
       {memories.length === 0 ? (
         <p className="text-[15px] text-ink-secondary">
