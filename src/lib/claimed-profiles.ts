@@ -1,6 +1,17 @@
-import { accounts, profile, users } from "@/db/schema";
+import {
+  accounts,
+  education,
+  experience,
+  gallery,
+  page,
+  posts,
+  profile,
+  projects,
+  socialLinks,
+  users,
+} from "@/db/schema";
 import db from "@/lib/db";
-import { eq, exists, inArray, or, type AnyColumn, type SQL } from "drizzle-orm";
+import { eq, exists, inArray, or, sql, type AnyColumn, type SQL } from "drizzle-orm";
 
 /*
  * Profiles seeded from resumes belong to people who never signed up. Until
@@ -45,3 +56,20 @@ export const profileIsClaimedOrOwnedBy = (
   viewerUserId
     ? or(profileIsClaimed(), eq(profile.userId, viewerUserId))!
     : profileIsClaimed();
+
+/**
+ * For discovery lists (new faces, recently joined, people on explore): only
+ * profiles with something on them, so visitors don't land on an empty page.
+ * The profile itself stays reachable by its link and by search.
+ */
+export const profileHasContent = (): SQL =>
+  or(
+    sql`coalesce(trim(${profile.bio}), '') <> ''`,
+    exists(db.select({ one: posts.id }).from(posts).where(eq(posts.profileId, profile.id))),
+    exists(db.select({ one: projects.id }).from(projects).where(eq(projects.profileId, profile.id))),
+    exists(db.select({ one: page.id }).from(page).where(eq(page.profileId, profile.id))),
+    exists(db.select({ one: gallery.id }).from(gallery).where(eq(gallery.profileId, profile.id))),
+    exists(db.select({ one: experience.id }).from(experience).where(eq(experience.profileId, profile.id))),
+    exists(db.select({ one: education.id }).from(education).where(eq(education.profileId, profile.id))),
+    exists(db.select({ one: socialLinks.id }).from(socialLinks).where(eq(socialLinks.profileId, profile.id))),
+  )!;

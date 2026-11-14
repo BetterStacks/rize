@@ -20,7 +20,7 @@ import {
   users,
 } from "@/db/schema";
 import db from "@/lib/db";
-import { profileIdIsClaimed } from "@/lib/claimed-profiles";
+import { profileHasContent, profileIdIsClaimed } from "@/lib/claimed-profiles";
 import type { GetExplorePosts } from "@/lib/types";
 import { and, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
@@ -128,11 +128,11 @@ const loadNewFaces = async (limit: number): Promise<NewFace[]> =>
     })
     .from(profile)
     .innerJoin(users, eq(profile.userId, users.id))
-    .where(eq(users.isClaimed, true))
+    .where(and(eq(users.isClaimed, true), profileHasContent()))
     .orderBy(desc(profile.createdAt))
     .limit(limit);
 
-const newFacesCached = unstable_cache(loadNewFaces, ["explore-new-faces-v1"], {
+const newFacesCached = unstable_cache(loadNewFaces, ["explore-new-faces-v2"], {
   revalidate: EXPLORE_CACHE_SECONDS,
   tags: ["explore"],
 });
