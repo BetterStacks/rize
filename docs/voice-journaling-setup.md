@@ -72,7 +72,6 @@ Only if Twilio enables Opus (Limited Availability, via sales) and OpenAI enables
 People can ask Rize to call them on chosen days at a chosen local time (Settings > Voice journal > "Call me on a schedule"). It is off by default and only the person can switch it on.
 
 - `/api/voice/scheduled` runs every 5 minutes from Vercel Cron (`vercel.json`) and places the calls that are due. It refuses to run unless `CRON_SECRET` is set; Vercel sends that secret with each cron request.
-- `SCHEDULED_CALLS_ALLOWLIST`: who can see and use the setting. Comma-separated user ids, or `*` for everyone. Empty means nobody.
 - `SCHEDULED_CALLS_DAILY_CAP`: most scheduled calls placed per UTC day across all users.
 - One scheduled call per person per local day, only between 8am and 10pm local time, never while another call is live.
 - Three unanswered scheduled calls in a row pause the schedule. Saying "stop calling me" on any call switches it off. Changing or removing the phone number switches it off.

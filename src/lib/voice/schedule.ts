@@ -5,7 +5,7 @@ import { and, eq, sql } from "drizzle-orm";
 /*
  * Scheduled calls: a person opts in, picks days and a local time, and Rize
  * calls them then. Everything here is off unless the person switched it on
- * themselves, and the rollout is limited by SCHEDULED_CALLS_ALLOWLIST.
+ * themselves, and the daily total is capped by SCHEDULED_CALLS_DAILY_CAP.
  */
 
 export const CALL_DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
@@ -27,17 +27,6 @@ const DEFAULT_DAILY_CAP = 50;
 export function scheduledCallsDailyCap() {
   const n = Number(process.env.SCHEDULED_CALLS_DAILY_CAP);
   return Number.isFinite(n) && n >= 0 ? Math.floor(n) : DEFAULT_DAILY_CAP;
-}
-
-/*
- * Who may use scheduled calls during rollout. Comma-separated user ids, or
- * "*" for everyone. Unset or empty means nobody: the feature fails closed.
- */
-export function scheduledCallsAllowed(userId: string) {
-  const raw = (process.env.SCHEDULED_CALLS_ALLOWLIST || "").trim();
-  if (!raw) return false;
-  if (raw === "*") return true;
-  return raw.split(",").map((s) => s.trim()).includes(userId);
 }
 
 export function isValidTimezone(tz: string) {

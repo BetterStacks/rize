@@ -206,7 +206,7 @@ export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts
                 <Phone className="mr-2 size-4" aria-hidden />
                 {live ? "Call in progress…" : calling ? "Starting call…" : "Call me"}
               </Button>
-              {schedule?.available && phoneNumber && (
+              {schedule && phoneNumber && (
                 <CallScheduleCard schedule={schedule} phoneNumber={phoneNumber} />
               )}
               <p className="text-xs leading-relaxed text-ink-secondary">

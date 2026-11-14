@@ -22,7 +22,6 @@ import {
   CALL_DAYS,
   isValidCallTime,
   isValidTimezone,
-  scheduledCallsAllowed,
 } from "@/lib/voice/schedule";
 import { twilioClient } from "@/lib/voice/twilio";
 import { and, desc, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
@@ -546,7 +545,6 @@ export async function dismissOnboardingSuggestions(callId: string): Promise<Acti
 // --- Scheduled calls ---
 
 export type CallSchedule = {
-  available: boolean;
   enabled: boolean;
   paused: boolean;
   days: string[];
@@ -569,7 +567,6 @@ export async function getMyCallSchedule(): Promise<CallSchedule> {
     .where(eq(users.id, userId))
     .limit(1);
   return {
-    available: scheduledCallsAllowed(userId),
     enabled: !!row?.enabled && !!row?.consentedAt,
     paused: !!row?.pausedAt,
     days: row?.days ?? [],
@@ -591,9 +588,6 @@ const scheduleSchema = z.object({
  */
 export async function saveCallSchedule(input: z.input<typeof scheduleSchema>): Promise<ActionResult> {
   const userId = await requireUserId();
-  if (!scheduledCallsAllowed(userId)) {
-    return { success: false, error: "Scheduled calls aren't available on your account yet" };
-  }
   const parsed = scheduleSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid schedule" };
   const { enabled, days, time, timezone } = parsed.data;

@@ -2,7 +2,7 @@ import { users, voiceCalls } from "@/db/schema";
 import db from "@/lib/db";
 import { placeCall } from "@/lib/voice/place-call";
 import { loadCallerContext, needsOnboarding } from "@/lib/voice/prompt";
-import { isCallDue, scheduledCallsAllowed, scheduledCallsDailyCap } from "@/lib/voice/schedule";
+import { isCallDue, scheduledCallsDailyCap } from "@/lib/voice/schedule";
 import { and, count, eq, gte, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -12,8 +12,7 @@ export const maxDuration = 60;
 /*
  * Vercel Cron, every 5 minutes (vercel.json). Places the scheduled calls that
  * are due now. Only people who switched scheduled calls on themselves are
- * considered, only those on SCHEDULED_CALLS_ALLOWLIST are called, and the
- * total per day is capped by SCHEDULED_CALLS_DAILY_CAP.
+ * considered, and the total per day is capped by SCHEDULED_CALLS_DAILY_CAP.
  */
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
@@ -57,7 +56,7 @@ export async function GET(req: Request) {
   ]);
 
   let budget = Math.max(0, scheduledCallsDailyCap() - Number(placedToday));
-  const due = candidates.filter((u) => scheduledCallsAllowed(u.id) && isCallDue(u, now));
+  const due = candidates.filter((u) => isCallDue(u, now));
   const summary = { due: due.length, placed: 0, skipped: 0, failed: 0, capped: 0 };
 
   for (const person of due) {

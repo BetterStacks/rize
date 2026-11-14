@@ -31,8 +31,6 @@ type Props = {
   isOpen: boolean;
   userName?: string;
   onClose?: () => void;
-  /** Offer "call me again on a schedule" while the first call rings. */
-  scheduleAvailable?: boolean;
 };
 
 type Stage = "setup" | "placing" | "calling" | "call_failed";
@@ -40,7 +38,7 @@ type Stage = "setup" | "placing" | "calling" | "call_failed";
 const ink = "text-[#1F1B16] dark:text-[#F4F4F5]";
 const muted = "text-[#5A5248] dark:text-[#A9A9AE]";
 
-export default function PhoneCollectionModal({ isOpen, onClose, scheduleAvailable = false }: Props) {
+export default function PhoneCollectionModal({ isOpen, onClose }: Props) {
   const { data: session } = useSession();
   const router = useRouter();
   // Local state, so a server refresh after verification (which stops the
@@ -153,13 +151,7 @@ export default function PhoneCollectionModal({ isOpen, onClose, scheduleAvailabl
                     <span className={cn("font-medium", ink)}>After.</span> You&apos;ll see what Rize heard and pick what goes on your profile.
                   </li>
                 </ul>
-                {scheduleAvailable ? (
-                  <QuickSchedulePrompt phoneNumber={session?.user?.phoneNumber} onDone={close} />
-                ) : (
-                  <Button type="button" onClick={close} className={cn(primaryButtonClass, "mt-7")}>
-                    Got it
-                  </Button>
-                )}
+                <QuickSchedulePrompt phoneNumber={session?.user?.phoneNumber} onDone={close} />
               </>
             )}
           </div>
