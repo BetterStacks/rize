@@ -64,7 +64,7 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
       {education?.description && (
         <div
           className={cn(
-            'prose prose-sm dark:prose-invert max-w-none mt-2 text-[#5A5248] dark:text-[#B3A999]',
+            'prose prose-sm dark:prose-invert max-w-none mt-2 text-[#5A5248] dark:text-[#A9A9AE]',
             'prose-p:my-1 prose-p:leading-relaxed',
           )}
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(education.description ?? '') }}

@@ -35,9 +35,9 @@ const ERROR_COPY: Record<ErrorCode, string> = {
 
 // Shared look for the call setup screens (also used by PhoneCollectionModal).
 export const primaryButtonClass =
-  "h-12 w-full rounded-xl border-transparent bg-main-yellow text-[15px] font-medium text-[#1F1B16] hover:bg-[#F5CD1F] dark:border-transparent dark:bg-main-yellow dark:text-[#1F1B16] dark:hover:bg-[#F5CD1F] focus-visible:ring-[#1F1B16] dark:focus-visible:ring-[#F3EEE6] disabled:opacity-60";
+  "h-12 w-full rounded-xl border-transparent bg-main-yellow text-[15px] font-medium text-[#1F1B16] hover:bg-[#F5CD1F] dark:border-transparent dark:bg-main-yellow dark:text-[#1F1B16] dark:hover:bg-[#F5CD1F] focus-visible:ring-[#1F1B16] dark:focus-visible:ring-[#F4F4F5] disabled:opacity-60";
 export const quietLinkClass =
-  "rounded-md text-sm text-[#5A5248] underline-offset-4 transition-colors hover:text-[#1F1B16] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD936] dark:text-[#B3A999] dark:hover:text-[#F3EEE6] disabled:pointer-events-none disabled:opacity-50";
+  "rounded-md text-sm text-[#5A5248] underline-offset-4 transition-colors hover:text-[#1F1B16] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF176] dark:text-[#A9A9AE] dark:hover:text-[#F4F4F5] disabled:pointer-events-none disabled:opacity-50";
 
 type Props = {
   initialPhone?: string;
@@ -151,16 +151,16 @@ export default function PhoneVerifyForm({ initialPhone, onVerified, disabled }: 
         }}
         className="space-y-5"
       >
-        <div aria-live="polite" className="text-sm text-[#5A5248] dark:text-[#B3A999]">
+        <div aria-live="polite" className="text-sm text-[#5A5248] dark:text-[#A9A9AE]">
           {sendState === "sending" ? (
             <span className="inline-flex items-center gap-2">
               <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden />
-              Code on its way to <span className="font-medium text-[#1F1B16] dark:text-[#F3EEE6]">{shownNumber}</span>
+              Code on its way to <span className="font-medium text-[#1F1B16] dark:text-[#F4F4F5]">{shownNumber}</span>
             </span>
           ) : (
             <span>
               Enter the code we texted to{" "}
-              <span className="whitespace-nowrap font-medium text-[#1F1B16] dark:text-[#F3EEE6]">{shownNumber}</span>
+              <span className="whitespace-nowrap font-medium text-[#1F1B16] dark:text-[#F4F4F5]">{shownNumber}</span>
             </span>
           )}
         </div>
@@ -193,7 +193,7 @@ export default function PhoneVerifyForm({ initialPhone, onVerified, disabled }: 
                 index={i}
                 className={cn(
                   "h-12 w-10 rounded-lg border bg-white text-xl font-medium text-[#1F1B16] first:rounded-lg last:rounded-lg sm:h-14 sm:w-12",
-                  "border-[#E7E2D8] dark:border-[#2E2923] dark:bg-[#141210] dark:text-[#F3EEE6]",
+                  "border-[#E7E2D8] dark:border-[#2C2C31] dark:bg-[#111113] dark:text-[#F4F4F5]",
                   error && "border-red-300 dark:border-red-900"
                 )}
               />
@@ -203,7 +203,7 @@ export default function PhoneVerifyForm({ initialPhone, onVerified, disabled }: 
 
         <div className="min-h-5" aria-live="polite">
           {checking ? (
-            <p className="inline-flex items-center gap-2 text-sm text-[#5A5248] dark:text-[#B3A999]">
+            <p className="inline-flex items-center gap-2 text-sm text-[#5A5248] dark:text-[#A9A9AE]">
               <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden />
               Checking
             </p>
@@ -244,7 +244,7 @@ export default function PhoneVerifyForm({ initialPhone, onVerified, disabled }: 
   return (
     <form onSubmit={sendCode} className="space-y-4" noValidate>
       <div className="space-y-2">
-        <label id={phoneLabelId} className="text-sm font-medium text-[#1F1B16] dark:text-[#F3EEE6]">
+        <label id={phoneLabelId} className="text-sm font-medium text-[#1F1B16] dark:text-[#F4F4F5]">
           Your phone number
         </label>
         <PhoneInput
@@ -267,7 +267,7 @@ export default function PhoneVerifyForm({ initialPhone, onVerified, disabled }: 
           className={cn(
             "flex h-14 w-full items-center rounded-xl border bg-white transition-colors",
             "border-[#E7E2D8] focus-within:border-[#1F1B16] focus-within:ring-2 focus-within:ring-main-yellow/60",
-            "dark:border-[#2E2923] dark:bg-[#141210] dark:focus-within:border-[#F3EEE6]",
+            "dark:border-[#2C2C31] dark:bg-[#111113] dark:focus-within:border-[#F4F4F5]",
             error && "border-red-300 dark:border-red-900"
           )}
         />
@@ -292,17 +292,17 @@ type CountrySelectProps = {
 // picker on phones) laid over a compact "IN +91" label.
 function CountrySelect({ value, onChange, options, disabled, readOnly }: CountrySelectProps) {
   return (
-    <div className="relative flex h-full shrink-0 items-center gap-1 border-r border-[#E7E2D8] pl-4 pr-3 text-[15px] text-[#1F1B16] dark:border-[#2E2923] dark:text-[#F3EEE6]">
+    <div className="relative flex h-full shrink-0 items-center gap-1 border-r border-[#E7E2D8] pl-4 pr-3 text-[15px] text-[#1F1B16] dark:border-[#2C2C31] dark:text-[#F4F4F5]">
       <span className="tabular-nums">
         {value ? (
           <>
-            <span className="text-[#5A5248] dark:text-[#B3A999]">{value}</span> +{getCountryCallingCode(value)}
+            <span className="text-[#5A5248] dark:text-[#A9A9AE]">{value}</span> +{getCountryCallingCode(value)}
           </>
         ) : (
           "+"
         )}
       </span>
-      <ChevronDown className="h-4 w-4 text-[#5A5248] dark:text-[#B3A999]" aria-hidden />
+      <ChevronDown className="h-4 w-4 text-[#5A5248] dark:text-[#A9A9AE]" aria-hidden />
       <select
         aria-label="Country"
         value={value || ""}
@@ -332,7 +332,7 @@ const NumberInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
         inputMode="tel"
         autoComplete="tel"
         className={cn(
-          "h-full min-w-0 flex-1 rounded-r-xl bg-transparent px-3 text-lg tracking-wide text-[#1F1B16] outline-none placeholder:text-[#B3A999] disabled:opacity-60 dark:text-[#F3EEE6] dark:placeholder:text-[#5A5248]",
+          "h-full min-w-0 flex-1 rounded-r-xl bg-transparent px-3 text-lg tracking-wide text-[#1F1B16] outline-none placeholder:text-[#A9A9AE] disabled:opacity-60 dark:text-[#F4F4F5] dark:placeholder:text-[#5A5248]",
           className
         )}
       />

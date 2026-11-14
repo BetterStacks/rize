@@ -48,7 +48,7 @@ export function ProfileCompletionWidget({
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                     <div
-                        className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-[#EFEBE3] dark:bg-[#2E2923]"
+                        className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-[#EFEBE3] dark:bg-[#2C2C31]"
                         role="progressbar"
                         aria-label="Profile progress"
                         aria-valuenow={completedCount}
@@ -92,7 +92,7 @@ export function ProfileCompletionWidget({
                     <button
                         type="button"
                         onClick={onDismiss}
-                        className={cn('min-h-11 rounded-md px-2 text-sm', inkSecondary, 'hover:text-[#1F1B16] dark:hover:text-[#F3EEE6]')}
+                        className={cn('min-h-11 rounded-md px-2 text-sm', inkSecondary, 'hover:text-[#1F1B16] dark:hover:text-[#F4F4F5]')}
                     >
                         Dismiss
                     </button>
@@ -107,7 +107,7 @@ export function ProfileCompletionWidget({
                                 type="button"
                                 onClick={task.action}
                                 disabled={task.completed}
-                                className="flex min-h-11 w-full items-center gap-3 px-4 py-2 text-left transition-colors duration-150 hover:bg-[#FCFBF8] disabled:cursor-default disabled:hover:bg-transparent dark:hover:bg-[#1C1916]"
+                                className="flex min-h-11 w-full items-center gap-3 px-4 py-2 text-left transition-colors duration-150 hover:bg-[#FCFBF8] disabled:cursor-default disabled:hover:bg-transparent dark:hover:bg-[#1A1A1D]"
                             >
                                 <span
                                     className={cn(

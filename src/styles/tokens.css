@@ -11,8 +11,8 @@
  * Dark mode follows next-themes' `.dark` class on <html>.
  *
  * Contrast (WCAG 2.1), light: ink on ground 17.1:1, ink-secondary on ground
- * 7.7:1, ink on brand 12.4:1, white on danger 6.6:1. Dark: ink on ground
- * 16.2:1, ink-secondary on ground 8.1:1 and on surface 7.5:1.
+ * 7.7:1, ink on brand 14.8:1, white on danger 6.6:1. Dark: ink on ground
+ * 17.2:1, ink-secondary on ground 8.1:1 and on surface 7.4:1.
  */
 :root {
   /* Colour */
@@ -22,7 +22,7 @@
   --ink: 31 27 22;                /* #1F1B16 primary text, ink buttons */
   --ink-secondary: 90 82 72;      /* #5A5248 secondary text, descriptions */
   --hairline: 231 226 216;        /* #E7E2D8 borders and dividers */
-  --brand: 255 217 54;            /* #FFD936 Rize yellow */
+  --brand: 255 241 118;           /* #FFF176 Rize lemon */
   --brand-ink: 31 27 22;          /* text on yellow: always near-black */
   --on-ink: 255 255 255;          /* text on an ink fill */
   --danger: 180 35 24;            /* #B42318 */
@@ -32,7 +32,7 @@
      (draft review, journal). Pair with the Newsreader face (.rize-display). */
   --paper: 255 253 248;           /* #FFFDF8 */
   --paper-border: 227 218 203;    /* #E3DACB */
-  --highlight: 241 223 168;       /* #F1DFA8 yellow wash behind quoted words */
+  --highlight: 255 246 191;       /* #FFF6BF lemon wash behind quoted words */
 
   /* Radius: one scale. 8 controls, 12 fields/menus/toasts, 20 dialogs/cards */
   --radius-sm: 8px;
@@ -55,21 +55,21 @@
 }
 
 .dark {
-  --ground: 20 18 16;             /* #141210 */
-  --surface: 28 25 22;            /* #1C1916 */
-  --subtle: 37 33 29;             /* #25211D */
-  --ink: 243 238 230;             /* #F3EEE6 */
-  --ink-secondary: 179 169 153;   /* #B3A999 */
-  --hairline: 46 41 35;           /* #2E2923 */
-  --brand: 255 217 54;
+  --ground: 17 17 19;             /* #111113 */
+  --surface: 26 26 29;            /* #1A1A1D */
+  --subtle: 36 36 40;             /* #242428 */
+  --ink: 244 244 245;             /* #F4F4F5 */
+  --ink-secondary: 169 169 174;   /* #A9A9AE */
+  --hairline: 44 44 49;           /* #2C2C31 */
+  --brand: 255 241 118;
   --brand-ink: 31 27 22;
-  --on-ink: 20 18 16;
+  --on-ink: 17 17 19;
   --danger: 249 112 102;          /* #F97066 */
   --success: 74 222 128;
 
-  --paper: 30 27 23;              /* #1E1B17 */
-  --paper-border: 58 51 43;       /* #3A332B */
-  --highlight: 78 54 28;          /* #4E361C warm amber wash, not olive */
+  --paper: 28 28 31;              /* #1C1C1F */
+  --paper-border: 56 56 62;       /* #38383E */
+  --highlight: 46 46 51;          /* #2E2E33 neutral wash */
 
   --shadow-float: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -6px rgb(0 0 0 / 0.55);
   --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 8px -2px rgb(0 0 0 / 0.35);

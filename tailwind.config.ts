@@ -35,10 +35,10 @@ export default {
 				overlay: 'rgb(var(--overlay) / var(--overlay-opacity))',
 				// Legacy names, kept so existing classes still work. dark-bg and
 				// dark-border match the dark ground and hairline tokens.
-				'dark-border': '#2E2923',
-				'dark-bg': '#141210',
+				'dark-border': '#2C2C31',
+				'dark-bg': '#111113',
 				'light-bg': '#ffffff',
-				'main-yellow': '#FFD936',
+				'main-yellow': '#FFF176',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				card: {

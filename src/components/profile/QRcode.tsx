@@ -50,7 +50,7 @@ const QRcode = ({ username, profileImage, name }: QRcodeProps) => {
                     setIsOpen(true)
                 }}
                 aria-label="Show QR code for this profile"
-                className="size-11 rounded-lg text-[#5A5248] hover:text-[#1F1B16] dark:text-[#B3A999] dark:hover:text-[#F3EEE6]"
+                className="size-11 rounded-lg text-[#5A5248] hover:text-[#1F1B16] dark:text-[#A9A9AE] dark:hover:text-[#F4F4F5]"
             >
                 <QrCode className="size-5" />
             </Button>
@@ -76,8 +76,8 @@ const QRcode = ({ username, profileImage, name }: QRcodeProps) => {
                                 />
                             )}
                         </div>
-                        <div className="flex w-full items-center justify-between gap-2 rounded-lg border border-[#E7E2D8] px-3 py-1 dark:border-[#2E2923]">
-                            <span className="truncate text-sm text-[#5A5248] dark:text-[#B3A999]">
+                        <div className="flex w-full items-center justify-between gap-2 rounded-lg border border-[#E7E2D8] px-3 py-1 dark:border-[#2C2C31]">
+                            <span className="truncate text-sm text-[#5A5248] dark:text-[#A9A9AE]">
                                 {profileUrl.replace(/^https?:\/\//, '')}
                             </span>
                             <Button

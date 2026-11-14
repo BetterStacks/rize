@@ -22,16 +22,16 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-ink text-on-ink hover:bg-ink/90',
-        brand: 'bg-brand text-brand-ink hover:brightness-[0.96]',
+        brand: 'bg-brand text-brand-ink hover:brightness-[0.96] disabled:opacity-100 disabled:bg-subtle disabled:text-ink-secondary',
         outline: 'border border-hairline bg-surface text-ink hover:bg-subtle',
         ghost: 'text-ink hover:bg-subtle',
         destructive: 'bg-danger text-on-ink hover:bg-danger/90',
         link: 'text-ink underline-offset-4 hover:underline',
         // Legacy aliases
         secondary: 'bg-ink text-on-ink hover:bg-ink/90',
-        primary: 'bg-brand text-brand-ink hover:brightness-[0.96]',
+        primary: 'bg-brand text-brand-ink hover:brightness-[0.96] disabled:opacity-100 disabled:bg-subtle disabled:text-ink-secondary',
         success: 'bg-ink text-on-ink hover:bg-ink/90',
-        warning: 'bg-brand text-brand-ink hover:brightness-[0.96]',
+        warning: 'bg-brand text-brand-ink hover:brightness-[0.96] disabled:opacity-100 disabled:bg-subtle disabled:text-ink-secondary',
       },
       size: {
         default: 'h-10 px-4 py-2',

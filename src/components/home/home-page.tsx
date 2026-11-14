@@ -42,7 +42,7 @@ export default function HomePage() {
       {/* Soft warm washes in the brand yellow behind the whole page (decorative). */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden [background:radial-gradient(70%_38%_at_50%_0%,rgba(255,217,54,0.30),transparent_70%),radial-gradient(45%_28%_at_0%_30%,rgba(255,176,102,0.18),transparent_70%),radial-gradient(50%_30%_at_100%_55%,rgba(255,217,54,0.18),transparent_70%),radial-gradient(45%_25%_at_10%_80%,rgba(255,196,140,0.16),transparent_70%),radial-gradient(70%_30%_at_50%_100%,rgba(255,217,54,0.24),transparent_70%)] dark:[background:radial-gradient(70%_32%_at_50%_0%,rgba(255,168,76,0.16),transparent_70%),radial-gradient(40%_22%_at_100%_8%,rgba(255,140,60,0.08),transparent_70%),radial-gradient(70%_26%_at_50%_100%,rgba(255,168,76,0.12),transparent_70%),linear-gradient(180deg,#1a1612_0%,#151210_30%,#151210_75%,#191512_100%)]"
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden [background:radial-gradient(60%_34%_at_50%_0%,rgba(255,241,118,0.42),transparent_72%),radial-gradient(38%_26%_at_0%_32%,rgba(255,246,170,0.35),transparent_70%),radial-gradient(40%_28%_at_100%_58%,rgba(255,241,118,0.28),transparent_70%),radial-gradient(60%_28%_at_50%_100%,rgba(255,241,118,0.36),transparent_72%)] dark:[background:radial-gradient(60%_30%_at_50%_0%,rgba(255,241,118,0.07),transparent_72%),radial-gradient(60%_24%_at_50%_100%,rgba(255,241,118,0.05),transparent_72%),#111113]"
       />
       <div className="max-w-screen-2xl w-full min-h-screen  mx-auto">
         <HeroSection />
