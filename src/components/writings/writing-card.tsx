@@ -67,26 +67,26 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
   const created = data?.createdAt ? new Date(data.createdAt) : null
 
   return (
-    <article className="group relative flex w-full items-center gap-4 border-b border-[#E7E2D8] pb-4 last:border-b-0 last:pb-0 dark:border-[#2E2923]">
+    <article className="group relative flex w-full items-center gap-4 border-b border-[#E7E2D8] pb-4 last:border-b-0 last:pb-0 dark:border-[#2C2C31]">
       <Link
         href={`/page/${data.id}`}
         className="flex min-w-0 flex-1 items-center gap-4 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow"
       >
-        <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E7E2D8] bg-[#FCFBF8] dark:border-[#2E2923] dark:bg-[#1C1916]">
+        <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E7E2D8] bg-[#FCFBF8] dark:border-[#2C2C31] dark:bg-[#1A1A1D]">
           <SafeImage
             src={data?.thumbnail}
             sizes="56px"
-            fallback={<FileText className="size-4 text-[#5A5248] dark:text-[#B3A999]" aria-hidden />}
+            fallback={<FileText className="size-4 text-[#5A5248] dark:text-[#A9A9AE]" aria-hidden />}
           />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-2 text-[15px] font-medium leading-snug text-[#1F1B16] group-hover:underline group-hover:underline-offset-4 dark:text-[#F3EEE6]">
+          <h3 className="line-clamp-2 text-[15px] font-medium leading-snug text-[#1F1B16] group-hover:underline group-hover:underline-offset-4 dark:text-[#F4F4F5]">
             {data?.title || 'Untitled'}
           </h3>
-          <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-sm text-[#5A5248] dark:text-[#B3A999]">
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-sm text-[#5A5248] dark:text-[#A9A9AE]">
             {isDraft && (
               <>
-                <span className="rounded-md bg-[#FFF3C2] px-1.5 text-xs font-medium leading-5 text-[#1F1B16] dark:bg-[#3A3220] dark:text-[#F3EEE6]">
+                <span className="rounded-md bg-[#FFF3C2] px-1.5 text-xs font-medium leading-5 text-[#1F1B16] dark:bg-[#3A3220] dark:text-[#F4F4F5]">
                   Draft
                 </span>
                 <span aria-hidden>·</span>
@@ -118,7 +118,7 @@ const WritingCard: FC<WrtingCardProps> = ({ data }) => {
               variant="ghost"
               size="icon"
               aria-label={`Options for ${data?.title || 'page'}`}
-              className="size-11 shrink-0 rounded-lg text-[#5A5248] dark:text-[#B3A999] sm:size-9"
+              className="size-11 shrink-0 rounded-lg text-[#5A5248] dark:text-[#A9A9AE] sm:size-9"
               disabled={isDeleting}
             >
               <MoreHorizontal className="h-4 w-4" />

@@ -139,7 +139,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
               <div className="mx-auto w-full max-w-2xl px-4 pt-4 text-sm">
                 <Link
                   href="/settings/voice"
-                  className="text-[#5A5248] underline underline-offset-4 hover:text-[#1F1B16] dark:text-[#B3A999] dark:hover:text-[#F3EEE6]"
+                  className="text-[#5A5248] underline underline-offset-4 hover:text-[#1F1B16] dark:text-[#A9A9AE] dark:hover:text-[#F4F4F5]"
                 >
                   Review what we heard on your call
                 </Link>

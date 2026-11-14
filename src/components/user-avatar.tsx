@@ -34,7 +34,7 @@ const UserAvatar = ({
       name={data?.name}
       size={size}
       priority
-      className="ring-1 ring-[#E7E2D8] dark:ring-[#2E2923]"
+      className="ring-1 ring-[#E7E2D8] dark:ring-[#2C2C31]"
     />
   )
 
@@ -49,14 +49,14 @@ const UserAvatar = ({
         onClick={() => setIsOpen(true)}
         aria-label="Change profile photo"
         className={cn(
-          'group relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#141210]',
+          'group relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#111113]',
           className,
         )}
       >
         {avatar}
         <span
           aria-hidden
-          className="absolute bottom-0 right-0 flex size-7 items-center justify-center rounded-full border border-[#E7E2D8] bg-white text-[#1F1B16] shadow-sm transition-colors duration-150 group-hover:bg-main-yellow dark:border-[#2E2923] dark:bg-[#1C1916] dark:text-[#F3EEE6] dark:group-hover:text-[#1F1B16]"
+          className="absolute bottom-0 right-0 flex size-7 items-center justify-center rounded-full border border-[#E7E2D8] bg-white text-[#1F1B16] shadow-sm transition-colors duration-150 group-hover:bg-main-yellow dark:border-[#2C2C31] dark:bg-[#1A1A1D] dark:text-[#F4F4F5] dark:group-hover:text-[#1F1B16]"
         >
           <Camera className="size-3.5" />
         </span>

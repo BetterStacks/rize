@@ -45,7 +45,7 @@ const PersonAvatar = ({ src, name, size = 48, className }: PersonAvatarProps) =>
     <span
       className={cn(
         "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full",
-        "bg-[#FFF6CC] text-[#1F1B16] dark:bg-[#3A3220] dark:text-[#F3EEE6]",
+        "bg-[#FFF6CC] text-[#1F1B16] dark:bg-[#3A3220] dark:text-[#F4F4F5]",
         className,
       )}
       style={{ width: size, height: size }}

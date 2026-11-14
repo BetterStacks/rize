@@ -34,8 +34,8 @@ type Props = {
 
 type Stage = "setup" | "placing" | "calling" | "call_failed";
 
-const ink = "text-[#1F1B16] dark:text-[#F3EEE6]";
-const muted = "text-[#5A5248] dark:text-[#B3A999]";
+const ink = "text-[#1F1B16] dark:text-[#F4F4F5]";
+const muted = "text-[#5A5248] dark:text-[#A9A9AE]";
 
 export default function PhoneCollectionModal({ isOpen, onClose }: Props) {
   const { data: session } = useSession();
@@ -94,7 +94,7 @@ export default function PhoneCollectionModal({ isOpen, onClose }: Props) {
                 />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <ol className={cn("mb-2 space-y-2 border-l border-[#E7E2D8] pl-4 text-sm leading-relaxed dark:border-[#2E2923]", muted)}>
+                <ol className={cn("mb-2 space-y-2 border-l border-[#E7E2D8] pl-4 text-sm leading-relaxed dark:border-[#2C2C31]", muted)}>
                   <li>We text you a code to confirm the number.</li>
                   <li>Rize&apos;s AI calls right away and asks about you, in Hindi or English.</li>
                   <li>Afterwards you see what it heard. Nothing goes on your profile until you add it.</li>
@@ -142,7 +142,7 @@ export default function PhoneCollectionModal({ isOpen, onClose }: Props) {
             </DialogHeader>
             {stage === "calling" && (
               <>
-                <ul className={cn("mt-6 space-y-3 border-t border-[#E7E2D8] pt-5 text-sm leading-relaxed dark:border-[#2E2923]", muted)}>
+                <ul className={cn("mt-6 space-y-3 border-t border-[#E7E2D8] pt-5 text-sm leading-relaxed dark:border-[#2C2C31]", muted)}>
                   <li>
                     <span className={cn("font-medium", ink)}>On the call.</span> A few questions about you, in Hindi or English.
                   </li>
@@ -161,7 +161,7 @@ export default function PhoneCollectionModal({ isOpen, onClose }: Props) {
         {stage === "call_failed" && (
           <div className="pr-8">
             <span
-              className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#F3EFE7] text-[#5A5248] dark:bg-[#2E2923] dark:text-[#B3A999]"
+              className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#F3EFE7] text-[#5A5248] dark:bg-[#2C2C31] dark:text-[#A9A9AE]"
               aria-hidden
             >
               <PhoneOff className="h-5 w-5" />

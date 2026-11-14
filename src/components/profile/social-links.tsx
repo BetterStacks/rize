@@ -87,7 +87,7 @@ const SocialLinks = ({ isMine, initialLinks }: { isMine: boolean; initialLinks?:
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowEditDialog(true)}
-                className="h-11 gap-1.5 rounded-lg px-3 text-sm text-[#5A5248] hover:text-[#1F1B16] dark:text-[#B3A999] dark:hover:text-[#F3EEE6] sm:h-9"
+                className="h-11 gap-1.5 rounded-lg px-3 text-sm text-[#5A5248] hover:text-[#1F1B16] dark:text-[#A9A9AE] dark:hover:text-[#F4F4F5] sm:h-9"
               >
                 <Pencil className="size-3.5" aria-hidden />
                 Edit links
@@ -104,7 +104,7 @@ const SocialLinks = ({ isMine, initialLinks }: { isMine: boolean; initialLinks?:
           aria-label="Edit social links"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-1 backdrop-blur-sm sm:p-4"
         >
-          <div className="mb-4 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[20px] border border-[#E7E2D8] bg-white py-6 dark:border-[#2E2923] dark:bg-[#1C1916] sm:p-3 sm:py-6">
+          <div className="mb-4 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[20px] border border-[#E7E2D8] bg-white py-6 dark:border-[#2C2C31] dark:bg-[#1A1A1D] sm:p-3 sm:py-6">
             <SocialLinksForm onClose={() => setShowEditDialog(false)} />
           </div>
         </div>
@@ -138,7 +138,7 @@ export const SocialLinkButton = ({
   return (
     <a
       className={cn(
-        'inline-flex h-11 items-center gap-2 rounded-lg border border-[#E7E2D8] px-3 text-sm font-medium text-[#1F1B16] transition-colors duration-150 hover:border-[#1F1B16]/30 hover:bg-[#FCFBF8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow dark:border-[#2E2923] dark:text-[#F3EEE6] dark:hover:border-[#F3EEE6]/30 dark:hover:bg-[#1C1916] sm:h-9',
+        'inline-flex h-11 items-center gap-2 rounded-lg border border-[#E7E2D8] px-3 text-sm font-medium text-[#1F1B16] transition-colors duration-150 hover:border-[#1F1B16]/30 hover:bg-[#FCFBF8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow dark:border-[#2C2C31] dark:text-[#F4F4F5] dark:hover:border-[#F4F4F5]/30 dark:hover:bg-[#1A1A1D] sm:h-9',
         className,
         buttonClassName,
       )}

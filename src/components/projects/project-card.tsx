@@ -131,24 +131,24 @@ const ProjectCard: FC<ProjectCardProps> = ({
         target="_blank"
         className="flex min-w-0 flex-1 items-center gap-4 rounded-xl py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow"
       >
-        <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E7E2D8] bg-[#FCFBF8] dark:border-[#2E2923] dark:bg-[#1C1916]">
+        <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E7E2D8] bg-[#FCFBF8] dark:border-[#2C2C31] dark:bg-[#1A1A1D]">
           <SafeImage
             src={project.logo}
             sizes="56px"
-            fallback={<Globe strokeWidth={1.5} className="size-4 text-[#5A5248] dark:text-[#B3A999]" aria-hidden />}
+            fallback={<Globe strokeWidth={1.5} className="size-4 text-[#5A5248] dark:text-[#A9A9AE]" aria-hidden />}
           />
         </div>
         <div className="flex min-w-0 flex-1 flex-col items-start justify-center">
-          <h3 className="w-full truncate text-[15px] font-medium leading-snug text-[#1F1B16] dark:text-[#F3EEE6]">
+          <h3 className="w-full truncate text-[15px] font-medium leading-snug text-[#1F1B16] dark:text-[#F4F4F5]">
             {project.name}
           </h3>
           {project.tagline && (
-            <p className="w-full truncate text-[15px] leading-snug text-[#5A5248] dark:text-[#B3A999]">
+            <p className="w-full truncate text-[15px] leading-snug text-[#5A5248] dark:text-[#A9A9AE]">
               {project.tagline}
             </p>
           )}
           {(project?.topics?.length ?? 0) > 0 && (
-            <p className="mt-1 w-full truncate text-sm text-[#5A5248] dark:text-[#B3A999]">
+            <p className="mt-1 w-full truncate text-sm text-[#5A5248] dark:text-[#A9A9AE]">
               {project?.topics?.map((topic) => topic.name).join(" · ")}
             </p>
           )}
@@ -163,7 +163,7 @@ const ProjectCard: FC<ProjectCardProps> = ({
                 variant="ghost"
                 size="icon"
                 aria-label={`Options for ${project.name}`}
-                className="size-11 shrink-0 rounded-lg text-[#5A5248] dark:text-[#B3A999] sm:size-9"
+                className="size-11 shrink-0 rounded-lg text-[#5A5248] dark:text-[#A9A9AE] sm:size-9"
               >
                 <MoreHorizontal className="size-4" />
               </Button>

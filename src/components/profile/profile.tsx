@@ -68,7 +68,7 @@ const Profile = ({
               variant="ghost"
               size="sm"
               onClick={openEditProfile}
-              className={cn("h-11 gap-1.5 rounded-lg px-3 text-sm font-medium", inkSecondary, "hover:text-[#1F1B16] dark:hover:text-[#F3EEE6]")}
+              className={cn("h-11 gap-1.5 rounded-lg px-3 text-sm font-medium", inkSecondary, "hover:text-[#1F1B16] dark:hover:text-[#F4F4F5]")}
             >
               <Pencil className="size-3.5" aria-hidden />
               Edit profile
@@ -122,7 +122,7 @@ const Profile = ({
               target="_blank"
               rel="noopener noreferrer me"
               href={website}
-              className="inline-flex min-h-11 items-center gap-1.5 underline-offset-4 hover:text-[#1F1B16] hover:underline dark:hover:text-[#F3EEE6] sm:min-h-0"
+              className="inline-flex min-h-11 items-center gap-1.5 underline-offset-4 hover:text-[#1F1B16] hover:underline dark:hover:text-[#F4F4F5] sm:min-h-0"
             >
               <Link2 className="size-3.5 -rotate-45" aria-hidden />
               {cleanUrl(website)}
@@ -137,7 +137,7 @@ const Profile = ({
             <li
               key={skill.id}
               className={cn(
-                "rounded-md bg-[#F4F1EA] px-2 py-0.5 text-sm dark:bg-[#1C1916]",
+                "rounded-md bg-[#F4F1EA] px-2 py-0.5 text-sm dark:bg-[#1A1A1D]",
                 ink,
               )}
             >

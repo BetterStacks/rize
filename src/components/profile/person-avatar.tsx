@@ -74,7 +74,7 @@ const PersonAvatar = ({ src, name, size, className, priority }: PersonAvatarProp
       style={{ width: size, height: size }}
       className={cn(
         'relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full',
-        'bg-[#FFF3C2] text-[#1F1B16] dark:bg-[#3A3220] dark:text-[#F3EEE6]',
+        'bg-[#FFF3C2] text-[#1F1B16] dark:bg-[#3A3220] dark:text-[#F4F4F5]',
         className,
       )}
     >

@@ -122,7 +122,7 @@ export default function CertificatesList({ certificates, isMine = false }: Certi
                             size="sm"
                             onClick={handleDownloadAll}
                             disabled={isDownloading}
-                            className="h-11 gap-1.5 rounded-lg px-3 text-sm font-medium text-[#5A5248] dark:text-[#B3A999]"
+                            className="h-11 gap-1.5 rounded-lg px-3 text-sm font-medium text-[#5A5248] dark:text-[#A9A9AE]"
                         >
                             <Download className="size-4" aria-hidden />
                             {isDownloading ? 'Downloading…' : 'Download all'}

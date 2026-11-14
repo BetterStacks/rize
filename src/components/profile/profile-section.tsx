@@ -6,9 +6,9 @@ import { ReactNode } from 'react'
 import { Button } from '../ui/button'
 
 /** Shared ink for the profile page (brief: ink, secondary, hairline). */
-export const ink = 'text-[#1F1B16] dark:text-[#F3EEE6]'
-export const inkSecondary = 'text-[#5A5248] dark:text-[#B3A999]'
-export const hairline = 'border-[#E7E2D8] dark:border-[#2E2923]'
+export const ink = 'text-[#1F1B16] dark:text-[#F4F4F5]'
+export const inkSecondary = 'text-[#5A5248] dark:text-[#A9A9AE]'
+export const hairline = 'border-[#E7E2D8] dark:border-[#2C2C31]'
 
 type ProfileSectionProps = {
   id: string;
@@ -53,7 +53,7 @@ export const SectionNewButton = ({ onClick, what, label = 'New', disabled }: New
     onClick={onClick}
     disabled={disabled}
     aria-label={label === 'New' ? `New ${what}` : undefined}
-    className={cn('h-11 gap-1.5 rounded-lg px-3 text-sm font-medium', inkSecondary, 'hover:text-[#1F1B16] dark:hover:text-[#F3EEE6]')}
+    className={cn('h-11 gap-1.5 rounded-lg px-3 text-sm font-medium', inkSecondary, 'hover:text-[#1F1B16] dark:hover:text-[#F4F4F5]')}
   >
     <Plus className="size-4" aria-hidden />
     {label}
@@ -78,7 +78,7 @@ export const EmptyLine = ({ text, actionLabel, onAction, disabled }: EmptyLinePr
       disabled={disabled}
       className={cn(
         'min-h-11 rounded-md font-medium underline decoration-main-yellow decoration-2 underline-offset-4',
-        'hover:decoration-[#1F1B16] dark:hover:decoration-[#F3EEE6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow',
+        'hover:decoration-[#1F1B16] dark:hover:decoration-[#F4F4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-yellow',
         'disabled:opacity-60',
         ink,
       )}

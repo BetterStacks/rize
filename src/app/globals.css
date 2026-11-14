@@ -186,25 +186,25 @@ body {
     --radius: 0.5rem;
   }
   .dark {
-    --background: 30 11.1% 7.1%;         /* ground #141210 */
-    --foreground: 37 35.1% 92.7%;        /* ink #F3EEE6 */
-    --card: 30 12% 9.8%;                 /* surface #1C1916 */
-    --card-foreground: 37 35.1% 92.7%;
-    --popover: 30 12% 9.8%;
-    --popover-foreground: 37 35.1% 92.7%;
-    --primary: 37 35.1% 92.7%;
-    --primary-foreground: 30 11.1% 7.1%;
-    --secondary: 30 12.1% 12.9%;         /* subtle #25211D */
-    --secondary-foreground: 37 35.1% 92.7%;
-    --muted: 30 12.1% 12.9%;
-    --muted-foreground: 37 14.6% 65.1%;  /* ink-secondary #B3A999 */
-    --accent: 30 12.1% 12.9%;
-    --accent-foreground: 37 35.1% 92.7%;
+    --background: 240 5.6% 7.1%;         /* ground #111113 */
+    --foreground: 240 4.8% 95.9%;        /* ink #F4F4F5 */
+    --card: 240 5.5% 10.8%;                 /* surface #1A1A1D */
+    --card-foreground: 240 4.8% 95.9%;
+    --popover: 240 5.5% 10.8%;
+    --popover-foreground: 240 4.8% 95.9%;
+    --primary: 240 4.8% 95.9%;
+    --primary-foreground: 240 5.6% 7.1%;
+    --secondary: 240 5.3% 14.9%;         /* subtle #242428 */
+    --secondary-foreground: 240 4.8% 95.9%;
+    --muted: 240 5.3% 14.9%;
+    --muted-foreground: 240 3% 67.3%;  /* ink-secondary #A9A9AE */
+    --accent: 240 5.3% 14.9%;
+    --accent-foreground: 240 4.8% 95.9%;
     --destructive: 4 76.5% 40%;
     --destructive-foreground: 0 0% 100%;
-    --border: 33 13.6% 15.9%;            /* hairline #2E2923 */
-    --input: 33 13.6% 15.9%;
-    --ring: 37 35.1% 92.7%;
+    --border: 240 5.4% 18.2%;            /* hairline #2C2C31 */
+    --input: 240 5.4% 18.2%;
+    --ring: 240 4.8% 95.9%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
