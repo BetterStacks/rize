@@ -1,3 +1,5 @@
+import { isPresentToken } from './import-dates'
+
 // Types for Letraz API response
 export interface LetrazPersonalInfo {
   name: string;
@@ -179,6 +181,6 @@ function convertLetrazToExtractedData(apiResponse: LetrazApiResponse): Extracted
  * Helper function to determine if a position is current based on end date
  */
 function isCurrentPosition(startDate: string, endDate?: string): boolean {
-  // If endDate is "Present" or undefined/empty, it's a current position
-  return !endDate || endDate.toLowerCase() === 'present'
+  // If endDate is "Present" (or "Current", "Now", ...) or empty, it's a current position
+  return !endDate?.trim() || isPresentToken(endDate)
 }

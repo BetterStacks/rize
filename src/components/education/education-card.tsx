@@ -38,8 +38,17 @@ const EducationCard: FC<EducationCardProps> = ({ education, isMine }) => {
   })
 
   const start = year(education?.startDate)
+  // An end date before the start is bad data, so show the start on its own.
+  const endBeforeStart =
+    !!education?.startDate &&
+    !!education?.endDate &&
+    new Date(education.endDate).getTime() < new Date(education.startDate).getTime()
   const end = year(education?.endDate)
-  const dates = start || end ? `${start ?? '—'} – ${end ?? 'Present'}` : ''
+  const dates = endBeforeStart
+    ? start ?? ''
+    : start || end
+      ? `${start ?? '—'} – ${end ?? 'Present'}`
+      : ''
   const subtitle = [education?.degree, education?.fieldOfStudy].filter(Boolean).join(', ')
 
   return (
