@@ -4,6 +4,7 @@
  */
 
 import { isUsernameReserved } from './reserved-usernames'
+import { parseDateRange } from './import-dates'
 
 interface GitHubRepo {
   name: string;
@@ -54,6 +55,21 @@ interface LinkedInPosition {
   };
 }
 
+type LinkedInDate = { year: number; month?: number; day?: number }
+
+// LinkedIn gives numeric parts. Build them in UTC (not local time) and run them
+// through the same checks as resume dates.
+function linkedInDate(d?: LinkedInDate): Date | undefined {
+  if (!d?.year) return undefined
+  return new Date(Date.UTC(d.year, (d.month || 1) - 1, d.day || 1))
+}
+
+function linkedInDateRange(range: LinkedInPosition['dateRange']) {
+  return parseDateRange(linkedInDate(range?.start), linkedInDate(range?.end), {
+    currentlyWorking: !range?.end,
+  })
+}
+
 export interface ImportedProfile {
   displayName?: string;
   bio?: string;
@@ -71,8 +87,8 @@ export interface ExperienceData {
   title: string;
   company: string;
   location?: string;
-  startDate?: Date;
-  endDate?: Date;
+  startDate?: Date | null;
+  endDate?: Date | null;
   currentlyWorking?: boolean;
   description?: string;
 }
@@ -90,8 +106,8 @@ export interface EducationData {
   school: string;
   degree?: string;
   fieldOfStudy?: string;
-  startDate?: Date;
-  endDate?: Date;
+  startDate?: Date | null;
+  endDate?: Date | null;
   grade?: string;
 }
 
@@ -229,17 +245,7 @@ export async function importFromLinkedIn(accessToken: string): Promise<ImportedP
         title: position.title?.localized?.en_US || '',
         company: position.companyName?.localized?.en_US || '',
         description: position.description?.localized?.en_US || undefined,
-        startDate: position.dateRange?.start ? new Date(
-          position.dateRange.start.year,
-          (position.dateRange.start.month || 1) - 1,
-          position.dateRange.start.day || 1
-        ) : undefined,
-        endDate: position.dateRange?.end ? new Date(
-          position.dateRange.end.year,
-          (position.dateRange.end.month || 1) - 1,
-          position.dateRange.end.day || 1
-        ) : undefined,
-        currentlyWorking: !position.dateRange?.end
+        ...linkedInDateRange(position.dateRange),
       })).slice(0, 5) || [] // Limit to 5 most recent positions
     }
 

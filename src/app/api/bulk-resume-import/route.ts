@@ -5,6 +5,7 @@ import db from '@/lib/db'
 import { users, profile, experience, education } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { sanitizeHtml } from '@/lib/sanitize'
+import { parseDatePair, parseDateRange } from '@/lib/import-dates'
 
 /**
  * Bulk Resume Import API
@@ -165,9 +166,7 @@ async function createProfileFromExtractedData(data: ExtractedData) {
       location: exp.location || null,
       // employment_type is NOT NULL and the resume parser doesn't return it.
       employmentType: 'Full-time' as const,
-      startDate: exp.startDate ? new Date(exp.startDate) : null,
-      endDate: exp.endDate ? new Date(exp.endDate) : null,
-      currentlyWorking: exp.currentlyWorking || false,
+      ...parseDateRange(exp.startDate, exp.endDate, { currentlyWorking: exp.currentlyWorking }),
       description: exp.description || null,
     }))
 
@@ -181,8 +180,7 @@ async function createProfileFromExtractedData(data: ExtractedData) {
       school: edu.school,
       degree: edu.degree || null,
       fieldOfStudy: edu.fieldOfStudy || null,
-      startDate: edu.startDate ? new Date(edu.startDate) : null,
-      endDate: edu.endDate ? new Date(edu.endDate) : null,
+      ...parseDatePair(edu.startDate, edu.endDate),
       grade: edu.grade || null,
     }))
 

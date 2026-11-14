@@ -44,11 +44,18 @@ const ExperienceCard: FC<ExperienceCardProps> = ({ experience, isMine }) => {
   });
 
   const start = monthYear(experience?.startDate);
+  // An end date before the start is bad data (an old import bug), so we show
+  // the start on its own rather than an impossible range or a wrong "Present".
+  const endBeforeStart =
+    !!experience?.startDate &&
+    !!experience?.endDate &&
+    new Date(experience.endDate).getTime() < new Date(experience.startDate).getTime();
   const end =
     !experience?.endDate || experience?.currentlyWorking
       ? "Present"
       : monthYear(experience?.endDate);
-  const dates = `${start ?? "—"} – ${end}`;
+  const dates =
+    endBeforeStart && !experience?.currentlyWorking ? start ?? "" : `${start ?? "—"} – ${end}`;
   const meta = [experience?.location?.split(",")[0], experience?.employmentType]
     .filter(Boolean)
     .join(" · ");

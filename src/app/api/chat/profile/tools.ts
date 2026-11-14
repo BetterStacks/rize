@@ -23,6 +23,7 @@ import { uploadBase64ToS3 } from '@/lib/s3';
 import { FileUIPart, InferUITools, ToolSet, tool } from 'ai';
 import { and, eq } from 'drizzle-orm';
 import { revalidatePageOnClient } from '@/lib/server-actions';
+import { isPresentToken, parseDatePair, parseDateRange, parseImportDate } from '@/lib/import-dates';
 
 
 // Profile Tools Factory
@@ -47,8 +48,7 @@ export const getProfileTools = (profileId: string | undefined, username: string,
                 const [newExperience] = await db.insert(experience).values({
                     profileId,
                     ...args,
-                    startDate: args.startDate ? new Date(args.startDate) : null,
-                    endDate: args.endDate ? new Date(args.endDate) : null,
+                    ...parseDateRange(args.startDate, args.endDate, { currentlyWorking: args.currentlyWorking }),
                 }).returning();
                 await revalidatePageOnClient(`/${username}`);
                 return { success: true, output: newExperience };
@@ -66,8 +66,11 @@ export const getProfileTools = (profileId: string | undefined, username: string,
                 const [updatedExperience] = await db.update(experience)
                     .set({
                         ...data,
-                        startDate: data.startDate ? new Date(data.startDate) : undefined,
-                        endDate: data.endDate ? new Date(data.endDate) : undefined,
+                        // A value we can't read leaves the stored date alone.
+                        startDate: parseImportDate(data.startDate) ?? undefined,
+                        ...(isPresentToken(data.endDate)
+                            ? { endDate: null, currentlyWorking: true }
+                            : { endDate: parseImportDate(data.endDate) ?? undefined }),
                     })
                     .where(and(eq(experience.id, id), eq(experience.profileId, profileId))).returning();
 
@@ -109,8 +112,7 @@ export const getProfileTools = (profileId: string | undefined, username: string,
                 await db.insert(education).values({
                     profileId,
                     ...args,
-                    startDate: args.startDate ? new Date(args.startDate) : null,
-                    endDate: args.endDate ? new Date(args.endDate) : null,
+                    ...parseDatePair(args.startDate, args.endDate),
                 });
                 await revalidatePageOnClient(`/${username}`);
                 return { success: true };
@@ -126,8 +128,9 @@ export const getProfileTools = (profileId: string | undefined, username: string,
                 await db.update(education)
                     .set({
                         ...data,
-                        startDate: data.startDate ? new Date(data.startDate) : undefined,
-                        endDate: data.endDate ? new Date(data.endDate) : undefined,
+                        // A value we can't read leaves the stored date alone.
+                        startDate: parseImportDate(data.startDate) ?? undefined,
+                        endDate: parseImportDate(data.endDate) ?? undefined,
                     })
                     .where(and(eq(education.id, id), eq(education.profileId, profileId)));
                 await revalidatePageOnClient(`/${username}`);

@@ -6,6 +6,7 @@ import { profile, projects, experience, education, socialLinks } from '@/db/sche
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { ImportedProfile, generateEnhancedBio, generateUsername } from '@/lib/profile-import'
+import { parseDatePair, parseDateRange } from '@/lib/import-dates'
 
 /**
  * Process and save imported profile data to the database
@@ -83,9 +84,7 @@ export async function processImportedProfile(importedData: ImportedProfile) {
         company: exp.company,
         location: exp.location,
         employmentType: 'Full-time' as const, // Default
-        startDate: exp.startDate,
-        endDate: exp.endDate,
-        currentlyWorking: exp.currentlyWorking || false,
+        ...parseDateRange(exp.startDate, exp.endDate, { currentlyWorking: exp.currentlyWorking }),
         description: exp.description,
       }))
 
@@ -100,8 +99,7 @@ export async function processImportedProfile(importedData: ImportedProfile) {
         school: edu.school,
         degree: edu.degree,
         fieldOfStudy: edu.fieldOfStudy,
-        startDate: edu.startDate,
-        endDate: edu.endDate,
+        ...parseDatePair(edu.startDate, edu.endDate),
         grade: edu.grade,
       }))
 

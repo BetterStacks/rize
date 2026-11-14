@@ -3,6 +3,7 @@ import { requireProfile } from '@/lib/auth'
 import db from '@/lib/db'
 import { education, experience, profile, projects, skills, users } from '@/db/schema'
 import { ExtractedData } from '@/lib/resume-parser'
+import { parseDatePair, parseDateRange } from '@/lib/import-dates'
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
@@ -40,9 +41,7 @@ export async function processResumeData(resumeData: ExtractedData, resumeFileUrl
         company: exp.company,
         location: exp.location,
         employmentType: 'Full-time' as const, // Default, could be extracted from resume
-        startDate: parseDate(exp.startDate),
-        endDate: parseDate(exp.endDate),
-        currentlyWorking: exp.currentlyWorking || false,
+        ...parseDateRange(exp.startDate, exp.endDate, { currentlyWorking: exp.currentlyWorking }),
         description: exp.description,
       }))
 
@@ -56,8 +55,7 @@ export async function processResumeData(resumeData: ExtractedData, resumeFileUrl
         school: edu.school,
         degree: edu.degree,
         fieldOfStudy: edu.fieldOfStudy,
-        startDate: parseDate(edu.startDate),
-        endDate: parseDate(edu.endDate),
+        ...parseDatePair(edu.startDate, edu.endDate),
         grade: edu.grade,
       }))
 
@@ -124,75 +122,6 @@ export async function processResumeData(resumeData: ExtractedData, resumeFileUrl
       error: 'Failed to process resume data'
     }
   }
-}
-
-/**
- * Parse date string into Date object
- */
-function parseDate(dateString?: string): Date | null {
-  if (!dateString || typeof dateString !== 'string') return null
-
-  const cleanDate = dateString.trim()
-  if (!cleanDate) return null
-
-  if (/present|current/i.test(cleanDate)) {
-    return new Date()
-  }
-
-  const monthYearMatch = cleanDate.match(/^(\d{1,2})\/(\d{2,4})$/)
-  if (monthYearMatch) {
-    const month = parseInt(monthYearMatch[1]) - 1
-    const year = parseInt(monthYearMatch[2])
-    const fullYear = year < 100 ? 2000 + year : year
-
-    if (month >= 0 && month <= 11 && fullYear >= 1900 && fullYear <= 2100) {
-      const date = new Date(fullYear, month, 1)
-      if (!isNaN(date.getTime())) {
-        return date
-      }
-    }
-  }
-
-  const yearMatch = cleanDate.match(/^(\d{4})$/)
-  if (yearMatch) {
-    const year = parseInt(yearMatch[1])
-    if (year >= 1900 && year <= 2100) {
-      const date = new Date(year, 0, 1)
-      if (!isNaN(date.getTime())) {
-        return date
-      }
-    }
-  }
-
-  const monthNameMatch = cleanDate.match(/^([A-Za-z]+)\s+(\d{4})$/)
-  if (monthNameMatch) {
-    const monthName = monthNameMatch[1]
-    const year = parseInt(monthNameMatch[2])
-
-    if (year >= 1900 && year <= 2100) {
-      try {
-        const testDate = new Date(`${monthName} 1, 2000`)
-        if (!isNaN(testDate.getTime())) {
-          const monthIndex = testDate.getMonth()
-          const date = new Date(year, monthIndex, 1)
-          if (!isNaN(date.getTime())) {
-            return date
-          }
-        }
-      } catch (e) {
-      }
-    }
-  }
-
-  try {
-    const parsed = new Date(cleanDate)
-    if (!isNaN(parsed.getTime()) && parsed.getFullYear() >= 1900 && parsed.getFullYear() <= 2100) {
-      return parsed
-    }
-  } catch (e) {
-  }
-
-  return null
 }
 
 /**
