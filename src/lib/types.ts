@@ -103,6 +103,8 @@ export type GetExplorePosts = {
   bookmarked?: boolean;
   upvoteCount: number;
   downvoteCount: number;
+  /** The reader's question this post answers, if any. */
+  answersQuestion?: string | null;
 };
 
 export type TSection = {

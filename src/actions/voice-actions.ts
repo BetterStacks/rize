@@ -21,6 +21,7 @@ import { findPendingOnboardingSuggestions } from "@/lib/voice/pending-suggestion
 import { SUGGESTION_TEXT_LIMITS, cleanPlainText, suggestionDate } from "@/lib/voice/profile-suggestions";
 import { ABOUT_YOU_MAX, readAboutYou, rebuildAboutYou, writeAboutYou } from "@/lib/voice/memory";
 import { loadCallerContext, readableProfileSummary } from "@/lib/voice/prompt";
+import { linkAnswerForDraft } from "@/lib/voice/reader-questions";
 import { deleteRecording } from "@/lib/voice/r2";
 import {
   CALL_DAYS,
@@ -332,10 +333,13 @@ export async function publishVoiceDraft(draftId: string): Promise<ActionResult> 
       .values({ content: draft.content, profileId })
       .returning({ id: posts.id });
     await tx.update(voiceDrafts).set({ postId: post.id }).where(eq(voiceDrafts.id, draftId));
-    return true;
+    return post.id;
   });
 
   if (!published) return { success: false, error: "Draft not found or already published" };
+  await linkAnswerForDraft(draftId, published, profileId).catch((error: any) =>
+    console.error("[voice] linking answer failed", error?.message)
+  );
   revalidatePath("/[username]", "layout");
   return { success: true };
 }

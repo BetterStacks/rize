@@ -1,3 +1,4 @@
+import { markQuestionAsked, nextAcceptedQuestion } from "@/lib/voice/reader-questions";
 import { loadAboutYouForCall, loadMemoriesForCall } from "@/lib/voice/memory";
 import { voiceCalls } from "@/db/schema";
 import db from "@/lib/db";
@@ -75,16 +76,18 @@ export async function POST(req: Request) {
   const call = claimed[0];
   try {
     const journal = call.kind !== "onboarding";
-    const [ctx, memories, aboutYou] = await Promise.all([
+    const [ctx, memories, aboutYou, readerQuestion] = await Promise.all([
       loadCallerContext(call.userId, { full: true }),
       journal ? loadMemoriesForCall(call.userId) : Promise.resolve([]),
       journal ? loadAboutYouForCall(call.userId) : Promise.resolve(""),
+      journal ? nextAcceptedQuestion(call.userId) : Promise.resolve(null),
     ]);
     const instructions =
       call.kind === "onboarding"
         ? buildOnboardingInstructions(ctx)
-        : buildJournalInstructions(ctx, Math.random, memories, aboutYou);
+        : buildJournalInstructions(ctx, Math.random, memories, aboutYou, readerQuestion?.question ?? null);
     await acceptSession(sessionId, instructions);
+    if (readerQuestion) await markQuestionAsked(readerQuestion.id, call.id);
     if (memories.length) {
       await db
         .update(voiceCalls)
