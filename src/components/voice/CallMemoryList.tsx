@@ -20,10 +20,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+
+const GROUPS = [
+  { status: "active", title: "Keeping track of" },
+  { status: "completed", title: "Done" },
+  { status: "superseded", title: "Changed since" },
+] as const;
 
 const dateLabel = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" });
@@ -61,7 +68,7 @@ export default function CallMemoryList({ enabled, memories }: { enabled: boolean
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 rounded-[20px] border border-hairline bg-surface p-5">
         <div>
           <Label htmlFor="memory-switch" className="text-[15px] font-medium text-ink">
@@ -76,34 +83,56 @@ export default function CallMemoryList({ enabled, memories }: { enabled: boolean
 
       {memories.length === 0 ? (
         <p className="text-[15px] text-ink-secondary">
-          Nothing yet. After a call, a few things worth following up on show up here.
+          Nothing yet. After a call, what Rize picked up shows here: things coming up, things you finished, things that changed.
         </p>
       ) : (
         <>
-          <ul className="divide-y divide-hairline border-y border-hairline">
-            {memories.map((m) => (
-              <li key={m.id} className="flex items-start justify-between gap-4 py-4">
-                <div className="min-w-0">
-                  <p className="text-xs text-ink-secondary">
-                    {dateLabel(m.createdAt)}
-                    {m.status === "resolved" ? " · followed up" : ""}
-                  </p>
-                  <p className="mt-1 font-instrument text-lg leading-snug text-ink">&ldquo;{m.quote}&rdquo;</p>
-                  <p className="mt-1 text-sm text-ink-secondary">{m.note}</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  aria-label="Forget this"
-                  className="touch-target h-11 shrink-0 px-3 text-ink-secondary hover:text-ink"
-                  disabled={busyId === m.id}
-                  onClick={() => remove(m.id)}
-                >
-                  <Trash2 className="size-4" aria-hidden />
-                </Button>
-              </li>
-            ))}
-          </ul>
+          {GROUPS.map((g) => {
+            const items = memories.filter((m) => m.status === g.status);
+            if (!items.length) return null;
+            return (
+              <section key={g.status} aria-label={g.title}>
+                <h3 className="text-sm font-medium text-ink">
+                  {g.title} <span className="font-normal text-ink-secondary">· {items.length}</span>
+                </h3>
+                <ul className="mt-2 divide-y divide-hairline border-y border-hairline">
+                  {items.map((m) => (
+                    <li key={m.id} className="flex items-start justify-between gap-4 py-4">
+                      <div className={cn("min-w-0", m.status !== "active" && "opacity-80")}>
+                        <p className="font-instrument text-lg leading-snug text-ink">{m.note}</p>
+                        {m.status === "completed" && m.outcome && (
+                          <p className="mt-1 text-sm text-ink">
+                            <span className="text-ink-secondary">What happened: </span>
+                            {m.outcome}
+                          </p>
+                        )}
+                        {m.quotes.slice(-2).reverse().map((q, i) => (
+                          <p key={i} className="mt-1 text-sm text-ink-secondary">
+                            {dateLabel(q.date)} · you said &ldquo;{q.quote}&rdquo;
+                          </p>
+                        ))}
+                        {m.closedAt && (
+                          <p className="mt-1 text-xs text-ink-secondary">
+                            {m.status === "completed" ? "Done" : "Changed"} {dateLabel(m.closedAt)}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label="Forget this"
+                        className="touch-target h-11 shrink-0 px-3 text-ink-secondary hover:text-ink"
+                        disabled={busyId === m.id}
+                        onClick={() => remove(m.id)}
+                      >
+                        <Trash2 className="size-4" aria-hidden />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="sm" className="h-11 px-3 text-sm text-ink-secondary hover:text-ink">
@@ -114,7 +143,7 @@ export default function CallMemoryList({ enabled, memories }: { enabled: boolean
               <AlertDialogHeader>
                 <AlertDialogTitle>Forget everything Rize remembers?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This deletes all {memories.length} notes for good. Your calls, transcripts and drafts stay.
+                  This deletes everything Rize has kept from your calls, for good. Your calls, transcripts and drafts stay.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

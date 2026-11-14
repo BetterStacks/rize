@@ -1208,13 +1208,17 @@ export const voiceDrafts = pgTable(
   (t) => [index("idx_voice_drafts_profile_status").on(t.profileId, t.status)]
 );
 
-// Short notes Rize keeps between a person's calls, so a later call can ask
-// "last week you mentioned X, how did it go?". Each one carries the person's
-// exact words and the call it came from; deleting the call deletes it.
-export type TCallMemoryKind = "event" | "plan" | "person" | "project" | "feeling";
-export type TCallMemoryStatus = "active" | "resolved" | "superseded";
-export const callMemories = pgTable(
-  "call_memories",
+// Call memory, in two layers. Observations are facts from one call, each in
+// the person's exact words (append-only). Memories are what Rize understands
+// about the person over time, built from observations and kept up to date:
+// reinforced when they come up again, completed when they happen, superseded
+// when they turn out wrong or change. Closed memories are kept as history.
+// Retrieval picks a few active memories for each call.
+export type TCallMemoryKind = "event" | "plan" | "person" | "project" | "interest" | "feeling";
+export type TCallMemoryStatus = "active" | "completed" | "superseded";
+
+export const callObservations = pgTable(
+  "call_observations",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: text("user_id")
@@ -1224,11 +1228,32 @@ export const callMemories = pgTable(
       .notNull()
       .references(() => voiceCalls.id, { onDelete: "cascade" }),
     quote: text("quote").notNull(),
+    fact: text("fact").notNull(),
+    kind: text("kind").$type<TCallMemoryKind>().notNull().default("event"),
+    synthesized: boolean("synthesized").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("idx_call_observations_user").on(t.userId, t.createdAt)]
+);
+
+export const callMemories = pgTable(
+  "call_memories",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
     note: text("note").notNull(),
     kind: text("kind").$type<TCallMemoryKind>().notNull().default("event"),
+    importance: integer("importance").notNull().default(5), // 1-10
     followUpAfter: date("follow_up_after", { mode: "string" }),
     status: text("status").$type<TCallMemoryStatus>().notNull().default("active"),
-    lastMentionedAt: timestamp("last_mentioned_at", { withTimezone: true }).notNull().defaultNow(),
+    observationIds: uuid("observation_ids").array().notNull().default([]),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    outcome: text("outcome"),
+    outcomeObservationId: uuid("outcome_observation_id"),
+    supersededBy: uuid("superseded_by"),
+    lastReinforcedAt: timestamp("last_reinforced_at", { withTimezone: true }).notNull().defaultNow(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("idx_call_memories_user_status").on(t.userId, t.status)]
