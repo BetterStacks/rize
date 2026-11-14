@@ -51,7 +51,7 @@ const Profile = ({
         <UserAvatar
           isMyProfile={isMine}
           data={{
-            image: data?.profileImage as string,
+            image: (data?.profileImage || data?.image) as string,
             name,
           }}
           size={88}
@@ -59,7 +59,7 @@ const Profile = ({
         <div className="flex items-center gap-1">
           <QRcode
             username={username}
-            profileImage={data?.profileImage as string}
+            profileImage={(data?.profileImage || data?.image) as string}
             name={name}
           />
           {isMine && (
