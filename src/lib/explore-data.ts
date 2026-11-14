@@ -145,6 +145,18 @@ export const getNewFaces = (limit: number = 8) =>
 /* Popular posts                                                            */
 /* ------------------------------------------------------------------------ */
 
+/*
+ * Explore leaves out one-line test posts ("hello") so the page shows things
+ * people meant to share. A post counts if it has a few sentences of text, an
+ * image or a link. The posts stay on the author's profile either way.
+ */
+const MIN_TEXT_LENGTH = 60;
+const postHasSubstance = (): SQL => sql`(
+  length(trim(regexp_replace(coalesce(${posts.content}, ''), '<[^>]*>', '', 'g'))) >= ${MIN_TEXT_LENGTH}
+  OR EXISTS (SELECT 1 FROM ${postMedia} pm WHERE pm."postId" = ${POST_ID})
+  OR EXISTS (SELECT 1 FROM ${postLinks} pl WHERE pl."postId" = ${POST_ID})
+)`;
+
 const RECENT_WINDOW = 32; // the four 8-post pages the page used to load
 const POPULAR_LIMIT = 20;
 
@@ -157,7 +169,7 @@ const loadPopularPosts = async (): Promise<GetExplorePosts[]> => {
   const recent = db
     .select({ id: posts.id })
     .from(posts)
-    .where(profileIdIsClaimed(posts.profileId))
+    .where(and(profileIdIsClaimed(posts.profileId), postHasSubstance()))
     .orderBy(desc(posts.createdAt))
     .limit(RECENT_WINDOW);
 
@@ -177,7 +189,7 @@ const loadPopularPosts = async (): Promise<GetExplorePosts[]> => {
 
 const popularPostsCached = unstable_cache(
   loadPopularPosts,
-  ["explore-popular-posts-v1"],
+  ["explore-popular-posts-v2"],
   { revalidate: EXPLORE_CACHE_SECONDS, tags: ["explore"] },
 );
 

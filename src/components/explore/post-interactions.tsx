@@ -139,7 +139,7 @@ const PostInteractions: FC<PostInteractionsProps> = ({
             )}
             aria-label={`Score ${localScore}`}
           >
-            {localScore}
+            {localScore !== 0 ? localScore : null}
           </span>
           <button
             type="button"
@@ -168,7 +168,7 @@ const PostInteractions: FC<PostInteractionsProps> = ({
             className={cn("size-4", hasCommented && "fill-current")}
             aria-hidden
           />
-          <span>{commentCount}</span>
+          {commentCount > 0 && <span>{commentCount}</span>}
         </button>
       </div>
 
