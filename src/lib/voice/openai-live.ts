@@ -80,7 +80,13 @@ type SidebandOptions = {
   // Hang up and stop waiting at this point, whatever happens
   hardStopAfterMs: number;
   onTranscript?: (transcript: TTranscriptTurn[]) => void;
+  // Answers a delegated lookup from the conversation so far. Without it, the
+  // model is told no lookups are available.
+  onDelegation?: (transcript: TTranscriptTurn[]) => Promise<string>;
 };
+
+// A lookup that takes longer than this is answered with "couldn't find it".
+const LOOKUP_TIMEOUT_MS = 4000;
 
 // Holds the sideband WebSocket open until `session.closed` (or the hard stop),
 // collecting transcript deltas into turns.
@@ -160,15 +166,44 @@ export function runSideband(opts: SidebandOptions): Promise<SidebandResult> {
         case "session.output_transcript.delta":
           append("assistant", event.delta ?? "", event.start_ms);
           break;
-        case "session.delegation.created":
-          // This assistant has no tools; tell the model so it carries on talking.
-          send({
-            type: "session.thinking.append",
-            event_id: `no_tools_${event.delegation?.id ?? Date.now()}`,
-            delegation_id: event.delegation?.id ?? null,
-            content: "No tools are available on this call. Keep the conversation going.",
-          });
+        case "session.delegation.created": {
+          const delegationId = event.delegation?.id ?? null;
+          if (!opts.onDelegation || !delegationId) {
+            // No lookups on this call; tell the model so it carries on talking.
+            send({
+              type: "session.thinking.append",
+              event_id: `no_tools_${delegationId ?? Date.now()}`,
+              delegation_id: delegationId,
+              content: "No lookups are available on this call. Keep the conversation going.",
+            });
+            break;
+          }
+          // The request text isn't in the event; the handler reads the
+          // conversation so far. The result is spoken (paraphrased) by the model.
+          const snapshot = transcript.map((t) => ({ ...t }));
+          Promise.race([
+            opts.onDelegation(snapshot),
+            new Promise<string>((resolve) =>
+              setTimeout(
+                () => resolve("You couldn't find that just now. Say so briefly and ask them to remind you."),
+                LOOKUP_TIMEOUT_MS
+              )
+            ),
+          ])
+            .catch((error) => {
+              console.error("[voice] lookup failed", error?.message);
+              return "You couldn't look that up just now. Say so briefly and ask them to remind you.";
+            })
+            .then((content) => {
+              send({
+                type: "session.commentary.append",
+                event_id: `lookup_${delegationId}`,
+                delegation_id: delegationId,
+                content: content.slice(0, 1800),
+              });
+            });
           break;
+        }
         case "session.closed":
           closeReason = event.reason ?? null;
           durationSeconds =

@@ -105,7 +105,7 @@ export async function POST(req: Request) {
 
   // Respond to OpenAI right away; the function stays alive for the call.
   after(() =>
-    holdCallSession(call.id, sessionId, call.kind).catch((error) => {
+    holdCallSession(call.id, sessionId, call.kind, call.userId).catch((error) => {
       console.error("[voice] call session crashed", call.id, error?.message);
     })
   );
