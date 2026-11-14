@@ -18,6 +18,7 @@ import PhoneVerifyForm, {
   primaryButtonClass,
   quietLinkClass,
 } from "@/components/voice/PhoneVerifyForm";
+import QuickSchedulePrompt from "@/components/voice/QuickSchedulePrompt";
 import { startVoiceCall } from "@/components/voice/startVoiceCall";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
@@ -150,9 +151,7 @@ export default function PhoneCollectionModal({ isOpen, onClose }: Props) {
                     <span className={cn("font-medium", ink)}>After.</span> You&apos;ll see what Rize heard and pick what goes on your profile.
                   </li>
                 </ul>
-                <Button type="button" onClick={close} className={cn(primaryButtonClass, "mt-7")}>
-                  Got it
-                </Button>
+                <QuickSchedulePrompt phoneNumber={session?.user?.phoneNumber} onDone={close} />
               </>
             )}
           </div>

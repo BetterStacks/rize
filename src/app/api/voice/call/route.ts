@@ -3,12 +3,11 @@ import { auth } from "@/lib/auth";
 import db from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { loadCallerContext, needsOnboarding } from "@/lib/voice/prompt";
-import { startOutboundCall } from "@/lib/voice/twilio";
+import { placeCall } from "@/lib/voice/place-call";
 import { and, eq, gt, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-// Starts an outbound call: Twilio dials the user, then bridges the call over
-// SIP to our OpenAI project, where GPT-Live takes over.
+// "Call me": starts an outbound call right away (see placeCall).
 export async function POST(req: Request) {
   // Session only; the profile fields getServerSession adds aren't needed here.
   const session = await auth.api.getSession({ headers: req.headers }).catch(() => null);
@@ -60,30 +59,10 @@ export async function POST(req: Request) {
       ? "onboarding"
       : "journal";
 
-  const [call] = await db
-    .insert(voiceCalls)
-    .values({ userId, kind, status: "queued" })
-    .returning({ id: voiceCalls.id });
-
-  try {
-    const twilioCall = await startOutboundCall({ callId: call.id, to: user.phoneNumber });
-    await Promise.all([
-      db
-        .update(voiceCalls)
-        .set({ twilioCallSid: twilioCall.sid })
-        .where(and(eq(voiceCalls.id, call.id), eq(voiceCalls.userId, userId))),
-      kind === "onboarding"
-        ? db.update(users).set({ onboardingCallId: call.id }).where(eq(users.id, userId))
-        : null,
-    ]);
-  } catch (error: any) {
-    console.error("[voice] Twilio call create failed", error?.code, error?.message);
-    await db
-      .update(voiceCalls)
-      .set({ status: "failed", error: "Could not place the call", endedAt: new Date() })
-      .where(eq(voiceCalls.id, call.id));
+  const result = await placeCall({ userId, to: user.phoneNumber, kind, trigger: "manual" });
+  if (!result.ok) {
     return NextResponse.json({ error: "Could not place the call. Please try again later." }, { status: 502 });
   }
 
-  return NextResponse.json({ callId: call.id, kind });
+  return NextResponse.json({ callId: result.callId, kind });
 }

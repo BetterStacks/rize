@@ -1,3 +1,4 @@
+import { applyScheduleSignalsAfterCall } from "./schedule";
 import { voiceCalls, type TTranscriptTurn } from "@/db/schema";
 import db from "@/lib/db";
 import { eq } from "drizzle-orm";
@@ -81,6 +82,12 @@ export async function holdCallSession(callId: string, sessionId: string, kind: "
     .where(eq(voiceCalls.id, callId));
 
   if (!hasUserSpeech) return;
+
+  try {
+    await applyScheduleSignalsAfterCall(callId, result.transcript);
+  } catch (error: any) {
+    console.error("[voice] schedule update after call failed", callId, error?.message);
+  }
 
   try {
     if (kind === "onboarding") {

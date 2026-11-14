@@ -71,10 +71,16 @@ export const users = pgTable("user", {
   phoneNumber: text("phoneNumber").unique(),
   phoneNumberVerified: boolean("phoneNumberVerified").notNull().default(false),
   onboardingCallId: text("onboarding_call_id"),
-  // Scheduled check-in calls (not used by the app yet; data exists in production)
+  // Scheduled calls. Off until the person opts in from Settings > Voice journal.
   dailyCallEnabled: boolean("daily_call_enabled").notNull().default(false),
-  preferredCallTime: text("preferred_call_time"), // "HH:MM", 24-hour, UTC
-  callIntervalDays: integer("call_interval_days").notNull().default(1),
+  preferredCallTime: text("preferred_call_time"), // "HH:MM", 24-hour, in callTimezone
+  callTimezone: text("call_timezone"), // IANA name, e.g. "Asia/Kolkata"
+  callDays: text("call_days").array(), // "mon".."sun"
+  callIntervalDays: integer("call_interval_days").notNull().default(1), // unused
+  scheduledCallsConsentedAt: timestamp("scheduled_calls_consented_at", { withTimezone: true }),
+  lastScheduledCallAt: timestamp("last_scheduled_call_at", { withTimezone: true }),
+  missedScheduledCalls: integer("missed_scheduled_calls").notNull().default(0),
+  scheduledCallsPausedAt: timestamp("scheduled_calls_paused_at", { withTimezone: true }),
   memoryContext: text("memory_context"), // rolling summary of past check-in calls
 });
 
@@ -1144,6 +1150,8 @@ export const voiceCalls = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     kind: VoiceCallKind("kind").notNull().default("journal"),
+    // "manual" (Call me, or the person called in) or "scheduled"
+    trigger: text("trigger").$type<"manual" | "scheduled">().notNull().default("manual"),
     status: VoiceCallStatus("status").notNull().default("queued"),
     language: text("language"),
     twilioCallSid: text("twilio_call_sid").unique(),

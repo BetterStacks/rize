@@ -40,6 +40,8 @@ import { Fragment, forwardRef, useEffect, useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
 import PhoneVerifyForm from "./PhoneVerifyForm";
 import { startVoiceCall } from "./startVoiceCall";
+import CallScheduleCard from "./CallScheduleCard";
+import type { CallSchedule } from "@/actions/voice-actions";
 
 export type VoiceCallRow = {
   id: string;
@@ -70,6 +72,7 @@ type Props = {
   calls: VoiceCallRow[];
   drafts: VoiceDraftRow[];
   suggestions: OnboardingSuggestions | null;
+  schedule?: CallSchedule;
 };
 
 const STATUS_LABEL: Record<TVoiceCallStatus, string> = {
@@ -84,7 +87,7 @@ const STATUS_LABEL: Record<TVoiceCallStatus, string> = {
 const formatDuration = (s: number | null) =>
   s ? `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s` : null;
 
-export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts, suggestions }: Props) {
+export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts, suggestions, schedule }: Props) {
   const router = useRouter();
   const [changingNumber, setChangingNumber] = useState(!phoneVerified);
   const [calling, setCalling] = useState(false);
@@ -203,6 +206,9 @@ export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts
                 <Phone className="mr-2 size-4" aria-hidden />
                 {live ? "Call in progress…" : calling ? "Starting call…" : "Call me"}
               </Button>
+              {schedule && phoneNumber && (
+                <CallScheduleCard schedule={schedule} phoneNumber={phoneNumber} />
+              )}
               <p className="text-xs leading-relaxed text-ink-secondary">
                 Calls are recorded. Recordings are deleted automatically after 7 days. Transcripts and drafts stay
                 in your account until you delete them in Call history.
