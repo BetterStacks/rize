@@ -76,7 +76,7 @@ export async function POST(req: Request) {
   try {
     const journal = call.kind !== "onboarding";
     const [ctx, memories, aboutYou] = await Promise.all([
-      loadCallerContext(call.userId),
+      loadCallerContext(call.userId, { full: true }),
       journal ? loadMemoriesForCall(call.userId) : Promise.resolve([]),
       journal ? loadAboutYouForCall(call.userId) : Promise.resolve(""),
     ]);

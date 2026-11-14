@@ -137,7 +137,10 @@ export function memoriesPromptSection(memories: CallMemoryForPrompt[], now = new
   if (memories.length === 0) return "";
   const lines = memories.map((m) => {
     const said = m.quote ? ` They said: ${JSON.stringify(m.quote.slice(0, 300))}.` : "";
-    return `- ${JSON.stringify(m.note.slice(0, 160))}, ${whenLabel(m.heardAt, now)} (${m.heardAt.toISOString().slice(0, 10)}).${said}`;
+    const asOf = daysAgo(m.heardAt, now) > 30
+      ? ` As of ${m.heardAt.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" })}; may have changed.`
+      : "";
+    return `- ${JSON.stringify(m.note.slice(0, 160))}, ${whenLabel(m.heardAt, now)} (${m.heardAt.toISOString().slice(0, 10)}).${said}${asOf}`;
   });
   return `
 
@@ -146,7 +149,7 @@ ${lines.join("\n")}
 
 How to use these:
 - You may bring up at most one of them, if it fits naturally, usually as the warm-in or instead of the seed: "Last week you mentioned the internship interview. How did it go?"
-- Always say when they told you. Ask; never state it as a fact about today, since things change.
+- Always say when they told you. Ask; never state it as a fact about today, since things change. For anything from more than a month ago, start with "As of <month>, ..." or ask whether it's still true.
 - If they say it's wrong, finished or no longer true, accept it in a few words and move on.
 - Don't read the list out, don't bring up more than one, and never raise anything sensitive from it unless they bring it up first.`;
 }
