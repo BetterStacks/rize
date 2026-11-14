@@ -26,6 +26,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useLocalStorage, useMediaQuery } from "@mantine/hooks";
 import { useQuery } from '@tanstack/react-query';
+import { Phone } from 'lucide-react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useMemo } from 'react';
 import BottomBanner from '../bottom-banner';
@@ -267,7 +269,39 @@ const UserProfile = ({
       </Profile>
       {isMine && <ProfileDrawer />}
 
-      {areAllSectionsDisabled && (
+      {areAllSectionsDisabled && isMine && (
+        <section
+          aria-labelledby="start-here"
+          className="mt-2 rounded-[20px] border border-paper-border bg-highlight px-6 py-6"
+        >
+          <h2 id="start-here" className="font-instrument text-2xl leading-tight text-ink">
+            Start with a call
+          </h2>
+          <p className="mt-2 max-w-md text-[15px] text-ink-secondary">
+            Five minutes, one question about your week. What you say goes into
+            your private journal, and if something&rsquo;s worth sharing we
+            draft a post from your own words. Nothing goes up until you approve it.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Link
+              href="/settings/voice"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-medium text-on-ink transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+            >
+              <Phone aria-hidden="true" strokeWidth={1.8} className="size-4" />
+              Take your first call
+            </Link>
+            <button
+              type="button"
+              onClick={() => setActiveSidebarTab({ id: null, tab: 'edit-profile' })}
+              className="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+            >
+              Or add a bio and links
+            </button>
+          </div>
+        </section>
+      )}
+
+      {areAllSectionsDisabled && !isMine && (
         <p className={cn('border-t py-8 text-[15px]', hairline, inkSecondary)}>
           {firstName ? `${firstName} hasn’t added anything here yet.` : 'Nothing here yet.'}
         </p>

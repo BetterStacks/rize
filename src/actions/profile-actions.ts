@@ -19,6 +19,7 @@ import db from "@/lib/db";
 import {
   profileIsClaimed,
   profileIsClaimedOrOwnedBy,
+  profileHasContent,
 } from "@/lib/claimed-profiles";
 import { GetProfileByUsername, profileSchema } from "@/lib/types";
 import { and, desc, eq, getTableColumns, not, sql, lt } from "drizzle-orm";
@@ -402,6 +403,7 @@ export const getRecentlyJoinedProfilesCached = cache(
       .where(
         and(
           eq(users.isClaimed, true),
+          profileHasContent(),
           session && session.user.username
             ? not(eq(profile.username, session.user.username))
             : undefined,
@@ -458,6 +460,7 @@ export const getProfiles = async ({
     .where(
       and(
         eq(users.isClaimed, true),
+        profileHasContent(),
         cursor ? lt(profile.createdAt, new Date(cursor)) : undefined,
       ),
     )
