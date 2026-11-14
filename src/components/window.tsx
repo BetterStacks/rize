@@ -1,11 +1,13 @@
 import { useMediaQuery } from "@mantine/hooks";
 import { motion, useTransform } from "framer-motion";
 import Image from "next/image";
+import { Phone } from "lucide-react";
 import { FC } from "react";
 import { CreativeAvatar } from "./ui/creative-avatar";
 import { Initials } from "./home/mock-profile-card";
 import { initialValue } from "./editor/utils";
-import { dummyLinks, SocialLinkButton } from "./profile/social-links";
+import { getIcon, platformLabel } from "@/lib/utils";
+import { SocialPlatform } from "@/lib/types";
 import ProjectCard from "./projects/project-card";
 import { Separator } from "./ui/separator";
 import WritingCard from "./writings/writing-card";
@@ -28,6 +30,9 @@ type ProfileContainerProps = {
   projects?: any[];
   username: string;
   writings?: any[];
+  /** One shared moment, quoted from the person's own words. */
+  moment?: { quote: string; date: string };
+  links?: SocialPlatform[];
   scrollYProgress: any;
   isFirst: boolean;
 };
@@ -40,6 +45,8 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
   username,
   projects,
   writings,
+  moment,
+  links = ["instagram", "twitter", "linkedin"],
   scrollYProgress,
   isFirst,
 }) => {
@@ -56,7 +63,7 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
             className="border-2 border-hairline"
           />
         ) : (
-          <Initials name={name} className="size-16 text-3xl" />
+          <Initials name={name} className="size-16 text-3xl ring-1 ring-ink/10" />
         )}
         <h3 className="font-instrument text-3xl text-ink mt-4">{name}</h3>
         <span className="text-ink-secondary bg-subtle px-3 rounded-full text-sm py-1 font-medium mt-2">
@@ -65,19 +72,35 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
         <p className="text-ink-secondary mt-2">
           {bio}
         </p>
-        <div className="flex mt-4 flex-wrap items-center justify-start gap-2">
-          {dummyLinks.map((link, index) => {
-            return (
-              <SocialLinkButton
-                buttonClassName="shadow-none"
-                key={index}
-                platform={link.platform}
-                url={link.url}
+        <ul className="flex mt-4 items-center gap-2" aria-label={`${name}'s links`}>
+          {links.map((platform) => (
+            <li
+              key={platform}
+              title={platformLabel(platform)}
+              className="size-9 rounded-full border border-hairline bg-surface flex items-center justify-center"
+            >
+              <Image
+                src={`/${getIcon(platform) || "globe.svg"}`}
+                alt={platformLabel(platform)}
+                width={16}
+                height={16}
+                className={`size-4 ${platform === "github" || platform === "twitter" ? "dark:invert" : ""}`}
               />
-            );
-          })}
-        </div>
+            </li>
+          ))}
+        </ul>
       </div>
+      {moment && (
+        <figure className="mt-6 w-full rounded-2xl bg-highlight px-5 py-4">
+          <figcaption className="flex items-center gap-1.5 text-xs font-medium text-ink-secondary">
+            <Phone aria-hidden="true" strokeWidth={1.8} className="size-3.5" />
+            From a call · {moment.date}
+          </figcaption>
+          <blockquote className="mt-2 font-instrument text-2xl leading-snug text-ink">
+            &ldquo;{moment.quote}&rdquo;
+          </blockquote>
+        </figure>
+      )}
       {projects && projects.length > 0 && (
         <>
           <Separator className="mt-4" />
