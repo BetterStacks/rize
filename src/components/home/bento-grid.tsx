@@ -739,45 +739,35 @@ const SocialPresense = () => {
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const smallX = useTransform(scrollYProgress, inputRange, [-100, -600])
 
-  // Journal entries in quiet, on-brand tones (one in four gets the yellow wash)
-  const themes1 = [
-    'bg-subtle',
-    'bg-surface border border-hairline',
-    'bg-highlight',
-    'bg-subtle',
-    'bg-surface border border-hairline',
-  ]
-  const themes2 = [
-    'bg-surface border border-hairline',
-    'bg-highlight',
-    'bg-subtle',
-    'bg-surface border border-hairline',
-    'bg-subtle',
-  ]
-  const themes3 = [
-    'bg-highlight',
-    'bg-subtle',
-    'bg-surface border border-hairline',
-    'bg-subtle',
-    'bg-highlight',
+  // Journal entries: white cards with a hairline, one in three on the lemon wash.
+  const card = 'bg-surface border border-hairline shadow-raised'
+  const lemon = 'bg-highlight border border-paper-border'
+  const themes1 = [card, card, lemon, card, card]
+  const themes2 = [card, lemon, card, card, lemon]
+  const themes3 = [lemon, card, card, lemon, card]
+
+  // Made-up entries, written the way people talk on a call.
+  const entries = [
+    { day: 'Mon, Nov 10', length: '6 min', text: 'Presented to the whole class. Hands shook for a minute, then it was fine.' },
+    { day: 'Thu, Nov 6', length: '4 min', text: 'Finally fixed the login bug. It was one missing await. Two days for one word.' },
+    { day: 'Sun, Nov 2', length: '8 min', text: 'Went home. Amma asked what I actually do all day. I didn\'t have a good answer.' },
+    { day: 'Wed, Oct 29', length: '5 min', text: 'Didn\'t get the internship. Still glad I applied.' },
+    { day: 'Sat, Oct 25', length: '3 min', text: 'Sketched for an hour at the café. First time in months I didn\'t check my phone.' },
+    { day: 'Tue, Oct 21', length: '7 min', text: 'Our club event had forty people. I counted twice because I didn\'t believe it.' },
   ]
 
-  // A journal entry, sketched: date, a few lines of what was said, a lock.
-  const ProfileSkeleton = () => {
+  const JournalEntry = ({ index }: { index: number }) => {
+    const entry = entries[index % entries.length]
     return (
-      <div className="w-full flex flex-col items-start justify-start gap-4 h-full">
+      <div className="w-full flex flex-col items-start justify-between gap-3 h-full">
         <div className="w-full flex items-center justify-between">
-          <Skeleton className="w-20 h-5 animate-none rounded-full" />
-          <Lock aria-hidden="true" strokeWidth={1.6} className="size-4 text-ink-secondary" />
+          <span className="text-xs font-medium text-ink-secondary">{entry.day}</span>
+          <Lock aria-label="Private" strokeWidth={1.8} className="size-3.5 text-ink-secondary" />
         </div>
-        <div className="w-full flex flex-col items-start justify-start gap-2">
-          <Skeleton className="w-full h-4 animate-none" />
-          <Skeleton className="w-full h-4 animate-none" />
-          <Skeleton className="w-4/5 h-4 animate-none" />
-          <Skeleton className="w-full h-4 animate-none" />
-          <Skeleton className="w-3/5 h-4 animate-none" />
-        </div>
-        <Skeleton className="w-full flex-1 animate-none rounded-2xl" />
+        <p className="font-instrument text-[18px] leading-snug line-clamp-5 text-ink">
+          &ldquo;{entry.text}&rdquo;
+        </p>
+        <span className="text-xs text-ink-secondary">{entry.length} call · Only you</span>
       </div>
     )
   }
@@ -808,11 +798,11 @@ const SocialPresense = () => {
               <motion.div
                 key={i}
                 className={cn(
-                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem]',
+                  'max-w-[240px] shrink-0 p-5 w-full h-[240px] rounded-[1.75rem]',
                   theme
                 )}
               >
-                <ProfileSkeleton />
+                <JournalEntry index={i + 0} />
               </motion.div>
             )
           })}
@@ -826,11 +816,11 @@ const SocialPresense = () => {
               <motion.div
                 key={i}
                 className={cn(
-                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem]',
+                  'max-w-[240px] shrink-0 p-5 w-full h-[240px] rounded-[1.75rem]',
                   theme
                 )}
               >
-                <ProfileSkeleton />
+                <JournalEntry index={i + 3} />
               </motion.div>
             )
           })}
@@ -844,11 +834,11 @@ const SocialPresense = () => {
               <motion.div
                 key={i}
                 className={cn(
-                  'max-w-[240px] shrink-0 p-4 w-full h-[280px] rounded-[2rem]',
+                  'max-w-[240px] shrink-0 p-5 w-full h-[240px] rounded-[1.75rem]',
                   theme
                 )}
               >
-                <ProfileSkeleton />
+                <JournalEntry index={i + 1} />
               </motion.div>
             )
           })}
