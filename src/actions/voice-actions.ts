@@ -1,6 +1,8 @@
 "use server";
 
 import {
+  callMemories,
+  callObservations,
   education,
   experience,
   posts,
@@ -616,6 +618,101 @@ export async function saveCallSchedule(input: z.input<typeof scheduleSchema>): P
         : {}),
       updatedAt: new Date(),
     })
+    .where(eq(users.id, userId));
+  revalidatePath("/settings/voice");
+  return { success: true };
+}
+
+// --- Call memory: what Rize keeps between calls ---
+
+export type CallMemoryRow = {
+  id: string;
+  note: string;
+  status: "active" | "completed" | "superseded";
+  createdAt: string;
+  closedAt: string | null;
+  outcome: string | null;
+  quotes: { quote: string; date: string }[];
+};
+
+export async function getMyCallMemories(): Promise<{ enabled: boolean; memories: CallMemoryRow[] }> {
+  const userId = await requireUserId();
+  const [[user], rows, obs] = await Promise.all([
+    db.select({ enabled: users.callMemoryEnabled }).from(users).where(eq(users.id, userId)).limit(1),
+    db
+      .select({
+        id: callMemories.id,
+        note: callMemories.note,
+        status: callMemories.status,
+        createdAt: callMemories.createdAt,
+        closedAt: callMemories.closedAt,
+        outcome: callMemories.outcome,
+        observationIds: callMemories.observationIds,
+        outcomeObservationId: callMemories.outcomeObservationId,
+      })
+      .from(callMemories)
+      .where(eq(callMemories.userId, userId))
+      .orderBy(desc(callMemories.lastReinforcedAt))
+      .limit(200),
+    db
+      .select({ id: callObservations.id, quote: callObservations.quote, createdAt: callObservations.createdAt })
+      .from(callObservations)
+      .where(eq(callObservations.userId, userId))
+      .orderBy(desc(callObservations.createdAt))
+      .limit(1000),
+  ]);
+  const byId = new Map(obs.map((o) => [o.id, o]));
+  return {
+    enabled: user?.enabled ?? true,
+    memories: rows.map((r) => ({
+      id: r.id,
+      note: r.note,
+      status: r.status,
+      createdAt: r.createdAt.toISOString(),
+      closedAt: r.closedAt ? r.closedAt.toISOString() : null,
+      outcome: r.outcome,
+      quotes: [...r.observationIds, ...(r.outcomeObservationId ? [r.outcomeObservationId] : [])]
+        .map((id) => byId.get(id))
+        .filter((o): o is NonNullable<typeof o> => !!o)
+        .map((o) => ({ quote: o.quote, date: o.createdAt.toISOString() })),
+    })),
+  };
+}
+
+/** Really deletes one memory and the observations behind it. Only the owner's. */
+export async function deleteCallMemory(memoryId: string): Promise<ActionResult> {
+  const userId = await requireUserId();
+  if (!z.string().uuid().safeParse(memoryId).success) return { success: false, error: "Not found" };
+  const [memory] = await db
+    .delete(callMemories)
+    .where(and(eq(callMemories.id, memoryId), eq(callMemories.userId, userId)))
+    .returning({ observationIds: callMemories.observationIds, outcomeObservationId: callMemories.outcomeObservationId });
+  if (!memory) return { success: false, error: "Not found" };
+  const obsIds = [...memory.observationIds, ...(memory.outcomeObservationId ? [memory.outcomeObservationId] : [])];
+  if (obsIds.length) {
+    await db
+      .delete(callObservations)
+      .where(and(eq(callObservations.userId, userId), inArray(callObservations.id, obsIds)));
+  }
+  revalidatePath("/settings/voice");
+  return { success: true };
+}
+
+/** Deletes everything Rize remembers for this person: memories and observations. */
+export async function forgetAllCallMemories(): Promise<ActionResult> {
+  const userId = await requireUserId();
+  await db.delete(callMemories).where(eq(callMemories.userId, userId));
+  await db.delete(callObservations).where(eq(callObservations.userId, userId));
+  revalidatePath("/settings/voice");
+  return { success: true };
+}
+
+/** Turns memory between calls on or off. Off also stops using existing notes. */
+export async function setCallMemoryEnabled(enabled: boolean): Promise<ActionResult> {
+  const userId = await requireUserId();
+  await db
+    .update(users)
+    .set({ callMemoryEnabled: Boolean(enabled), updatedAt: new Date() })
     .where(eq(users.id, userId));
   revalidatePath("/settings/voice");
   return { success: true };

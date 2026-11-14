@@ -41,7 +41,8 @@ import { toast } from "react-hot-toast";
 import PhoneVerifyForm from "./PhoneVerifyForm";
 import { startVoiceCall } from "./startVoiceCall";
 import CallScheduleCard from "./CallScheduleCard";
-import type { CallSchedule } from "@/actions/voice-actions";
+import CallMemoryList from "./CallMemoryList";
+import type { CallMemoryRow, CallSchedule } from "@/actions/voice-actions";
 
 export type VoiceCallRow = {
   id: string;
@@ -73,6 +74,7 @@ type Props = {
   drafts: VoiceDraftRow[];
   suggestions: OnboardingSuggestions | null;
   schedule?: CallSchedule;
+  memory?: { enabled: boolean; memories: CallMemoryRow[] };
 };
 
 const STATUS_LABEL: Record<TVoiceCallStatus, string> = {
@@ -87,7 +89,7 @@ const STATUS_LABEL: Record<TVoiceCallStatus, string> = {
 const formatDuration = (s: number | null) =>
   s ? `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s` : null;
 
-export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts, suggestions, schedule }: Props) {
+export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts, suggestions, schedule, memory }: Props) {
   const router = useRouter();
   const [changingNumber, setChangingNumber] = useState(!phoneVerified);
   const [calling, setCalling] = useState(false);
@@ -223,6 +225,7 @@ export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts
           <TabsList>
             <TabsTrigger value="drafts">Drafts{openDrafts.length ? ` (${openDrafts.length})` : ""}</TabsTrigger>
             <TabsTrigger value="history">Call history</TabsTrigger>
+            {memory && <TabsTrigger value="memory">What Rize remembers</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="drafts" className="space-y-4 pt-4">
@@ -239,6 +242,12 @@ export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts
               <DraftCard key={draft.id} draft={draft} onChange={() => router.refresh()} />
             ))}
           </TabsContent>
+
+          {memory && (
+            <TabsContent value="memory" className="pt-4">
+              <CallMemoryList enabled={memory.enabled} memories={memory.memories} />
+            </TabsContent>
+          )}
 
           <TabsContent value="history" className="pt-4">
             {calls.length === 0 ? (

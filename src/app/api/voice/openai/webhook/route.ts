@@ -1,3 +1,4 @@
+import { loadMemoriesForCall } from "@/lib/voice/memory";
 import { voiceCalls } from "@/db/schema";
 import db from "@/lib/db";
 import { acceptSession, readSipHeader, rejectSession } from "@/lib/voice/openai-live";
@@ -73,10 +74,21 @@ export async function POST(req: Request) {
 
   const call = claimed[0];
   try {
-    const ctx = await loadCallerContext(call.userId);
+    const [ctx, memories] = await Promise.all([
+      loadCallerContext(call.userId),
+      call.kind === "onboarding" ? Promise.resolve([]) : loadMemoriesForCall(call.userId),
+    ]);
     const instructions =
-      call.kind === "onboarding" ? buildOnboardingInstructions(ctx) : buildJournalInstructions(ctx);
+      call.kind === "onboarding"
+        ? buildOnboardingInstructions(ctx)
+        : buildJournalInstructions(ctx, Math.random, memories);
     await acceptSession(sessionId, instructions);
+    if (memories.length) {
+      await db
+        .update(voiceCalls)
+        .set({ memoryIdsUsed: memories.map((m) => m.id) })
+        .where(eq(voiceCalls.id, call.id));
+    }
   } catch (error: any) {
     console.error("[voice] accept failed", call.id, error?.message);
     await db

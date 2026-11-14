@@ -1,4 +1,4 @@
-import { getMyCallSchedule, getMyVoiceCalls, getMyVoiceDrafts, getOnboardingSuggestions } from '@/actions/voice-actions'
+import { getMyCallMemories, getMyCallSchedule, getMyVoiceCalls, getMyVoiceDrafts, getOnboardingSuggestions } from '@/actions/voice-actions'
 import { SettingsHeader } from '@/components/settings/settings-section'
 import VoiceJournal from '@/components/voice/VoiceJournal'
 import { getServerSession } from '@/lib/auth'
@@ -13,11 +13,12 @@ const VoiceJournalPage = async () => {
     redirect('/login')
   }
 
-  const [calls, drafts, suggestions, schedule] = await Promise.all([
+  const [calls, drafts, suggestions, schedule, memory] = await Promise.all([
     getMyVoiceCalls(),
     getMyVoiceDrafts(),
     getOnboardingSuggestions(),
     getMyCallSchedule(),
+    getMyCallMemories(),
   ])
 
   return (
@@ -34,6 +35,7 @@ const VoiceJournalPage = async () => {
         drafts={drafts}
         suggestions={suggestions}
         schedule={schedule}
+        memory={memory}
       />
     </>
   )

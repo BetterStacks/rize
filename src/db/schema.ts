@@ -3,6 +3,7 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   customType,
+  date,
   index,
   integer,
   jsonb,
@@ -82,6 +83,8 @@ export const users = pgTable("user", {
   missedScheduledCalls: integer("missed_scheduled_calls").notNull().default(0),
   scheduledCallsPausedAt: timestamp("scheduled_calls_paused_at", { withTimezone: true }),
   memoryContext: text("memory_context"), // rolling summary of past check-in calls
+  // Lets Rize keep short notes between calls (see callMemories). On by default; the person can switch it off.
+  callMemoryEnabled: boolean("call_memory_enabled").notNull().default(true),
 });
 
 // Summaries of past check-in calls, for call memory.
@@ -1163,6 +1166,9 @@ export const voiceCalls = pgTable(
     closeReason: text("close_reason"),
     error: text("error"),
     draftsGeneratedAt: timestamp("drafts_generated_at"),
+    // Which call memories were given to the AI for this call, to check later
+    // whether memory helps or misleads.
+    memoryIdsUsed: uuid("memory_ids_used").array(),
     // Onboarding calls only: profile additions waiting for the person to review
     profileSuggestions: jsonb("profile_suggestions").$type<TProfileSuggestions>(),
     suggestionsReviewedAt: timestamp("suggestions_reviewed_at"),
@@ -1200,6 +1206,57 @@ export const voiceDrafts = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => [index("idx_voice_drafts_profile_status").on(t.profileId, t.status)]
+);
+
+// Call memory, in two layers. Observations are facts from one call, each in
+// the person's exact words (append-only). Memories are what Rize understands
+// about the person over time, built from observations and kept up to date:
+// reinforced when they come up again, completed when they happen, superseded
+// when they turn out wrong or change. Closed memories are kept as history.
+// Retrieval picks a few active memories for each call.
+export type TCallMemoryKind = "event" | "plan" | "person" | "project" | "interest" | "feeling";
+export type TCallMemoryStatus = "active" | "completed" | "superseded";
+
+export const callObservations = pgTable(
+  "call_observations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    callId: uuid("call_id")
+      .notNull()
+      .references(() => voiceCalls.id, { onDelete: "cascade" }),
+    quote: text("quote").notNull(),
+    fact: text("fact").notNull(),
+    kind: text("kind").$type<TCallMemoryKind>().notNull().default("event"),
+    synthesized: boolean("synthesized").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("idx_call_observations_user").on(t.userId, t.createdAt)]
+);
+
+export const callMemories = pgTable(
+  "call_memories",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    note: text("note").notNull(),
+    kind: text("kind").$type<TCallMemoryKind>().notNull().default("event"),
+    importance: integer("importance").notNull().default(5), // 1-10
+    followUpAfter: date("follow_up_after", { mode: "string" }),
+    status: text("status").$type<TCallMemoryStatus>().notNull().default("active"),
+    observationIds: uuid("observation_ids").array().notNull().default([]),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    outcome: text("outcome"),
+    outcomeObservationId: uuid("outcome_observation_id"),
+    supersededBy: uuid("superseded_by"),
+    lastReinforcedAt: timestamp("last_reinforced_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("idx_call_memories_user_status").on(t.userId, t.status)]
 );
 
 export const voiceCallsRelations = relations(voiceCalls, ({ one, many }) => ({

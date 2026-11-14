@@ -3,6 +3,7 @@ import { voiceCalls, type TTranscriptTurn } from "@/db/schema";
 import db from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { saveOnboardingSuggestions, generateDraftsForCall } from "./after-call";
+import { updateMemoriesAfterCall } from "./memory";
 import { runSideband } from "./openai-live";
 
 // Timeline inside one Vercel function (maxDuration 800s on Pro, Fluid Compute).
@@ -94,7 +95,13 @@ export async function holdCallSession(callId: string, sessionId: string, kind: "
       await withTimeout(saveOnboardingSuggestions(callId), POST_PROCESS_BUDGET_MS / 2);
     }
     // Onboarding calls also produce drafts; the user decides what to post.
-    await withTimeout(generateDraftsForCall(callId), POST_PROCESS_BUDGET_MS / 2);
+    // Memory notes are written alongside, from the same transcript.
+    await Promise.all([
+      withTimeout(generateDraftsForCall(callId), POST_PROCESS_BUDGET_MS / 2),
+      withTimeout(updateMemoriesAfterCall(callId), POST_PROCESS_BUDGET_MS / 2).catch((error: any) => {
+        console.error("[voice] memory update failed", callId, error?.message);
+      }),
+    ]);
   } catch (error: any) {
     // The UI offers "Generate drafts" again for calls without drafts.
     console.error("[voice] post-call processing failed", callId, error?.message);
