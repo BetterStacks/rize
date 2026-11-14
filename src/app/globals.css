@@ -27,6 +27,57 @@ body {
   }
 }
 
+/*
+ * Landing page accents (home page only). Lemon fading into peach and lilac.
+ * Dark mode keeps them very faint and leans lilac so they never go olive.
+ */
+@layer components {
+  .landing-glow {
+    background:
+      radial-gradient(60% 34% at 50% 0%, rgb(var(--wash-lemon) / 0.42), rgb(var(--wash-peach) / 0.2) 45%, transparent 72%),
+      radial-gradient(38% 26% at 0% 32%, rgb(var(--wash-peach) / 0.38), transparent 70%),
+      radial-gradient(40% 28% at 100% 58%, rgb(var(--wash-lilac) / 0.45), transparent 70%),
+      radial-gradient(60% 28% at 50% 100%, rgb(var(--wash-lemon) / 0.3), rgb(var(--wash-lilac) / 0.28) 45%, transparent 72%);
+  }
+  .dark .landing-glow {
+    background:
+      radial-gradient(60% 30% at 50% 0%, rgb(var(--wash-lilac) / 0.07), transparent 72%),
+      radial-gradient(40% 26% at 100% 58%, rgb(var(--wash-lilac) / 0.04), transparent 70%),
+      radial-gradient(60% 24% at 50% 100%, rgb(var(--wash-peach) / 0.035), transparent 72%),
+      rgb(var(--ground));
+  }
+
+  /* Solid diagonal wash for initials avatars. Text on it is always ink. */
+  .landing-wash {
+    background-image: linear-gradient(135deg, rgb(var(--wash-lemon)) 0%, rgb(var(--wash-peach)) 55%, rgb(var(--wash-lilac)) 100%);
+    color: rgb(var(--brand-ink));
+  }
+
+  /* Softer wash for larger blocks (the "From a call" quote). */
+  .landing-wash-soft {
+    background-color: rgb(var(--surface));
+    background-image: linear-gradient(135deg, rgb(var(--wash-lemon) / 0.6) 0%, rgb(var(--wash-peach) / 0.55) 55%, rgb(var(--wash-lilac) / 0.6) 100%);
+  }
+  .dark .landing-wash-soft {
+    background-color: rgb(var(--highlight));
+    background-image: linear-gradient(135deg, rgb(var(--wash-peach) / 0.06) 0%, rgb(var(--wash-lilac) / 0.07) 100%);
+  }
+
+  /* Highlighter stroke behind words in a heading. */
+  .landing-highlight {
+    background-image: linear-gradient(100deg, rgb(var(--wash-lemon) / 0.85), rgb(var(--wash-peach) / 0.85));
+    background-repeat: no-repeat;
+    background-size: 100% 0.5em;
+    background-position: 0 88%;
+    padding: 0 0.08em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  .dark .landing-highlight {
+    background-image: linear-gradient(100deg, rgb(var(--wash-lilac) / 0.16), rgb(var(--wash-peach) / 0.12));
+  }
+}
+
 @layer utilities {
   /*
    * At least a 44px hit area on touch screens without changing the box, so

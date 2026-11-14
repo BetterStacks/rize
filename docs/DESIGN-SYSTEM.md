@@ -24,6 +24,8 @@ Tokens are defined once in `src/styles/tokens.css`: light values under `:root`, 
 
 All colours take opacity modifiers (`bg-ink/5`, `ring-brand/50`). In plain CSS, write `rgb(var(--ink))`. The shadcn variables (`--background`, `--foreground`, `--border`, `--muted-foreground`, `--ring` …) in `globals.css` point at the same palette, so `bg-background`, `text-muted-foreground` and `border-border` match too. The old `--rize-*` variables in `src/styles/rize-tokens.css` are aliases.
 
+**Landing page only.** The home page wrapper has the `.landing` class, which sets `--ground` to a warm cream (`#F7F5F0`) in light mode. Its decorative washes use `--wash-lemon` (`#FFF176`), `--wash-peach` (`#FFD9C2`) and `--wash-lilac` (`#DCD6FF`) through `.landing-glow`, `.landing-wash`, `.landing-wash-soft` and `.landing-highlight` in `globals.css`. Don't use them on app pages.
+
 Contrast: ink on ground is 17:1, ink-secondary on ground 7.7:1, ink on brand 12.4:1. Dark mode: 16:1 and 8:1.
 
 ### Type

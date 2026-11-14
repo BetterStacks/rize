@@ -21,7 +21,6 @@ import { GalleryTile, ProfileContainer } from '../window'
 import { MockProfileWindow } from './mock-profile-card'
 import { SocialPlatform } from '@/lib/types'
 
-const heading = 'Your story, \n in your own words.'
 const description =
   'Rize calls you, asks one good question about your week and keeps what you say in a private journal. When something\'s worth sharing, you get a post made from your own words.'
 
@@ -340,17 +339,13 @@ const HeroSection = () => {
             variants={headingVariants}
             initial="initial"
             animate="animate"
-            className="text-5xl font-instrument text-ink md:text-7xl space-x-2 text-center font-normal tracking-tight leading-[0.95] relative "
+            className="text-5xl font-instrument text-ink md:text-7xl text-center font-normal tracking-tight leading-[0.95] relative "
           >
-            {heading.split(' ').map((line, index) => {
-              return (
-                <motion.span key={index} variants={headingVariants}>
-                  {line}
-
-                  {line === '\n' && <br />}
-                </motion.span>
-              )
-            })}
+            <motion.span variants={headingVariants}>Your story,</motion.span>
+            <br />
+            <motion.span variants={headingVariants} className="landing-highlight">
+              in your own words.
+            </motion.span>
           </motion.h1>
           <motion.p
             variants={headingVariants}
@@ -455,6 +450,20 @@ const HeroSection = () => {
                 <Lock aria-hidden="true" strokeWidth={1.8} className="size-3.5" />
                 Private by default. Nothing goes public until you say so.
               </p>
+              {/* An example of what arrives after a call, styled like a notification. */}
+              <div className="mt-3 w-full max-w-sm flex items-start gap-3 rounded-2xl border border-hairline bg-surface shadow-float px-4 py-3 text-left">
+                <Logo className="size-8 rounded-lg shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-ink-secondary">
+                    <span className="sr-only">Example notification: </span>
+                    <span className="font-medium text-ink">Rize</span> · just now
+                  </p>
+                  <p className="mt-0.5 text-sm leading-snug text-ink">
+                    Your draft from Tuesday&apos;s call is ready. Nothing goes up
+                    until you approve it.
+                  </p>
+                </div>
+              </div>
             </div>
           </motion.div>
         </motion.div>

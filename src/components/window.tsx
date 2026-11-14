@@ -91,7 +91,7 @@ export const ProfileContainer: FC<ProfileContainerProps> = ({
         </ul>
       </div>
       {moment && (
-        <figure className="mt-6 w-full rounded-2xl bg-highlight px-5 py-4">
+        <figure className="mt-6 w-full rounded-2xl landing-wash-soft px-5 py-4">
           <figcaption className="flex items-center gap-1.5 text-xs font-medium text-ink-secondary">
             <Phone aria-hidden="true" strokeWidth={1.8} className="size-3.5" />
             From a call · {moment.date}
