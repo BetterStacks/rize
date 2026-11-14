@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FormCard } from './sidebar/components/FormCard'
 import { dummyLinks } from './profile/social-links'
-import { capitalizeFirstLetter, getIcon } from '@/lib/utils'
+import { platformLabel, getIcon } from '@/lib/utils'
 import Image from 'next/image'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { getSocialLinks, upsertSocialLinks } from '@/actions/social-links-actions'
@@ -79,7 +79,7 @@ export const SocialLinksForm = ({ onClose }: { onClose?: () => void }) => {
                             />
                             <div className="flex-1">
                                 <Label htmlFor={link.platform}>
-                                    {capitalizeFirstLetter(link.platform)}
+                                    {platformLabel(link.platform)}
                                 </Label>
                                 <Input
                                     id={link.platform}

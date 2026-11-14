@@ -163,6 +163,20 @@ export const capitalizeFirstLetter = (str: string) => {
   return str?.charAt(0)?.toUpperCase() + str?.slice(1);
 };
 
+const PLATFORM_LABELS: Record<string, string> = {
+  twitter: 'X',
+  x: 'X',
+  linkedin: 'LinkedIn',
+  youtube: 'YouTube',
+  github: 'GitHub',
+  tiktok: 'TikTok',
+  other: 'Website',
+};
+
+/** Display name for a social platform key, with the brand's own spelling. */
+export const platformLabel = (platform: string) =>
+  PLATFORM_LABELS[platform?.toLowerCase()] ?? capitalizeFirstLetter(platform);
+
 export const availablePlatforms: SocialPlatform[] = [
   "facebook",
   "twitter",
