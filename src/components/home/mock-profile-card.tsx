@@ -14,7 +14,7 @@ export const Initials: FC<{ name: string; className?: string }> = ({
   <div
     aria-hidden="true"
     className={cn(
-      'rounded-full bg-brand text-brand-ink flex items-center justify-center font-instrument',
+      'rounded-full landing-wash flex items-center justify-center font-instrument',
       className
     )}
   >

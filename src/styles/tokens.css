@@ -34,6 +34,14 @@
   --paper-border: 227 218 203;    /* #E3DACB */
   --highlight: 255 246 191;       /* #FFF6BF lemon wash behind quoted words */
 
+  /* Landing-page washes: brand lemon fading into a soft peach and lilac.
+     Only for decorative gradients on the home page (see .landing-* in
+     globals.css). Ink stays AA on each: 14.8:1 lemon, 13.0:1 peach,
+     12.3:1 lilac. */
+  --wash-lemon: 255 241 118;      /* #FFF176 */
+  --wash-peach: 255 217 194;      /* #FFD9C2 */
+  --wash-lilac: 220 214 255;      /* #DCD6FF */
+
   /* Radius: one scale. 8 controls, 12 fields/menus/toasts, 20 dialogs/cards */
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -76,4 +84,15 @@
 
   --overlay: 0 0 0;
   --overlay-opacity: 0.55;
+}
+
+/* The landing page sits on a warm cream instead of white, so white cards read
+   as cards. Scoped to the home page wrapper; app pages keep --ground. */
+.landing {
+  --ground: 247 245 240;          /* #F7F5F0 */
+  --subtle: 238 234 226;          /* #EEEAE2: one step deeper so wells keep the gap they had on white */
+}
+.dark .landing {
+  --ground: 17 17 19;             /* unchanged in dark */
+  --subtle: 36 36 40;
 }

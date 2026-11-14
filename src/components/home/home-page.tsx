@@ -38,11 +38,11 @@ export default function HomePage() {
 
 
   return (
-    <div className="relative isolate w-full flex flex-col bg-ground text-ink">
-      {/* Soft warm washes in the brand yellow behind the whole page (decorative). */}
+    <div className="landing relative isolate w-full flex flex-col bg-ground text-ink">
+      {/* Soft washes behind the whole page: lemon fading into peach and lilac (decorative). */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden [background:radial-gradient(60%_34%_at_50%_0%,rgba(255,241,118,0.42),transparent_72%),radial-gradient(38%_26%_at_0%_32%,rgba(255,246,170,0.35),transparent_70%),radial-gradient(40%_28%_at_100%_58%,rgba(255,241,118,0.28),transparent_70%),radial-gradient(60%_28%_at_50%_100%,rgba(255,241,118,0.36),transparent_72%)] dark:[background:radial-gradient(60%_30%_at_50%_0%,rgba(255,241,118,0.07),transparent_72%),radial-gradient(60%_24%_at_50%_100%,rgba(255,241,118,0.05),transparent_72%),#111113]"
+        className="landing-glow pointer-events-none absolute inset-0 -z-10 overflow-hidden"
       />
       <div className="max-w-screen-2xl w-full min-h-screen  mx-auto">
         <HeroSection />
