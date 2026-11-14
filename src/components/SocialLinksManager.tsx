@@ -9,7 +9,7 @@ import { Edit2, Loader, Plus, Trash2 } from 'lucide-react'
 import NextLink from 'next/link'
 
 import { queryClient } from '@/lib/providers'
-import { capitalizeFirstLetter, cleanUrl, cn, getIcon } from '@/lib/utils'
+import { platformLabel, cleanUrl, cn, getIcon } from '@/lib/utils'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Share2 } from 'lucide-react'
 import Image from 'next/image'
@@ -197,7 +197,7 @@ const SocialLink: React.FC<SocialLinkProps> = ({
         {/* </div> */}
         <div className="flex flex-col w-full">
           <h3 className={cn('font-medium leading-none tracking-tight')}>
-            {capitalizeFirstLetter(platform)}
+            {platformLabel(platform)}
           </h3>
           <NextLink
             href={url}

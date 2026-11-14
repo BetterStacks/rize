@@ -47,7 +47,7 @@ const initial: SocialLinksProps[] = [
   {
     baseUrl: 'youtube.com/@',
     icon: <Youtube className="opacity-70 size-6" strokeWidth={1.4} />,
-    name: 'Youtube',
+    name: 'YouTube',
     value: '',
   },
   {

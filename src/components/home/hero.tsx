@@ -9,7 +9,7 @@ import {
   useTransform,
   Variants,
 } from 'framer-motion'
-import { BookLock, Lock, PenLine, Phone } from 'lucide-react'
+import { BookLock, ChevronRight, Lock, PenLine, Phone } from 'lucide-react'
 import { useSession } from '@/hooks/useAuth'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -22,7 +22,7 @@ import { MockProfileWindow } from './mock-profile-card'
 
 const heading = 'Your story, \n in your own words.'
 const description =
-  'Rize calls you, asks one good question about your week and keeps what you say\n in a private journal. When something\'s worth sharing, you get a post made from your own words.'
+  'Rize calls you, asks one good question about your week and keeps what you say in a private journal. When something\'s worth sharing, you get a post made from your own words.'
 
 const headingVariants: Variants = {
   initial: {
@@ -212,9 +212,9 @@ const displayNames: {
 
 // What the hero promises, in three small steps (replaces the old avatar stack).
 const steps = [
-  { icon: Phone, label: 'A short call' },
-  { icon: BookLock, label: 'A private journal' },
-  { icon: PenLine, label: 'Posts in your words' },
+  { icon: Phone, label: 'Rize calls you' },
+  { icon: BookLock, label: 'It stays in your journal' },
+  { icon: PenLine, label: 'You approve what goes public' },
 ]
 
 const HeroSection = () => {
@@ -344,14 +344,9 @@ const HeroSection = () => {
             variants={headingVariants}
             initial="initial"
             animate="animate"
-            className="text-center mt-3 max-w-2xl tracking-tight font-inter px-4 md:px-5 text-ink-secondary leading-snug md:text-lg "
+            className="text-center mt-3 max-w-[36rem] text-balance tracking-tight font-inter px-4 md:px-5 text-ink-secondary text-base leading-snug md:text-lg"
           >
-            {description.split('\n').map((line, index) => (
-              <motion.span className="" key={index} variants={headingVariants}>
-                {line}
-                <br className="hidden md:flex" />
-              </motion.span>
-            ))}
+            {description}
           </motion.p>
           <motion.div
             variants={headingVariants}
@@ -371,7 +366,7 @@ const HeroSection = () => {
                 hideClaimUsernameNavbar
                   ? {
                     position: 'fixed',
-                    top: '0.5rem',
+                    bottom: '1rem',
                     zIndex: 50,
                   }
                   : { position: 'static', zIndex: 10, y: 0 }
@@ -405,43 +400,49 @@ const HeroSection = () => {
                 />
               )}
             </motion.div>
-            <div className="w-full flex items-center z-10 justify-center mt-8  ">
-              <motion.div
+            <div className="w-full flex flex-col items-center z-10 justify-center mt-8 gap-3">
+              <motion.ol
                 variants={avatarContainerVariants}
                 initial="hidden"
                 animate="visible"
-                className=" flex -space-x-4"
+                className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-1"
+                aria-label="How Rize works"
               >
                 {steps.map(({ icon: Icon, label }, index) => {
                   return (
-                    <motion.div
+                    <motion.li
                       key={label}
                       variants={itemVariants}
-                      whileHover={{ scale: 1.1, zIndex: 20 }}
-                      style={{ zIndex: index }}
-                      title={label}
-                      className={cn(
-                        'size-10 md:size-12 outline outline-2 outline-ground aspect-square rounded-full flex items-center justify-center relative',
-                        index === 0
-                          ? 'bg-brand text-brand-ink'
-                          : 'bg-subtle text-ink border border-hairline'
-                      )}
+                      className="flex items-center gap-2"
                     >
-                      <Icon aria-hidden="true" strokeWidth={1.6} className="size-4 md:size-5" />
-                      <span className="sr-only">{label}</span>
-                    </motion.div>
+                      {index > 0 && (
+                        <ChevronRight
+                          aria-hidden="true"
+                          strokeWidth={1.6}
+                          className="hidden sm:block size-4 text-ink-secondary/60 mx-1"
+                        />
+                      )}
+                      <span
+                        className={cn(
+                          'size-9 shrink-0 rounded-full flex items-center justify-center',
+                          index === 0
+                            ? 'bg-brand text-brand-ink ring-1 ring-ink/10'
+                            : 'bg-surface text-ink border border-hairline'
+                        )}
+                      >
+                        <Icon aria-hidden="true" strokeWidth={1.6} className="size-4" />
+                      </span>
+                      <span className="text-sm md:text-[15px] text-ink font-medium whitespace-nowrap">
+                        {label}
+                      </span>
+                    </motion.li>
                   )
                 })}
-              </motion.div>
-              <div className="flex flex-col items-start ml-3 gap-x-1">
-                <span className="text-ink font-medium text-sm md:text-base flex items-center gap-1.5">
-                  <Lock aria-hidden="true" strokeWidth={1.8} className="size-3.5" />
-                  Private by default
-                </span>
-                <span className="text-ink-secondary text-sm">
-                  Your calls and journal stay private.
-                </span>
-              </div>
+              </motion.ol>
+              <p className="text-ink-secondary text-sm flex items-center gap-1.5">
+                <Lock aria-hidden="true" strokeWidth={1.8} className="size-3.5" />
+                Private by default. Nothing goes public until you say so.
+              </p>
             </div>
           </motion.div>
         </motion.div>

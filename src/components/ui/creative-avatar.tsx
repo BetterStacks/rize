@@ -16,7 +16,7 @@ import {
   Rocket
 } from 'lucide-react'
 import Image from 'next/image'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 interface CreativeAvatarProps {
@@ -118,6 +118,8 @@ export function CreativeAvatar({
   
   // Check if src is a creative avatar format
   const isCreativeAvatar = src?.startsWith('creative-')
+  // A photo link can stop working (expired or removed); fall back to initials then.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
   const { creativeVariantFromSrc, creativeTimestamp } = useMemo(() => {
     if (!isCreativeAvatar || !src) return { creativeVariantFromSrc: null, creativeTimestamp: null }
     const parts = src.split('-')
@@ -158,7 +160,7 @@ export function CreativeAvatar({
   const initials = getInitials(name)
 
   // Render actual image if available (but not creative avatar format)
-  if (src && !isCreativeAvatar) {
+  if (src && !isCreativeAvatar && failedSrc !== src) {
     return (
       <motion.div
         className={cn(
@@ -175,7 +177,8 @@ export function CreativeAvatar({
           alt={`${name} avatar`}
           fill
           className="object-cover rounded-full"
-          sizes={`${sizeClasses[size]}`}
+          sizes="96px"
+          onError={() => setFailedSrc(src)}
         />
         
         {/* Subtle overlay for better contrast */}

@@ -4,7 +4,7 @@ import { getSocialLinks } from '@/actions/social-links-actions'
 import { PROFILE_STALE_TIME } from '@/lib/profile-query'
 import { safeHref } from '@/lib/safe-href'
 import type { SocialPlatform } from '@/lib/types'
-import { capitalizeFirstLetter, cn, getIcon } from '@/lib/utils'
+import { cn, getIcon, platformLabel } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { Pencil } from 'lucide-react'
 import Image from 'next/image'
@@ -42,8 +42,6 @@ export const dummyLinks: { platform: SocialPlatform; url: string }[] = [
   },
 ]
 
-const platformLabel = (platform: string) =>
-  platform === 'twitter' ? 'X' : platform === 'other' ? 'Website' : capitalizeFirstLetter(platform)
 
 
 type SocialLink = { id?: string; platform: string; url: string }

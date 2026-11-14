@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SocialPlatform } from '@/lib/types'
 import toast from 'react-hot-toast'
-import { capitalizeFirstLetter } from '@/lib/utils'
+import { platformLabel } from '@/lib/utils'
 import { useMutation } from '@tanstack/react-query'
 import { editSocialLink } from '@/actions/social-links-actions'
 import { queryClient } from '@/lib/providers'
@@ -52,7 +52,7 @@ const EditSocialLink: React.FC<EditSocialLinkProps> = ({
     mutationFn: ({ id, url }: { id: string; url: string }) =>
       editSocialLink(id, url),
     onSuccess: () => {
-      toast.success(`${capitalizeFirstLetter(platform)} link updated`)
+      toast.success(`${platformLabel(platform)} link updated`)
       queryClient.invalidateQueries({ queryKey: ['get-social-links'] })
     },
     onError: (error) => {
@@ -87,7 +87,7 @@ const EditSocialLink: React.FC<EditSocialLinkProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md dark:bg-dark-bg bg-white sm:rounded-3xl">
         <DialogHeader>
-          <DialogTitle>Edit {capitalizeFirstLetter(platform)} Link</DialogTitle>
+          <DialogTitle>Edit {platformLabel(platform)} link</DialogTitle>
           <DialogDescription>
             Update your social media profile link.
           </DialogDescription>
