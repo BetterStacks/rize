@@ -4,6 +4,7 @@ import db from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { saveOnboardingSuggestions, generateDraftsForCall } from "./after-call";
 import { updateMemoriesAfterCall } from "./memory";
+import { lookupForCall } from "./lookup";
 import { runSideband } from "./openai-live";
 
 // Timeline inside one Vercel function (maxDuration 800s on Pro, Fluid Compute).
@@ -39,7 +40,12 @@ const withTimeout = <T,>(p: Promise<T>, ms: number) =>
     ),
   ]);
 
-export async function holdCallSession(callId: string, sessionId: string, kind: "journal" | "onboarding") {
+export async function holdCallSession(
+  callId: string,
+  sessionId: string,
+  kind: "journal" | "onboarding",
+  userId?: string
+) {
   let latest: TTranscriptTurn[] = [];
   let lastFlush = 0;
   let flushing: Promise<unknown> | null = null;
@@ -62,6 +68,9 @@ export async function holdCallSession(callId: string, sessionId: string, kind: "
     sessionId,
     ...TIMINGS[kind],
     wrapUpMessage: WRAP_UP_MESSAGE,
+    // Journaling calls can look back at the person's own earlier calls.
+    onDelegation:
+      kind === "journal" && userId ? (transcript) => lookupForCall(userId, callId, transcript) : undefined,
     onTranscript: (transcript) => {
       latest = transcript;
       if (Date.now() - lastFlush > TRANSCRIPT_FLUSH_MS) flush();
