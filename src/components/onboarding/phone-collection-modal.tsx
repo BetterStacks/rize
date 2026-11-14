@@ -18,6 +18,7 @@ import PhoneVerifyForm, {
   primaryButtonClass,
   quietLinkClass,
 } from "@/components/voice/PhoneVerifyForm";
+import QuickSchedulePrompt from "@/components/voice/QuickSchedulePrompt";
 import { startVoiceCall } from "@/components/voice/startVoiceCall";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,8 @@ type Props = {
   isOpen: boolean;
   userName?: string;
   onClose?: () => void;
+  /** Offer "call me again on a schedule" while the first call rings. */
+  scheduleAvailable?: boolean;
 };
 
 type Stage = "setup" | "placing" | "calling" | "call_failed";
@@ -37,7 +40,7 @@ type Stage = "setup" | "placing" | "calling" | "call_failed";
 const ink = "text-[#1F1B16] dark:text-[#F4F4F5]";
 const muted = "text-[#5A5248] dark:text-[#A9A9AE]";
 
-export default function PhoneCollectionModal({ isOpen, onClose }: Props) {
+export default function PhoneCollectionModal({ isOpen, onClose, scheduleAvailable = false }: Props) {
   const { data: session } = useSession();
   const router = useRouter();
   // Local state, so a server refresh after verification (which stops the
@@ -150,9 +153,13 @@ export default function PhoneCollectionModal({ isOpen, onClose }: Props) {
                     <span className={cn("font-medium", ink)}>After.</span> You&apos;ll see what Rize heard and pick what goes on your profile.
                   </li>
                 </ul>
-                <Button type="button" onClick={close} className={cn(primaryButtonClass, "mt-7")}>
-                  Got it
-                </Button>
+                {scheduleAvailable ? (
+                  <QuickSchedulePrompt phoneNumber={session?.user?.phoneNumber} onDone={close} />
+                ) : (
+                  <Button type="button" onClick={close} className={cn(primaryButtonClass, "mt-7")}>
+                    Got it
+                  </Button>
+                )}
               </>
             )}
           </div>

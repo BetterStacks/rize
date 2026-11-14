@@ -13,6 +13,7 @@ import { notFound } from "next/navigation";
 import { FC } from "react";
 import ViewTracker from "./analytics/ViewTracker";
 import PhoneCollectionModal from "./onboarding/phone-collection-modal";
+import { scheduledCallsAllowed } from "@/lib/voice/schedule";
 import ProfileNotFound from "./profile-not-found";
 import UserProfile from "./profile/user-profile";
 import ScrollFixWrapper from "./scroll-fix-wrapper";
@@ -96,6 +97,7 @@ const ProfilePage: FC<Props> = async ({ username }) => {
         <PhoneCollectionModal
           isOpen={true}
           userName={session?.user?.displayName || "there"}
+          scheduleAvailable={scheduledCallsAllowed(session!.user.id)}
         />
       )}
 
