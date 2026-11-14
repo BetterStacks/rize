@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
+import AboutYouNote from "./AboutYouNote";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -39,7 +40,15 @@ const dateLabel = (iso: string) =>
  * "What Rize remembers": the notes kept between calls, each with the
  * person's own words and when they said it. Deleting really deletes.
  */
-export default function CallMemoryList({ enabled, memories }: { enabled: boolean; memories: CallMemoryRow[] }) {
+export default function CallMemoryList({
+  enabled,
+  aboutYou,
+  memories,
+}: {
+  enabled: boolean;
+  aboutYou: string;
+  memories: CallMemoryRow[];
+}) {
   const router = useRouter();
   const [on, setOn] = useState(enabled);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -80,6 +89,8 @@ export default function CallMemoryList({ enabled, memories }: { enabled: boolean
         </div>
         <Switch id="memory-switch" checked={on} onCheckedChange={toggle} />
       </div>
+
+      {on && <AboutYouNote initial={aboutYou} />}
 
       {memories.length === 0 ? (
         <p className="text-[15px] text-ink-secondary">

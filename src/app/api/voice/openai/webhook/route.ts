@@ -1,4 +1,4 @@
-import { loadMemoriesForCall } from "@/lib/voice/memory";
+import { loadAboutYouForCall, loadMemoriesForCall } from "@/lib/voice/memory";
 import { voiceCalls } from "@/db/schema";
 import db from "@/lib/db";
 import { acceptSession, readSipHeader, rejectSession } from "@/lib/voice/openai-live";
@@ -74,14 +74,16 @@ export async function POST(req: Request) {
 
   const call = claimed[0];
   try {
-    const [ctx, memories] = await Promise.all([
+    const journal = call.kind !== "onboarding";
+    const [ctx, memories, aboutYou] = await Promise.all([
       loadCallerContext(call.userId),
-      call.kind === "onboarding" ? Promise.resolve([]) : loadMemoriesForCall(call.userId),
+      journal ? loadMemoriesForCall(call.userId) : Promise.resolve([]),
+      journal ? loadAboutYouForCall(call.userId) : Promise.resolve(""),
     ]);
     const instructions =
       call.kind === "onboarding"
         ? buildOnboardingInstructions(ctx)
-        : buildJournalInstructions(ctx, Math.random, memories);
+        : buildJournalInstructions(ctx, Math.random, memories, aboutYou);
     await acceptSession(sessionId, instructions);
     if (memories.length) {
       await db

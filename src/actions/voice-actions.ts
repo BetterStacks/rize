@@ -19,6 +19,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { generateDraftsForCall } from "@/lib/voice/after-call";
 import { findPendingOnboardingSuggestions } from "@/lib/voice/pending-suggestions";
 import { SUGGESTION_TEXT_LIMITS, cleanPlainText, suggestionDate } from "@/lib/voice/profile-suggestions";
+import { ABOUT_YOU_MAX, readAboutYou, rebuildAboutYou, writeAboutYou } from "@/lib/voice/memory";
 import { deleteRecording } from "@/lib/voice/r2";
 import {
   CALL_DAYS,
@@ -635,10 +636,14 @@ export type CallMemoryRow = {
   quotes: { quote: string; date: string }[];
 };
 
-export async function getMyCallMemories(): Promise<{ enabled: boolean; memories: CallMemoryRow[] }> {
+export async function getMyCallMemories(): Promise<{ enabled: boolean; aboutYou: string; memories: CallMemoryRow[] }> {
   const userId = await requireUserId();
   const [[user], rows, obs] = await Promise.all([
-    db.select({ enabled: users.callMemoryEnabled }).from(users).where(eq(users.id, userId)).limit(1),
+    db
+      .select({ enabled: users.callMemoryEnabled, raw: users.memoryContext })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1),
     db
       .select({
         id: callMemories.id,
@@ -664,6 +669,7 @@ export async function getMyCallMemories(): Promise<{ enabled: boolean; memories:
   const byId = new Map(obs.map((o) => [o.id, o]));
   return {
     enabled: user?.enabled ?? true,
+    aboutYou: readAboutYou(user?.raw),
     memories: rows.map((r) => ({
       id: r.id,
       note: r.note,
@@ -686,7 +692,11 @@ export async function deleteCallMemory(memoryId: string): Promise<ActionResult> 
   const [memory] = await db
     .delete(callMemories)
     .where(and(eq(callMemories.id, memoryId), eq(callMemories.userId, userId)))
-    .returning({ observationIds: callMemories.observationIds, outcomeObservationId: callMemories.outcomeObservationId });
+    .returning({
+      note: callMemories.note,
+      observationIds: callMemories.observationIds,
+      outcomeObservationId: callMemories.outcomeObservationId,
+    });
   if (!memory) return { success: false, error: "Not found" };
   const obsIds = [...memory.observationIds, ...(memory.outcomeObservationId ? [memory.outcomeObservationId] : [])];
   if (obsIds.length) {
@@ -694,6 +704,10 @@ export async function deleteCallMemory(memoryId: string): Promise<ActionResult> 
       .delete(callObservations)
       .where(and(eq(callObservations.userId, userId), inArray(callObservations.id, obsIds)));
   }
+  // Take it out of the "about you" note too.
+  await rebuildAboutYou(userId, { forget: memory.note }).catch((error: any) =>
+    console.error("[voice] about-you rebuild failed", error?.message)
+  );
   revalidatePath("/settings/voice");
   return { success: true };
 }
@@ -703,6 +717,21 @@ export async function forgetAllCallMemories(): Promise<ActionResult> {
   const userId = await requireUserId();
   await db.delete(callMemories).where(eq(callMemories.userId, userId));
   await db.delete(callObservations).where(eq(callObservations.userId, userId));
+  await db.update(users).set({ memoryContext: null }).where(eq(users.id, userId));
+  revalidatePath("/settings/voice");
+  return { success: true };
+}
+
+/** Saves the person's own edit of their "about you" note. Empty clears it. */
+export async function saveAboutYou(text: string): Promise<ActionResult> {
+  const userId = await requireUserId();
+  const parsed = z.string().max(ABOUT_YOU_MAX, `Keep it under ${ABOUT_YOU_MAX} characters`).safeParse(text ?? "");
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Too long" };
+  const clean = cleanPlainText(parsed.data, ABOUT_YOU_MAX);
+  await db
+    .update(users)
+    .set({ memoryContext: clean ? writeAboutYou(clean) : null, updatedAt: new Date() })
+    .where(eq(users.id, userId));
   revalidatePath("/settings/voice");
   return { success: true };
 }
