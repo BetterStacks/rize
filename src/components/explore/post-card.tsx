@@ -231,6 +231,13 @@ const PostCard: FC<PostCardProps> = ({ post, className, mediaContainerClassName 
         <PostAuthorLine post={post} />
       </div>
 
+      {post?.answersQuestion && (
+        <p className="mx-4 mt-3 rounded-xl bg-highlight px-3 py-2 text-sm text-ink">
+          <span className="text-ink-secondary">Answering a reader&apos;s question: </span>
+          &ldquo;{post.answersQuestion}&rdquo;
+        </p>
+      )}
+
       {post?.content && (
         <div
           className={cn(

@@ -42,6 +42,8 @@ import PhoneVerifyForm from "./PhoneVerifyForm";
 import { startVoiceCall } from "./startVoiceCall";
 import CallScheduleCard from "./CallScheduleCard";
 import CallMemoryList from "./CallMemoryList";
+import QuestionsInbox from "./QuestionsInbox";
+import type { IncomingQuestion } from "@/actions/question-actions";
 import type { CallMemoryRow, CallSchedule } from "@/actions/voice-actions";
 
 export type VoiceCallRow = {
@@ -74,6 +76,7 @@ type Props = {
   drafts: VoiceDraftRow[];
   suggestions: OnboardingSuggestions | null;
   schedule?: CallSchedule;
+  questions?: IncomingQuestion[];
   memory?: { enabled: boolean; aboutYou: string; profileSummary: string; memories: CallMemoryRow[] };
 };
 
@@ -89,7 +92,16 @@ const STATUS_LABEL: Record<TVoiceCallStatus, string> = {
 const formatDuration = (s: number | null) =>
   s ? `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s` : null;
 
-export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts, suggestions, schedule, memory }: Props) {
+export default function VoiceJournal({
+  phoneNumber,
+  phoneVerified,
+  calls,
+  drafts,
+  suggestions,
+  schedule,
+  memory,
+  questions = [],
+}: Props) {
   const router = useRouter();
   const [changingNumber, setChangingNumber] = useState(!phoneVerified);
   const [calling, setCalling] = useState(false);
@@ -219,6 +231,8 @@ export default function VoiceJournal({ phoneNumber, phoneVerified, calls, drafts
           )}
         </div>
       </section>
+
+      <QuestionsInbox questions={questions} />
 
       <section aria-label="Drafts and call history" className="border-t border-hairline pt-8">
         <Tabs defaultValue="drafts" className="w-full">

@@ -3,7 +3,7 @@ import { appSidebarSlot } from '@/components/layout/app-sidebar-slot'
 import PersonAvatar from '@/components/profile/person-avatar'
 import { getServerSession } from '@/lib/auth'
 import { loadNotifications, type NotificationItem } from '@/lib/notifications'
-import { ArrowBigUp, Bookmark, PhoneCall, type LucideIcon } from 'lucide-react'
+import { ArrowBigUp, Bookmark, MessageCircleQuestion, PhoneCall, type LucideIcon } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
@@ -112,6 +112,25 @@ const describe = (item: NotificationItem): { lead: ReactNode; detail?: string } 
           </>
         ),
       }
+    case 'questions':
+      return {
+        lead: (
+          <>
+            <span className="font-medium text-ink">
+              {item.count === 1 ? 'Someone asked you a question' : `${item.count} people asked you questions`}
+            </span>{' '}
+            from your profile. Only you can see {item.count === 1 ? 'it' : 'them'}.
+          </>
+        ),
+      }
+    case 'question-answered':
+      return {
+        lead: (
+          <>
+            <span className="font-medium text-ink">{item.name}</span> answered your question &ldquo;{item.question}&rdquo;
+          </>
+        ),
+      }
     case 'voice-suggestions':
       return {
         lead: (
@@ -131,6 +150,8 @@ const ICONS: Record<Exclude<NotificationItem['kind'], 'comment'>, LucideIcon> = 
   'project-saves': Bookmark,
   'voice-drafts': PhoneCall,
   'voice-suggestions': PhoneCall,
+  questions: MessageCircleQuestion,
+  'question-answered': MessageCircleQuestion,
 }
 
 const Leading = ({ item }: { item: NotificationItem }) => {

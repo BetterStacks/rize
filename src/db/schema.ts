@@ -1166,6 +1166,8 @@ export const voiceCalls = pgTable(
     closeReason: text("close_reason"),
     error: text("error"),
     draftsGeneratedAt: timestamp("drafts_generated_at"),
+    // A reader's question this call asked (see profileQuestions).
+    questionId: uuid("question_id"),
     // Which call memories were given to the AI for this call, to check later
     // whether memory helps or misleads.
     memoryIdsUsed: uuid("memory_ids_used").array(),
@@ -1257,6 +1259,45 @@ export const callMemories = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("idx_call_memories_user_status").on(t.userId, t.status)]
+);
+
+// "Ask them something": a signed-in visitor's question on someone's profile.
+// Private to the owner until they answer; a Rize call asks it only if they
+// accept it, and the answer is a post they approve.
+export type TProfileQuestionStatus = "pending" | "accepted" | "asked" | "answered" | "skipped";
+export const profileQuestions = pgTable(
+  "profile_questions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    askerProfileId: uuid("asker_profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    question: text("question").notNull(),
+    status: text("status").$type<TProfileQuestionStatus>().notNull().default("pending"),
+    callId: uuid("call_id"),
+    answerPostId: uuid("answer_post_id"),
+    answeredAt: timestamp("answered_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("idx_profile_questions_profile_status").on(t.profileId, t.status)]
+);
+
+export const profileQuestionBlocks = pgTable(
+  "profile_question_blocks",
+  {
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    blockedProfileId: uuid("blocked_profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.profileId, t.blockedProfileId] })]
 );
 
 export const voiceCallsRelations = relations(voiceCalls, ({ one, many }) => ({

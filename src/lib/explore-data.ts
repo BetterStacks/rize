@@ -17,6 +17,7 @@ import {
   postVotes,
   posts,
   profile,
+  profileQuestions,
   users,
 } from "@/db/schema";
 import db from "@/lib/db";
@@ -58,6 +59,11 @@ export const postCardColumns = () => ({
     ORDER BY m.created_at, m.id
     LIMIT 1
   )`.as("media"),
+  answersQuestion: sql<string | null>`(
+    SELECT pq.question FROM ${profileQuestions} pq
+    WHERE pq.answer_post_id = ${POST_ID} AND pq.status = 'answered'
+    LIMIT 1
+  )`.as("answersQuestion"),
   link: sql<GetExplorePosts["link"]>`(
     SELECT json_build_object('id', l.id, 'url', l.url, 'data', l.data, 'createdAt', l.created_at)
     FROM ${postLinks} l
@@ -189,7 +195,7 @@ const loadPopularPosts = async (): Promise<GetExplorePosts[]> => {
 
 const popularPostsCached = unstable_cache(
   loadPopularPosts,
-  ["explore-popular-posts-v2"],
+  ["explore-popular-posts-v3"],
   { revalidate: EXPLORE_CACHE_SECONDS, tags: ["explore"] },
 );
 

@@ -31,6 +31,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useMemo } from 'react';
 import BottomBanner from '../bottom-banner';
+import AskQuestionCard from './AskQuestionCard';
 import CertificatesList from "../certificates/certificates-list";
 import Education from '../education/education';
 import WorkExperience, { sortExperience } from '../experience/experience';
@@ -268,6 +269,9 @@ const UserProfile = ({
         )}
       </Profile>
       {isMine && <ProfileDrawer />}
+      {!isMine && (profile?.username || params.username) && (
+        <AskQuestionCard username={(profile?.username || params.username) as string} />
+      )}
 
       {areAllSectionsDisabled && isMine && (
         <section

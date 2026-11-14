@@ -5,6 +5,7 @@ import {
   posts,
   profile,
   projectBookmarks,
+  profileQuestions,
   projectVotes,
   projects,
   voiceCalls,
@@ -62,7 +63,9 @@ export type NotificationItem =
     target: string;
   }
   | { kind: "voice-drafts"; id: string; at: Date; href: string; count: number }
-  | { kind: "voice-suggestions"; id: string; at: Date; href: string };
+  | { kind: "voice-suggestions"; id: string; at: Date; href: string }
+  | { kind: "questions"; id: string; at: Date; href: string; count: number }
+  | { kind: "question-answered"; id: string; at: Date; href: string; question: string; name: string };
 
 type Owner = { profileId: string; userId: string };
 
@@ -97,6 +100,17 @@ const where = {
     othersActivity(projects.profileId, projectBookmarks.profileId, projectBookmarks.createdAt, o),
   voiceDrafts: (o: Owner) =>
     and(eq(voiceDrafts.profileId, o.profileId), eq(voiceDrafts.status, "draft")),
+  // Questions readers asked you, waiting for you to take or pass.
+  questions: (o: Owner) =>
+    and(eq(profileQuestions.profileId, o.profileId), eq(profileQuestions.status, "pending")),
+  // Questions you asked that someone answered with a post.
+  answered: (o: Owner) =>
+    and(
+      eq(profileQuestions.askerProfileId, o.profileId),
+      eq(profileQuestions.status, "answered"),
+      isNotNull(profileQuestions.answerPostId),
+      gte(profileQuestions.answeredAt, since()),
+    ),
   voiceSuggestions: (o: Owner) =>
     and(
       eq(voiceCalls.userId, o.userId),
@@ -141,6 +155,8 @@ export async function loadNotifications(owner: Owner): Promise<NotificationItem[
     projectSaveRows,
     [drafts],
     [suggestions],
+    [questions],
+    answeredRows,
   ] = await Promise.all([
     db
       .select({
@@ -225,6 +241,24 @@ export async function loadNotifications(owner: Owner): Promise<NotificationItem[
       .where(where.voiceSuggestions(owner))
       .orderBy(desc(voiceCalls.createdAt))
       .limit(1),
+    db
+      .select({ count: count(), at: latestOf(profileQuestions.createdAt) })
+      .from(profileQuestions)
+      .where(where.questions(owner)),
+    db
+      .select({
+        id: profileQuestions.id,
+        question: profileQuestions.question,
+        postId: profileQuestions.answerPostId,
+        at: profileQuestions.answeredAt,
+        name: profile.displayName,
+        username: profile.username,
+      })
+      .from(profileQuestions)
+      .innerJoin(profile, eq(profile.id, profileQuestions.profileId))
+      .where(where.answered(owner))
+      .orderBy(desc(profileQuestions.answeredAt))
+      .limit(PER_SOURCE_LIMIT),
   ]);
 
   const items: NotificationItem[] = [];
@@ -287,6 +321,28 @@ export async function loadNotifications(owner: Owner): Promise<NotificationItem[
     });
   }
 
+  if (questions && questions.count > 0 && questions.at instanceof Date) {
+    items.push({
+      kind: "questions",
+      id: "questions",
+      at: questions.at,
+      href: "/settings/voice",
+      count: questions.count,
+    });
+  }
+
+  for (const row of answeredRows) {
+    if (!row.at || !row.postId) continue;
+    items.push({
+      kind: "question-answered",
+      id: `question-answered:${row.id}`,
+      at: row.at,
+      href: `/post/${row.postId}`,
+      question: snippet(row.question, 80),
+      name: row.name?.trim() || row.username || "Someone",
+    });
+  }
+
   return items
     .sort((a, b) => b.at.getTime() - a.at.getTime())
     .slice(0, NOTIFICATIONS_LIMIT);
@@ -331,6 +387,14 @@ export async function latestNotificationAt(owner: Owner): Promise<Date | null> {
       .select({ at: latestOf(voiceCalls.createdAt) })
       .from(voiceCalls)
       .where(where.voiceSuggestions(owner)),
+    db
+      .select({ at: latestOf(profileQuestions.createdAt) })
+      .from(profileQuestions)
+      .where(where.questions(owner)),
+    db
+      .select({ at: latestOf(profileQuestions.answeredAt) })
+      .from(profileQuestions)
+      .where(where.answered(owner)),
   ]);
 
   let latest: Date | null = null;

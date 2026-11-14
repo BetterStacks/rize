@@ -41,6 +41,11 @@ export const rateLimiters = {
     ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(60, '3600 s') })
     : null,
 
+  // Questions asked on other people's profiles: 5 per day
+  question: redis
+    ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5, '86400 s') })
+    : null,
+
   // Voice call initiation: 3 per day
   call: redis
     ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(3, '86400 s') })
