@@ -85,7 +85,7 @@ const ExploreRedesigned = ({ profiles, posts }: ExploreProps) => {
           Explore
         </h1>
         <p className="mt-2 max-w-md text-base text-ink-secondary">
-          New people on Rize, and the posts getting the most votes.
+          New people on Rize, and the moments they chose to share.
         </p>
       </header>
 
@@ -110,12 +110,18 @@ const ExploreRedesigned = ({ profiles, posts }: ExploreProps) => {
       <section aria-labelledby="popular-posts">
         <SectionHeader
           id="popular-posts"
-          title="Popular posts"
-          description="Most upvoted lately"
+          title="Shared lately"
+          description="Posts from people on Rize"
           href="/explore/posts"
         />
         {postsWithViewer.length > 0 ? (
-          <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
+          <div
+            className={
+              postsWithViewer.length < 6
+                ? "max-w-3xl columns-1 gap-4 sm:columns-2"
+                : "columns-1 gap-4 sm:columns-2 lg:columns-3"
+            }
+          >
             {postsWithViewer.map((post) => (
               <div key={post.id} className="mb-4 break-inside-avoid">
                 <PostCard post={post} />
