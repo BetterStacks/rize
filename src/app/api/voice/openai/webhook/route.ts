@@ -98,7 +98,15 @@ export async function POST(req: Request) {
     console.error("[voice] accept failed", call.id, error?.message);
     await db
       .update(voiceCalls)
-      .set({ status: "failed", error: "AI could not join the call", endedAt: new Date() })
+      .set({
+        status: "failed",
+        error: "AI could not join the call",
+        // Internal only (never shown to the user): the real reason, e.g. the
+        // GPT-Live status and message, so a failed call can be diagnosed from
+        // the database without the Vercel logs.
+        closeReason: `accept_failed: ${String(error?.message ?? error).slice(0, 400)}`,
+        endedAt: new Date(),
+      })
       .where(eq(voiceCalls.id, call.id));
     return NextResponse.json({ received: true });
   }
