@@ -46,6 +46,11 @@ export const rateLimiters = {
     ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5, '86400 s') })
     : null,
 
+  // Memory learning from a profile edit or a new post (model + embedding calls): 30 per day
+  memory: redis
+    ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(30, '86400 s') })
+    : null,
+
   // Voice call initiation: 3 per day
   call: redis
     ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(3, '86400 s') })

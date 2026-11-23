@@ -14,6 +14,7 @@ import {
   projectVotes,
 } from "@/db/schema";
 import { requireAuth, requireProfile } from "@/lib/auth";
+import { learnFromProfileLater } from "@/lib/memory/sources";
 import db from "@/lib/db";
 import { profileIdIsClaimed } from "@/lib/claimed-profiles";
 import {
@@ -338,6 +339,7 @@ export const upsertProject = async (
       });
     }
 
+    learnFromProfileLater({ profileId });
     return { ok: true, projectId };
   } catch (error) {
     return { ok: false, error: (error as Error)?.message };
@@ -360,6 +362,7 @@ export async function deleteProject(id: string) {
   if (p.length === 0) {
     throw new Error("Error deleting page");
   }
+  learnFromProfileLater({ profileId });
 }
 
 export async function toggleProjectBookmark(projectId: string, bookmark: boolean) {

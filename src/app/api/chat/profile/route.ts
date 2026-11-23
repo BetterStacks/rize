@@ -9,6 +9,8 @@ import { eq, getTableColumns } from 'drizzle-orm';
 import { getProfileTools } from './tools';
 import { ChatMessage } from '@/lib/types';
 import { getSystemPrompt } from './prompt';
+import { memoryForChat } from '@/lib/memory/search';
+import { learnFromProfileLater } from '@/lib/memory/sources';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -62,6 +64,15 @@ export async function POST(req: Request) {
   const assistantMessages = messages.filter(m => m.role === 'assistant');
   const isFirstMessage = assistantMessages.length === 0;
 
+  // What Rize remembers that relates to their latest message (calls, posts, profile).
+  const latestUserText = lastUserText(messages);
+  const memory = latestUserText
+    ? await memoryForChat(session.user.id, latestUserText).catch((error) => {
+        console.error('[chat/profile] memory failed', error?.message);
+        return '';
+      })
+    : '';
+
   const systemPrompt = getSystemPrompt({
     userProfile,
     userEducation,
@@ -71,7 +82,10 @@ export async function POST(req: Request) {
     userSocialLinks: userSocialLinks || [],
     userGallery: userGallery || [],
     isFirstMessage
-  });
+  }) + memory;
+
+  // The chat may have changed their profile; memory catches up after the response.
+  learnFromProfileLater({ userId: session.user.id });
 
   const result = streamText({
     model: google(GEMINI_MODEL_ID),
@@ -94,4 +108,13 @@ export async function POST(req: Request) {
       return "Couldn't reach the assistant. Try again.";
     },
   });
+}
+
+function lastUserText(messages: ChatMessage[]): string {
+  const last = [...messages].reverse().find((m) => m.role === 'user');
+  if (!last) return '';
+  return (last.parts ?? [])
+    .map((p: any) => (p?.type === 'text' && typeof p.text === 'string' ? p.text : ''))
+    .join(' ')
+    .trim();
 }

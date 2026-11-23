@@ -33,12 +33,18 @@ const GROUPS = [
   { status: "superseded", title: "Changed since" },
 ] as const;
 
+const SOURCE_LABEL: Record<CallMemoryRow["quotes"][number]["source"], string> = {
+  call: "you said",
+  post: "you posted",
+  profile: "your profile says",
+};
+
 const dateLabel = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" });
 
 /*
- * "What Rize remembers": the notes kept between calls, each with the
- * person's own words and when they said it. Deleting really deletes.
+ * "What Rize remembers": notes from calls, posts and the profile, each with
+ * the person's own words, where and when. Deleting really deletes.
  */
 export default function CallMemoryList({
   enabled,
@@ -63,7 +69,7 @@ export default function CallMemoryList({
       toast.error(result.error);
       return;
     }
-    toast.success(next ? "Rize will remember things between calls" : "Rize won't use or keep notes between calls");
+    toast.success(next ? "Rize will remember things about you" : "Rize won't use or keep notes about you");
     router.refresh();
   };
 
@@ -83,10 +89,10 @@ export default function CallMemoryList({
       <div className="flex items-start justify-between gap-4 rounded-[20px] border border-hairline bg-surface p-5">
         <div>
           <Label htmlFor="memory-switch" className="text-[15px] font-medium text-ink">
-            Remember things between calls
+            Remember things about you
           </Label>
           <p className="mt-1 max-w-[52ch] text-sm text-ink-secondary">
-            So a later call can ask how something went. Only you see these, and they&apos;re only used on your own calls.
+            From your calls, posts and profile, so a later call can ask how something went and the profile assistant doesn&apos;t ask twice. Only you see these, and they&apos;re only used for you.
           </p>
         </div>
         <Switch id="memory-switch" checked={on} onCheckedChange={toggle} />
@@ -110,7 +116,7 @@ export default function CallMemoryList({
 
       {memories.length === 0 ? (
         <p className="text-[15px] text-ink-secondary">
-          Nothing yet. After a call, what Rize picked up shows here: things coming up, things you finished, things that changed.
+          Nothing yet. After a call, a post or a profile change, what Rize picked up shows here: things coming up, things you finished, things that changed.
         </p>
       ) : (
         <>
@@ -135,7 +141,7 @@ export default function CallMemoryList({
                         )}
                         {m.quotes.slice(-2).reverse().map((q, i) => (
                           <p key={i} className="mt-1 text-sm text-ink-secondary">
-                            {dateLabel(q.date)} · you said &ldquo;{q.quote}&rdquo;
+                            {dateLabel(q.date)} · {SOURCE_LABEL[q.source]} &ldquo;{q.quote}&rdquo;
                           </p>
                         ))}
                         {m.closedAt && (
@@ -170,7 +176,7 @@ export default function CallMemoryList({
               <AlertDialogHeader>
                 <AlertDialogTitle>Forget everything Rize remembers?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This deletes everything Rize has kept from your calls, for good. Your calls, transcripts and drafts stay.
+                  This deletes everything Rize has kept from your calls, posts and profile, for good. Your calls, posts, profile and drafts stay.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

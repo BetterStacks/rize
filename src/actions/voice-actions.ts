@@ -13,6 +13,7 @@ import {
   users,
   voiceCalls,
   voiceDrafts,
+  type TMemorySource,
   type TProfileSuggestions,
   type TVoiceDraftMedia,
 } from "@/db/schema";
@@ -755,7 +756,7 @@ export type CallMemoryRow = {
   createdAt: string;
   closedAt: string | null;
   outcome: string | null;
-  quotes: { quote: string; date: string }[];
+  quotes: { quote: string; date: string; source: TMemorySource }[];
 };
 
 export async function getMyCallMemories(): Promise<{
@@ -787,7 +788,12 @@ export async function getMyCallMemories(): Promise<{
       .orderBy(desc(callMemories.lastReinforcedAt))
       .limit(200),
     db
-      .select({ id: callObservations.id, quote: callObservations.quote, createdAt: callObservations.createdAt })
+      .select({
+        id: callObservations.id,
+        quote: callObservations.quote,
+        source: callObservations.source,
+        createdAt: callObservations.createdAt,
+      })
       .from(callObservations)
       .where(eq(callObservations.userId, userId))
       .orderBy(desc(callObservations.createdAt))
@@ -809,7 +815,7 @@ export async function getMyCallMemories(): Promise<{
       quotes: [...r.observationIds, ...(r.outcomeObservationId ? [r.outcomeObservationId] : [])]
         .map((id) => byId.get(id))
         .filter((o): o is NonNullable<typeof o> => !!o)
-        .map((o) => ({ quote: o.quote, date: o.createdAt.toISOString() })),
+        .map((o) => ({ quote: o.quote, date: o.createdAt.toISOString(), source: o.source })),
     })),
   };
 }

@@ -3,6 +3,7 @@
 
 import { education } from '@/db/schema'
 import { requireProfile } from '@/lib/auth'
+import { learnFromProfileLater } from '@/lib/memory/sources'
 import db from '@/lib/db'
 import { TEducation } from '@/lib/types'
 import { and, eq } from 'drizzle-orm'
@@ -34,6 +35,7 @@ export async function upsertEducation(data: z.infer<typeof educationSchema>) {
   } else {
     await db.insert(education).values({ ...validated, profileId })
   }
+  learnFromProfileLater({ profileId })
 }
 
 export const getAllEducation = async (username: string) => {
@@ -68,4 +70,5 @@ export async function deleteEducation(id: string) {
   await db
     .delete(education)
     .where(and(eq(education.id, id), eq(education.profileId, profileId)))
+  learnFromProfileLater({ profileId })
 }

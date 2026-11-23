@@ -8,6 +8,7 @@ import { and, eq } from "drizzle-orm";
 import { requireProfile } from "@/lib/auth";
 import { EMPLOYMENT_TYPES, TExperience } from "@/lib/types";
 import { getProfileIdByUsername } from "./profile-actions";
+import { learnFromProfileLater } from "@/lib/memory/sources";
 
 const experienceSchema = z.object({
   id: z.string().optional(),
@@ -48,6 +49,7 @@ export async function upsertExperience(data: z.infer<typeof experienceSchema>) {
       profileId: profileId,
     });
   }
+  learnFromProfileLater({ profileId });
 
   // revalidatePath("/[username]");
 }
@@ -85,5 +87,6 @@ export const deleteExperience = async (id: string) => {
   await db
     .delete(experience)
     .where(and(eq(experience.id, id), eq(experience.profileId, profileId)));
+  learnFromProfileLater({ profileId });
   revalidatePath("/[username]");
 };
