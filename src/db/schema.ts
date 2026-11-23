@@ -85,6 +85,8 @@ export const users = pgTable("user", {
   memoryContext: text("memory_context"), // rolling summary of past check-in calls
   // Lets Rize keep short notes between calls (see callMemories). On by default; the person can switch it off.
   callMemoryEnabled: boolean("call_memory_enabled").notNull().default(true),
+  // Hash of the profile text memory last learned from, so an unchanged profile isn't read again.
+  memoryProfileHash: text("memory_profile_hash"),
 });
 
 // Summaries of past check-in calls, for call memory.
@@ -1227,6 +1229,8 @@ export const voiceDrafts = pgTable(
 // Retrieval picks a few active memories for each call.
 export type TCallMemoryKind = "event" | "plan" | "person" | "project" | "interest" | "feeling";
 export type TCallMemoryStatus = "active" | "completed" | "superseded";
+// Where an observation came from: a call, the person's profile, or a post they published.
+export type TMemorySource = "call" | "profile" | "post";
 
 export const callObservations = pgTable(
   "call_observations",
@@ -1235,16 +1239,21 @@ export const callObservations = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    callId: uuid("call_id")
-      .notNull()
-      .references(() => voiceCalls.id, { onDelete: "cascade" }),
+    source: text("source").$type<TMemorySource>().notNull().default("call"),
+    // Set for source "call" only.
+    callId: uuid("call_id").references(() => voiceCalls.id, { onDelete: "cascade" }),
+    // Set for source "post" only. Deleting the post deletes what was learned from it.
+    postId: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }),
     quote: text("quote").notNull(),
     fact: text("fact").notNull(),
     kind: text("kind").$type<TCallMemoryKind>().notNull().default("event"),
     synthesized: boolean("synthesized").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("idx_call_observations_user").on(t.userId, t.createdAt)]
+  (t) => [
+    index("idx_call_observations_user").on(t.userId, t.createdAt),
+    index("idx_call_observations_post").on(t.postId),
+  ]
 );
 
 export const callMemories = pgTable(
@@ -1265,6 +1274,8 @@ export const callMemories = pgTable(
     outcomeObservationId: uuid("outcome_observation_id"),
     supersededBy: uuid("superseded_by"),
     lastReinforcedAt: timestamp("last_reinforced_at", { withTimezone: true }).notNull().defaultNow(),
+    // Embedding of the note, for search by meaning. Null until embedded; search then falls back to keywords.
+    embedding: vector("embedding", { dimensions: 768 }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("idx_call_memories_user_status").on(t.userId, t.status)]

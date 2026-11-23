@@ -89,7 +89,7 @@ export async function lookupForCall(userId: string, currentCallId: string, trans
       .orderBy(desc(callMemories.lastReinforcedAt))
       .limit(200),
     db
-      .select({ quote: callObservations.quote, at: callObservations.createdAt })
+      .select({ quote: callObservations.quote, source: callObservations.source, at: callObservations.createdAt })
       .from(callObservations)
       .where(eq(callObservations.userId, userId))
       .orderBy(desc(callObservations.createdAt))
@@ -108,7 +108,9 @@ export async function lookupForCall(userId: string, currentCallId: string, trans
     const text = m.status === "completed" && m.outcome ? `${m.note} (it happened: ${m.outcome})` : m.note;
     snippets.push({ text, date: m.at, source: m.status === "superseded" ? "an older note, since changed" : "a note", score: score(text, terms) });
   }
-  for (const o of observations) snippets.push({ text: o.quote, date: o.at, source: "they said", score: score(o.quote, terms) + 1 });
+  const OBS_SOURCE = { call: "they said", post: "a post they wrote", profile: "their profile" } as const;
+  for (const o of observations)
+    snippets.push({ text: o.quote, date: o.at, source: OBS_SOURCE[o.source] ?? "they said", score: score(o.quote, terms) + 1 });
   for (const c of calls) {
     for (const s of userSentences(c.transcript)) snippets.push({ text: s, date: c.at, source: "they said", score: score(s, terms) });
   }

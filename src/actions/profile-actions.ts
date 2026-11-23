@@ -16,6 +16,7 @@ import {
   type EnrichedSession,
 } from "@/lib/auth";
 import db from "@/lib/db";
+import { learnFromProfileLater } from "@/lib/memory/sources";
 import {
   profileIsClaimed,
   profileIsClaimedOrOwnedBy,
@@ -71,6 +72,7 @@ export async function updateProfile(data: z.infer<typeof profileSchema>) {
           }
         });
       }
+      learnFromProfileLater({ userId });
     }
 
     return { success: true, error: null };

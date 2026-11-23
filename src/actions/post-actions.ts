@@ -41,6 +41,7 @@ import { Result } from "url-metadata";
 import { z } from "zod";
 import { getProfileIdByUsername } from "./profile-actions";
 import { selectProfilePosts } from "@/lib/profile-queries";
+import { forgetPost, learnFromPostLater } from "@/lib/memory/sources";
 
 const PAGE_SIZE = 8;
 
@@ -166,6 +167,11 @@ export const deletePost = async (postId: string) => {
     .where(and(eq(posts.id, postId), eq(posts.profileId, userProfileId)))
     .limit(1);
   if (!ownPost) throw new Error("Post not found");
+
+  // What Rize learned only from this post goes with it.
+  await forgetPost(postId, userProfileId).catch((error: any) =>
+    console.error("[memory] forgetting post failed", error?.message)
+  );
 
   // Find associated media before deleting the post
   const associatedMedia = await db
@@ -340,7 +346,7 @@ export const createPost = async (payload: z.infer<typeof newPostSchema>) => {
   if (!success) {
     throw new Error(error?.message);
   }
-  await db.transaction(async (tx) => {
+  const postId = await db.transaction(async (tx) => {
     const [newPost] = await tx
       .insert(posts)
       .values({
@@ -390,7 +396,9 @@ export const createPost = async (payload: z.infer<typeof newPostSchema>) => {
         data.topicIds.map((topicId) => ({ postId: newPost.id, topicId }))
       );
     }
+    return newPost.id;
   });
+  learnFromPostLater(postId);
 };
 
 export async function votePost(postId: string, value: number) {
